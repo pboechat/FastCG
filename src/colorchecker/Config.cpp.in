@@ -1,0 +1,5 @@
+#include "Config.h"
+
+std::string Config::BASE_FOLDER_PATH = "@BASE_FOLDER_PATH@";
+std::string Config::DATA_FOLDER_PATH = "@DATA_FOLDER_PATH@";
+std::string Config::TESTS_DATA_FOLDER_PATH = "@TESTS_DATA_FOLDER_PATH@";
