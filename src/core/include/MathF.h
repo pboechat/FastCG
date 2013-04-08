@@ -83,6 +83,11 @@ public:
 		return abs(value);
 	}
 
+	inline static float Clamp(float value, float low, float high) 
+	{
+		return value < low ? low : (value > high ? high : value); 
+	}
+
 private:
 	MathF();
 	~MathF();

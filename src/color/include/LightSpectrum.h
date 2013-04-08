@@ -8,7 +8,9 @@
 class LightSpectrum
 {
 public:
-	LightSpectrum(unsigned int precision, unsigned int startingWavelength, unsigned int endingWavelength, float* pSamples) 
+	static const LightSpectrum D65;
+
+	LightSpectrum(unsigned int precision, unsigned int startingWavelength, unsigned int endingWavelength, const float* pSamples) 
 		: mPrecision(precision), mStartingWavelength(startingWavelength), mEndingWavelength(endingWavelength)
 	{
 		unsigned int size = GetSize();
@@ -53,15 +55,15 @@ public:
 	LightSpectrum operator * (const LightSpectrum& rOther) const
 	{
 		if (mStartingWavelength != rOther.mStartingWavelength) {
-			THROW_EXCEPTION(Exception, "Invalid spectrum sum");
+			THROW_EXCEPTION(Exception, "Invalid spectrum multiplication");
 		}
 
 		if (mEndingWavelength != rOther.mEndingWavelength) {
-			THROW_EXCEPTION(Exception, "Invalid spectrum sum");
+			THROW_EXCEPTION(Exception, "Invalid spectrum multiplication");
 		}
 
 		if (mPrecision != rOther.mPrecision) {
-			THROW_EXCEPTION(Exception, "Invalid spectrum sum");
+			THROW_EXCEPTION(Exception, "Invalid spectrum multiplication");
 		}
 
 		unsigned int size = GetSize();
@@ -78,16 +80,22 @@ public:
 	std::string ToString() const
 	{
 		std::stringstream str;
+
+		str << "[LightSpectrum(Start=" << mStartingWavelength << ", End=" << mEndingWavelength << ", Samples=";
 		
 		for (unsigned int i = 0; i < GetSize(); i++)
 		{
 			str << mpSamples[i] << " ";
 		}
 
+		str << ")]";
+
 		return str.str();
 	}
 
 private:
+	static const float ILLUMINANT_D65_10NM_SPECTRUM[];
+
 	unsigned int mPrecision;
 	unsigned int mStartingWavelength;
 	unsigned int mEndingWavelength;

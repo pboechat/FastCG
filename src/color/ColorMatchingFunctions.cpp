@@ -1,4 +1,4 @@
-#include "ColorMatchingFunctions.h"
+#include "include/ColorMatchingFunctions.h"
 #include <Exception.h>
 
 const float ColorMatchingFunctions::xBarFunction[] = { 0.00137f,
@@ -1210,30 +1210,40 @@ const float ColorMatchingFunctions::zBarFunction[] = { 0.00645f,
 const unsigned int ColorMatchingFunctions::STARTING_WAVELENGTH = 380;
 const unsigned int ColorMatchingFunctions::ENDING_WAVELENGTH = 780;
 
-CIEXYZColor ColorMatchingFunctions::Apply(const LightSpectrum& rLightSpectrum)
+CIEXYZColor ColorMatchingFunctions::Apply(const LightSpectrum& rIlluminanceSpectrum, const LightSpectrum& rReflectanceSpectrum)
 {
-	float X = 0, Y = 0, Z = 0;
+	ColorMatchingFunctions::XYZ illuminanceColor = PreCalculateXYZ(rIlluminanceSpectrum);
+	ColorMatchingFunctions::XYZ reflectanceColor = PreCalculateXYZ(rIlluminanceSpectrum);
 
+	float photopicResponse = illuminanceColor.Y;
+
+	ColorMatchingFunctions::XYZ finalColor = reflectanceColor / photopicResponse;
+	reflectanceColor.Normalize();
+
+	return CIEXYZColor(finalColor.X, finalColor.Y, finalColor.Z);
+}
+
+ColorMatchingFunctions::XYZ ColorMatchingFunctions::PreCalculateXYZ(const LightSpectrum& rLightSpectrum)
+{
+	ColorMatchingFunctions::XYZ color;
+
+	// range check
 	if (rLightSpectrum.GetStartingWavelength() < STARTING_WAVELENGTH || rLightSpectrum.GetEndingWavelength() > ENDING_WAVELENGTH)
 	{
 		THROW_EXCEPTION(Exception, "Light spectrum out of wavelength range");
 	}
 
-	for (unsigned int i = rLightSpectrum.GetStartingWavelength(), c = 0; i < rLightSpectrum.GetEndingWavelength(); i += rLightSpectrum.GetPrecision())
+	unsigned int precision = rLightSpectrum.GetPrecision();
+	for (unsigned int i = rLightSpectrum.GetStartingWavelength(), c = 0; i < rLightSpectrum.GetEndingWavelength(); i += precision, c++)
 	{
 		float xBar = xBarFunction[i - STARTING_WAVELENGTH];
 		float yBar = yBarFunction[i - STARTING_WAVELENGTH];
 		float zBar = zBarFunction[i - STARTING_WAVELENGTH];
 		float l = rLightSpectrum[c];
-		X += l * xBar;
-		Y += l * yBar;
-		Z += l * zBar;
+		color.X += l * xBar;
+		color.Y += l * yBar;
+		color.Z += l * zBar;
 	}
 
-	// normalizing
-	X /= Y;
-	Z /= Y;
-	Y /= Y;
-
-	return CIEXYZColor(X, Y, Z);
+	return color;
 }

@@ -81,8 +81,8 @@ public:
 		}
 	}
 
-	sRGBColor To_sRGB() const;
-	sRGBColor To_sRGB(Illuminant referenceLight) const;
+	sRGBColor To_sRGB(bool clamp = false) const;
+	sRGBColor To_sRGB(Illuminant referenceLight, bool clamp = false) const;
 
 private:
 	float mX;

@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-double sRGBColor::InverseGamma(float x) 
+double sRGBColor::InverseGammaCorrection(float x) 
 {
 	double ft;
 	double t = (double) (x > 0) ? x : -x;
@@ -20,7 +20,7 @@ double sRGBColor::InverseGamma(float x)
     return (x > 0) ? ft : -ft;
 }
 
-double sRGBColor::Gamma(double x)
+double sRGBColor::GammaCorrection(double x)
 {
 	double ft;
 	double t = (x > 0) ? x : -x;
@@ -39,9 +39,9 @@ double sRGBColor::Gamma(double x)
 
 CIEXYZColor sRGBColor::ToCIEXYZ() const
 {
-	double Rc = InverseGamma(mR);
-	double Gc = InverseGamma(mG);
-	double Bc = InverseGamma(mB);
+	double Rc = InverseGammaCorrection(mR);
+	double Gc = InverseGammaCorrection(mG);
+	double Bc = InverseGammaCorrection(mB);
 
 	float X = (float) (Rc * 0.4124564 + Gc * 0.3575761 + Bc * 0.1804375);
 	float Y = (float) (Rc * 0.2126729 + Gc * 0.7151522 + Bc * 0.0721750);

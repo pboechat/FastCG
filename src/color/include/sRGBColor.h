@@ -11,8 +11,8 @@ class CIEXYZColor;
 class sRGBColor : public Color
 {
 public:
-	static double InverseGamma(float x);
-	static double Gamma(double x);
+	static double InverseGammaCorrection(float x);
+	static double GammaCorrection(double x);
 
 	sRGBColor()
 	{
