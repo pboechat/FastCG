@@ -23,7 +23,7 @@ protected:
 private:
 	std::string mColorCheckerFilename;
 	std::map<std::string, LightSpectrum*> mBaseColorsLightSpectrums;
-	std::map<std::string, sRGBColor*> mBaseColorsInRGB;
+	std::map<std::string, sRGBColor> mBaseColorsInRGB;
 
 	void ParseColorCheckerFile();
 	void ConvertLightSpectrumsToRGBs();

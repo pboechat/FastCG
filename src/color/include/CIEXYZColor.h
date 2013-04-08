@@ -55,6 +55,13 @@ public:
 		return mZ;
 	}
 
+	void operator = (const CIEXYZColor& rOther)
+	{
+		mX = rOther.mX;
+		mY = rOther.mY;
+		mZ = rOther.mZ;
+	}
+
 	float operator [] (int index) {
 		if (index == 0) 
 		{

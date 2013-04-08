@@ -3,15 +3,15 @@
 
 #include <memory>
 #include <sstream>
+#include <Exception.h>
 
 class LightSpectrum
 {
 public:
-	LightSpectrum(unsigned int precision, unsigned int start, unsigned int end, float* pSamples) 
-		: mPrecision(precision), mStart(start), mEnd(end)
+	LightSpectrum(unsigned int precision, unsigned int startingWavelength, unsigned int endingWavelength, float* pSamples) 
+		: mPrecision(precision), mStartingWavelength(startingWavelength), mEndingWavelength(endingWavelength)
 	{
-		unsigned int interval = mEnd - mStart;
-		unsigned int size = interval / mPrecision;
+		unsigned int size = GetSize();
 		mpSamples = new float[size];
 		memcpy(mpSamples, pSamples, sizeof(float) * size);
 	}
@@ -24,23 +24,62 @@ public:
 		}
 	}
 
+	inline unsigned int GetStartingWavelength() const
+	{
+		return mStartingWavelength;
+	}
+
+	inline unsigned int GetEndingWavelength() const
+	{
+		return mEndingWavelength;
+	}
+
 	inline unsigned int GetPrecision() const
 	{
 		return mPrecision;
 	}
 
-	float operator [] (int index)
+	inline unsigned int GetSize() const
+	{
+		unsigned int interval = mEndingWavelength - mStartingWavelength;
+		return interval / mPrecision;
+	}
+
+	float operator [] (int index) const
 	{
 		return mpSamples[index];
+	}
+
+	LightSpectrum operator * (const LightSpectrum& rOther) const
+	{
+		if (mStartingWavelength != rOther.mStartingWavelength) {
+			THROW_EXCEPTION(Exception, "Invalid spectrum sum");
+		}
+
+		if (mEndingWavelength != rOther.mEndingWavelength) {
+			THROW_EXCEPTION(Exception, "Invalid spectrum sum");
+		}
+
+		if (mPrecision != rOther.mPrecision) {
+			THROW_EXCEPTION(Exception, "Invalid spectrum sum");
+		}
+
+		unsigned int size = GetSize();
+		float* pSamples = new float[size];
+
+		for (unsigned int i = 0; i < size; i++)
+		{
+			pSamples[i] = mpSamples[i] * rOther.mpSamples[i];
+		}
+
+		return LightSpectrum(mPrecision, mStartingWavelength, mEndingWavelength, pSamples);
 	}
 
 	std::string ToString() const
 	{
 		std::stringstream str;
-		unsigned int interval = mEnd - mStart;
-		unsigned int size = interval / mPrecision;
-
-		for (unsigned int i = 0; i < size; i++)
+		
+		for (unsigned int i = 0; i < GetSize(); i++)
 		{
 			str << mpSamples[i] << " ";
 		}
@@ -50,8 +89,8 @@ public:
 
 private:
 	unsigned int mPrecision;
-	unsigned int mStart;
-	unsigned int mEnd;
+	unsigned int mStartingWavelength;
+	unsigned int mEndingWavelength;
 	float* mpSamples;
 
 };

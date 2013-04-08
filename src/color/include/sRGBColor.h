@@ -4,6 +4,8 @@
 #include "Color.h"
 #include "ColorModel.h"
 
+#include <sstream>
+
 class CIEXYZColor;
 
 class sRGBColor : public Color
@@ -65,6 +67,13 @@ public:
 	}
 
 	CIEXYZColor ToCIEXYZ() const;
+
+	std::string ToString() const
+	{
+		std::stringstream str;
+		str << "[sRGB(R=" << mR << ",G=" << mG << ",B=" << mB << ")]";
+		return str.str();
+	}
 
 private:
 	float mR;

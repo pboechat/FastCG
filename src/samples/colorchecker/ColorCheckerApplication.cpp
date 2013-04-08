@@ -1,5 +1,6 @@
 #include "ColorCheckerApplication.h"
 #include "Config.h"
+#include "ColorMatchingFunctions.h"
 
 #include <FileReader.h>
 #include <StringUtils.h>
@@ -23,14 +24,6 @@ ColorCheckerApplication::~ColorCheckerApplication()
 	}
 
 	mBaseColorsLightSpectrums.clear();
-
-	std::map<std::string, sRGBColor*>::iterator i2 = mBaseColorsInRGB.begin();
-	while (i2 != mBaseColorsInRGB.end())
-	{
-		delete i2->second;
-		i2++;
-	}
-
 	mBaseColorsInRGB.clear();
 }
 
@@ -108,20 +101,33 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 	{
 		std::string baseColorName = i->first;
 
-		// TODO:
-
-		sRGBColor* pRGBColor;
-
-		mBaseColorsInRGB.insert(std::make_pair(baseColorName, pRGBColor));
+		CIEXYZColor cieXYZColor = ColorMatchingFunctions::Apply(*i->second);
+		mBaseColorsInRGB.insert(std::make_pair(baseColorName, cieXYZColor.To_sRGB()));
 
 		i++;
+	}
+
+	// DEBUG:
+	std::map<std::string, sRGBColor>::iterator i2 = mBaseColorsInRGB.begin();
+	while (i2 != mBaseColorsInRGB.end())
+	{
+		std::cout << i2->first << "=" << i2->second.ToString() << std::endl;
+		i2++;
 	}
 }
 
 bool ColorCheckerApplication::OnStart()
 {
-	ParseColorCheckerFile();
-	ConvertLightSpectrumsToRGBs();
+	try
+	{
+		ParseColorCheckerFile();
+		ConvertLightSpectrumsToRGBs();
+	} 
+	catch (Exception& e) 
+	{
+		std::cout << "Error: " << e.GetFullDescription() << std::endl;
+		return false;
+	}
 
 	return true;
 }
