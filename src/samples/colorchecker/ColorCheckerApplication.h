@@ -22,15 +22,17 @@ protected:
 	virtual bool OnStart();
 
 private:
+	static const unsigned int NUM_COLORS;
+	static const unsigned int H_TILES;
+	static const unsigned int V_TILES;
+
 	std::string mColorCheckerFilename;
-	std::map<std::string, LightSpectrum*> mBaseColorsLightSpectrums;
-	std::map<std::string, sRGBColor> mBaseColorsInRGB;
-	unsigned int mColorCheckerTextureId;
+	std::vector<LightSpectrum*> mLightSpectrums;
+	std::vector<sRGBColor> mBaseColors;
 
 	void ParseColorCheckerFile();
 	void ConvertLightSpectrumsToRGBs();
-	void BuildColorCheckerTexture();
-	void DrawQuad(unsigned int width, unsigned int height);
+	void DrawQuad(float x, float y, float width, float height, const sRGBColor& color);
 
 };
 

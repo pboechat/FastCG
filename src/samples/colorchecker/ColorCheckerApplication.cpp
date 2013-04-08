@@ -14,6 +14,10 @@
 #include <iostream>
 #include <vector>
 
+const unsigned int ColorCheckerApplication::NUM_COLORS = 24;
+const unsigned int ColorCheckerApplication::H_TILES = 6;
+const unsigned int ColorCheckerApplication::V_TILES = 4;
+
 ColorCheckerApplication::ColorCheckerApplication() 
 	: OpenGLApplication("Color Checker", 800, 600)
 {
@@ -21,15 +25,14 @@ ColorCheckerApplication::ColorCheckerApplication()
 
 ColorCheckerApplication::~ColorCheckerApplication()
 {
-	std::map<std::string, LightSpectrum*>::iterator i1 = mBaseColorsLightSpectrums.begin();
-	while (i1 != mBaseColorsLightSpectrums.end())
+	std::vector<LightSpectrum*>::iterator i1 = mLightSpectrums.begin();
+	while (i1 != mLightSpectrums.end())
 	{
-		delete i1->second;
+		delete *i1;
 		i1++;
 	}
 
-	mBaseColorsLightSpectrums.clear();
-	mBaseColorsInRGB.clear();
+	mLightSpectrums.clear();
 }
 
 bool ColorCheckerApplication::ParseCommandLineArguments(int argc, char** argv)
@@ -51,169 +54,134 @@ void ColorCheckerApplication::PrintUsage()
 
 void ColorCheckerApplication::ParseColorCheckerFile()
 {
-	std::string content = FileReader::Read(Config::DATA_FOLDER_PATH + "/" + mColorCheckerFilename, FM_TEXT);
+	std::string content = FileReader::Read(Config::DATA_FOLDER_PATH + "/samples/colorchecker/" + mColorCheckerFilename, FM_TEXT);
 
 	std::vector<std::string> lines;
 	StringUtils::Tokenize(content, "\n", lines);
 
-	if (lines.size() < 2)
+	if (lines.size() != NUM_COLORS + 1)
 	{
-		THROW_EXCEPTION(Exception, "Invalid no. of lines: %d", lines.size());
+		THROW_EXCEPTION(Exception, "No. of lines different from %d: %d", NUM_COLORS + 1, lines.size());
 	}
 
-	// TODO:
-	unsigned int start = 380;
-	unsigned int end = 730;
-	unsigned int precision = 10;
+	std::string line = lines[0];
+
+	std::vector<std::string> elements;
+	StringUtils::Tokenize(line, "\t", elements);
+
+	if (elements.size() < 4) 
+	{
+		THROW_EXCEPTION(Exception, "Not enough elements per line: %d", elements.size());
+	}
+
+	unsigned int initialWavelength = atoi(elements[2].c_str());
+	unsigned int nextWavelength = atoi(elements[3].c_str());
+	unsigned int finalWavelength = atoi(elements[elements.size() - 1].c_str());
+	unsigned int precision = (nextWavelength - initialWavelength);
 
 	for (unsigned int i = 1; i < lines.size(); i++)
 	{
-		std::string line = lines[i];
+		line = lines[i];
 
-		std::vector<std::string> elements;
+		elements.clear();
 		StringUtils::Tokenize(line, "\t", elements);
 
-		if (elements.size() != 38)
+		unsigned int numFunctionValues = elements.size() - 3;
+
+		float* pFunctionValues = new float[numFunctionValues];
+
+		for (unsigned int j = 0, k = 2; j < numFunctionValues; j++, k++)
 		{
-			THROW_EXCEPTION(Exception, "Invalid no. of elements: %d", elements.size());
+			pFunctionValues[j] = (float)atof(elements[k].c_str());
 		}
 
-		float pSamples[35];
+		LightSpectrum* pLightSpectrum = new LightSpectrum(initialWavelength, finalWavelength, precision, pFunctionValues);
 
-		for (unsigned int j = 0; j < 35; j++)
-		{
-			pSamples[j] = (float)atof(elements[j + 2].c_str());
-		}
+		delete[] pFunctionValues;
 
-		LightSpectrum* pLightSpectrum = new LightSpectrum(precision, start, end, pSamples);
-
-		mBaseColorsLightSpectrums.insert(std::make_pair(elements[1], pLightSpectrum));
+		mLightSpectrums.push_back(pLightSpectrum);
 	}
 
-	// DEBUG:
-
+#ifdef _DEBUG
 	std::cout << "*************************************" << std::endl;
 
-	std::map<std::string, LightSpectrum*>::iterator i = mBaseColorsLightSpectrums.begin();
-	while (i != mBaseColorsLightSpectrums.end())
+	std::vector<LightSpectrum*>::iterator it = mLightSpectrums.begin();
+	while (it != mLightSpectrums.end())
 	{
-		std::cout << i->first << "=" << i->second->ToString() << std::endl << std::endl;
-		i++;
+		std::cout << (*it)->ToString() << std::endl << std::endl;
+		it++;
 	}
 
 	std::cout << "*************************************" << std::endl;
+#endif
 }
 
 void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 {
-	std::map<std::string, LightSpectrum*>::iterator i1 = mBaseColorsLightSpectrums.begin();
-	while (i1 != mBaseColorsLightSpectrums.end())
+	std::vector<LightSpectrum*>::iterator i1 = mLightSpectrums.begin();
+	while (i1 != mLightSpectrums.end())
 	{
-		std::string baseColorName = i1->first;
-
-		LightSpectrum reflectanceSpectrum = LightSpectrum::D65 * (*i1->second);
-
-		CIEXYZColor cieXYZColor = ColorMatchingFunctions::Apply(LightSpectrum::D65, reflectanceSpectrum);
-		mBaseColorsInRGB.insert(std::make_pair(baseColorName, cieXYZColor.To_sRGB(I_D65, true)));
+		CIEXYZColor cieXYZColor = ColorMatchingFunctions::Apply(I_D65, *(*i1));
+		mBaseColors.push_back(cieXYZColor.To_sRGB(I_D65, true));
 
 		i1++;
 	}
 
-	// DEBUG:
-
+#ifdef _DEBUG
 	std::cout << "*************************************" << std::endl;
 
-	std::map<std::string, sRGBColor>::iterator i2 = mBaseColorsInRGB.begin();
-	while (i2 != mBaseColorsInRGB.end())
+	std::vector<sRGBColor>::iterator i2 = mBaseColors.begin();
+	while (i2 != mBaseColors.end())
 	{
-		std::cout << i2->first << "=" << i2->second.ToString() << std::endl << std::endl;
+		std::cout << i2->ToString() << std::endl << std::endl;
 		i2++;
 	}
 
 	std::cout << "*************************************" << std::endl;
-}
-
-void ColorCheckerApplication::BuildColorCheckerTexture()
-{
-	float* pData = new float[800 * 600 * 3];
-
-	// TODO:
-	unsigned int chartWidth = 6;
-	unsigned int chartHeight = 4;
-
-	unsigned int checkerWidth = (800 / chartWidth);
-	unsigned int checkerHeight = (600 / chartHeight);
-
-	std::map<std::string, sRGBColor>::iterator colorIterator = mBaseColorsInRGB.begin();
-	unsigned int lineWidth = chartWidth * checkerWidth;
-	for (unsigned int height = 0; height < chartHeight; height++)
-	{
-		unsigned int top = (height * checkerHeight) * lineWidth;
-
-		for (unsigned int width = 0; width < chartWidth; width++)
-		{
-			float r = colorIterator->second.R();
-			float g = colorIterator->second.G();
-			float b = colorIterator->second.B();
-
-			int left = width * checkerWidth;
-
-			for (unsigned int y = 0; y < checkerHeight; y++) 
-			{
-				for (unsigned int x = 0; x < checkerWidth; x++) 
-				{
-					int c = (top + (y * lineWidth) + left + x) * 3;
-					pData[c] = r;
-					pData[c + 1] = g;
-					pData[c + 2] = b;
-				}
-			}
-
-			colorIterator++;
-		}
-	}
-
-	mColorCheckerTextureId = AllocateTexture(GL_TEXTURE_2D, 800, 600, GL_RGB, GL_RGB, pData);
+#endif
 }
 
 void ColorCheckerApplication::SetUpViewport()
 {
 	glMatrixMode(GL_PROJECTION);
-	glm::mat4 projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+	glm::mat4 projection = glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight);
 	glLoadMatrixf(&projection[0][0]);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, mScreenWidth, mScreenHeight);
 }
 
-void ColorCheckerApplication::DrawQuad(unsigned int width, unsigned int height)
+void ColorCheckerApplication::DrawQuad(float x, float y, float width, float height, const sRGBColor& color)
 {
+	glPushMatrix();
+
+	glTranslatef(x, y, 0);
+
 	glBegin(GL_QUADS);
-		glTexCoord2d(0, 0);
-		glVertex2d(0, 0);
+		glColor3f(color.R(), color.G(), color.B());
+		glVertex2f(0, 0);
 
-		glTexCoord2d(1, 0);
-		glVertex2d(width, 0);
+		glColor3f(color.R(), color.G(), color.B());
+		glVertex2f(width, 0);
 
-		glTexCoord2d(1, 1);
-		glVertex2d(width, height);
+		glColor3f(color.R(), color.G(), color.B());
+		glVertex2f(width, height);
 
-		glTexCoord2d(0, 1);
-		glVertex2d(0, height);
+		glColor3f(color.R(), color.G(), color.B());
+		glVertex2f(0, height);
 	glEnd();
+
+	glPopMatrix();
 }
 
 bool ColorCheckerApplication::OnStart()
 {
-	glEnable(GL_TEXTURE_2D);
-
 	try
 	{
 		ParseColorCheckerFile();
 		ConvertLightSpectrumsToRGBs();
-		BuildColorCheckerTexture();
 
 		CHECK_FOR_OPENGL_ERRORS();
 	} 
@@ -232,8 +200,18 @@ void ColorCheckerApplication::OnDisplay()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glBindTexture(GL_TEXTURE_2D, mColorCheckerTextureId);
-	DrawQuad(800, 600);
+	float tileWidth = mScreenWidth / (float)H_TILES;
+	float tileHeight = mScreenHeight / (float)V_TILES;
+	
+	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
+	for (unsigned int y = V_TILES; y > 0; y--) 
+	{
+		for (unsigned int x = 0; x < H_TILES; x++)
+		{
+			DrawQuad(x * tileWidth, (y - 1) * tileHeight, tileWidth, tileHeight, *colorIterator);
+			colorIterator++;
+		}
+	}
 
 	glutSwapBuffers();
 }

@@ -16,15 +16,14 @@ const CIEXYZColor CIEXYZColor::F7(1, 1, 1);
 const CIEXYZColor CIEXYZColor::F11(1, 1, 1);
 const CIEXYZColor CIEXYZColor::test(1, 1, 1);
 
-sRGBColor CIEXYZColor::To_sRGB(bool clamp) const
+sRGBColor CIEXYZColor::To_sRGB(bool ignoreError) const
 {
-	return To_sRGB(I_D65, clamp);
+	return To_sRGB(I_D65, ignoreError);
 }
 
-sRGBColor CIEXYZColor::To_sRGB(Illuminant referenceLight, bool clamp) const
+sRGBColor CIEXYZColor::To_sRGB(Illuminant referenceLight, bool ignoreError) const
 {
 	double r, g, b;
-	int error = 0;
 
 	if (referenceLight == I_D50) 
 	{  
@@ -45,18 +44,9 @@ sRGBColor CIEXYZColor::To_sRGB(Illuminant referenceLight, bool clamp) const
 	g = sRGBColor::GammaCorrection(g);
 	b = sRGBColor::GammaCorrection(b);
 
-	if (r < 0 || g < 0 || b < 0 || r > 1 || g > 1 || b > 1)
+	if ((r < 0 || g < 0 || b < 0 || r > 1 || g > 1 || b > 1) && !ignoreError)
 	{
-		if (clamp) 
-		{
-			r = MathF::Clamp((float)r, 0.0f, 1.0f);
-			g = MathF::Clamp((float)g, 0.0f, 1.0f);
-			b = MathF::Clamp((float)b, 0.0f, 1.0f);
-		}
-		else
-		{
-			THROW_EXCEPTION(InvalidColorConversionException, "Invalid conversion from CIEXYZ to sRGB");
-		}
+		THROW_EXCEPTION(InvalidColorConversionException, "Invalid conversion from CIEXYZ to sRGB");
 	}
 
 	return sRGBColor((float)r, (float)g, (float)b);

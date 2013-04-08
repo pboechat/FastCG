@@ -8,32 +8,30 @@
 class LightSpectrum
 {
 public:
-	static const LightSpectrum D65;
-
-	LightSpectrum(unsigned int precision, unsigned int startingWavelength, unsigned int endingWavelength, const float* pSamples) 
-		: mPrecision(precision), mStartingWavelength(startingWavelength), mEndingWavelength(endingWavelength)
+	LightSpectrum(unsigned int initialWavelength, unsigned int finalWavelength, unsigned int precision, const float* pFunctionValues) 
+		: mInitialWavelength(initialWavelength), mFinalWavelength(finalWavelength), mPrecision(precision)
 	{
 		unsigned int size = GetSize();
-		mpSamples = new float[size];
-		memcpy(mpSamples, pSamples, sizeof(float) * size);
+		mpFunctionValues = new float[size];
+		memcpy(mpFunctionValues, pFunctionValues, sizeof(float) * size);
 	}
 
 	~LightSpectrum() 
 	{
-		if (mpSamples != NULL)
+		if (mpFunctionValues != NULL)
 		{
-			delete[] mpSamples;
+			delete[] mpFunctionValues;
 		}
 	}
 
-	inline unsigned int GetStartingWavelength() const
+	inline unsigned int GetInitialWavelength() const
 	{
-		return mStartingWavelength;
+		return mInitialWavelength;
 	}
 
-	inline unsigned int GetEndingWavelength() const
+	inline unsigned int GetFinalWavelength() const
 	{
-		return mEndingWavelength;
+		return mFinalWavelength;
 	}
 
 	inline unsigned int GetPrecision() const
@@ -43,63 +41,21 @@ public:
 
 	inline unsigned int GetSize() const
 	{
-		unsigned int interval = mEndingWavelength - mStartingWavelength;
-		return interval / mPrecision;
+		return (mFinalWavelength - mInitialWavelength) / mPrecision;
 	}
 
-	float operator [] (int index) const
+	inline float operator [] (int index) const
 	{
-		return mpSamples[index];
+		return mpFunctionValues[index];
 	}
 
-	LightSpectrum operator * (const LightSpectrum& rOther) const
-	{
-		if (mStartingWavelength != rOther.mStartingWavelength) {
-			THROW_EXCEPTION(Exception, "Invalid spectrum multiplication");
-		}
-
-		if (mEndingWavelength != rOther.mEndingWavelength) {
-			THROW_EXCEPTION(Exception, "Invalid spectrum multiplication");
-		}
-
-		if (mPrecision != rOther.mPrecision) {
-			THROW_EXCEPTION(Exception, "Invalid spectrum multiplication");
-		}
-
-		unsigned int size = GetSize();
-		float* pSamples = new float[size];
-
-		for (unsigned int i = 0; i < size; i++)
-		{
-			pSamples[i] = mpSamples[i] * rOther.mpSamples[i];
-		}
-
-		return LightSpectrum(mPrecision, mStartingWavelength, mEndingWavelength, pSamples);
-	}
-
-	std::string ToString() const
-	{
-		std::stringstream str;
-
-		str << "[LightSpectrum(Start=" << mStartingWavelength << ", End=" << mEndingWavelength << ", Samples=";
-		
-		for (unsigned int i = 0; i < GetSize(); i++)
-		{
-			str << mpSamples[i] << " ";
-		}
-
-		str << ")]";
-
-		return str.str();
-	}
+	std::string ToString() const;
 
 private:
-	static const float ILLUMINANT_D65_10NM_SPECTRUM[];
-
 	unsigned int mPrecision;
-	unsigned int mStartingWavelength;
-	unsigned int mEndingWavelength;
-	float* mpSamples;
+	unsigned int mInitialWavelength;
+	unsigned int mFinalWavelength;
+	float* mpFunctionValues;
 
 };
 
