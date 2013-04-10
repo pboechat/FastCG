@@ -1,4 +1,7 @@
-[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+.metadata/
+RemoteSystemsTempFiles/
 
 # Compiled Object files
 *.slo
