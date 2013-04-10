@@ -5,8 +5,7 @@
 
 enum FileMode
 {
-	FM_TEXT,
-	FM_BINARY
+	FM_TEXT, FM_BINARY
 };
 
 char* GetFileModeString(FileMode mode);

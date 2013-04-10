@@ -8,7 +8,7 @@
 
 class CIEXYZColor;
 
-class sRGBColor : public Color
+class sRGBColor: public Color
 {
 public:
 	static double InverseGammaCorrection(float x);
@@ -18,8 +18,8 @@ public:
 	{
 	}
 
-	sRGBColor(float r, float g, float b)
-		: mR(r), mG(g), mB(b)
+	sRGBColor(float r, float g, float b) :
+			mR(r), mG(g), mB(b)
 	{
 	}
 
@@ -47,20 +47,21 @@ public:
 		return mB;
 	}
 
-	float operator [] (int index) const {
-		if (index == 0) 
+	float operator [](int index) const
+	{
+		if (index == 0)
 		{
 			return mR;
-		} 
-		else if (index == 1) 
+		}
+		else if (index == 1)
 		{
 			return mG;
 		}
-		else if (index == 2) 
+		else if (index == 2)
 		{
 			return mB;
 		}
-		else 
+		else
 		{
 			return 0;
 		}

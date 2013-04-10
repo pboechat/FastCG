@@ -1,17 +1,19 @@
-#ifndef OPENGLAPPLICATION_H
-#define OPENGLAPPLICATION_H
+#ifndef APPLICATION_H_
+#define APPLICATION_H_
 
 #include <string>
 #include <vector>
 #include <sstream>
 
-class OpenGLApplication
+#include "Camera.h"
+
+class Application
 {
 public:
-	OpenGLApplication(const std::string& rWindowTitle, int screenWidth, int screenHeight);
-	virtual ~OpenGLApplication();
+	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight);
+	virtual ~Application();
 
-	static OpenGLApplication* GetInstance();
+	static Application* GetInstance();
 	static bool HasStarted();
 
 	void Run(int argc, char** argv);
@@ -22,11 +24,22 @@ public:
 	void MouseMove(int x, int y);
 	void Keyboard(int key, int x, int y);
 
+	inline float GetAspectRatio() const
+	{
+		return mScreenWidth / (float) mScreenHeight;
+	}
+
+	inline const Camera& GetMainCamera() const
+	{
+		return mainCamera;
+	}
+
 protected:
 	int mScreenWidth;
 	int mScreenHeight;
 	float mHalfScreenWidth;
 	float mHalfScreenHeight;
+	Camera mainCamera;
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
@@ -39,7 +52,7 @@ protected:
 	virtual void OnKeyPress(int key);
 	virtual void PrintUsage();
 
-	int GetMaximumTextureSize() const;
+	/*int GetMaximumTextureSize() const;
 	unsigned int AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat);
 	unsigned int AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat, float* pData);
 	unsigned int AllocateFBO();
@@ -51,23 +64,17 @@ protected:
 	void DeallocateTexture(unsigned int textureId);
 	void TransferToTexture(unsigned int textureId, unsigned int textureTarget, unsigned int textureWidth, unsigned int textureHeight, unsigned int textureFormat, float* pBuffer) const;
 	void TransferFromTexture(unsigned int textureId, unsigned int target, unsigned int format, float* pBuffer) const;
-	void TransferFromBuffer(unsigned int bufferId, unsigned int width, unsigned int height, unsigned int format, float* pBuffer) const;
+	void TransferFromBuffer(unsigned int bufferId, unsigned int width, unsigned int height, unsigned int format, float* pBuffer) const;*/
 
 private:
-	static OpenGLApplication* s_mpInstance;
+	static Application* s_mpInstance;
 	static bool s_mStarted;
 
-	std::vector<unsigned int> mTexturesIds;
-	std::vector<unsigned int> mFBOIds;
-	std::vector<unsigned int> mBOIds;
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
 
 	void SetUpGLUT(int argc, char** argv);
-	void DeallocateFBOs();
-	void DeallocateTextures();
-	void DeallocateBOs();
-	
+
 };
 
 void GLUTDisplayCallback();

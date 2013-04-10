@@ -7,7 +7,7 @@
 
 class sRGBColor;
 
-class CIEXYZColor : public Color
+class CIEXYZColor: public Color
 {
 public:
 	// White references
@@ -26,8 +26,8 @@ public:
 	{
 	}
 
-	CIEXYZColor(float X, float Y, float Z)
-		: mX(X), mY(Y), mZ(Z)
+	CIEXYZColor(float X, float Y, float Z) :
+			mX(X), mY(Y), mZ(Z)
 	{
 	}
 
@@ -55,27 +55,28 @@ public:
 		return mZ;
 	}
 
-	void operator = (const CIEXYZColor& rOther)
+	void operator =(const CIEXYZColor& rOther)
 	{
 		mX = rOther.mX;
 		mY = rOther.mY;
 		mZ = rOther.mZ;
 	}
 
-	float operator [] (int index) {
-		if (index == 0) 
+	float operator [](int index)
+	{
+		if (index == 0)
 		{
 			return mX;
-		} 
-		else if (index == 1) 
+		}
+		else if (index == 1)
 		{
 			return mY;
 		}
-		else if (index == 2) 
+		else if (index == 2)
 		{
 			return mZ;
 		}
-		else 
+		else
 		{
 			return 0;
 		}

@@ -5,7 +5,7 @@ std::string LightSpectrum::ToString() const
 	std::stringstream stream;
 
 	stream << "[LightSpectrum(MinLambda=" << mInitialWavelength << ", MaxLambda=" << mFinalWavelength << ", FunctionValues=";
-		
+
 	for (unsigned int i = 0; i < GetSize(); i++)
 	{
 		stream << mpFunctionValues[i] << " ";

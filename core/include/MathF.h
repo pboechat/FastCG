@@ -53,14 +53,18 @@ public:
 
 	inline static float Max(float a, float b)
 	{
-		if (a >= b) return a;
-		else return b;
+		if (a >= b)
+			return a;
+		else
+			return b;
 	}
 
 	inline static float Min(float a, float b)
 	{
-		if (a <= b) return a;
-		else return b;
+		if (a <= b)
+			return a;
+		else
+			return b;
 	}
 
 	inline static float Cos(float angleInRadians)
@@ -83,15 +87,15 @@ public:
 		return abs(value);
 	}
 
-	inline static float Clamp(float value, float low, float high) 
+	inline static float Clamp(float value, float low, float high)
 	{
-		return value < low ? low : (value > high ? high : value); 
+		return value < low ? low : (value > high ? high : value);
 	}
 
 private:
 	MathF();
 	~MathF();
-	
+
 };
 
 #endif

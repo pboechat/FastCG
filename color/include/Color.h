@@ -6,12 +6,17 @@
 class Color
 {
 public:
-	Color() {};
-	virtual ~Color() {};
+	Color()
+	{
+	}
+	;
+	virtual ~Color()
+	{
+	}
+	;
 
 	virtual ColorModel GetModel() const = 0;
 
 };
-
 
 #endif

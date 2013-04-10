@@ -3,12 +3,11 @@
 
 #include "Exception.h"
 
-class InvalidColorConversionException : public Exception
+class InvalidColorConversionException: public Exception
 {
 public:
-	InvalidColorConversionException(const std::string& rReason) 
-		: 
-		Exception(rReason)
+	InvalidColorConversionException(const std::string& rReason) :
+			Exception(rReason)
 	{
 	}
 

@@ -6,23 +6,19 @@
 #include <string>
 #include <sstream>
 
-class Exception : public std::exception
+class Exception: public std::exception
 {
 public:
-	Exception(const std::string& rReason) 
-		: 
-	mReason(rReason),
-	mFunction(""),
-	mFile(""),
-	mLine(0)
+	Exception(const std::string& rReason) :
+			mReason(rReason), mFunction(""), mFile(""), mLine(0)
 	{
 	}
 
-	virtual ~Exception() throw()
+	virtual ~Exception() throw ()
 	{
 	}
 
-	virtual const char* what() const throw()
+	virtual const char* what() const throw ()
 	{
 		return mReason.c_str();
 	}
@@ -65,7 +61,7 @@ public:
 	inline std::string GetFullDescription() const
 	{
 		std::stringstream stringStream;
-		stringStream << "Reason: " << mReason  << "\n\n";
+		stringStream << "Reason: " << mReason << "\n\n";
 		stringStream << "Where: " << mFunction << "(..) @(" << mFile << ":" << mLine << ")\n\n";
 		return stringStream.str();
 	}
@@ -76,12 +72,8 @@ protected:
 	std::string mFile;
 	unsigned int mLine;
 
-	Exception()
-	:
-	mReason(""),
-	mFunction(""),
-	mFile(""),
-	mLine(0)
+	Exception() :
+			mReason(""), mFunction(""), mFile(""), mLine(0)
 	{
 	}
 

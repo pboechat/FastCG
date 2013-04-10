@@ -1,4 +1,4 @@
-#include "include/OpenGLApplication.h"
+#include "include/GLUTApplication.h"
 #include "include/OpenGLExceptions.h"
 
 #include <GL/glew.h>
@@ -8,21 +8,16 @@
 
 #include <algorithm>
 
-OpenGLApplication* OpenGLApplication::s_mpInstance = NULL;
-bool OpenGLApplication::s_mStarted = false;
+Application* Application::s_mpInstance = NULL;
+bool Application::s_mStarted = false;
 
-OpenGLApplication::OpenGLApplication(const std::string& rWindowTitle, int screenWidth, int screenHeight)
-	:
-	mWindowTitle(rWindowTitle),
-	mScreenWidth(screenWidth),
-	mScreenHeight(screenHeight),
-	mHalfScreenWidth(screenWidth / 2.0f),
-	mHalfScreenHeight(screenHeight / 2.0f)
+Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
+		mWindowTitle(rWindowTitle), mScreenWidth(screenWidth), mScreenHeight(screenHeight), mHalfScreenWidth(screenWidth / 2.0f), mHalfScreenHeight(screenHeight / 2.0f), mGLUTWindowHandle(0)
 {
 	s_mpInstance = this;
 }
 
-OpenGLApplication::~OpenGLApplication()
+Application::~Application()
 {
 	if (HasStarted())
 	{
@@ -30,11 +25,11 @@ OpenGLApplication::~OpenGLApplication()
 	}
 }
 
-void OpenGLApplication::PrintUsage()
+void Application::PrintUsage()
 {
 }
 
-void OpenGLApplication::Run(int argc, char** argv)
+void Application::Run(int argc, char** argv)
 {
 	atexit(ExitCallback);
 
@@ -43,8 +38,7 @@ void OpenGLApplication::Run(int argc, char** argv)
 		PrintUsage();
 		return;
 	}
-	
-	
+
 	SetUpGLUT(argc, argv);
 	SetUpViewport();
 
@@ -55,12 +49,12 @@ void OpenGLApplication::Run(int argc, char** argv)
 	}
 }
 
-bool OpenGLApplication::ParseCommandLineArguments(int argc, char** argv)
+bool Application::ParseCommandLineArguments(int argc, char** argv)
 {
 	return true;
 }
 
-void OpenGLApplication::SetUpGLUT(int argc, char** argv)
+void Application::SetUpGLUT(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
@@ -76,12 +70,12 @@ void OpenGLApplication::SetUpGLUT(int argc, char** argv)
 	glutSpecialFunc(GLUTSpecialKeysCallback);
 }
 
-void OpenGLApplication::Display()
+void Application::Display()
 {
 	OnDisplay();
 }
 
-void OpenGLApplication::Resize(int width, int height)
+void Application::Resize(int width, int height)
 {
 	mScreenWidth = width;
 	mScreenHeight = height;
@@ -91,36 +85,48 @@ void OpenGLApplication::Resize(int width, int height)
 	OnResize();
 }
 
-bool OpenGLApplication::OnStart()
+bool Application::OnStart()
 {
 	return true;
 }
 
-void OpenGLApplication::OnDisplay()
+void Application::OnDisplay()
 {
 }
 
-void OpenGLApplication::OnResize()
+void Application::OnResize()
 {
 }
 
-void OpenGLApplication::OnFinish()
+void Application::OnFinish()
 {
 }
 
-OpenGLApplication* OpenGLApplication::GetInstance()
+Application* Application::GetInstance()
 {
 	return s_mpInstance;
 }
 
-int OpenGLApplication::GetMaximumTextureSize() const
+void Application::SetUpViewport()
+{
+	glViewport(0, 0, mScreenWidth, mScreenHeight);
+}
+
+void Application::Quit()
+{
+	s_mStarted = false;
+	OnFinish();
+	glutDestroyWindow(mGLUTWindowHandle);
+}
+
+/*int GLUTApplication::GetMaximumTextureSize() const
 {
 	int maximumTextureSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maximumTextureSize);
 	return maximumTextureSize;
 }
 
-unsigned int OpenGLApplication::AllocateFBO()
+unsigned int GLUTApplication::AllocateFBO()
 {
 	unsigned int fboId;
 
@@ -132,7 +138,7 @@ unsigned int OpenGLApplication::AllocateFBO()
 	return fboId;
 }
 
-unsigned int OpenGLApplication::AllocatePBO(unsigned int size, unsigned int usage, float* pData)
+unsigned int GLUTApplication::AllocatePBO(unsigned int size, unsigned int usage, float* pData)
 {
 	unsigned int vboId = AllocateBO();
 
@@ -142,7 +148,7 @@ unsigned int OpenGLApplication::AllocatePBO(unsigned int size, unsigned int usag
 	return vboId;
 }
 
-unsigned int OpenGLApplication::AllocateVBO(unsigned int size, unsigned int usage, float* pData)
+unsigned int GLUTApplication::AllocateVBO(unsigned int size, unsigned int usage, float* pData)
 {
 	unsigned int vboId = AllocateBO();
 
@@ -152,7 +158,7 @@ unsigned int OpenGLApplication::AllocateVBO(unsigned int size, unsigned int usag
 	return vboId;
 }
 
-unsigned int OpenGLApplication::AllocateBO()
+unsigned int GLUTApplication::AllocateBO()
 {
 	unsigned int boId;
 
@@ -163,12 +169,12 @@ unsigned int OpenGLApplication::AllocateBO()
 	return boId;
 }
 
-unsigned int OpenGLApplication::AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat)
+unsigned int GLUTApplication::AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat)
 {
 	return AllocateTexture(target, width, height, internalFormat, textureFormat, NULL);
 }
 
-unsigned int OpenGLApplication::AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat, float* pData)
+unsigned int GLUTApplication::AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat, float* pData)
 {
 	unsigned int textureId;
 
@@ -188,27 +194,7 @@ unsigned int OpenGLApplication::AllocateTexture(unsigned int target, unsigned in
 	return textureId;
 }
 
-void OpenGLApplication::SetUpViewport()
-{
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(60, mScreenWidth / (float) mScreenHeight, 1.0, 100.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glViewport(0, 0, mScreenWidth, mScreenHeight);
-}
-
-void OpenGLApplication::Quit()
-{
-	s_mStarted = false;
-	OnFinish();
-	DeallocateFBOs();
-	DeallocateBOs();
-	DeallocateTextures();
-	glutDestroyWindow(mGLUTWindowHandle);
-}
-
-void OpenGLApplication::DeallocateFBOs()
+void GLUTApplication::DeallocateFBOs()
 {
 	for (unsigned int i = 0; i < mFBOIds.size(); i++)
 	{
@@ -216,7 +202,7 @@ void OpenGLApplication::DeallocateFBOs()
 	}
 }
 
-void OpenGLApplication::DeallocateBOs()
+void GLUTApplication::DeallocateBOs()
 {
 	for (unsigned int i = 0; i < mBOIds.size(); i++)
 	{
@@ -224,7 +210,7 @@ void OpenGLApplication::DeallocateBOs()
 	}
 }
 
-void OpenGLApplication::DeallocateTextures()
+void GLUTApplication::DeallocateTextures()
 {
 	for (unsigned int i = 0; i < mTexturesIds.size(); i++)
 	{
@@ -232,33 +218,33 @@ void OpenGLApplication::DeallocateTextures()
 	}
 }
 
-void OpenGLApplication::DeallocateFBO(unsigned int fboId)
+void GLUTApplication::DeallocateFBO(unsigned int fboId)
 {
 	glDeleteFramebuffers(1, &fboId);
 	std::vector<unsigned int>::iterator iterator = std::find(mFBOIds.begin(), mFBOIds.end(), fboId);
 	mFBOIds.erase(iterator);
 }
 
-void OpenGLApplication::DeallocateBO(unsigned int vboId)
+void GLUTApplication::DeallocateBO(unsigned int vboId)
 {
 	glDeleteBuffers(1, &vboId);
 	std::vector<unsigned int>::iterator iterator = std::find(mBOIds.begin(), mBOIds.end(), vboId);
 	mBOIds.erase(iterator);
-}
+}*/
 
-bool OpenGLApplication::HasStarted()
+bool Application::HasStarted()
 {
 	return s_mStarted;
 }
 
-void OpenGLApplication::DeallocateTexture(unsigned int textureId)
+/*void GLUTApplication::DeallocateTexture(unsigned int textureId)
 {
 	glDeleteTextures(1, &textureId);
 	std::vector<unsigned int>::iterator iterator = std::find(mTexturesIds.begin(), mTexturesIds.end(), textureId);
 	mTexturesIds.erase(iterator);
 }
 
-void OpenGLApplication::TransferToTexture(unsigned int textureId, unsigned int textureTarget, unsigned int textureWidth, unsigned int textureHeight, unsigned int textureFormat, float* pBuffer) const
+void GLUTApplication::TransferToTexture(unsigned int textureId, unsigned int textureTarget, unsigned int textureWidth, unsigned int textureHeight, unsigned int textureFormat, float* pBuffer) const
 {
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureTarget, textureId, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -271,79 +257,79 @@ void OpenGLApplication::TransferToTexture(unsigned int textureId, unsigned int t
 	//glTexSubImage2D(textureTarget, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_FLOAT, pBuffer);
 }
 
-void OpenGLApplication::TransferFromBuffer(unsigned int bufferId, unsigned int width, unsigned int height, unsigned int format, float* pBuffer) const
+void GLUTApplication::TransferFromBuffer(unsigned int bufferId, unsigned int width, unsigned int height, unsigned int format, float* pBuffer) const
 {
 	glReadBuffer(bufferId);
 	glReadPixels(0, 0, width, height, format, GL_FLOAT, pBuffer);
 }
 
-void OpenGLApplication::TransferFromTexture(unsigned int textureId, unsigned int target, unsigned int format, float* pBuffer) const
+void GLUTApplication::TransferFromTexture(unsigned int textureId, unsigned int target, unsigned int format, float* pBuffer) const
 {
 	glBindTexture(target, textureId);
 	glGetTexImage(target, 0, format, GL_FLOAT, pBuffer);
-}
+}*/
 
-void OpenGLApplication::MouseButton(int button, int state, int x, int y)
+void Application::MouseButton(int button, int state, int x, int y)
 {
 	OnMouseButton(button, state, x, y);
 }
 
-void OpenGLApplication::MouseMove(int x, int y)
+void Application::MouseMove(int x, int y)
 {
 	OnMouseMove(x, y);
 }
 
-void OpenGLApplication::Keyboard(int key, int x, int y)
+void Application::Keyboard(int key, int x, int y)
 {
 	OnKeyPress(key);
 }
 
-void OpenGLApplication::OnMouseButton(int button, int state, int x, int y)
+void Application::OnMouseButton(int button, int state, int x, int y)
 {
 }
 
-void OpenGLApplication::OnMouseMove(int x, int y)
+void Application::OnMouseMove(int x, int y)
 {
 }
 
-void OpenGLApplication::OnKeyPress(int key)
+void Application::OnKeyPress(int key)
 {
 }
 
 void GLUTDisplayCallback()
 {
-	OpenGLApplication::GetInstance()->Display();
+	Application::GetInstance()->Display();
 }
 
 void GLUTReshapeWindowCallback(int width, int height)
 {
-	OpenGLApplication::GetInstance()->Resize(width, height);
+	Application::GetInstance()->Resize(width, height);
 }
 
 void GLUTMouseButtonCallback(int button, int state, int x, int y)
 {
-	OpenGLApplication::GetInstance()->MouseButton(button, state, x, y);
+	Application::GetInstance()->MouseButton(button, state, x, y);
 }
 
 void GLUTMouseMoveCallback(int x, int y)
 {
-	OpenGLApplication::GetInstance()->MouseMove(x, y);
+	Application::GetInstance()->MouseMove(x, y);
 }
 
 void GLUTKeyboardCallback(unsigned char key, int x, int y)
 {
-	OpenGLApplication::GetInstance()->Keyboard((int)key, x, y);
+	Application::GetInstance()->Keyboard((int) key, x, y);
 }
 
 void GLUTSpecialKeysCallback(int key, int x, int y)
 {
-	OpenGLApplication::GetInstance()->Keyboard(key, x, y);
+	Application::GetInstance()->Keyboard(key, x, y);
 }
 
 void ExitCallback()
 {
-	if (OpenGLApplication::HasStarted())
+	if (Application::HasStarted())
 	{
-		OpenGLApplication::GetInstance()->Quit();
+		Application::GetInstance()->Quit();
 	}
 }

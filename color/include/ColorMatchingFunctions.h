@@ -21,8 +21,12 @@ private:
 
 	static const float D65Illuminance[];
 
-	ColorMatchingFunctions() {}
-	~ColorMatchingFunctions() {}
+	ColorMatchingFunctions()
+	{
+	}
+	~ColorMatchingFunctions()
+	{
+	}
 
 };
 

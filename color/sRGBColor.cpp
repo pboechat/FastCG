@@ -4,20 +4,21 @@
 
 #include <cmath>
 
-double sRGBColor::InverseGammaCorrection(float x) 
+double sRGBColor::InverseGammaCorrection(float x)
 {
 	double ft;
 	double t = (double) (x > 0) ? x : -x;
 
-	if (t > 0.04045) 
+	if (t > 0.04045)
 	{
-	   ft = pow((t + 0.055) / 1.055, 2.4);
+		ft = pow((t + 0.055) / 1.055, 2.4);
 	}
-	else {
-       ft = t / 12.92;
+	else
+	{
+		ft = t / 12.92;
 	}
-           
-    return (x > 0) ? ft : -ft;
+
+	return (x > 0) ? ft : -ft;
 }
 
 double sRGBColor::GammaCorrection(double x)
@@ -47,7 +48,7 @@ CIEXYZColor sRGBColor::ToCIEXYZ() const
 	float Y = (float) (Rc * 0.2126729 + Gc * 0.7151522 + Bc * 0.0721750);
 	float Z = (float) (Rc * 0.0193339 + Gc * 0.1191920 + Bc * 0.9503041);
 
-	if (X < 0|| Y < 0 || Z < 0)
+	if (X < 0 || Y < 0 || Z < 0)
 	{
 		//THROW_EXCEPTION(InvalidColorConversionException, "Invalid conversion from sRGB to CIEXYZ");
 		InvalidColorConversionException exception("Invalid conversion from sRGB to CIEXYZ");

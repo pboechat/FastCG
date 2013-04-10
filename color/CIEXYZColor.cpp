@@ -25,14 +25,14 @@ sRGBColor CIEXYZColor::To_sRGB(Illuminant referenceLight, bool ignoreError) cons
 {
 	double r, g, b;
 
-	if (referenceLight == I_D50) 
-	{  
+	if (referenceLight == I_D50)
+	{
 		r = (3.3921940 * mX) + (-1.6168667 * mY) + (-0.4906146 * mZ);
 		g = (-0.9787684 * mX) + (1.9161415 * mY) + (0.0334540 * mZ);
 		b = (0.0719453 * mX) + (-0.2289914 * mY) + (1.4052427 * mZ);
-	} 
-	else 
-	{  
+	}
+	else
+	{
 		/* default D65 */
 		r = (3.2404542 * mX) + (-1.5371385 * mY) + (-0.4985314 * mZ);
 		g = (-0.9692660 * mX) + (1.8760108 * mY) + (0.0415560 * mZ);
@@ -54,5 +54,5 @@ sRGBColor CIEXYZColor::To_sRGB(Illuminant referenceLight, bool ignoreError) cons
 		throw exception;
 	}
 
-	return sRGBColor((float)r, (float)g, (float)b);
+	return sRGBColor((float) r, (float) g, (float) b);
 }

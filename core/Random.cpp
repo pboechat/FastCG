@@ -13,10 +13,10 @@ Random::~Random()
 
 float Random::NextFloat()
 {
-	return rand() / (float)RAND_MAX;
+	return rand() / (float) RAND_MAX;
 }
 
 void Random::Seed()
 {
-	srand((unsigned int)time(0));
+	srand((unsigned int) time(0));
 }

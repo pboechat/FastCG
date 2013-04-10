@@ -8,15 +8,15 @@
 class LightSpectrum
 {
 public:
-	LightSpectrum(unsigned int initialWavelength, unsigned int finalWavelength, unsigned int precision, const float* pFunctionValues) 
-		: mInitialWavelength(initialWavelength), mFinalWavelength(finalWavelength), mPrecision(precision)
+	LightSpectrum(unsigned int initialWavelength, unsigned int finalWavelength, unsigned int precision, const float* pFunctionValues) :
+			mInitialWavelength(initialWavelength), mFinalWavelength(finalWavelength), mPrecision(precision), mpFunctionValues(NULL)
 	{
 		unsigned int size = GetSize();
 		mpFunctionValues = new float[size];
 		memcpy(mpFunctionValues, pFunctionValues, sizeof(float) * size);
 	}
 
-	~LightSpectrum() 
+	~LightSpectrum()
 	{
 		if (mpFunctionValues != NULL)
 		{
@@ -44,7 +44,7 @@ public:
 		return (mFinalWavelength - mInitialWavelength) / mPrecision;
 	}
 
-	inline float operator [] (int index) const
+	inline float operator [](int index) const
 	{
 		return mpFunctionValues[index];
 	}
@@ -52,9 +52,9 @@ public:
 	std::string ToString() const;
 
 private:
-	unsigned int mPrecision;
 	unsigned int mInitialWavelength;
 	unsigned int mFinalWavelength;
+	unsigned int mPrecision;
 	float* mpFunctionValues;
 
 };

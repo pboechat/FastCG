@@ -3,10 +3,8 @@
 #include "include/Exception.h"
 
 // ====================================================================================================
-Shader::Shader(const std::string& rName)
-	:
-	mProgramId(-1),
-	mName(rName)
+Shader::Shader(const std::string& rName) :
+		mProgramId(-1), mName(rName)
 {
 }
 
@@ -37,7 +35,7 @@ void Shader::Compile(const std::string& rShaderFileName, unsigned int shaderType
 
 	const char* pShaderSource = shaderSource.c_str();
 
-	glShaderSource(shaderId, 1, (const char**)&pShaderSource, 0);
+	glShaderSource(shaderId, 1, (const char**) &pShaderSource, 0);
 	glCompileShader(shaderId);
 
 	CheckCompile(shaderId, rShaderFileName);
@@ -118,7 +116,7 @@ void Shader::SetUniformMat4(const std::string& rParameterName, const float* pMat
 void Shader::SetUniformTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const
 {
 	glBindTexture(textureTarget, textureId);
-	glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
+	glUniform1i(GetUniformLocation(rParameterName), (int) textureUnit);
 }
 
 // ====================================================================================================
@@ -145,7 +143,6 @@ void Shader::DeleteShaders()
 	}
 }
 
-
 // ====================================================================================================
 void Shader::CheckCompile(int shaderObjectId, const std::string& rShaderFileName) const
 {
@@ -158,7 +155,7 @@ void Shader::CheckCompile(int shaderObjectId, const std::string& rShaderFileName
 	}
 
 	int bufferLength;
-	glGetShaderiv(shaderObjectId, GL_INFO_LOG_LENGTH , &bufferLength);
+	glGetShaderiv(shaderObjectId, GL_INFO_LOG_LENGTH, &bufferLength);
 
 	if (bufferLength > 1)
 	{

@@ -3,30 +3,27 @@
 
 #include "Exception.h"
 
-class IOException : public Exception
+class IOException: public Exception
 {
 public:
-	IOException(const std::string& rReason) 
-		: 
-		Exception(rReason)
+	IOException(const std::string& rReason) :
+			Exception(rReason)
 	{
 	}
 
 protected:
-	IOException()
-		:
-		Exception()
+	IOException() :
+			Exception()
 	{
 	}
 
 };
 
-class FileNotFoundException : public IOException
+class FileNotFoundException: public IOException
 {
 public:
-	FileNotFoundException(const std::string& rFileName)
-		:
-		IOException("File could not be found: " + rFileName)
+	FileNotFoundException(const std::string& rFileName) :
+			IOException("File could not be found: " + rFileName)
 	{
 	}
 };

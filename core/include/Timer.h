@@ -6,7 +6,8 @@
 class Timer
 {
 public:
-	Timer() : mStart(0), mEnd(0), mMilliseconds(0)
+	Timer() :
+			mStart(0), mEnd(0), mMilliseconds(0)
 	{
 		LARGE_INTEGER frequency;
 		if (QueryPerformanceFrequency(&frequency))
@@ -20,7 +21,9 @@ public:
 		}
 	}
 
-	~Timer() {}
+	~Timer()
+	{
+	}
 
 	inline double GetTime()
 	{

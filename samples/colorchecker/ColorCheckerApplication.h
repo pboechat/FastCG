@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 
-class ColorCheckerApplication : public OpenGLApplication
+class ColorCheckerApplication: public GLUTApplication
 {
 public:
 	ColorCheckerApplication();

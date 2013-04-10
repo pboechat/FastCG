@@ -46,7 +46,7 @@ char* FileReader::Read(const std::string& rFileName, int& fileSize, FileMode mod
 
 		if (size > 0)
 		{
-			pContent = (char*)malloc(sizeof(char) * (size + 1));
+			pContent = (char*) malloc(sizeof(char) * (size + 1));
 			size = fread(pContent, sizeof(char), size, file);
 			pContent[size] = '\0';
 		}

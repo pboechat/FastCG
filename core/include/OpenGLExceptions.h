@@ -3,12 +3,11 @@
 
 #include "Exception.h"
 
-class OpenGLException : public Exception
+class OpenGLException: public Exception
 {
 public:
-	OpenGLException(const std::string& rReason) 
-		: 
-		Exception(rReason)
+	OpenGLException(const std::string& rReason) :
+			Exception(rReason)
 	{
 	}
 

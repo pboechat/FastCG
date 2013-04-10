@@ -18,8 +18,8 @@ const unsigned int ColorCheckerApplication::NUM_COLORS = 24;
 const unsigned int ColorCheckerApplication::H_TILES = 6;
 const unsigned int ColorCheckerApplication::V_TILES = 4;
 
-ColorCheckerApplication::ColorCheckerApplication() 
-	: OpenGLApplication("Color Checker", 800, 600)
+ColorCheckerApplication::ColorCheckerApplication() :
+		GLUTApplication("Color Checker", 800, 600)
 {
 }
 
@@ -69,7 +69,7 @@ void ColorCheckerApplication::ParseColorCheckerFile()
 	std::vector<std::string> elements;
 	StringUtils::Tokenize(line, "\t", elements);
 
-	if (elements.size() < 4) 
+	if (elements.size() < 4)
 	{
 		THROW_EXCEPTION(Exception, "Not enough elements per line: %d", elements.size());
 	}
@@ -92,7 +92,7 @@ void ColorCheckerApplication::ParseColorCheckerFile()
 
 		for (unsigned int j = 0, k = 2; j < numFunctionValues; j++, k++)
 		{
-			pFunctionValues[j] = (float)atof(elements[k].c_str());
+			pFunctionValues[j] = (float) atof(elements[k].c_str());
 		}
 
 		LightSpectrum* pLightSpectrum = new LightSpectrum(initialWavelength, finalWavelength, precision, pFunctionValues);
@@ -144,7 +144,7 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 void ColorCheckerApplication::SetUpViewport()
 {
 	glMatrixMode(GL_PROJECTION);
-	glm::mat4 projection = glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight);
+	glm::mat4 projection = glm::ortho(0.0f, (float) mScreenWidth, 0.0f, (float) mScreenHeight);
 	glLoadMatrixf(&projection[0][0]);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -160,17 +160,17 @@ void ColorCheckerApplication::DrawQuad(float x, float y, float width, float heig
 	glTranslatef(x, y, 0);
 
 	glBegin(GL_QUADS);
-		glColor3f(color.R(), color.G(), color.B());
-		glVertex2f(0, 0);
+	glColor3f(color.R(), color.G(), color.B());
+	glVertex2f(0, 0);
 
-		glColor3f(color.R(), color.G(), color.B());
-		glVertex2f(width, 0);
+	glColor3f(color.R(), color.G(), color.B());
+	glVertex2f(width, 0);
 
-		glColor3f(color.R(), color.G(), color.B());
-		glVertex2f(width, height);
+	glColor3f(color.R(), color.G(), color.B());
+	glVertex2f(width, height);
 
-		glColor3f(color.R(), color.G(), color.B());
-		glVertex2f(0, height);
+	glColor3f(color.R(), color.G(), color.B());
+	glVertex2f(0, height);
 	glEnd();
 
 	glPopMatrix();
@@ -184,8 +184,7 @@ bool ColorCheckerApplication::OnStart()
 		ConvertLightSpectrumsToRGBs();
 
 		CHECK_FOR_OPENGL_ERRORS();
-	} 
-	catch (Exception& e) 
+	} catch (Exception& e)
 	{
 		std::cout << "Error: " << e.GetFullDescription() << std::endl;
 		return false;
@@ -200,11 +199,11 @@ void ColorCheckerApplication::OnDisplay()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	float tileWidth = mScreenWidth / (float)H_TILES;
-	float tileHeight = mScreenHeight / (float)V_TILES;
-	
+	float tileWidth = mScreenWidth / (float) H_TILES;
+	float tileHeight = mScreenHeight / (float) V_TILES;
+
 	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
-	for (unsigned int y = V_TILES; y > 0; y--) 
+	for (unsigned int y = V_TILES; y > 0; y--)
 	{
 		for (unsigned int x = 0; x < H_TILES; x++)
 		{
