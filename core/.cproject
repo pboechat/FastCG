@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.mingw.lib.debug.695870711">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.mingw.lib.debug.695870711" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -30,6 +32,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.129057830" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -42,8 +45,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1493204204" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1493204204" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.28724921" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -56,9 +60,11 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1083057991" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1083057991" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
+									<listOptionValue builtIn="false" value="FREEGLUT_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1136424709" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -112,7 +118,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.175270458" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.175270458" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1091783284" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -127,7 +133,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1859264166" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1859264166" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1962807501" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>

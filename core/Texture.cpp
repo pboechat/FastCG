@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <GL/freeglut.h>
+#include <GL/glext.h>
 
 Texture::Texture(unsigned int width, unsigned int height, TextureFormat format, FilterMode filter, WrapMode wrapMode)
 {

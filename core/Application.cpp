@@ -1,4 +1,4 @@
-#include "include/GLUTApplication.h"
+#include "include/Application.h"
 #include "include/OpenGLExceptions.h"
 
 #include <GL/glew.h>

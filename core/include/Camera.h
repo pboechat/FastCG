@@ -1,8 +1,7 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
-#include "include/Transformable.h"
-#include "include/Application.h"
+#include "Transformable.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -11,6 +10,8 @@ enum ProjectionMode
 {
 	PM_PERSPECTIVE, PM_ORTHOGRAPHIC
 };
+
+class Application;
 
 class Camera : public Transformable
 {
@@ -24,15 +25,8 @@ public:
 	{
 	}
 
-	inline glm::mat4 GetPerspective() const
-	{
-		return glm::perspective(mFieldOfView, Application::GetInstance()->GetAspectRatio(), mNear, mFar);
-	}
-
-	inline glm::mat4 GetView() const
-	{
-		return glm::lookAt(mPosition, mRotation * glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
-	}
+	glm::mat4 GetPerspective() const;
+	glm::mat4 GetView() const;
 
 private:
 	float mFieldOfView;
