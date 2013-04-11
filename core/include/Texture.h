@@ -61,8 +61,8 @@ private:
 	unsigned int mTextureId;
 	float* mpData;
 
-	void Allocate(unsigned int width, unsigned int height, TextureFormat format, FilterMode filter, WrapMode wrapMode, float* pData = 0);
-	void Deallocate();
+	void AllocateResources();
+	void DeallocateResources();
 
 	void SetUpFilter() const;
 	void SetUpWrapping() const;

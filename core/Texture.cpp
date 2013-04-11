@@ -7,36 +7,31 @@
 #include <GL/glext.h>
 
 Texture::Texture(unsigned int width, unsigned int height, TextureFormat format, FilterMode filter, WrapMode wrapMode)
+	: mWidth(width), mHeight(height), mFormat(format), mFilter(filter), mWrapMode(wrapMode)
 {
-	Allocate(width, height, format, filter, wrapMode);
+	AllocateResources();
 }
 
 Texture::Texture(unsigned int width, unsigned int height, TextureFormat format, FilterMode filter, WrapMode wrapMode, float* pData)
+: mWidth(width), mHeight(height), mFormat(format), mFilter(filter), mWrapMode(wrapMode), mpData(pData)
 {
-	Allocate(width, height, format, filter, wrapMode, pData);
+	AllocateResources();
 }
 
 Texture::~Texture()
 {
-	Deallocate();
+	DeallocateResources();
 }
 
-void Texture::Allocate(unsigned int width, unsigned int height, TextureFormat format, FilterMode filter, WrapMode wrapMode, float* pData)
+void Texture::AllocateResources()
 {
-	mWidth = width;
-	mHeight = height;
-	mFormat = format;
-	mFilter = filter;
-	mWrapMode = wrapMode;
-	mpData = pData;
-
 	glGenTextures(1, &mTextureId);
 	glBindTexture(GL_TEXTURE_2D, mTextureId);
 
 	SetUpFilter();
 	SetUpWrapping();
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GetGLInternalFormatMapping(), width, height, 0, GetGLFormatMapping(), GL_FLOAT, pData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GetGLInternalFormatMapping(), mWidth, mHeight, 0, GetGLFormatMapping(), GL_FLOAT, mpData);
 
 	if (mFilter == FM_TRILINEAR)
 	{
@@ -48,7 +43,7 @@ void Texture::Allocate(unsigned int width, unsigned int height, TextureFormat fo
 	// TODO: check allocation errors!
 }
 
-void Texture::Deallocate()
+void Texture::DeallocateResources()
 {
 	glDeleteTextures(1, &mTextureId);
 }
@@ -104,6 +99,7 @@ unsigned int Texture::GetGLInternalFormatMapping() const
 	default:
 		// FIXME: checking invariants
 		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat);
+		return 0;
 	}
 }
 
@@ -118,6 +114,7 @@ unsigned int Texture::GetGLFormatMapping() const
 	default:
 		// FIXME: checking invariants
 		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat);
+		return 0;
 	}
 }
 

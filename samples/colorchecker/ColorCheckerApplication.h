@@ -1,14 +1,14 @@
 #ifndef COLORCHECKERAPPLICATION_H
 #define COLORCHECKERAPPLICATION_H
 
-#include <OpenGLApplication.h>
+#include <Application.h>
 #include <LightSpectrum.h>
 #include <sRGBColor.h>
 
 #include <string>
 #include <map>
 
-class ColorCheckerApplication: public GLUTApplication
+class ColorCheckerApplication: public Application
 {
 public:
 	ColorCheckerApplication();
@@ -17,7 +17,6 @@ public:
 protected:
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void PrintUsage();
-	virtual void SetUpViewport();
 	virtual void OnDisplay();
 	virtual bool OnStart();
 

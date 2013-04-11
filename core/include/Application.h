@@ -1,11 +1,13 @@
 #ifndef APPLICATION_H_
 #define APPLICATION_H_
 
+#include "Camera.h"
+
 #include <string>
 #include <vector>
 #include <sstream>
 
-#include "Camera.h"
+#include <glm/glm.hpp>
 
 class Application
 {
@@ -13,7 +15,11 @@ public:
 	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight);
 	virtual ~Application();
 
-	static Application* GetInstance();
+	static Application* GetInstance()
+	{
+		return s_mpInstance;
+	}
+
 	static bool HasStarted();
 
 	void Run(int argc, char** argv);
@@ -40,6 +46,7 @@ protected:
 	float mHalfScreenWidth;
 	float mHalfScreenHeight;
 	Camera mainCamera;
+	glm::vec4 mClearColor;
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
@@ -52,20 +59,6 @@ protected:
 	virtual void OnKeyPress(int key);
 	virtual void PrintUsage();
 
-	/*int GetMaximumTextureSize() const;
-	unsigned int AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat);
-	unsigned int AllocateTexture(unsigned int target, unsigned int width, unsigned int height, int internalFormat, int textureFormat, float* pData);
-	unsigned int AllocateFBO();
-	unsigned int AllocatePBO(unsigned int size, unsigned int usage, float* pData = 0);
-	unsigned int AllocateVBO(unsigned int size, unsigned int usage, float* pData = 0);
-	unsigned int AllocateBO();
-	void DeallocateFBO(unsigned int fboId);
-	void DeallocateBO(unsigned int vboId);
-	void DeallocateTexture(unsigned int textureId);
-	void TransferToTexture(unsigned int textureId, unsigned int textureTarget, unsigned int textureWidth, unsigned int textureHeight, unsigned int textureFormat, float* pBuffer) const;
-	void TransferFromTexture(unsigned int textureId, unsigned int target, unsigned int format, float* pBuffer) const;
-	void TransferFromBuffer(unsigned int bufferId, unsigned int width, unsigned int height, unsigned int format, float* pBuffer) const;*/
-
 private:
 	static Application* s_mpInstance;
 	static bool s_mStarted;
@@ -74,6 +67,7 @@ private:
 	unsigned int mGLUTWindowHandle;
 
 	void SetUpGLUT(int argc, char** argv);
+	void SetUpOpenGL();
 
 };
 

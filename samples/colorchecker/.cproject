@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.mingw.exe.debug.1813538404">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.mingw.exe.debug.1813538404" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -25,6 +27,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.885100717" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -39,6 +42,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/include}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.730615630" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
@@ -55,9 +59,12 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/include}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.432746262" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
+									<listOptionValue builtIn="false" value="FREEGLUT_STATIC"/>
+									<listOptionValue builtIn="false" value="GLUT_DISABLE_ATEXIT_HACK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1301029678" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -66,14 +73,15 @@
 								<option id="gnu.cpp.link.option.paths.2097739044" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/color/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/Debug}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.439486357" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="FastCGCore"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="FastCGColor"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="log4cpp"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="FastCGCore"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="freeglut"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="log4cpp"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="glew"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="glu32"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opengl32"/>
@@ -130,7 +138,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.320610646" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.320610646" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1567291947" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -147,7 +155,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/log4cpp/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1148636795" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1148636795" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.689945200" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
@@ -156,6 +164,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.mingw.exe.release.1410096515" name="MinGW C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.mingw.exe.release">
 								<option id="gnu.cpp.link.option.paths.904880381" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/color/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut/Debug}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.1316776948" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="FastCGCore"/>

@@ -19,7 +19,7 @@ const unsigned int ColorCheckerApplication::H_TILES = 6;
 const unsigned int ColorCheckerApplication::V_TILES = 4;
 
 ColorCheckerApplication::ColorCheckerApplication() :
-		GLUTApplication("Color Checker", 800, 600)
+		Application("Color Checker", 800, 600)
 {
 }
 
@@ -141,18 +141,6 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 #endif
 }
 
-void ColorCheckerApplication::SetUpViewport()
-{
-	glMatrixMode(GL_PROJECTION);
-	glm::mat4 projection = glm::ortho(0.0f, (float) mScreenWidth, 0.0f, (float) mScreenHeight);
-	glLoadMatrixf(&projection[0][0]);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glViewport(0, 0, mScreenWidth, mScreenHeight);
-}
-
 void ColorCheckerApplication::DrawQuad(float x, float y, float width, float height, const sRGBColor& color)
 {
 	glPushMatrix();
@@ -190,15 +178,11 @@ bool ColorCheckerApplication::OnStart()
 		return false;
 	}
 
-	glClearColor(0, 0, 0, 0);
-
 	return true;
 }
 
 void ColorCheckerApplication::OnDisplay()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	float tileWidth = mScreenWidth / (float) H_TILES;
 	float tileHeight = mScreenHeight / (float) V_TILES;
 
@@ -211,6 +195,4 @@ void ColorCheckerApplication::OnDisplay()
 			colorIterator++;
 		}
 	}
-
-	glutSwapBuffers();
 }

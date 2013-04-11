@@ -65,6 +65,7 @@
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1083057991" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GLEW_STATIC"/>
 									<listOptionValue builtIn="false" value="FREEGLUT_STATIC"/>
+									<listOptionValue builtIn="false" value="GLUT_DISABLE_ATEXIT_HACK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1136424709" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
