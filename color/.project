@@ -4,6 +4,8 @@
 	<comment></comment>
 	<projects>
 		<project>core</project>
+		<project>freeglut_281</project>
+		<project>glew_190</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

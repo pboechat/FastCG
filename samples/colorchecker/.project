@@ -3,6 +3,10 @@
 	<name>colorchecker</name>
 	<comment></comment>
 	<projects>
+		<project>color</project>
+		<project>core</project>
+		<project>freeglut_281</project>
+		<project>glew_190</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -7,6 +7,9 @@
 #include <vector>
 #include <sstream>
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/freeglut.h>
 #include <glm/glm.hpp>
 
 class Application
