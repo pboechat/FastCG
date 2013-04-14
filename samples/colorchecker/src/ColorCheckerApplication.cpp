@@ -20,7 +20,7 @@ const unsigned int ColorCheckerApplication::V_TILES = 4;
 ColorCheckerApplication::ColorCheckerApplication() :
 		Application("Color Checker", 800, 600)
 {
-	mMainCamera = Camera(0.0f, -1.0f, 1.0f, 0.0f, (float) mScreenHeight, 0.0f, (float) mScreenWidth, PM_ORTHOGRAPHIC);
+	mMainCamera = Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) mScreenHeight, 0.0f, (float) mScreenWidth, PM_ORTHOGRAPHIC);
 }
 
 ColorCheckerApplication::~ColorCheckerApplication()
@@ -182,7 +182,7 @@ void ColorCheckerApplication::AddColorChecker(float x, float y, float width, flo
 	MaterialPtr solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
 	solidColorMaterialPtr->SetColor("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 
-	GeometryPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(-width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
+	GeometryPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
 	colorCheckerPtr->Translate(glm::vec3(x, y, 0.0f));
 	colorCheckerPtr->SetMaterial(solidColorMaterialPtr);
 

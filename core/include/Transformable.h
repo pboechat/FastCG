@@ -7,7 +7,8 @@
 class Transformable
 {
 public:
-	Transformable()
+	Transformable() :
+		mModel(1.0f)
 	{
 	}
 
