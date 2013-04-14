@@ -1,7 +1,8 @@
 #ifndef APPLICATION_H_
 #define APPLICATION_H_
 
-#include "Camera.h"
+#include <Camera.h>
+#include <Geometry.h>
 
 #include <string>
 #include <vector>
@@ -40,7 +41,7 @@ public:
 
 	inline const Camera& GetMainCamera() const
 	{
-		return mainCamera;
+		return mMainCamera;
 	}
 
 protected:
@@ -48,12 +49,13 @@ protected:
 	int mScreenHeight;
 	float mHalfScreenWidth;
 	float mHalfScreenHeight;
-	Camera mainCamera;
+	Camera mMainCamera;
 	glm::vec4 mClearColor;
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
-	virtual void OnDisplay();
+	virtual void BeforeDisplay();
+	virtual void AfterDisplay();
 	virtual void OnResize();
 	virtual bool OnStart();
 	virtual void OnFinish();
@@ -62,12 +64,21 @@ protected:
 	virtual void OnKeyPress(int key);
 	virtual void PrintUsage();
 
+	inline void AddGeometry(GeometryPtr geometryPtr)
+	{
+		mGeometries.push_back(geometryPtr);
+	}
+
+	// TODO:
+	//void RemoveGeometry(GeometryPtr geometryPtr);
+
 private:
 	static Application* s_mpInstance;
 	static bool s_mStarted;
 
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
+	std::vector<GeometryPtr> mGeometries;
 
 	void SetUpGLUT(int argc, char** argv);
 	void SetUpOpenGL();

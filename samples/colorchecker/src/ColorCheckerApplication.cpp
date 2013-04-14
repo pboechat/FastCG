@@ -1,5 +1,4 @@
 #include "ColorCheckerApplication.h"
-#include "Config.h"
 
 #include <ColorMatchingFunctions.h>
 #include <FileReader.h>
@@ -7,10 +6,10 @@
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 #include <MathF.h>
+#include <Camera.h>
+#include <StandardGeometries.h>
 
 #include <GL/freeglut.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <vector>
 
@@ -21,15 +20,16 @@ const unsigned int ColorCheckerApplication::V_TILES = 4;
 ColorCheckerApplication::ColorCheckerApplication() :
 		Application("Color Checker", 800, 600)
 {
+	mMainCamera = Camera(0.0f, -1.0f, 1.0f, 0.0f, (float) mScreenHeight, 0.0f, (float) mScreenWidth, PM_ORTHOGRAPHIC);
 }
 
 ColorCheckerApplication::~ColorCheckerApplication()
 {
-	std::vector<LightSpectrum*>::iterator i1 = mLightSpectrums.begin();
-	while (i1 != mLightSpectrums.end())
+	std::vector<LightSpectrum*>::iterator i = mLightSpectrums.begin();
+	while (i != mLightSpectrums.end())
 	{
-		delete *i1;
-		i1++;
+		delete *i;
+		i++;
 	}
 
 	mLightSpectrums.clear();
@@ -141,29 +141,6 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 #endif
 }
 
-void ColorCheckerApplication::DrawQuad(float x, float y, float width, float height, const sRGBColor& color)
-{
-	glPushMatrix();
-
-	glTranslatef(x, y, 0);
-
-	glBegin(GL_QUADS);
-	glColor3f(color.R(), color.G(), color.B());
-	glVertex2f(0, 0);
-
-	glColor3f(color.R(), color.G(), color.B());
-	glVertex2f(width, 0);
-
-	glColor3f(color.R(), color.G(), color.B());
-	glVertex2f(width, height);
-
-	glColor3f(color.R(), color.G(), color.B());
-	glVertex2f(0, height);
-	glEnd();
-
-	glPopMatrix();
-}
-
 bool ColorCheckerApplication::OnStart()
 {
 	try
@@ -171,18 +148,19 @@ bool ColorCheckerApplication::OnStart()
 		ParseColorCheckerFile();
 		ConvertLightSpectrumsToRGBs();
 
-		CHECK_FOR_OPENGL_ERRORS();
+		CHECK_FOR_OPENGL_ERRORS()
+		;
 	} catch (Exception& e)
 	{
 		std::cout << "Error: " << e.GetFullDescription() << std::endl;
 		return false;
 	}
 
-	return true;
-}
+	mSolidColorShaderPtr = new Shader("SolidColor");
+	mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
+	mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
+	mSolidColorShaderPtr->Link();
 
-void ColorCheckerApplication::OnDisplay()
-{
 	float tileWidth = mScreenWidth / (float) H_TILES;
 	float tileHeight = mScreenHeight / (float) V_TILES;
 
@@ -191,8 +169,23 @@ void ColorCheckerApplication::OnDisplay()
 	{
 		for (unsigned int x = 0; x < H_TILES; x++)
 		{
-			DrawQuad(x * tileWidth, (y - 1) * tileHeight, tileWidth, tileHeight, *colorIterator);
+			AddColorChecker(x * tileWidth, (y - 1) * tileHeight, tileWidth, tileHeight, *colorIterator);
 			colorIterator++;
 		}
 	}
+
+	return true;
 }
+
+void ColorCheckerApplication::AddColorChecker(float x, float y, float width, float height, const sRGBColor& color)
+{
+	MaterialPtr solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
+	solidColorMaterialPtr->SetColor("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+
+	GeometryPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(-width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
+	colorCheckerPtr->Translate(glm::vec3(x, y, 0.0f));
+	colorCheckerPtr->SetMaterial(solidColorMaterialPtr);
+
+	AddGeometry(colorCheckerPtr);
+}
+

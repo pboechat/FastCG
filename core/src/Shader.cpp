@@ -1,16 +1,20 @@
 ﻿#include <Shader.h>
 #include <ShaderSource.h>
-#include <Exception.h>
 
-// ====================================================================================================
+Shader::Shader() :
+	mProgramId(-1), mName("Default")
+{
+}
+
 Shader::Shader(const std::string& rName) :
 		mProgramId(-1), mName(rName)
 {
 }
 
-// ====================================================================================================
 Shader::~Shader()
 {
+	// FIXME: if there's more than one copy, can't have to delete it
+
 	DetachShaders();
 	DeleteShaders();
 	mShadersIds.clear();
@@ -21,11 +25,10 @@ Shader::~Shader()
 	}
 }
 
-// ====================================================================================================
-void Shader::Compile(const std::string& rShaderFileName, unsigned int shaderType)
+void Shader::Compile(const std::string& rShaderFileName, ShaderType shaderType)
 {
 	std::string shaderSource = ShaderSource::Parse(rShaderFileName);
-	unsigned int shaderId = glCreateShader(shaderType);
+	unsigned int shaderId = glCreateShader(GetShaderTypeMapping(shaderType));
 
 	if (shaderSource.empty())
 	{
@@ -43,11 +46,10 @@ void Shader::Compile(const std::string& rShaderFileName, unsigned int shaderType
 	mShadersIds.insert(std::make_pair(shaderType, shaderId));
 }
 
-// ====================================================================================================
 void Shader::Link()
 {
 	mProgramId = glCreateProgram();
-	std::map<unsigned int, unsigned int>::iterator shaderIdsCursor = mShadersIds.begin();
+	std::map<ShaderType, unsigned int>::iterator shaderIdsCursor = mShadersIds.begin();
 
 	while (shaderIdsCursor != mShadersIds.end())
 	{
@@ -64,65 +66,60 @@ void Shader::Link()
 	CheckValidate();
 }
 
-// ====================================================================================================
-void Shader::SetUniformInt(const std::string& rParameterName, int value) const
+void Shader::BindAttributeLocation(const std::string& rAttribute, unsigned int location) const
+{
+	glBindAttribLocation(mProgramId, location, rAttribute.c_str());
+}
+
+void Shader::SetInt(const std::string& rParameterName, int value) const
 {
 	glUniform1i(GetUniformLocation(rParameterName), value);
 }
 
-// ====================================================================================================
-void Shader::SetUniformFloat(const std::string& rParameterName, float value) const
+void Shader::SetFloat(const std::string& rParameterName, float value) const
 {
 	glUniform1f(GetUniformLocation(rParameterName), value);
 }
 
-// ====================================================================================================
-void Shader::SetUniformBool(const std::string& rParameterName, bool value) const
+void Shader::SetBool(const std::string& rParameterName, bool value) const
 {
 	glUniform1i(GetUniformLocation(rParameterName), value);
 }
 
-// ====================================================================================================
-void Shader::SetUniformVec2(const std::string& rParameterName, float x, float y) const
+void Shader::SetVec2(const std::string& rParameterName, float x, float y) const
 {
 	glUniform2f(GetUniformLocation(rParameterName), x, y);
 }
 
-// ====================================================================================================
-void Shader::SetUniformVec2(const std::string& rParameterName, const float* pVector) const
+void Shader::SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const
 {
-	glUniform2fv(GetUniformLocation(rParameterName), 2, pVector);
+	glUniform2fv(GetUniformLocation(rParameterName), 2, &rVector[0]);
 }
 
-// ====================================================================================================
-void Shader::SetUniformVec4(const std::string& rParameterName, float x, float y, float z, float w) const
+void Shader::SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
 {
 	glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);
 }
 
-// ====================================================================================================
-void Shader::SetUniformVec4(const std::string& rParameterName, const float* pVector) const
+void Shader::SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const
 {
-	glUniform4fv(GetUniformLocation(rParameterName), 4, pVector);
+	glUniform4fv(GetUniformLocation(rParameterName), 4, &rVector[0]);
 }
 
-// ====================================================================================================
-void Shader::SetUniformMat4(const std::string& rParameterName, const float* pMatrix) const
+void Shader::SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const
 {
-	glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, pMatrix);
+	glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
 }
 
-// ====================================================================================================
-void Shader::SetUniformTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const
+void Shader::SetTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const
 {
 	glBindTexture(textureTarget, textureId);
 	glUniform1i(GetUniformLocation(rParameterName), (int) textureUnit);
 }
 
-// ====================================================================================================
 void Shader::DetachShaders()
 {
-	std::map<unsigned int, unsigned int>::iterator shaderIdsCursor = mShadersIds.begin();
+	std::map<ShaderType, unsigned int>::iterator shaderIdsCursor = mShadersIds.begin();
 
 	while (shaderIdsCursor != mShadersIds.end())
 	{
@@ -131,10 +128,9 @@ void Shader::DetachShaders()
 	}
 }
 
-// ====================================================================================================
 void Shader::DeleteShaders()
 {
-	std::map<unsigned int, unsigned int>::iterator shaderIdsCursor = mShadersIds.begin();
+	std::map<ShaderType, unsigned int>::iterator shaderIdsCursor = mShadersIds.begin();
 
 	while (shaderIdsCursor != mShadersIds.end())
 	{
@@ -143,7 +139,6 @@ void Shader::DeleteShaders()
 	}
 }
 
-// ====================================================================================================
 void Shader::CheckCompile(int shaderObjectId, const std::string& rShaderFileName) const
 {
 	int compileStatus;
@@ -166,7 +161,6 @@ void Shader::CheckCompile(int shaderObjectId, const std::string& rShaderFileName
 	}
 }
 
-// ====================================================================================================
 void Shader::CheckLink()
 {
 	int linkStatus;
@@ -190,7 +184,6 @@ void Shader::CheckLink()
 	}
 }
 
-// ====================================================================================================
 void Shader::CheckValidate()
 {
 	int validateStatus;

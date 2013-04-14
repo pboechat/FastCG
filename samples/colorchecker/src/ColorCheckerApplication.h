@@ -2,6 +2,8 @@
 #define COLORCHECKERAPPLICATION_H
 
 #include <Application.h>
+#include <Pointer.h>
+#include <Shader.h>
 #include <LightSpectrum.h>
 #include <sRGBColor.h>
 
@@ -17,7 +19,6 @@ public:
 protected:
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void PrintUsage();
-	virtual void OnDisplay();
 	virtual bool OnStart();
 
 private:
@@ -28,10 +29,11 @@ private:
 	std::string mColorCheckerFilename;
 	std::vector<LightSpectrum*> mLightSpectrums;
 	std::vector<sRGBColor> mBaseColors;
+	ShaderPtr mSolidColorShaderPtr;
 
 	void ParseColorCheckerFile();
 	void ConvertLightSpectrumsToRGBs();
-	void DrawQuad(float x, float y, float width, float height, const sRGBColor& color);
+	void AddColorChecker(float x, float y, float width, float height, const sRGBColor& color);
 
 };
 

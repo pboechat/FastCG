@@ -1,29 +1,34 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <stdlib.h>
+#include <Pointer.h>
+#include <Exception.h>
+
+#include <cstdlib>
+#include <string>
+#include <map>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/freeglut.h>
+#include <glm/glm.hpp>
 
-#include <string>
-#include <map>
+enum ShaderType
+{
+	ST_VERTEX,
+	ST_FRAGMENT
+};
 
 class Shader
 {
 public:
+	Shader();
 	Shader(const std::string& rName);
 	~Shader();
 
 	inline unsigned int GetProgramId()
 	{
 		return mProgramId;
-	}
-
-	inline unsigned int GetUniformLocation(const std::string& rParameterName) const
-	{
-		return glGetUniformLocation(mProgramId, rParameterName.c_str());
 	}
 
 	inline void Bind() const
@@ -36,22 +41,31 @@ public:
 		glUseProgram(0);
 	}
 
-	void SetUniformInt(const std::string& rParameterName, int value) const;
-	void SetUniformFloat(const std::string& rParameterName, float value) const;
-	void SetUniformBool(const std::string& rParameterName, bool value) const;
-	void SetUniformVec2(const std::string& rParameterName, float x, float y) const;
-	void SetUniformVec2(const std::string& rParameterName, const float* pVector) const;
-	void SetUniformVec4(const std::string& rParameterName, float x, float y, float z, float w) const;
-	void SetUniformVec4(const std::string& rParameterName, const float* pVector) const;
-	void SetUniformMat4(const std::string& rParameterName, const float* pMatrix) const;
-	void SetUniformTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const;
-	void Compile(const std::string& rShaderFileName, unsigned int shaderType);
+	void BindAttributeLocation(const std::string& rAttribute, unsigned int location) const;
+
+	void SetInt(const std::string& rParameterName, int value) const;
+	void SetFloat(const std::string& rParameterName, float value) const;
+	void SetBool(const std::string& rParameterName, bool value) const;
+	void SetVec2(const std::string& rParameterName, float x, float y) const;
+	void SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const;
+	void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const;
+	void SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const;
+	void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const;
+	void SetTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const;
+	void Compile(const std::string& rShaderFileName, ShaderType shaderType);
 	void Link();
 
+	void operator = (const Shader& rOther)
+	{
+		mProgramId = rOther.mProgramId;
+		mName = rOther.mName;
+		mShadersIds = rOther.mShadersIds;
+	}
+
 private:
-	std::string mName;
-	std::map<unsigned int, unsigned int> mShadersIds;
 	int mProgramId;
+	std::string mName;
+	std::map<ShaderType, unsigned int> mShadersIds;
 
 	void CheckCompile(int shaderObjectId, const std::string& rShaderFileName) const;
 	void CheckLink();
@@ -59,6 +73,29 @@ private:
 	void DetachShaders();
 	void DeleteShaders();
 
+	inline unsigned int GetUniformLocation(const std::string& rParameterName) const
+	{
+		return glGetUniformLocation(mProgramId, rParameterName.c_str());
+	}
+
+	inline unsigned int GetShaderTypeMapping(ShaderType shaderType)
+	{
+		if (shaderType == ST_VERTEX)
+		{
+			return GL_VERTEX_SHADER;
+		}
+		else if (shaderType == ST_FRAGMENT)
+		{
+			return GL_FRAGMENT_SHADER;
+		}
+		else {
+			THROW_EXCEPTION(Exception, "Unknown shader type: %d", shaderType);
+			return 0;
+		}
+	}
+
 };
+
+typedef Pointer<Shader> ShaderPtr;
 
 #endif

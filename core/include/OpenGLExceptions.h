@@ -1,7 +1,7 @@
 #ifndef OPENGLEXCEPTIONS_H
 #define OPENGLEXCEPTIONS_H
 
-#include "Exception.h"
+#include <Exception.h>
 
 class OpenGLException: public Exception
 {

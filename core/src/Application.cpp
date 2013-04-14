@@ -74,7 +74,16 @@ void Application::SetUpOpenGL()
 void Application::Display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	OnDisplay();
+
+	BeforeDisplay();
+
+	for (unsigned int i = 0; i < mGeometries.size(); i++)
+	{
+		mGeometries[i]->Draw();
+	}
+
+	AfterDisplay();
+
 	glutSwapBuffers();
 }
 
@@ -94,7 +103,11 @@ bool Application::OnStart()
 	return true;
 }
 
-void Application::OnDisplay()
+void Application::BeforeDisplay()
+{
+}
+
+void Application::AfterDisplay()
 {
 }
 
@@ -115,6 +128,9 @@ void Application::Quit()
 {
 	s_mStarted = false;
 	OnFinish();
+
+	mGeometries.clear();
+
 	glutDestroyWindow(mGLUTWindowHandle);
 }
 bool Application::HasStarted()

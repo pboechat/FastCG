@@ -2,48 +2,46 @@
 #define TRANSFORMABLE_H_
 
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Transformable
 {
 public:
-	Transformable();
-	virtual ~Transformable();
-
-	const glm::vec3& GetPosition() const
+	Transformable()
 	{
-		return mPosition;
 	}
 
-	const glm::quat& GetRotation() const
+	virtual ~Transformable()
 	{
-		return mRotation;
 	}
 
-	const glm::vec3& GetScale() const
+	inline glm::vec3 GetPosition() const
 	{
-		return mScale;
+		return glm::vec3(mModel[3]);
 	}
 
-	void SetPosition(const glm::vec3& position)
+	inline glm::mat3 GetRotation() const
 	{
-		mPosition = position;
+		return glm::mat3(mModel);
 	}
 
-	void SetRotation(const glm::quat& rotation)
+	inline const glm::mat4& GetModel() const
 	{
-		mRotation = rotation;
+		return mModel;
 	}
 
-	void SetScale(const glm::vec3& scale)
+	inline void Translate(const glm::vec3& position)
 	{
-		mScale = scale;
+		mModel = glm::translate(mModel, position);
+	}
+
+	inline void Rotate(float angle, const glm::vec3& axis)
+	{
+		mModel = glm::rotate(mModel, angle, axis);
 	}
 
 protected:
-	glm::vec3 mPosition;
-	glm::quat mRotation;
-	glm::vec3 mScale;
+	glm::mat4 mModel;
 
 };
 

@@ -1,7 +1,7 @@
 #ifndef IOEXCEPTIONS_H
 #define IOEXCEPTIONS_H
 
-#include "Exception.h"
+#include <Exception.h>
 
 class IOException: public Exception
 {

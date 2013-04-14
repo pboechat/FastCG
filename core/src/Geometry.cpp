@@ -5,8 +5,10 @@
 #include <GL/freeglut.h>
 #include <GL/glext.h>
 
-Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec2>& uvs, const Material& material)
-	: mVertices(vertices), mIndexes(indexes), mUVs(uvs), mMaterial(material)
+#include <iostream>
+
+Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, MaterialPtr materialPtr) :
+		mVertices(vertices), mIndexes(indexes), mNormals(normals), mUVs(uvs), mMaterialPtr(materialPtr)
 {
 	AllocateResources();
 }
@@ -18,52 +20,68 @@ Geometry::~Geometry()
 
 void Geometry::AllocateResources()
 {
-	glGenVertexArrays(1, &mGeometryVAOId);
-
 	// TODO: check for errors
 
-	glBindVertexArray(mGeometryVAOId);
+	std::cout << "Vertices: " << std::endl;
+	for (unsigned int i = 0; i < mVertices.size(); i++) {
+		float* vertex = (float*)&mVertices[i];
+		std::cout << "[" << i << "]: (" << vertex[0] << ", " << vertex[1] << ", " << vertex[2] << ")" << std::endl;
+	}
 
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
-	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(float) * 3, &mVertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * 3 * sizeof(float), &mVertices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glEnableVertexAttribArray(VERTICES_ATTRIBUTE_INDEX);
-	glBindVertexArray(VERTICES_ATTRIBUTE_INDEX);
-
-	glBindVertexArray(mGeometryVAOId);
+	glGenBuffers(1, &mNormalsVBOId);
+	glBindBuffer(GL_ARRAY_BUFFER, mNormalsVBOId);
+	glBufferData(GL_ARRAY_BUFFER, mNormals.size() * 3 * sizeof(float), &mNormals[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &mUVsVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mUVsVBOId);
-	glBufferData(GL_ARRAY_BUFFER, mUVs.size() * sizeof(float) * 2, &mUVs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mUVs.size() * 2 * sizeof(float), &mUVs[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(UVS_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glGenVertexArrays(1, &mGeometryVAOId);
+	glBindVertexArray(mGeometryVAOId);
 
+	glEnableVertexAttribArray(VERTICES_ATTRIBUTE_INDEX);
+	glEnableVertexAttribArray(NORMALS_ATTRIBUTE_INDEX);
 	glEnableVertexAttribArray(UVS_ATTRIBUTE_INDEX);
-	glBindVertexArray(UVS_ATTRIBUTE_INDEX);
 
-	// TODO: really necessary?
-	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
+	glVertexAttribPointer(VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mNormalsVBOId);
+	glVertexAttribPointer(NORMALS_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mUVsVBOId);
+	glVertexAttribPointer(UVS_ATTRIBUTE_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
 void Geometry::DeallocateResources()
 {
+	//glDeleteBuffers(1, &mIndexesVBOId);
 	glDeleteBuffers(1, &mUVsVBOId);
+	glDeleteBuffers(1, &mNormalsVBOId);
 	glDeleteBuffers(1, &mVerticesVBOId);
 	glDeleteBuffers(1, &mGeometryVAOId);
 }
 
 void Geometry::Draw()
 {
-	mMaterial.Bind();
+	mMaterialPtr->Bind(*this);
+
+	// TODO: improve this!
+	ShaderPtr shaderPtr = mMaterialPtr->GetShader();
+	shaderPtr->BindAttributeLocation("position", Geometry::VERTICES_ATTRIBUTE_INDEX);
+	shaderPtr->BindAttributeLocation("normal", Geometry::NORMALS_ATTRIBUTE_INDEX);
+	shaderPtr->BindAttributeLocation("uv", Geometry::UVS_ATTRIBUTE_INDEX);
 
 	glBindVertexArray(mGeometryVAOId);
-	glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
+	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
+	//glDrawArrays(GL_TRIANGLES, 0, 3);
 	// TODO: really necessary?
 	glBindVertexArray(0);
 
-	mMaterial.Unbind();
+	mMaterialPtr->Unbind();
 }
 
