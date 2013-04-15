@@ -2,6 +2,10 @@
 [Rr]elease/
 .metadata/
 RemoteSystemsTempFiles/
+ipch/
+
+*.suo
+*.vcxproj.user
 
 # Compiled Object files
 *.slo

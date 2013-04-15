@@ -3,7 +3,6 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/freeglut.h>
-#include <GL/glext.h>
 
 #include <iostream>
 
@@ -21,12 +20,6 @@ Geometry::~Geometry()
 void Geometry::AllocateResources()
 {
 	// TODO: check for errors
-
-	std::cout << "Vertices: " << std::endl;
-	for (unsigned int i = 0; i < mVertices.size(); i++) {
-		float* vertex = (float*)&mVertices[i];
-		std::cout << "[" << i << "]: (" << vertex[0] << ", " << vertex[1] << ", " << vertex[2] << ")" << std::endl;
-	}
 
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
