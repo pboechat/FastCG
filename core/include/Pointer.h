@@ -1,6 +1,29 @@
 #ifndef POINTER_H_
 #define POINTER_H_
 
+class ReferenceCounter
+{
+public:
+	ReferenceCounter() :
+	  mCounter(0)
+	{
+	}
+
+	inline void AddReference()
+	{
+		mCounter++;
+	}
+
+	inline int Release()
+	{
+		return mCounter;
+	}
+
+private:
+	int mCounter;
+
+};
+
 template<class T>
 class Pointer
 {
@@ -16,10 +39,7 @@ public:
 	inline T* Get() const;
 
 	Pointer& operator=(T* pObject);
-	Pointer& operator=(Pointer& rReference);
-
-	inline void IncrementReferences();
-	inline void DecrementReferences();
+	Pointer& operator=(const Pointer& rPointer);
 
 	inline bool operator==(T* pObject) const;
 	inline bool operator!=(T* pObject) const;
@@ -28,36 +48,34 @@ public:
 
 protected:
 	T* mpObject;
-	int mReferences;
+	ReferenceCounter* mpReferenceCounter;
 
 };
 
 template<class T>
-Pointer<T>::Pointer(T* pObject)
+Pointer<T>::Pointer(T* pObject) :
+	mpObject(pObject),
+	mpReferenceCounter(0)
 {
-	mpObject = pObject;
-	if (mpObject)
-	{
-		IncrementReferences();
-	}
+	mpReferenceCounter = new ReferenceCounter();
+	mpReferenceCounter->AddReference();
 }
 
 template<class T>
-Pointer<T>::Pointer(const Pointer& rPointer)
+Pointer<T>::Pointer(const Pointer& rPointer) :
+	mpObject(rPointer.mpObject),
+	mpReferenceCounter(rPointer.mpReferenceCounter)
 {
-	mpObject = rPointer.mpObject;
-	if (mpObject)
-	{
-		IncrementReferences();
-	}
+	mpReferenceCounter->AddReference();
 }
 
 template<class T>
 Pointer<T>::~Pointer()
 {
-	if (mpObject)
+	if (mpReferenceCounter->Release() == 0)
 	{
-		DecrementReferences();
+		delete mpObject;
+		delete mpReferenceCounter;
 	}
 }
 
@@ -90,56 +108,37 @@ Pointer<T>& Pointer<T>::operator=(T* pObject)
 {
 	if (mpObject != pObject)
 	{
-		if (pObject)
+		if (mpReferenceCounter->Release() == 0)
 		{
-			IncrementReferences();
-		}
-
-		if (mpObject)
-		{
-			DecrementReferences();
+			delete mpObject;
+			delete mpReferenceCounter;
 		}
 
 		mpObject = pObject;
+		mpReferenceCounter = new ReferenceCounter();
+		mpReferenceCounter->AddReference();
 	}
 
 	return *this;
 }
 
 template<class T>
-Pointer<T>& Pointer<T>::operator=(Pointer& rPointer)
+Pointer<T>& Pointer<T>::operator=(const Pointer& rPointer)
 {
 	if (mpObject != rPointer.mpObject)
 	{
-		if (rPointer.mpObject)
+		if (mpReferenceCounter->Release() == 0)
 		{
-			rPointer.IncrementReferences();
-		}
-
-		if (mpObject)
-		{
-			DecrementReferences();
+			delete mpObject;
+			delete mpReferenceCounter;
 		}
 
 		mpObject = rPointer.mpObject;
+		mpReferenceCounter = rPointer.mpReferenceCounter;
+		mpReferenceCounter->AddReference();
 	}
 
 	return *this;
-}
-
-template<class T>
-inline void Pointer<T>::IncrementReferences()
-{
-	mReferences++;
-}
-
-template<class T>
-inline void Pointer<T>::DecrementReferences()
-{
-	if (--mReferences == 0)
-	{
-		delete mpObject;
-	}
 }
 
 template<class T>
