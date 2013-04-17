@@ -50,13 +50,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../core/include;../../color/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../core/include;../../color/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>FREEGLUT_STATIC;GLEW_BUILD=GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../dependencies/freeglut_281/Debug;../../dependencies/glew_190/Debug;../../core/Debug;../../color/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;glewd.lib;cored.lib;colord.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dependencies/zlib_127/Debug;../../dependencies/libpng_161/Debug;../../dependencies/freeglut_281/Debug;../../dependencies/glew_190/Debug;../../core/Debug;../../color/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;glewd.lib;zlibd.lib;libpngd.lib;cored.lib;colord.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -65,15 +65,15 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../core/include;../../color/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../core/include;../../color/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>FREEGLUT_STATIC;GLEW_BUILD=GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../../dependencies/freeglut_281/Release;../../dependencies/glew_190/Release;../../core/Release;../../color/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;glew.lib;core.lib;color.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dependencies/zlib_127/Release;../../dependencies/libpng_161/Release;../../dependencies/freeglut_281/Release;../../dependencies/glew_190/Release;../../core/Release;../../color/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;zlib.lib;libpng.lib;glew.lib;core.lib;color.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
