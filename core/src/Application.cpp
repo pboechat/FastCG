@@ -7,7 +7,14 @@ Application* Application::s_mpInstance = NULL;
 bool Application::s_mStarted = false;
 
 Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
-		mWindowTitle(rWindowTitle), mScreenWidth(screenWidth), mScreenHeight(screenHeight), mHalfScreenWidth(screenWidth / 2.0f), mHalfScreenHeight(screenHeight / 2.0f), mClearColor(0.0f, 0.0f, 0.0f, 0.0f), mGLUTWindowHandle(0)
+		mWindowTitle(rWindowTitle),
+		mScreenWidth(screenWidth),
+		mScreenHeight(screenHeight),
+		mHalfScreenWidth(screenWidth / 2.0f),
+		mHalfScreenHeight(screenHeight / 2.0f),
+		mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
+		mAmbientLight(1.0f, 1.0f, 1.0f, 1.0f),
+		mGLUTWindowHandle(0)
 {
 	s_mpInstance = this;
 }

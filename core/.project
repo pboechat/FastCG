@@ -5,6 +5,8 @@
 	<projects>
 		<project>freeglut_281</project>
 		<project>glew_190</project>
+		<project>libpng_161</project>
+		<project>zlib_127</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

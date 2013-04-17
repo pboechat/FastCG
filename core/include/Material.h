@@ -3,6 +3,7 @@
 
 #include <Pointer.h>
 #include <Shader.h>
+#include <Texture.h>
 
 #include <string>
 #include <map>
@@ -17,20 +18,17 @@ public:
 	Material(ShaderPtr shaderPtr);
 	virtual ~Material();
 
-	inline ShaderPtr GetShader()
-	{
-		return mShaderPtr;
-	}
-
 	void Bind(const Geometry& rGeometry) const;
 	void Unbind() const;
 	void SetFloat(const std::string& rParameterName, float value);
-	void SetColor(const std::string& rParameterName, const glm::vec4& value);
+	void SetVec4(const std::string& rParameterName, const glm::vec4& rVector);
+	void SetTexture(const std::string& rParameterName, const TexturePtr& spTexture);
 
 private:
 	ShaderPtr mShaderPtr;
 	std::map<std::string, float> mFloatParameters;
-	std::map<std::string, glm::vec4> mColorParameters;
+	std::map<std::string, glm::vec4> mVec4Parameters;
+	std::map<std::string, TexturePtr> mTextureParameters;
 
 };
 

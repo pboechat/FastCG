@@ -3,6 +3,10 @@
 #include <Geometry.h>
 
 #include <glm/glm.hpp>
+#include <vector>
+#include <sstream>
+
+#include <iostream>
 
 Material::Material(ShaderPtr shaderPtr) :
 		mShaderPtr(shaderPtr)
@@ -24,21 +28,70 @@ void Material::Bind(const Geometry& rGeometry) const
 	mShaderPtr->SetMat4("_Model", model);
 	mShaderPtr->SetMat4("_View", view);
 	mShaderPtr->SetMat4("_ModelView", modelView);
+	mShaderPtr->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 	mShaderPtr->SetMat4("_Projection", projection);
 	mShaderPtr->SetMat4("_ModelViewProjection", projection * modelView);
 
-	std::map<std::string, float>::const_iterator it1 = mFloatParameters.begin();
-	while (it1 != mFloatParameters.end())
+	const std::vector<LightPtr>& rLights = Application::GetInstance()->GetLights();
+	std::vector<LightPtr>::const_iterator it1 = rLights.begin();
+	std::stringstream variableName;
+	unsigned int c = 0;
+	while (it1 != rLights.end())
 	{
-		mShaderPtr->SetFloat(it1->first, it1->second);
+		LightPtr lightPtr = (*it1);
+		glm::vec3 lightPosition = lightPtr->GetPosition();
+		glm::vec4 lightAmbientColor = lightPtr->GetAmbientColor();
+		glm::vec4 lightDiffuseColor = lightPtr->GetDiffuseColor();
+		glm::vec4 lightSpecularColor = lightPtr->GetSpecularColor();
+
+		variableName.str(std::string());
+		variableName.clear();
+		variableName << "_Light" << c << "Position";
+		mShaderPtr->SetVec3(variableName.str(), lightPosition);
+
+		variableName.str(std::string());
+		variableName.clear();
+		variableName << "_Light" << c << "AmbientColor";
+
+		mShaderPtr->SetVec4(variableName.str(), lightAmbientColor);
+
+		variableName.str(std::string());
+		variableName.clear();
+		variableName << "_Light" << c << "DiffuseColor";
+
+		mShaderPtr->SetVec4(variableName.str(), lightDiffuseColor);
+
+		variableName.str(std::string());
+		variableName.clear();
+		variableName << "_Light" << c << "SpecularColor";
+
+		mShaderPtr->SetVec4(variableName.str(), lightSpecularColor);
+
+		c++;
 		it1++;
 	}
 
-	std::map<std::string, glm::vec4>::const_iterator it2 = mColorParameters.begin();
-	while (it2 != mColorParameters.end())
+	std::map<std::string, float>::const_iterator it2 = mFloatParameters.begin();
+	while (it2 != mFloatParameters.end())
 	{
-		mShaderPtr->SetVec4(it2->first, it2->second);
+		mShaderPtr->SetFloat(it2->first, it2->second);
 		it2++;
+	}
+
+	std::map<std::string, glm::vec4>::const_iterator it3 = mVec4Parameters.begin();
+	while (it3 != mVec4Parameters.end())
+	{
+		mShaderPtr->SetVec4(it3->first, it3->second);
+		it3++;
+	}
+
+	std::map<std::string, TexturePtr>::const_iterator it4 = mTextureParameters.begin();
+	unsigned int textureUnit = 0;
+	while (it4 != mTextureParameters.end())
+	{
+		mShaderPtr->SetTexture(it4->first, it4->second, textureUnit);
+		textureUnit++;
+		it4++;
 	}
 }
 
@@ -52,7 +105,12 @@ void Material::SetFloat(const std::string& rParameterName, float value)
 	mFloatParameters.insert(std::make_pair(rParameterName, value));
 }
 
-void Material::SetColor(const std::string& rParameterName, const glm::vec4& value)
+void Material::SetVec4(const std::string& rParameterName, const glm::vec4& rVector)
 {
-	mColorParameters.insert(std::make_pair(rParameterName, value));
+	mVec4Parameters.insert(std::make_pair(rParameterName, rVector));
+}
+
+void Material::SetTexture(const std::string& rParameterName, const TexturePtr& spTexture)
+{
+	mTextureParameters.insert(std::make_pair(rParameterName, spTexture));
 }

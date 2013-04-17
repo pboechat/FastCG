@@ -24,6 +24,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut_281/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/color/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm_0943/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1714719255" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -37,8 +39,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut_281/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/color/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm_0943/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1091271639" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1091271639" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.306524595" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.debug.185963600" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.debug">
@@ -50,13 +54,17 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/color/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm_0943/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/include}&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.22062676" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols"/>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.22062676" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1126929577" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug.1730276859" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.mingw.exe.debug.1351603768" name="MinGW C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.mingw.exe.debug">
 								<option id="gnu.cpp.link.option.paths.601699229" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glew_190/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut_281/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/Debug}&quot;"/>
@@ -65,6 +73,8 @@
 								<option id="gnu.cpp.link.option.libs.821264613" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="color"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="core"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="libpng_161"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="zlib_127"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="glew_190"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="freeglut_281"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="glu32"/>
@@ -114,6 +124,20 @@
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/glew_190"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/glew_190/Debug"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="glew_190" srcPrefixMapping="" srcRootPath=""/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="libpng_161;cdt.managedbuild.config.gnu.mingw.lib.debug.1606809327" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/libpng_161"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/libpng_161/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="libpng_161" srcPrefixMapping="" srcRootPath=""/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="zlib_127;cdt.managedbuild.config.gnu.mingw.lib.debug.438475129" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/zlib_127"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/zlib_127/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="zlib_127" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 			</storageModule>

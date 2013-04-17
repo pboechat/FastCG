@@ -11,14 +11,10 @@
 class Geometry : public Transformable
 {
 public:
-	static const unsigned int VERTICES_ATTRIBUTE_INDEX = 0;
-	static const unsigned int NORMALS_ATTRIBUTE_INDEX = 1;
-	static const unsigned int UVS_ATTRIBUTE_INDEX = 2;
-
-	Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, MaterialPtr materialPtr);
+	Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr);
 	virtual ~Geometry();
 
-	inline void SetMaterial(MaterialPtr materialPtr)
+	inline void SetMaterial(const MaterialPtr& materialPtr)
 	{
 		mMaterialPtr = materialPtr;
 	}

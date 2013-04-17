@@ -2,6 +2,7 @@
 #define APPLICATION_H_
 
 #include <Camera.h>
+#include <Light.h>
 #include <Geometry.h>
 
 #include <string>
@@ -44,6 +45,21 @@ public:
 		return mMainCamera;
 	}
 
+	inline const glm::vec4& GetAmbientLight() const
+	{
+		return mAmbientLight;
+	}
+
+	inline void SetAmbientLight(const glm::vec4& ambientLight)
+	{
+		mAmbientLight = ambientLight;
+	}
+
+	inline const std::vector<LightPtr> GetLights() const
+	{
+		return mLights;
+	}
+
 protected:
 	int mScreenWidth;
 	int mScreenHeight;
@@ -51,6 +67,7 @@ protected:
 	float mHalfScreenHeight;
 	Camera mMainCamera;
 	glm::vec4 mClearColor;
+	glm::vec4 mAmbientLight;
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
@@ -69,8 +86,16 @@ protected:
 		mGeometries.push_back(geometryPtr);
 	}
 
+	inline void AddLight(LightPtr lightPtr)
+	{
+		mLights.push_back(lightPtr);
+	}
+
 	// TODO:
 	//void RemoveGeometry(GeometryPtr geometryPtr);
+
+	// TODO:
+	//void RemoveLight(LightPtr lightPtr);
 
 private:
 	static Application* s_mpInstance;
@@ -78,6 +103,7 @@ private:
 
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
+	std::vector<LightPtr> mLights;
 	std::vector<GeometryPtr> mGeometries;
 
 	void SetUpGLUT(int argc, char** argv);

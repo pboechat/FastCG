@@ -2,7 +2,7 @@
 #include <ShaderSource.h>
 
 Shader::Shader() :
-	mProgramId(-1), mName("Default")
+		mProgramId(-1), mName("Default")
 {
 }
 
@@ -57,6 +57,10 @@ void Shader::Link()
 		shaderIdsCursor++;
 	}
 
+	BindAttributeLocation("position", VERTICES_ATTRIBUTE_INDEX);
+	BindAttributeLocation("normal", NORMALS_ATTRIBUTE_INDEX);
+	BindAttributeLocation("uv", UVS_ATTRIBUTE_INDEX);
+
 	glLinkProgram(mProgramId);
 
 	CheckLink();
@@ -96,6 +100,16 @@ void Shader::SetVec2(const std::string& rParameterName, const glm::vec2& rVector
 	glUniform2fv(GetUniformLocation(rParameterName), 2, &rVector[0]);
 }
 
+void Shader::SetVec3(const std::string& rParameterName, float x, float y, float z) const
+{
+	glUniform3f(GetUniformLocation(rParameterName), x, y, z);
+}
+
+void Shader::SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const
+{
+	glUniform3fv(GetUniformLocation(rParameterName), 3, &rVector[0]);
+}
+
 void Shader::SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
 {
 	glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);
@@ -106,14 +120,20 @@ void Shader::SetVec4(const std::string& rParameterName, const glm::vec4& rVector
 	glUniform4fv(GetUniformLocation(rParameterName), 4, &rVector[0]);
 }
 
+void Shader::SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const
+{
+	glUniformMatrix3fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
+}
+
 void Shader::SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const
 {
 	glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
 }
 
-void Shader::SetTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const
+void Shader::SetTexture(const std::string& rParameterName, const TexturePtr& spTexture, unsigned int textureUnit) const
 {
-	glBindTexture(textureTarget, textureId);
+	glActiveTexture(textureUnit);
+	spTexture->Bind();
 	glUniform1i(GetUniformLocation(rParameterName), (int) textureUnit);
 }
 

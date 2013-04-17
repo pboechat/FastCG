@@ -148,18 +148,18 @@ bool ColorCheckerApplication::OnStart()
 		ParseColorCheckerFile();
 		ConvertLightSpectrumsToRGBs();
 
-		CHECK_FOR_OPENGL_ERRORS()
-		;
-	} catch (Exception& e)
+		CHECK_FOR_OPENGL_ERRORS();
+
+		mSolidColorShaderPtr = new Shader("SolidColor");
+		mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
+		mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
+		mSolidColorShaderPtr->Link();
+	}
+	catch (Exception& e)
 	{
 		std::cout << "Error: " << e.GetFullDescription() << std::endl;
 		return false;
 	}
-
-	mSolidColorShaderPtr = new Shader("SolidColor");
-	mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
-	mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
-	mSolidColorShaderPtr->Link();
 
 	float tileWidth = mScreenWidth / (float) H_TILES;
 	float tileHeight = mScreenHeight / (float) V_TILES;
@@ -180,7 +180,7 @@ bool ColorCheckerApplication::OnStart()
 void ColorCheckerApplication::AddColorChecker(float x, float y, float width, float height, const sRGBColor& color)
 {
 	MaterialPtr solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
-	solidColorMaterialPtr->SetColor("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	solidColorMaterialPtr->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 
 	GeometryPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
 	colorCheckerPtr->Translate(glm::vec3(x, y, 0.0f));

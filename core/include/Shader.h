@@ -2,6 +2,7 @@
 #define SHADER_H
 
 #include <Pointer.h>
+#include <Texture.h>
 #include <Exception.h>
 
 #include <cstdlib>
@@ -15,13 +16,16 @@
 
 enum ShaderType
 {
-	ST_VERTEX,
-	ST_FRAGMENT
+	ST_VERTEX, ST_FRAGMENT
 };
 
 class Shader
 {
 public:
+	static const unsigned int VERTICES_ATTRIBUTE_INDEX = 0;
+	static const unsigned int NORMALS_ATTRIBUTE_INDEX = 1;
+	static const unsigned int UVS_ATTRIBUTE_INDEX = 2;
+
 	Shader();
 	Shader(const std::string& rName);
 	~Shader();
@@ -48,14 +52,17 @@ public:
 	void SetBool(const std::string& rParameterName, bool value) const;
 	void SetVec2(const std::string& rParameterName, float x, float y) const;
 	void SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const;
+	void SetVec3(const std::string& rParameterName, float x, float y, float z) const;
+	void SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const;
 	void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const;
 	void SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const;
+	void SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const;
 	void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const;
-	void SetTexture(const std::string& rParameterName, unsigned int textureTarget, unsigned int textureId, unsigned int textureUnit) const;
+	void SetTexture(const std::string& rParameterName, const TexturePtr& spTexture, unsigned int textureUnit) const;
 	void Compile(const std::string& rShaderFileName, ShaderType shaderType);
 	void Link();
 
-	void operator = (const Shader& rOther)
+	void operator =(const Shader& rOther)
 	{
 		mProgramId = rOther.mProgramId;
 		mName = rOther.mName;
@@ -88,7 +95,8 @@ private:
 		{
 			return GL_FRAGMENT_SHADER;
 		}
-		else {
+		else
+		{
 			THROW_EXCEPTION(Exception, "Unknown shader type: %d", shaderType);
 			return 0;
 		}

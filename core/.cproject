@@ -28,6 +28,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut_281/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm_0943/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1800532407" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -40,6 +42,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut_281/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm_0943/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/include}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1036327151" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="FREEGLUT_STATIC"/>
@@ -55,6 +59,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/freeglut_281/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/glm_0943/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib_127/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libpng_161/include}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.246019619" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="FREEGLUT_STATIC"/>
@@ -85,6 +91,20 @@
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/glew_190"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/glew_190/Debug"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="glew_190" srcPrefixMapping="" srcRootPath=""/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="libpng_161;cdt.managedbuild.config.gnu.mingw.lib.debug.1606809327" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/libpng_161"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/libpng_161/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="libpng_161" srcPrefixMapping="" srcRootPath=""/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="zlib_127;cdt.managedbuild.config.gnu.mingw.lib.debug.438475129" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/zlib_127"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/zlib_127/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="zlib_127" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 			</storageModule>
