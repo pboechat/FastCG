@@ -1,5 +1,5 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#ifndef RANDOM_H_
+#define RANDOM_H_
 
 class Random
 {

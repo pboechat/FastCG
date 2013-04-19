@@ -1,5 +1,5 @@
-#ifndef FILEREADER_H
-#define FILEREADER_H
+#ifndef FILEREADER_H_
+#define FILEREADER_H_
 
 #include <string>
 

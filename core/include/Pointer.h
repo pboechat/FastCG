@@ -5,7 +5,7 @@ class ReferenceCounter
 {
 public:
 	ReferenceCounter() :
-	  mCounter(0)
+		mCounter(0)
 	{
 	}
 
@@ -32,7 +32,7 @@ public:
 	Pointer(const Pointer& rPointer);
 	~Pointer();
 
-	inline operator T*() const;
+	inline operator T* () const;
 	inline T& operator*() const;
 	inline T* operator->() const;
 
@@ -80,7 +80,7 @@ Pointer<T>::~Pointer()
 }
 
 template<class T>
-inline Pointer<T>::operator T*() const
+inline Pointer<T>::operator T* () const
 {
 	return mpObject;
 }

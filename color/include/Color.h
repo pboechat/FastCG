@@ -1,5 +1,5 @@
-#ifndef COLOR_H
-#define COLOR_H
+#ifndef COLOR_H_
+#define COLOR_H_
 
 #include "ColorModel.h"
 

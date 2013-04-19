@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef TIMER_H_
+#define TIMER_H_
 
 #include <Windows.h>
 
@@ -7,13 +7,15 @@ class Timer
 {
 public:
 	Timer() :
-			mStart(0), mEnd(0), mMilliseconds(0)
+		mStart(0), mEnd(0), mMilliseconds(0)
 	{
 		LARGE_INTEGER frequency;
+
 		if (QueryPerformanceFrequency(&frequency))
 		{
 			mMilliseconds = 1000.0 / frequency.QuadPart;
 		}
+
 		else
 		{
 			// TODO:
@@ -28,10 +30,12 @@ public:
 	inline double GetTime()
 	{
 		LARGE_INTEGER time;
+
 		if (QueryPerformanceCounter(&time))
 		{
 			return time.QuadPart * mMilliseconds;
 		}
+
 		else
 		{
 			// TODO:

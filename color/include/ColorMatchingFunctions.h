@@ -1,5 +1,5 @@
-#ifndef COLORMATCHINGFUNCTIONS_H
-#define COLORMATCHINGFUNCTIONS_H
+#ifndef COLORMATCHINGFUNCTIONS_H_
+#define COLORMATCHINGFUNCTIONS_H_
 
 #include "LightSpectrum.h"
 #include "CIEXYZColor.h"

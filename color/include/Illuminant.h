@@ -1,5 +1,5 @@
-#ifndef ILLUMINANT_H
-#define ILLUMINANT_H
+#ifndef ILLUMINANT_H_
+#define ILLUMINANT_H_
 
 enum Illuminant
 {

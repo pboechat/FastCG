@@ -9,7 +9,7 @@
 #include <iostream>
 
 Material::Material(ShaderPtr shaderPtr) :
-		mShaderPtr(shaderPtr)
+	mShaderPtr(shaderPtr)
 {
 }
 
@@ -20,7 +20,6 @@ Material::~Material()
 void Material::Bind(const Geometry& rGeometry) const
 {
 	mShaderPtr->Bind();
-
 	glm::mat4 model = rGeometry.GetModel();
 	glm::mat4 view = Application::GetInstance()->GetMainCamera().GetView();
 	glm::mat4 projection = Application::GetInstance()->GetMainCamera().GetProjection();
@@ -31,11 +30,11 @@ void Material::Bind(const Geometry& rGeometry) const
 	mShaderPtr->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 	mShaderPtr->SetMat4("_Projection", projection);
 	mShaderPtr->SetMat4("_ModelViewProjection", projection * modelView);
-
 	const std::vector<LightPtr>& rLights = Application::GetInstance()->GetLights();
 	std::vector<LightPtr>::const_iterator it1 = rLights.begin();
 	std::stringstream variableName;
 	unsigned int c = 0;
+
 	while (it1 != rLights.end())
 	{
 		LightPtr lightPtr = (*it1);
@@ -43,35 +42,28 @@ void Material::Bind(const Geometry& rGeometry) const
 		glm::vec4 lightAmbientColor = lightPtr->GetAmbientColor();
 		glm::vec4 lightDiffuseColor = lightPtr->GetDiffuseColor();
 		glm::vec4 lightSpecularColor = lightPtr->GetSpecularColor();
-
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "Position";
 		mShaderPtr->SetVec3(variableName.str(), lightPosition);
-
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "AmbientColor";
-
 		mShaderPtr->SetVec4(variableName.str(), lightAmbientColor);
-
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "DiffuseColor";
-
 		mShaderPtr->SetVec4(variableName.str(), lightDiffuseColor);
-
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "SpecularColor";
-
 		mShaderPtr->SetVec4(variableName.str(), lightSpecularColor);
-
 		c++;
 		it1++;
 	}
 
 	std::map<std::string, float>::const_iterator it2 = mFloatParameters.begin();
+
 	while (it2 != mFloatParameters.end())
 	{
 		mShaderPtr->SetFloat(it2->first, it2->second);
@@ -79,6 +71,7 @@ void Material::Bind(const Geometry& rGeometry) const
 	}
 
 	std::map<std::string, glm::vec4>::const_iterator it3 = mVec4Parameters.begin();
+
 	while (it3 != mVec4Parameters.end())
 	{
 		mShaderPtr->SetVec4(it3->first, it3->second);
@@ -87,6 +80,7 @@ void Material::Bind(const Geometry& rGeometry) const
 
 	std::map<std::string, TexturePtr>::const_iterator it4 = mTextureParameters.begin();
 	unsigned int textureUnit = 0;
+
 	while (it4 != mTextureParameters.end())
 	{
 		mShaderPtr->SetTexture(it4->first, it4->second, textureUnit);

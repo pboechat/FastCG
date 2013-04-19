@@ -1,5 +1,5 @@
-#ifndef IOEXCEPTIONS_H
-#define IOEXCEPTIONS_H
+#ifndef IOEXCEPTIONS_H_
+#define IOEXCEPTIONS_H_
 
 #include <Exception.h>
 
@@ -7,13 +7,13 @@ class IOException: public Exception
 {
 public:
 	IOException(const std::string& rReason) :
-			Exception(rReason)
+		Exception(rReason)
 	{
 	}
 
 protected:
 	IOException() :
-			Exception()
+		Exception()
 	{
 	}
 
@@ -22,8 +22,8 @@ protected:
 class FileNotFoundException: public IOException
 {
 public:
-	FileNotFoundException(const std::string& rFileName) :
-			IOException("File could not be found: " + rFileName)
+	FileNotFoundException(const std::string& rReason) :
+		IOException(rReason)
 	{
 	}
 };

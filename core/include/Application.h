@@ -32,6 +32,7 @@ public:
 	void Display();
 	void Resize(int width, int height);
 	void MouseButton(int button, int state, int x, int y);
+	void MouseWheel(int button, int direction, int x, int y);
 	void MouseMove(int x, int y);
 	void Keyboard(int key, int x, int y);
 
@@ -77,6 +78,7 @@ protected:
 	virtual bool OnStart();
 	virtual void OnFinish();
 	virtual void OnMouseButton(int button, int state, int x, int y);
+	virtual void OnMouseWheel(int button, int direction, int x, int y);
 	virtual void OnMouseMove(int x, int y);
 	virtual void OnKeyPress(int key);
 	virtual void PrintUsage();
@@ -114,6 +116,7 @@ private:
 void GLUTDisplayCallback();
 void GLUTReshapeWindowCallback(int width, int height);
 void GLUTMouseButtonCallback(int button, int state, int x, int y);
+void GLUTMouseWheelCallback(int button, int direction, int x, int y);
 void GLUTMouseMoveCallback(int x, int y);
 void GLUTKeyboardCallback(unsigned char key, int x, int y);
 void GLUTSpecialKeysCallback(int key, int x, int y);
@@ -137,5 +140,5 @@ void ExitCallback();
 			EXPAND(THROW_EXCEPTION(OpenGLException, __stringStream.str().c_str(), __errorCode)); \
 		} \
 	} \
-
+ 
 #endif

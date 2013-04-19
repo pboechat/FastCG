@@ -2,19 +2,18 @@
 #include <ShaderSource.h>
 
 Shader::Shader() :
-		mProgramId(-1), mName("Default")
+	mProgramId(-1), mName("Default")
 {
 }
 
 Shader::Shader(const std::string& rName) :
-		mProgramId(-1), mName(rName)
+	mProgramId(-1), mName(rName)
 {
 }
 
 Shader::~Shader()
 {
 	// FIXME: if there's more than one copy, can't have to delete it
-
 	DetachShaders();
 	DeleteShaders();
 	mShadersIds.clear();
@@ -37,12 +36,9 @@ void Shader::Compile(const std::string& rShaderFileName, ShaderType shaderType)
 	}
 
 	const char* pShaderSource = shaderSource.c_str();
-
 	glShaderSource(shaderId, 1, (const char**) &pShaderSource, 0);
 	glCompileShader(shaderId);
-
 	CheckCompile(shaderId, rShaderFileName);
-
 	mShadersIds.insert(std::make_pair(shaderType, shaderId));
 }
 
@@ -60,13 +56,9 @@ void Shader::Link()
 	BindAttributeLocation("position", VERTICES_ATTRIBUTE_INDEX);
 	BindAttributeLocation("normal", NORMALS_ATTRIBUTE_INDEX);
 	BindAttributeLocation("uv", UVS_ATTRIBUTE_INDEX);
-
 	glLinkProgram(mProgramId);
-
 	CheckLink();
-
 	glValidateProgram(mProgramId);
-
 	CheckValidate();
 }
 
@@ -184,7 +176,6 @@ void Shader::CheckCompile(int shaderObjectId, const std::string& rShaderFileName
 void Shader::CheckLink()
 {
 	int linkStatus;
-
 	glGetProgramiv(mProgramId, GL_LINK_STATUS, &linkStatus);
 
 	if (linkStatus == GL_TRUE)

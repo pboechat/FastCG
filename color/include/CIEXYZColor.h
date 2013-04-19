@@ -1,5 +1,5 @@
-#ifndef CIEXYZCOLOR_H
-#define CIEXYZCOLOR_H
+#ifndef CIEXYZCOLOR_H_
+#define CIEXYZCOLOR_H_
 
 #include "Color.h"
 #include "ColorModel.h"
@@ -27,7 +27,7 @@ public:
 	}
 
 	CIEXYZColor(float X, float Y, float Z) :
-			mX(X), mY(Y), mZ(Z)
+		mX(X), mY(Y), mZ(Z)
 	{
 	}
 
@@ -68,14 +68,17 @@ public:
 		{
 			return mX;
 		}
+
 		else if (index == 1)
 		{
 			return mY;
 		}
+
 		else if (index == 2)
 		{
 			return mZ;
 		}
+
 		else
 		{
 			return 0;

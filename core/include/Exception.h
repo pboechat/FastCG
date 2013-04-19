@@ -1,5 +1,5 @@
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef EXCEPTION_H_
+#define EXCEPTION_H_
 
 #include <cstdio>
 #include <exception>
@@ -10,7 +10,7 @@ class Exception: public std::exception
 {
 public:
 	Exception(const std::string& rReason) :
-			mReason(rReason), mFunction(""), mFile(""), mLine(0)
+		mReason(rReason), mFunction(""), mFile(""), mLine(0)
 	{
 	}
 
@@ -73,7 +73,7 @@ protected:
 	unsigned int mLine;
 
 	Exception() :
-			mReason(""), mFunction(""), mFile(""), mLine(0)
+		mReason(""), mFunction(""), mFile(""), mLine(0)
 	{
 	}
 
@@ -89,5 +89,5 @@ protected:
 	__exception.SetLine(__LINE__); \
 	throw __exception; \
 } \
-
+ 
 #endif

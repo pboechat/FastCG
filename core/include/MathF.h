@@ -1,5 +1,5 @@
-#ifndef MATHF_H
-#define MATHF_H
+#ifndef MATHF_H_
+#define MATHF_H_
 
 #define _USE_MATH_DEFINES
 
@@ -27,7 +27,6 @@ public:
 		i |= i >> 8;
 		i |= i >> 16;
 		i++;
-
 		return i;
 	}
 
@@ -39,6 +38,21 @@ public:
 	inline static float Ceil(float a)
 	{
 		return ceil(a);
+	}
+
+	inline static int CeilToInt(float a)
+	{
+		return (int)ceil(a);
+	}
+
+	inline static float Floor(float a)
+	{
+		return floor(a);
+	}
+
+	inline static int FloorToInt(float a)
+	{
+		return (int)floor(a);
 	}
 
 	inline static float Log2(float a)
@@ -54,17 +68,27 @@ public:
 	inline static float Max(float a, float b)
 	{
 		if (a >= b)
+		{
 			return a;
+		}
+
 		else
+		{
 			return b;
+		}
 	}
 
 	inline static float Min(float a, float b)
 	{
 		if (a <= b)
+		{
 			return a;
+		}
+
 		else
+		{
 			return b;
+		}
 	}
 
 	inline static float Cos(float angleInRadians)

@@ -1,5 +1,5 @@
-#ifndef COLORMODEL_H
-#define COLORMODEL_H
+#ifndef COLORMODEL_H_
+#define COLORMODEL_H_
 
 enum ColorModel
 {

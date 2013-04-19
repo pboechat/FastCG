@@ -1,5 +1,5 @@
-#ifndef SRGBCOLOR_H
-#define SRGBCOLOR_H
+#ifndef SRGBCOLOR_H_
+#define SRGBCOLOR_H_
 
 #include "Color.h"
 #include "ColorModel.h"
@@ -19,7 +19,7 @@ public:
 	}
 
 	sRGBColor(float r, float g, float b) :
-			mR(r), mG(g), mB(b)
+		mR(r), mG(g), mB(b)
 	{
 	}
 
@@ -53,14 +53,17 @@ public:
 		{
 			return mR;
 		}
+
 		else if (index == 1)
 		{
 			return mG;
 		}
+
 		else if (index == 2)
 		{
 			return mB;
 		}
+
 		else
 		{
 			return 0;

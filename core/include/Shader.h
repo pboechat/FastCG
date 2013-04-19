@@ -1,5 +1,5 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef SHADER_H_
+#define SHADER_H_
 
 #include <Pointer.h>
 #include <Texture.h>
@@ -91,10 +91,12 @@ private:
 		{
 			return GL_VERTEX_SHADER;
 		}
+
 		else if (shaderType == ST_FRAGMENT)
 		{
 			return GL_FRAGMENT_SHADER;
 		}
+
 		else
 		{
 			THROW_EXCEPTION(Exception, "Unknown shader type: %d", shaderType);

@@ -31,12 +31,7 @@ char* FileReader::Read(const std::string& rFileName, int& fileSize, FileMode mod
 
 		if (file == NULL)
 		{
-			//THROW_EXCEPTION(FileNotFoundException, rFileName.c_str());
-			FileNotFoundException exception(rFileName.c_str());
-			exception.SetFunction(__FUNCTION__);
-			exception.SetFile(__FILE__);
-			exception.SetLine(__LINE__);
-			throw exception;
+			THROW_EXCEPTION(FileNotFoundException, "File not found: %s", rFileName.c_str());
 		}
 
 		fseek(file, 0, SEEK_END);

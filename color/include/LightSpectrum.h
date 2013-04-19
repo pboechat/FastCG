@@ -1,5 +1,5 @@
-#ifndef LIGHTSPECTRUM_H
-#define LIGHTSPECTRUM_H
+#ifndef LIGHTSPECTRUM_H_
+#define LIGHTSPECTRUM_H_
 
 #include <cstring>
 #include <sstream>
@@ -9,7 +9,7 @@ class LightSpectrum
 {
 public:
 	LightSpectrum(unsigned int initialWavelength, unsigned int finalWavelength, unsigned int precision, const float* pFunctionValues) :
-			mInitialWavelength(initialWavelength), mFinalWavelength(finalWavelength), mPrecision(precision), mpFunctionValues(NULL)
+		mInitialWavelength(initialWavelength), mFinalWavelength(finalWavelength), mPrecision(precision), mpFunctionValues(NULL)
 	{
 		unsigned int size = GetSize();
 		mpFunctionValues = new float[size];

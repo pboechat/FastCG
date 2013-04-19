@@ -33,6 +33,7 @@ CIEXYZColor ColorMatchingFunctions::Apply(Illuminant referenceLight, const Light
 
 	X = Y = Z = W = 0;
 	unsigned int precision = rReflectanceSpectrum.GetPrecision();
+
 	for (unsigned int i = rReflectanceSpectrum.GetInitialWavelength(), c = 0; i < rReflectanceSpectrum.GetFinalWavelength(); i += precision, c++)
 	{
 		float xBar = xBarFunction[i - MINIMUM_WAVELENGTH];
@@ -50,6 +51,5 @@ CIEXYZColor ColorMatchingFunctions::Apply(Illuminant referenceLight, const Light
 	X /= W;
 	Y /= W;
 	Z /= W;
-
 	return CIEXYZColor(X, Y, Z);
 }

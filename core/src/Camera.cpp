@@ -4,11 +4,18 @@
 
 glm::mat4 Camera::GetProjection() const
 {
-	if (mProjection == PM_PERSPECTIVE) {
+	if (mProjection == PM_PERSPECTIVE)
+	{
 		return glm::perspective(mFieldOfView, Application::GetInstance()->GetAspectRatio(), mNear, mFar);
-	} else if (mProjection == PM_ORTHOGRAPHIC) {
+	}
+
+	else if (mProjection == PM_ORTHOGRAPHIC)
+	{
 		return glm::ortho(mLeft, mRight, mBottom, mTop, mNear, mFar);
-	} else {
+	}
+
+	else
+	{
 		THROW_EXCEPTION(Exception, "Unknown projection: %d", mProjection);
 	}
 }

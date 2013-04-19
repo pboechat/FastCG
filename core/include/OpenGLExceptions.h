@@ -1,5 +1,5 @@
-#ifndef OPENGLEXCEPTIONS_H
-#define OPENGLEXCEPTIONS_H
+#ifndef OPENGLEXCEPTIONS_H_
+#define OPENGLEXCEPTIONS_H_
 
 #include <Exception.h>
 
@@ -7,7 +7,7 @@ class OpenGLException: public Exception
 {
 public:
 	OpenGLException(const std::string& rReason) :
-			Exception(rReason)
+		Exception(rReason)
 	{
 	}
 

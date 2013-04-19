@@ -31,6 +31,7 @@ sRGBColor CIEXYZColor::To_sRGB(Illuminant referenceLight, bool ignoreError) cons
 		g = (-0.9787684 * mX) + (1.9161415 * mY) + (0.0334540 * mZ);
 		b = (0.0719453 * mX) + (-0.2289914 * mY) + (1.4052427 * mZ);
 	}
+
 	else
 	{
 		/* default D65 */

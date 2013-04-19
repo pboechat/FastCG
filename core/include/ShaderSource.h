@@ -1,5 +1,5 @@
-#ifndef SHADERSOURCE_H
-#define SHADERSOURCE_H
+#ifndef SHADERSOURCE_H_
+#define SHADERSOURCE_H_
 
 #include <string>
 

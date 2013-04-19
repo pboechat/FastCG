@@ -7,14 +7,14 @@ Application* Application::s_mpInstance = NULL;
 bool Application::s_mStarted = false;
 
 Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
-		mWindowTitle(rWindowTitle),
-		mScreenWidth(screenWidth),
-		mScreenHeight(screenHeight),
-		mHalfScreenWidth(screenWidth / 2.0f),
-		mHalfScreenHeight(screenHeight / 2.0f),
-		mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
-		mAmbientLight(1.0f, 1.0f, 1.0f, 1.0f),
-		mGLUTWindowHandle(0)
+	mWindowTitle(rWindowTitle),
+	mScreenWidth(screenWidth),
+	mScreenHeight(screenHeight),
+	mHalfScreenWidth(screenWidth / 2.0f),
+	mHalfScreenHeight(screenHeight / 2.0f),
+	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
+	mAmbientLight(1.0f, 1.0f, 1.0f, 1.0f),
+	mGLUTWindowHandle(0)
 {
 	s_mpInstance = this;
 }
@@ -68,6 +68,7 @@ void Application::SetUpGLUT(int argc, char** argv)
 	glutReshapeFunc(GLUTReshapeWindowCallback);
 	glutMouseFunc(GLUTMouseButtonCallback);
 	glutMotionFunc(GLUTMouseMoveCallback);
+	glutPassiveMotionFunc(GLUTMouseMoveCallback);
 	glutKeyboardFunc(GLUTKeyboardCallback);
 	glutSpecialFunc(GLUTSpecialKeysCallback);
 }
@@ -81,7 +82,6 @@ void Application::SetUpOpenGL()
 void Application::Display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	BeforeDisplay();
 
 	for (unsigned int i = 0; i < mGeometries.size(); i++)
@@ -90,7 +90,6 @@ void Application::Display()
 	}
 
 	AfterDisplay();
-
 	glutSwapBuffers();
 }
 
@@ -100,7 +99,6 @@ void Application::Resize(int width, int height)
 	mScreenHeight = height;
 	mHalfScreenWidth = width * 0.5f;
 	mHalfScreenHeight = height * 0.5f;
-
 	SetUpViewport();
 	OnResize();
 }
@@ -135,9 +133,7 @@ void Application::Quit()
 {
 	s_mStarted = false;
 	OnFinish();
-
 	mGeometries.clear();
-
 	glutDestroyWindow(mGLUTWindowHandle);
 }
 bool Application::HasStarted()
@@ -148,6 +144,11 @@ bool Application::HasStarted()
 void Application::MouseButton(int button, int state, int x, int y)
 {
 	OnMouseButton(button, state, x, y);
+}
+
+void Application::MouseWheel(int button, int direction, int x, int y)
+{
+	OnMouseWheel(button, direction, x, y);
 }
 
 void Application::MouseMove(int x, int y)
@@ -161,6 +162,10 @@ void Application::Keyboard(int key, int x, int y)
 }
 
 void Application::OnMouseButton(int button, int state, int x, int y)
+{
+}
+
+void Application::OnMouseWheel(int button, int direction, int x, int y)
 {
 }
 
@@ -185,6 +190,11 @@ void GLUTReshapeWindowCallback(int width, int height)
 void GLUTMouseButtonCallback(int button, int state, int x, int y)
 {
 	Application::GetInstance()->MouseButton(button, state, x, y);
+}
+
+void GLUTMouseWheelCallback(int button, int direction, int x, int y)
+{
+	Application::GetInstance()->MouseWheel(button, direction, x, y);
 }
 
 void GLUTMouseMoveCallback(int x, int y)
