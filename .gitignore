@@ -5,6 +5,7 @@ RemoteSystemsTempFiles/
 ipch/
 
 *.sdf
+*.opensdf
 *.suo
 *.vcxproj.user
 
