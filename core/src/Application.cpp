@@ -13,7 +13,7 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mHalfScreenWidth(screenWidth / 2.0f),
 	mHalfScreenHeight(screenHeight / 2.0f),
 	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
-	mAmbientLight(1.0f, 1.0f, 1.0f, 1.0f),
+	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
 	mGLUTWindowHandle(0)
 {
 	s_mpInstance = this;
@@ -67,6 +67,7 @@ void Application::SetUpGLUT(int argc, char** argv)
 	glutIdleFunc(GLUTDisplayCallback);
 	glutReshapeFunc(GLUTReshapeWindowCallback);
 	glutMouseFunc(GLUTMouseButtonCallback);
+	glutMouseWheelFunc(GLUTMouseWheelCallback);
 	glutMotionFunc(GLUTMouseMoveCallback);
 	glutPassiveMotionFunc(GLUTMouseMoveCallback);
 	glutKeyboardFunc(GLUTKeyboardCallback);
@@ -76,12 +77,40 @@ void Application::SetUpGLUT(int argc, char** argv)
 void Application::SetUpOpenGL()
 {
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
+
+#ifndef USE_OPENGL4
+	glEnable(GL_LIGHTING);
+	glShadeModel(GL_SMOOTH);
+#endif
 }
 
 void Application::Display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
+
+#ifndef USE_OPENGL4
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(&mMainCamera.GetProjection()[0][0]);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&mMainCamera.GetView()[0][0]);
+
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, &mGlobalAmbientLight[0]);
+
+	for (unsigned int i = 0; i < mLights.size(); i++)
+	{
+		glEnable(GL_LIGHT0 + i);
+
+		LightPtr light = mLights[i];
+		// TODO: GL_LIGHT0 + i might be a dangereous trick!
+		glLightfv(GL_LIGHT0 + i, GL_POSITION, &light->GetPosition()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &light->GetAmbientColor()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &light->GetDiffuseColor()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &light->GetSpecularColor()[0]);
+	}
+#endif
+
 	BeforeDisplay();
 
 	for (unsigned int i = 0; i < mGeometries.size(); i++)

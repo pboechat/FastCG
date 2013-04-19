@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#ifdef USE_OPENGL4
+
 Material::Material(ShaderPtr shaderPtr) :
 	mShaderPtr(shaderPtr)
 {
@@ -20,16 +22,21 @@ Material::~Material()
 void Material::Bind(const Geometry& rGeometry) const
 {
 	mShaderPtr->Bind();
+
 	glm::mat4 model = rGeometry.GetModel();
 	glm::mat4 view = Application::GetInstance()->GetMainCamera().GetView();
 	glm::mat4 projection = Application::GetInstance()->GetMainCamera().GetProjection();
 	glm::mat4 modelView = view * model;
+
 	mShaderPtr->SetMat4("_Model", model);
 	mShaderPtr->SetMat4("_View", view);
 	mShaderPtr->SetMat4("_ModelView", modelView);
 	mShaderPtr->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 	mShaderPtr->SetMat4("_Projection", projection);
 	mShaderPtr->SetMat4("_ModelViewProjection", projection * modelView);
+
+	mShaderPtr->SetVec4("_GlobalLightAmbientColor", Application::GetInstance()->GetGlobalAmbientLight());
+
 	const std::vector<LightPtr>& rLights = Application::GetInstance()->GetLights();
 	std::vector<LightPtr>::const_iterator it1 = rLights.begin();
 	std::stringstream variableName;
@@ -42,22 +49,27 @@ void Material::Bind(const Geometry& rGeometry) const
 		glm::vec4 lightAmbientColor = lightPtr->GetAmbientColor();
 		glm::vec4 lightDiffuseColor = lightPtr->GetDiffuseColor();
 		glm::vec4 lightSpecularColor = lightPtr->GetSpecularColor();
+
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "Position";
 		mShaderPtr->SetVec3(variableName.str(), lightPosition);
+
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "AmbientColor";
 		mShaderPtr->SetVec4(variableName.str(), lightAmbientColor);
+
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "DiffuseColor";
 		mShaderPtr->SetVec4(variableName.str(), lightDiffuseColor);
+
 		variableName.str(std::string());
 		variableName.clear();
 		variableName << "_Light" << c << "SpecularColor";
 		mShaderPtr->SetVec4(variableName.str(), lightSpecularColor);
+
 		c++;
 		it1++;
 	}
@@ -92,6 +104,7 @@ void Material::Bind(const Geometry& rGeometry) const
 void Material::Unbind() const
 {
 	mShaderPtr->Unbind();
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Material::SetFloat(const std::string& rParameterName, float value)
@@ -108,3 +121,32 @@ void Material::SetTexture(const std::string& rParameterName, const TexturePtr& s
 {
 	mTextureParameters.insert(std::make_pair(rParameterName, spTexture));
 }
+#else
+
+Material::Material() :
+	mAmbientColor(1.0f, 1.0f, 1.0f, 1.0f),
+	mDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
+	mSpecularColor(1.0f, 1.0f, 1.0f, 1.0f),
+	mEmissiveColor(1.0f, 1.0f, 1.0f, 1.0f),
+	mShininess(3),
+	mEmissive(false)
+{
+}
+
+Material::~Material()
+{
+}
+
+void Material::Bind() const
+{
+	glMaterialfv(GL_FRONT, GL_AMBIENT, &mAmbientColor[0]);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, &mDiffuseColor[0]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, &mSpecularColor[0]);
+	if (mEmissive)
+	{
+		glMaterialfv(GL_FRONT, GL_EMISSION, &mEmissiveColor[0]);
+	}
+	glMaterialf(GL_FRONT, GL_SHININESS, mShininess);
+}
+
+#endif

@@ -27,11 +27,14 @@ private:
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mUVs;
 	MaterialPtr mMaterialPtr;
+#ifdef USE_OPENGL4
 	unsigned int mGeometryVAOId;
 	unsigned int mVerticesVBOId;
-	unsigned int mIndexesVBOId;
 	unsigned int mNormalsVBOId;
 	unsigned int mUVsVBOId;
+#else
+	unsigned int mDisplayListId;
+#endif
 
 	void AllocateResources();
 	void DeallocateResources();

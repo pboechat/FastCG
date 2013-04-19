@@ -4,7 +4,7 @@ uniform mat4 _ModelView;
 uniform mat4 _Projection;
 uniform mat4 _ModelViewProjection;
 uniform mat3 _ModelViewInverseTranspose;
-uniform vec4 _AmbientLight;
+uniform vec4 _GlobalLightAmbientColor;
 uniform vec3 _Light0Position;
 uniform vec3 _Light1Position;
 uniform vec3 _Light2Position;

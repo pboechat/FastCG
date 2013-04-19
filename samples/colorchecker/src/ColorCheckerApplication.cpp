@@ -10,17 +10,21 @@
 #include <StandardGeometries.h>
 
 #include <GL/freeglut.h>
+
 #include <iostream>
 #include <vector>
 
 const unsigned int ColorCheckerApplication::NUM_COLORS = 24;
-const unsigned int ColorCheckerApplication::H_TILES = 6;
-const unsigned int ColorCheckerApplication::V_TILES = 4;
+const unsigned int ColorCheckerApplication::H_NUM_PATCHES = 6;
+const unsigned int ColorCheckerApplication::V_NUM_PATCHES = 4;
+const unsigned int ColorCheckerApplication::BORDER = 20;
 
 ColorCheckerApplication::ColorCheckerApplication() :
 	Application("Color Checker", 800, 600)
 {
-	mMainCamera = Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) mScreenHeight, 0.0f, (float) mScreenWidth, PM_ORTHOGRAPHIC);
+	mMainCamera = Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
+	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 }
 
 ColorCheckerApplication::~ColorCheckerApplication()
@@ -95,8 +99,7 @@ void ColorCheckerApplication::ParseColorCheckerFile()
 		mLightSpectrums.push_back(pLightSpectrum);
 	}
 
-#ifdef _DEBUG
-	std::cout << "*************************************" << std::endl;
+	std::cout << "Light Spectrums: " << std::endl << std::endl;
 	std::vector<LightSpectrum*>::iterator it = mLightSpectrums.begin();
 
 	while (it != mLightSpectrums.end())
@@ -105,8 +108,7 @@ void ColorCheckerApplication::ParseColorCheckerFile()
 		it++;
 	}
 
-	std::cout << "*************************************" << std::endl;
-#endif
+	std::cout << "*************************************" << std::endl << std::endl;
 }
 
 void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
@@ -120,18 +122,16 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 		i1++;
 	}
 
-#ifdef _DEBUG
-	std::cout << "*************************************" << std::endl;
+	std::cout << "Patch Colors: " << std::endl << std::endl;
 	std::vector<sRGBColor>::iterator i2 = mBaseColors.begin();
 
 	while (i2 != mBaseColors.end())
 	{
-		std::cout << i2->ToString() << std::endl << std::endl;
+		std::cout << i2->ToString() << std::endl;
 		i2++;
 	}
 
-	std::cout << "*************************************" << std::endl;
-#endif
+	std::cout << std::endl << "*************************************" << std::endl << std::endl;
 }
 
 bool ColorCheckerApplication::OnStart()
@@ -140,11 +140,15 @@ bool ColorCheckerApplication::OnStart()
 	{
 		ParseColorCheckerFile();
 		ConvertLightSpectrumsToRGBs();
+
 		CHECK_FOR_OPENGL_ERRORS();
+
+#ifdef USE_OPENGL4
 		mSolidColorShaderPtr = new Shader("SolidColor");
 		mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
 		mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
 		mSolidColorShaderPtr->Link();
+#endif
 	}
 
 	catch (Exception& e)
@@ -153,15 +157,15 @@ bool ColorCheckerApplication::OnStart()
 		return false;
 	}
 
-	float tileWidth = mScreenWidth / (float) H_TILES;
-	float tileHeight = mScreenHeight / (float) V_TILES;
+	float tileWidth = (GetScreenWidth() - BORDER) / (float) H_NUM_PATCHES;
+	float tileHeight = (GetScreenHeight() - BORDER) / (float) V_NUM_PATCHES;
 	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
 
-	for (unsigned int y = V_TILES; y > 0; y--)
+	for (unsigned int y = V_NUM_PATCHES; y > 0; y--)
 	{
-		for (unsigned int x = 0; x < H_TILES; x++)
+		for (unsigned int x = 0; x < H_NUM_PATCHES; x++)
 		{
-			AddColorChecker(x * tileWidth, (y - 1) * tileHeight, tileWidth, tileHeight, *colorIterator);
+			AddColorChecker(x * tileWidth + BORDER, (y - 1) * tileHeight + BORDER, tileWidth - BORDER, tileHeight - BORDER, *colorIterator);
 			colorIterator++;
 		}
 	}
@@ -171,11 +175,54 @@ bool ColorCheckerApplication::OnStart()
 
 void ColorCheckerApplication::AddColorChecker(float x, float y, float width, float height, const sRGBColor& color)
 {
-	MaterialPtr solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
+	MaterialPtr solidColorMaterialPtr;
+#ifdef USE_OPENGL4
+	solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
 	solidColorMaterialPtr->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+#else
+	solidColorMaterialPtr = new Material();
+	solidColorMaterialPtr->SetAmbientColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	solidColorMaterialPtr->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	solidColorMaterialPtr->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+#endif
 	GeometryPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
 	colorCheckerPtr->Translate(glm::vec3(x, y, 0.0f));
 	colorCheckerPtr->SetMaterial(solidColorMaterialPtr);
 	AddGeometry(colorCheckerPtr);
 }
 
+int ColorCheckerApplication::GetColorPatchIndex(int x, int y)
+{
+	float patchWidth = GetScreenWidth() / (float) H_NUM_PATCHES;
+	float patchHeight = GetScreenHeight() / (float) V_NUM_PATCHES;
+
+	int patchX = MathF::FloorToInt(x / patchWidth);
+	int patchY = MathF::FloorToInt(y / patchHeight);
+
+	return patchY * H_NUM_PATCHES + patchX;
+}
+
+void ColorCheckerApplication::OnMouseButton(int button, int state, int x, int y)
+{
+	if (button == 0 && state == 0) 
+	{
+		sRGBColor color = mBaseColors[GetColorPatchIndex(x, y)];
+		std::cout << "Patch: (" << color.R() << ", " << color.G() << ", " << color.B() << ")" << std::endl;
+	}
+}
+
+void ColorCheckerApplication::OnMouseWheel(int button, int direction, int x, int y)
+{
+	// zoom in (lighten)
+	if (direction > 0)
+	{
+		mClearColor += glm::vec4(0.01f, 0.01f, 0.01f, 0.0f);
+	}
+	// zoom out (darken)
+	else
+	{
+		mClearColor -= glm::vec4(0.01f, 0.01f, 0.01f, 0.0f);
+	}
+
+	mClearColor = glm::clamp(mClearColor, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+}

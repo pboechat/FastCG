@@ -36,6 +36,16 @@ public:
 	void MouseMove(int x, int y);
 	void Keyboard(int key, int x, int y);
 
+	inline unsigned int GetScreenWidth() const
+	{
+		return mScreenWidth;
+	}
+
+	inline unsigned int GetScreenHeight() const
+	{
+		return mScreenHeight;
+	}
+
 	inline float GetAspectRatio() const
 	{
 		return mScreenWidth / (float) mScreenHeight;
@@ -46,29 +56,20 @@ public:
 		return mMainCamera;
 	}
 
-	inline const glm::vec4& GetAmbientLight() const
+	inline const glm::vec4& GetGlobalAmbientLight() const
 	{
-		return mAmbientLight;
+		return mGlobalAmbientLight;
 	}
 
-	inline void SetAmbientLight(const glm::vec4& ambientLight)
-	{
-		mAmbientLight = ambientLight;
-	}
-
-	inline const std::vector<LightPtr> GetLights() const
+	inline const std::vector<LightPtr>& GetLights() const
 	{
 		return mLights;
 	}
 
 protected:
-	int mScreenWidth;
-	int mScreenHeight;
-	float mHalfScreenWidth;
-	float mHalfScreenHeight;
 	Camera mMainCamera;
 	glm::vec4 mClearColor;
-	glm::vec4 mAmbientLight;
+	glm::vec4 mGlobalAmbientLight;
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
@@ -103,6 +104,10 @@ private:
 	static Application* s_mpInstance;
 	static bool s_mStarted;
 
+	unsigned int mScreenWidth;
+	unsigned int mScreenHeight;
+	float mHalfScreenWidth;
+	float mHalfScreenHeight;
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
 	std::vector<LightPtr> mLights;
@@ -121,24 +126,5 @@ void GLUTMouseMoveCallback(int x, int y);
 void GLUTKeyboardCallback(unsigned char key, int x, int y);
 void GLUTSpecialKeysCallback(int key, int x, int y);
 void ExitCallback();
-
-// ====================================================================================================
-
-#define EXPAND(x) x
-#define CHECK_FOR_OPENGL_ERRORS() \
-	{ \
-		unsigned int __errorCode; \
-		if ((__errorCode = glGetError()) != GL_NO_ERROR) \
-		{ \
-			const unsigned char* __pErrorMessage = gluErrorString(__errorCode); \
-			std::stringstream __stringStream; \
-			if (__pErrorMessage) \
-			{ \
-				__stringStream << __pErrorMessage; \
-			} \
-			__stringStream << "\n" << "(error code: %d)"; \
-			EXPAND(THROW_EXCEPTION(OpenGLException, __stringStream.str().c_str(), __errorCode)); \
-		} \
-	} \
  
 #endif

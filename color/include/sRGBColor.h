@@ -75,7 +75,7 @@ public:
 	std::string ToString() const
 	{
 		std::stringstream str;
-		str << "[sRGB(R=" << mR << ",G=" << mG << ",B=" << mB << ")]";
+		str << "(" << mR << ", " << mG << ", " << mB << ")";
 		return str.str();
 	}
 

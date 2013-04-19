@@ -20,20 +20,26 @@ protected:
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void PrintUsage();
 	virtual bool OnStart();
+	virtual void OnMouseButton(int button, int state, int x, int y);
+	virtual void OnMouseWheel(int button, int direction, int x, int y);
 
 private:
 	static const unsigned int NUM_COLORS;
-	static const unsigned int H_TILES;
-	static const unsigned int V_TILES;
+	static const unsigned int H_NUM_PATCHES;
+	static const unsigned int V_NUM_PATCHES;
+	static const unsigned int BORDER;
 
 	std::string mColorCheckerFilename;
 	std::vector<LightSpectrum*> mLightSpectrums;
 	std::vector<sRGBColor> mBaseColors;
+#ifdef USE_OPENGL4
 	ShaderPtr mSolidColorShaderPtr;
+#endif
 
 	void ParseColorCheckerFile();
 	void ConvertLightSpectrumsToRGBs();
 	void AddColorChecker(float x, float y, float width, float height, const sRGBColor& color);
+	int GetColorPatchIndex(int x, int y);
 
 };
 
