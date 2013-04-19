@@ -87,6 +87,7 @@ void Application::SetUpOpenGL()
 
 #ifndef USE_OPENGL4
 	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);
 #endif
 }
@@ -110,8 +111,11 @@ void Application::Display()
 		glEnable(GL_LIGHT0 + i);
 
 		LightPtr light = mLights[i];
+
+		glm::vec4 lightPosition = glm::vec4(light->GetPosition(), 1.0f);
+
 		// TODO: GL_LIGHT0 + i might be a dangereous trick!
-		glLightfv(GL_LIGHT0 + i, GL_POSITION, &light->GetPosition()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_POSITION, &lightPosition[0]);
 		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &light->GetAmbientColor()[0]);
 		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &light->GetDiffuseColor()[0]);
 		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &light->GetSpecularColor()[0]);

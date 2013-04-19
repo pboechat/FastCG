@@ -108,9 +108,10 @@ GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegment
 	std::vector<glm::vec3> vertices(vertexQuantity);
 	std::vector<glm::vec3> normals(vertexQuantity);
 	std::vector<glm::vec2> uvs(vertexQuantity);
-	// generate geometry
+
 	float radialFactor = 1.0f / (radialSegments);
 	float zFactor = 2.0f / (zSegments - 1);
+
 	// Generate points on the unit circle to be used in computing the mesh
 	// points on a cylinder slice.
 	float* pSines = new float[radialSegments + 1];
@@ -125,9 +126,8 @@ GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegment
 
 	pSines[radialSegments] = pSines[0];
 	pCossines[radialSegments] = pCossines[0];
-	// generate the sphere itself
-	unsigned int i = 0;
 
+	unsigned int i = 0;
 	for (unsigned int zIndex = 1; zIndex < zSegments - 1; zIndex++)
 	{
 		float zFraction = -1.0f + zFactor * zIndex;  // in (-1,1)
@@ -160,6 +160,7 @@ GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegment
 	normals[i] = glm::vec3(0.0f, 0.0f, -1.0f);
 	uvs[i] = glm::vec2(0.5f, 0.5f);
 	i++;
+
 	// north pole
 	vertices[i] = glm::vec3(0.0f, 0.0f, radius);
 	normals[i] = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -183,8 +184,6 @@ GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegment
 		THROW_EXCEPTION(Exception, "Invalid vertex quantity: %d", vertexQuantity);
 	}
 
-	unsigned int vq = vertexQuantity;
-
 	if (!(zSegments < (32768) && (zSegments >= 0)))
 	{
 		THROW_EXCEPTION(Exception, "Invalid z segments: %d", zSegments);
@@ -193,52 +192,49 @@ GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegment
 	unsigned int zSegmentsCount = zSegments;
 	unsigned int triangleQuantity = 2 * (zSegments - 2) * radialSegments;
 	std::vector<unsigned int> indexes(3 * triangleQuantity);
-	// generate connectivity
-	unsigned int iZStart = 0;
-	unsigned int connectivityIndex = 0;
 
-	for (unsigned int iZ = 0; iZ < zSegments - 3; iZ++)
+	// generate connectivity
+	unsigned int zStart = 0;
+	i = 0;
+
+	for (unsigned int z = 0; z < zSegments - 3; z++)
 	{
-		unsigned int i0 = iZStart;
+		unsigned int i0 = zStart;
 		unsigned int i1 = i0 + 1;
-		iZStart += radialSegmentsCount + 1;
-		unsigned int i2 = iZStart;
+		zStart += (radialSegmentsCount + 1);
+		unsigned int i2 = zStart;
 		unsigned int i3 = i2 + 1;
 
 		for (unsigned int j = 0; j < radialSegments; j++)
 		{
-			indexes[connectivityIndex] = i0++;
-			indexes[connectivityIndex + 1] = i1;
-			indexes[connectivityIndex + 2] = i2;
-			indexes[connectivityIndex + 3] = i1++;
-			indexes[connectivityIndex + 4] = i3++;
-			indexes[connectivityIndex + 5] = i2++;
-			connectivityIndex += 6;
+			indexes[i] = i0++;
+			indexes[i + 1] = i1;
+			indexes[i + 2] = i2;
+			indexes[i + 3] = i1++;
+			indexes[i + 4] = i3++;
+			indexes[i + 5] = i2++;
+			i += 6;
 		}
 	}
 
 	// south pole triangles
-	unsigned int vQm2 = vq - 2;
 
-	//c = 0;
 	for (unsigned int j = 0; j < radialSegmentsCount; j++)
 	{
-		indexes[connectivityIndex] = j;
-		indexes[connectivityIndex + 1] = vQm2;
-		indexes[connectivityIndex + 2] = i + 1;
-		connectivityIndex += 3;
+		indexes[i] = j;
+		indexes[i + 1] = vertexQuantity - 2;
+		indexes[i + 2] = j + 1;
+		i += 3;
 	}
 
 	// north pole triangles
-	unsigned int vQm1 = vq - 1;
 	unsigned int offset = (zSegmentsCount - 3) * (radialSegmentsCount + 1);
-
 	for (unsigned int j = 0; j < radialSegmentsCount; j++)
 	{
-		indexes[connectivityIndex] = j + offset;
-		indexes[connectivityIndex + 1] = j + 1 + offset;
-		indexes[connectivityIndex + 2] = vQm1;
-		connectivityIndex += 3;
+		indexes[i] = j + offset;
+		indexes[i + 1] = j + 1 + offset;
+		indexes[i + 2] = vertexQuantity - 1;
+		i += 3;
 	}
 
 	delete[] pSines;

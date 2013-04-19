@@ -104,6 +104,8 @@ void Material::Bind(const Geometry& rGeometry) const
 void Material::Unbind() const
 {
 	mShaderPtr->Unbind();
+
+	// FIXME: shouldn't be necessary if we could garantee that all textures are unbinded after use!
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -147,6 +149,11 @@ void Material::Bind() const
 		glMaterialfv(GL_FRONT, GL_EMISSION, &mEmissiveColor[0]);
 	}
 	glMaterialf(GL_FRONT, GL_SHININESS, mShininess);
+
+	if (mTexturePtr != 0)
+	{
+		mTexturePtr->Bind();
+	}
 }
 
 #endif

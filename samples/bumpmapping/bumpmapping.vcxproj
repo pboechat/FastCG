@@ -68,7 +68,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../core/include;../../image/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>FREEGLUT_STATIC;GLEW_BUILD=GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENGL4;FREEGLUT_STATIC;GLEW_BUILD=GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -89,6 +89,10 @@
     <None Include="shaders\BumpedDiffuse.frag" />
     <None Include="shaders\BumpedDiffuse.vert" />
     <None Include="shaders\FastCG.glsl" />
+    <None Include="textures\GrassBumpMap.png" />
+    <None Include="textures\GrassColorMap.png" />
+    <None Include="textures\TennisBallBumpMap.png" />
+    <None Include="textures\TennisBallColorMap.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

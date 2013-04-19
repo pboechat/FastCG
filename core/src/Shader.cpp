@@ -13,7 +13,6 @@ Shader::Shader(const std::string& rName) :
 
 Shader::~Shader()
 {
-	// FIXME: if there's more than one copy, can't have to delete it
 	DetachShaders();
 	DeleteShaders();
 	mShadersIds.clear();
@@ -56,6 +55,8 @@ void Shader::Link()
 	BindAttributeLocation("position", VERTICES_ATTRIBUTE_INDEX);
 	BindAttributeLocation("normal", NORMALS_ATTRIBUTE_INDEX);
 	BindAttributeLocation("uv", UVS_ATTRIBUTE_INDEX);
+	BindAttributeLocation("tangent", TANGENTS_ATTRIBUTE_INDEX);
+
 	glLinkProgram(mProgramId);
 	CheckLink();
 	glValidateProgram(mProgramId);
@@ -122,11 +123,13 @@ void Shader::SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix
 	glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
 }
 
-void Shader::SetTexture(const std::string& rParameterName, const TexturePtr& spTexture, unsigned int textureUnit) const
+void Shader::SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr, unsigned int textureUnit) const
 {
-	glActiveTexture(textureUnit);
-	spTexture->Bind();
-	glUniform1i(GetUniformLocation(rParameterName), (int) textureUnit);
+	int unitId = GL_TEXTURE0 + (int)textureUnit;
+	glActiveTexture(unitId);
+	texturePtr->Bind();
+	glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
+	//spTexture->Unbind();
 }
 
 void Shader::DetachShaders()

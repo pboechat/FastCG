@@ -32,6 +32,7 @@ public:
 	~Texture();
 
 	void Bind() const;
+	void Unbind() const;
 
 	inline FilterMode GetFilter() const
 	{

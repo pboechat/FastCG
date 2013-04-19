@@ -70,6 +70,11 @@ public:
 		return mEmissive;
 	}
 
+	inline TexturePtr GetTexture() const
+	{
+		return mTexturePtr;
+	}
+
 	inline void SetAmbientColor(const glm::vec4& ambientColor)
 	{
 		mAmbientColor = ambientColor;
@@ -100,6 +105,11 @@ public:
 		mEmissive = emissive;
 	}
 
+	inline void SetTexture(TexturePtr texturePtr)
+	{
+		mTexturePtr = texturePtr;
+	}
+
 	void Bind() const;
 	
 private:
@@ -109,6 +119,7 @@ private:
 	glm::vec4 mEmissiveColor;
 	float mShininess;
 	bool mEmissive;
+	TexturePtr mTexturePtr;
 
 };
 #endif

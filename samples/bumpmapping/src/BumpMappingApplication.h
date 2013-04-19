@@ -17,11 +17,14 @@ protected:
 	virtual void OnStart();
 
 private:
+	static const unsigned int FIELD_SIZE;
+	static const unsigned int NUM_SPHERE_SEGMENTS;
+
 	ShaderPtr mBumpedDiffuseShaderPtr;
-	TexturePtr mGrassColorMapTexture;
-	TexturePtr mGrassBumpMapTexture;
-	TexturePtr mTennisBallColorMapTexture;
-	TexturePtr mTennisBallBumpMapTexture;
+	TexturePtr mGrassColorMapTexturePtr;
+	TexturePtr mGrassBumpMapTexturePtr;
+	TexturePtr mTennisBallColorMapTexturePtr;
+	TexturePtr mTennisBallBumpMapTexturePtr;
 
 	TexturePtr LoadPNGAsTexture(const std::string& rFileName);
 

@@ -48,6 +48,11 @@ void Texture::Bind() const
 	glBindTexture(GL_TEXTURE_2D, mTextureId);
 }
 
+void Texture::Unbind() const
+{
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void Texture::SetUpFilter() const
 {
 	switch (mFilter)
@@ -69,8 +74,7 @@ void Texture::SetUpFilter() const
 
 	default:
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown filter mode: %d", mFilter)
-		;
+		THROW_EXCEPTION(Exception, "Unknown filter mode: %d", mFilter);
 	}
 }
 
@@ -90,8 +94,7 @@ void Texture::SetUpWrapping() const
 
 	default:
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown wrapping mode: %d", mWrapMode)
-		;
+		THROW_EXCEPTION(Exception, "Unknown wrapping mode: %d", mWrapMode);
 	}
 }
 
@@ -107,9 +110,7 @@ unsigned int Texture::GetInternalFormatMapping() const
 
 	default:
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat)
-		;
-		return 0;
+		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat);
 	}
 }
 
@@ -125,9 +126,7 @@ unsigned int Texture::GetFormatMapping() const
 
 	default:
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat)
-		;
-		return 0;
+		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat);
 	}
 }
 
@@ -143,9 +142,7 @@ unsigned int Texture::GetDataTypeMapping() const
 
 	default:
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown data type: %d", mDataType)
-		;
-		return 0;
+		THROW_EXCEPTION(Exception, "Unknown data type: %d", mDataType);
 	}
 }
 
