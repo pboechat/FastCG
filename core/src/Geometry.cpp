@@ -15,6 +15,7 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<uns
 {
 #ifdef USE_OPENGL4
 	mGeometryVAOId = 0;
+	mUseTangents = false;
 #else
 	mDisplayListId = 0;
 #endif

@@ -25,11 +25,22 @@ public:
 	void SetVec4(const std::string& rParameterName, const glm::vec4& rVector);
 	void SetTexture(const std::string& rParameterName, const TexturePtr& spTexture);
 
+	inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
+	{
+		return mTexturesTiling.find(rTextureName)->second;
+	}
+
+	inline void SetTextureTiling(const std::string& rTextureName, const glm::vec2& rTextureTiling)
+	{
+		mTexturesTiling[rTextureName] = rTextureTiling;
+	}
+
 private:
 	ShaderPtr mShaderPtr;
 	std::map<std::string, float> mFloatParameters;
 	std::map<std::string, glm::vec4> mVec4Parameters;
 	std::map<std::string, TexturePtr> mTextureParameters;
+	std::map<std::string, glm::vec2> mTexturesTiling;
 
 };
 #else

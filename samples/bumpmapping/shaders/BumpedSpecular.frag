@@ -6,6 +6,8 @@ uniform sampler2D colorMap;
 uniform sampler2D bumpMap;
 uniform vec2 colorMapTiling;
 uniform vec2 bumpMapTiling;
+uniform vec4 specularColor;
+uniform float shininess;
 
 in vec3 lightDirection;
 in vec3 viewerDirection;
@@ -21,5 +23,13 @@ void main()
 	float diffuseAttenuation = max(dot(lightDirection, normal), 0.0); 
 	vec3 diffuseContribution = vec3(_Light0DiffuseColor) * diffuseColor * diffuseAttenuation;
 
-	gl_FragColor = vec4(ambientContribution + diffuseContribution, 1.0);
+	vec3 specularContribution = vec3(0);
+	if (diffuseAttenuation > 0) 
+	{
+		vec3 reflection = reflect(-lightDirection, normal);
+		float specularAttenuation = pow(max(dot(reflection, viewerDirection), 0.0), shininess);
+		specularContribution = vec3(specularColor) * specularAttenuation;
+	}
+
+	gl_FragColor = vec4(ambientContribution + diffuseContribution + specularContribution, 1.0);
 }

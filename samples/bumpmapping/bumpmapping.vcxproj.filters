@@ -12,9 +12,6 @@
     <Filter Include="Shader Files">
       <UniqueIdentifier>{f3d9e45d-8d00-416a-bc6f-aa764daef6f9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Textures">
-      <UniqueIdentifier>{1c025d74-9215-496e-a50f-57c86cf90d5a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BumpMappingApplication.h">
@@ -39,17 +36,11 @@
     <None Include="shaders\FastCG.glsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="textures\GrassBumpMap.png">
-      <Filter>Textures</Filter>
+    <None Include="shaders\BumpedSpecular.frag">
+      <Filter>Shader Files</Filter>
     </None>
-    <None Include="textures\GrassColorMap.png">
-      <Filter>Textures</Filter>
-    </None>
-    <None Include="textures\TennisBallBumpMap.png">
-      <Filter>Textures</Filter>
-    </None>
-    <None Include="textures\TennisBallColorMap.png">
-      <Filter>Textures</Filter>
+    <None Include="shaders\BumpedSpecular.vert">
+      <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
 </Project>

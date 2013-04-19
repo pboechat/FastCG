@@ -6,11 +6,15 @@
 
 #include <iostream>
 
+const unsigned int BumpMappingApplication::FIELD_SIZE = 100;
+const unsigned int BumpMappingApplication::NUM_SPHERE_SEGMENTS = 30;
+
 BumpMappingApplication::BumpMappingApplication() :
 	Application("bumpmapping", 800, 600)
 {
 	mClearColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	mMainCamera.Translate(glm::vec3(0, 50.0f, 90.0f));
+	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	mMainCamera.Translate(glm::vec3(0, FIELD_SIZE * 0.5f, (float)FIELD_SIZE));
 }
 
 BumpMappingApplication::~BumpMappingApplication()
@@ -20,8 +24,10 @@ BumpMappingApplication::~BumpMappingApplication()
 void BumpMappingApplication::OnStart()
 {
 	LightPtr lightPtr = new Light();
+	lightPtr->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	lightPtr->SetDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-	lightPtr->Translate(glm::vec3(0.0f, 20.0f, 0.0f));
+	lightPtr->SetSpecularColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	lightPtr->Translate(glm::vec3(0.0f, FIELD_SIZE * 0.25f, 0.0f));
 	AddLight(lightPtr);
 
 #ifdef USE_OPENGL4
@@ -31,49 +37,56 @@ void BumpMappingApplication::OnStart()
 	mBumpedDiffuseShaderPtr->Link();
 #endif
 
-	mGrassColorMapTexturePtr = LoadPNGAsTexture("textures/GrassColorMap.png");
+	mGroundColorMapTexturePtr = LoadPNGAsTexture("textures/StoneWallColorMap.png");
 	CHECK_FOR_OPENGL_ERRORS();
-	mGrassBumpMapTexturePtr = LoadPNGAsTexture("textures/GrassBumpMap.png");
+	mGroundBumpMapTexturePtr = LoadPNGAsTexture("textures/StoneWallBumpMap.png");
 	CHECK_FOR_OPENGL_ERRORS();
-	mTennisBallColorMapTexturePtr = LoadPNGAsTexture("textures/TennisBallColorMap.png");
+	mSphereColorMapTexturePtr = LoadPNGAsTexture("textures/TennisBallColorMap.png");
 	CHECK_FOR_OPENGL_ERRORS();
-	mTennisBallBumpMapTexturePtr = LoadPNGAsTexture("textures/TennisBallBumpMap.png");
+	mSphereBumpMapTexturePtr = LoadPNGAsTexture("textures/TennisBallBumpMap.png");
 	CHECK_FOR_OPENGL_ERRORS();
 
 	MaterialPtr groundMaterialPtr;
 
 #ifdef USE_OPENGL4
 	groundMaterialPtr = new Material(mBumpedDiffuseShaderPtr);
-	groundMaterialPtr->SetTexture("colorMap", mGrassColorMapTexturePtr);
-	//spGroundMaterial->SetTexture("bumpMap", mGrassBumpMapTexture);
+	groundMaterialPtr->SetTexture("colorMap", mGroundColorMapTexturePtr);
+	groundMaterialPtr->SetTexture("bumpMap", mGroundBumpMapTexturePtr);
 	groundMaterialPtr->SetVec4("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 #else
 	groundMaterialPtr = new Material();
-
+	groundMaterialPtr->SetTexture(mGroundColorMapTexturePtr);
 #endif
 
-	GeometryPtr groundPtr = StandardGeometries::CreateXZPlane(100, 100, 1, 1, glm::vec3(0, 0, 0), groundMaterialPtr);
+	GeometryPtr groundPtr = StandardGeometries::CreateXZPlane((float)FIELD_SIZE, (float)FIELD_SIZE, 1, 1, glm::vec3(0, 0, 0), groundMaterialPtr);
+#ifdef USE_OPENGL4
+	groundPtr->CalculateTangents();
+#endif
 	AddGeometry(groundPtr);
 
-	for (unsigned int z = 0; z < 100; z += 10)
+	for (unsigned int z = 0; z < FIELD_SIZE; z += 10)
 	{
-		for (unsigned int x = 0; x < 100; x += 10)
+		for (unsigned int x = 0; x < FIELD_SIZE; x += 10)
 		{
 			MaterialPtr sphereMaterialPtr;
 
-#ifdef USE_OPENGL4			
+#ifdef USE_OPENGL4
 			sphereMaterialPtr = new Material(mBumpedDiffuseShaderPtr);
+			sphereMaterialPtr->SetTexture("colorMap", mSphereColorMapTexturePtr);
+			sphereMaterialPtr->SetTexture("bumpMap", mSphereBumpMapTexturePtr);
+			sphereMaterialPtr->SetVec4("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 #else
 			sphereMaterialPtr = new Material();
-#endif
-			sphereMaterialPtr->SetTexture("colorMap", mTennisBallColorMapTexturePtr);
-#ifdef USE_OPENGL4
-			//spSphereMaterial->SetTexture("bumpMap", mTennisBallBumpMapTexture);
-			sphereMaterialPtr->SetVec4("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			sphereMaterialPtr->SetTexture(mSphereColorMapTexturePtr);
 #endif
 
-			GeometryPtr spherePtr = StandardGeometries::CreateSphere(2.5f, 30, 30, sphereMaterialPtr);
-			spherePtr->Translate(glm::vec3(-45.0f + x, 2.5f, -45.0f + z));
+			float sphereRadius = (FIELD_SIZE * 0.025f);
+
+			GeometryPtr spherePtr = StandardGeometries::CreateSphere(sphereRadius, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS, sphereMaterialPtr);
+#ifdef USE_OPENGL4
+			spherePtr->CalculateTangents();
+#endif
+			spherePtr->Translate(glm::vec3(-(FIELD_SIZE * 0.5f - (2 * sphereRadius)) + x, sphereRadius, -(FIELD_SIZE * 0.5f - (2 * sphereRadius)) + z));
 			AddGeometry(spherePtr);
 		}
 	}

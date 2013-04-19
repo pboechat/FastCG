@@ -21,6 +21,11 @@ public:
 		return glm::vec3(mModel[3]);
 	}
 
+	inline void SetPosition(const glm::vec3& position)
+	{
+		mModel[3] = glm::vec4(position, 1.0f);
+	}
+
 	inline glm::mat3 GetRotation() const
 	{
 		return glm::mat3(mModel);
