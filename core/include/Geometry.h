@@ -14,6 +14,11 @@ public:
 	Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr);
 	virtual ~Geometry();
 
+	inline MaterialPtr GetMaterial() const
+	{
+		return mMaterialPtr;
+	}
+
 	inline void SetMaterial(const MaterialPtr& materialPtr)
 	{
 		mMaterialPtr = materialPtr;

@@ -39,7 +39,6 @@ void Material::Bind(const Geometry& rGeometry) const
 
 	const std::vector<LightPtr>& rLights = Application::GetInstance()->GetLights();
 	std::vector<LightPtr>::const_iterator it1 = rLights.begin();
-	std::stringstream variableName;
 	unsigned int c = 0;
 
 	while (it1 != rLights.end())
@@ -50,8 +49,7 @@ void Material::Bind(const Geometry& rGeometry) const
 		glm::vec4 lightDiffuseColor = lightPtr->GetDiffuseColor();
 		glm::vec4 lightSpecularColor = lightPtr->GetSpecularColor();
 
-		variableName.str(std::string());
-		variableName.clear();
+		std::stringstream variableName;
 		variableName << "_Light" << c << "Position";
 		mShaderPtr->SetVec3(variableName.str(), lightPosition);
 
@@ -96,6 +94,19 @@ void Material::Bind(const Geometry& rGeometry) const
 	while (it4 != mTextureParameters.end())
 	{
 		mShaderPtr->SetTexture(it4->first, it4->second, textureUnit);
+
+		std::stringstream variableName;
+		variableName << it4->first << "Tiling";
+
+		std::map<std::string, glm::vec2>::const_iterator it5 = mTexturesTiling.find(it4->first);
+		glm::vec2 tiling(1.0f, 1.0f);
+		if (it5 != mTexturesTiling.end())
+		{
+			tiling = it5->second;
+		}
+
+		mShaderPtr->SetVec2(variableName.str(), tiling);
+
 		textureUnit++;
 		it4++;
 	}
@@ -111,17 +122,17 @@ void Material::Unbind() const
 
 void Material::SetFloat(const std::string& rParameterName, float value)
 {
-	mFloatParameters.insert(std::make_pair(rParameterName, value));
+	mFloatParameters[rParameterName] = value;
 }
 
 void Material::SetVec4(const std::string& rParameterName, const glm::vec4& rVector)
 {
-	mVec4Parameters.insert(std::make_pair(rParameterName, rVector));
+	mVec4Parameters[rParameterName] = rVector;
 }
 
-void Material::SetTexture(const std::string& rParameterName, const TexturePtr& spTexture)
+void Material::SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr)
 {
-	mTextureParameters.insert(std::make_pair(rParameterName, spTexture));
+	mTextureParameters[rParameterName] = texturePtr;
 }
 #else
 
