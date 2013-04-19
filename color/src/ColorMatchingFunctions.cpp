@@ -23,12 +23,7 @@ CIEXYZColor ColorMatchingFunctions::Apply(Illuminant referenceLight, const Light
 	// range check
 	if (rReflectanceSpectrum.GetInitialWavelength() < MINIMUM_WAVELENGTH || rReflectanceSpectrum.GetFinalWavelength() > MAXIMUM_WAVELENGTH)
 	{
-		//THROW_EXCEPTION(Exception, "Light spectrum out of range");
-		Exception exception("Light spectrum out of range");
-		exception.SetFunction(__FUNCTION__);
-		exception.SetFile(__FILE__);
-		exception.SetLine(__LINE__);
-		throw exception;
+		THROW_EXCEPTION(Exception, "Light spectrum out of range (min=%d, max=%d)", rReflectanceSpectrum.GetInitialWavelength(), rReflectanceSpectrum.GetFinalWavelength());
 	}
 
 	X = Y = Z = W = 0;
@@ -39,6 +34,7 @@ CIEXYZColor ColorMatchingFunctions::Apply(Illuminant referenceLight, const Light
 		float xBar = xBarFunction[i - MINIMUM_WAVELENGTH];
 		float yBar = yBarFunction[i - MINIMUM_WAVELENGTH];
 		float zBar = zBarFunction[i - MINIMUM_WAVELENGTH];
+
 		// TODO: referenceLight
 		float Lw = D65Illuminance[i - MINIMUM_WAVELENGTH];
 		float betha = rReflectanceSpectrum[c];

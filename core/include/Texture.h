@@ -28,8 +28,6 @@ enum DataType
 class Texture
 {
 public:
-	static Pointer<Texture> LoadPNG(const std::string& rFileName);
-
 	Texture(unsigned int width, unsigned int height, TextureFormat format = TF_RGB, DataType dataType = DT_FLOAT, FilterMode filter = FM_BILINEAR, WrapMode wrapMode = WM_CLAMP, void* pData = 0);
 	~Texture();
 

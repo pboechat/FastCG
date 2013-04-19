@@ -2,6 +2,7 @@
 #include <StandardGeometries.h>
 #include <Material.h>
 #include <OpenGLExceptions.h>
+#include <PNGLoader.h>
 
 #include <iostream>
 
@@ -16,33 +17,26 @@ BumpMappingApplication::~BumpMappingApplication()
 {
 }
 
-bool BumpMappingApplication::OnStart()
+void BumpMappingApplication::OnStart()
 {
 	LightPtr lightPtr = new Light();
 	lightPtr->SetDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
 	lightPtr->Translate(glm::vec3(0.0f, 20.0f, 0.0f));
 	AddLight(lightPtr);
 
-	try
-	{
-		mBumpedDiffuseShaderPtr = new Shader("BumpedDiffuse");
-		mBumpedDiffuseShaderPtr->Compile("shaders/BumpedDiffuse.vert", ST_VERTEX);
-		mBumpedDiffuseShaderPtr->Compile("shaders/BumpedDiffuse.frag", ST_FRAGMENT);
-		mBumpedDiffuseShaderPtr->Link();
-		mGrassColorMapTexture = Texture::LoadPNG("textures/GrassColorMap.png");
-		CHECK_FOR_OPENGL_ERRORS();
-		mGrassBumpMapTexture = Texture::LoadPNG("textures/GrassBumpMap.png");
-		CHECK_FOR_OPENGL_ERRORS();
-		mTennisBallColorMapTexture = Texture::LoadPNG("textures/TennisBallColorMap.png");
-		CHECK_FOR_OPENGL_ERRORS();
-		mTennisBallBumpMapTexture = Texture::LoadPNG("textures/TennisBallBumpMap.png");
-		CHECK_FOR_OPENGL_ERRORS();
-	}
+	mBumpedDiffuseShaderPtr = new Shader("BumpedDiffuse");
+	mBumpedDiffuseShaderPtr->Compile("shaders/BumpedDiffuse.vert", ST_VERTEX);
+	mBumpedDiffuseShaderPtr->Compile("shaders/BumpedDiffuse.frag", ST_FRAGMENT);
+	mBumpedDiffuseShaderPtr->Link();
 
-	catch (Exception& e)
-	{
-		std::cout << "Error: " << e.GetFullDescription() << std::endl;
-	}
+	mGrassColorMapTexture = LoadPNGAsTexture("textures/GrassColorMap.png");
+	CHECK_FOR_OPENGL_ERRORS();
+	mGrassBumpMapTexture = LoadPNGAsTexture("textures/GrassBumpMap.png");
+	CHECK_FOR_OPENGL_ERRORS();
+	mTennisBallColorMapTexture = LoadPNGAsTexture("textures/TennisBallColorMap.png");
+	CHECK_FOR_OPENGL_ERRORS();
+	mTennisBallBumpMapTexture = LoadPNGAsTexture("textures/TennisBallBumpMap.png");
+	CHECK_FOR_OPENGL_ERRORS();
 
 	MaterialPtr spGroundMaterial = new Material(mBumpedDiffuseShaderPtr);
 	spGroundMaterial->SetTexture("colorMap", mGrassColorMapTexture);
@@ -64,6 +58,16 @@ bool BumpMappingApplication::OnStart()
 			AddGeometry(spSphere);
 		}
 	}
+}
 
-	return true;
+TexturePtr BumpMappingApplication::LoadPNGAsTexture(const std::string& rFileName)
+{
+	unsigned int width;
+	unsigned int height;
+	bool transparency;
+	unsigned char* pData;
+
+	PNGLoader::Load(rFileName, &width, &height, &transparency, &pData);
+
+	return new Texture(width, height, (transparency) ? TF_RGBA : TF_RGB, DT_UNSIGNED_CHAR, FM_BILINEAR, WM_CLAMP, pData);
 }

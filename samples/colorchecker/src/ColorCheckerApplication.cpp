@@ -134,28 +134,17 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 	std::cout << std::endl << "*************************************" << std::endl << std::endl;
 }
 
-bool ColorCheckerApplication::OnStart()
+void ColorCheckerApplication::OnStart()
 {
-	try
-	{
-		ParseColorCheckerFile();
-		ConvertLightSpectrumsToRGBs();
-
-		CHECK_FOR_OPENGL_ERRORS();
+	ParseColorCheckerFile();
+	ConvertLightSpectrumsToRGBs();
 
 #ifdef USE_OPENGL4
-		mSolidColorShaderPtr = new Shader("SolidColor");
-		mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
-		mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
-		mSolidColorShaderPtr->Link();
+	mSolidColorShaderPtr = new Shader("SolidColor");
+	mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
+	mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
+	mSolidColorShaderPtr->Link();
 #endif
-	}
-
-	catch (Exception& e)
-	{
-		std::cout << "Error: " << e.GetFullDescription() << std::endl;
-		return false;
-	}
 
 	float tileWidth = (GetScreenWidth() - BORDER) / (float) H_NUM_PATCHES;
 	float tileHeight = (GetScreenHeight() - BORDER) / (float) V_NUM_PATCHES;
@@ -169,8 +158,6 @@ bool ColorCheckerApplication::OnStart()
 			colorIterator++;
 		}
 	}
-
-	return true;
 }
 
 void ColorCheckerApplication::AddColorChecker(float x, float y, float width, float height, const sRGBColor& color)

@@ -5,6 +5,8 @@
 #include <Shader.h>
 #include <Texture.h>
 
+#include <string>
+
 class BumpMappingApplication: public Application
 {
 public:
@@ -12,7 +14,7 @@ public:
 	virtual ~BumpMappingApplication();
 
 protected:
-	virtual bool OnStart();
+	virtual void OnStart();
 
 private:
 	ShaderPtr mBumpedDiffuseShaderPtr;
@@ -20,6 +22,8 @@ private:
 	TexturePtr mGrassBumpMapTexture;
 	TexturePtr mTennisBallColorMapTexture;
 	TexturePtr mTennisBallBumpMapTexture;
+
+	TexturePtr LoadPNGAsTexture(const std::string& rFileName);
 
 };
 

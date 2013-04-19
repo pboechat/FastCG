@@ -19,7 +19,7 @@ public:
 protected:
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void PrintUsage();
-	virtual bool OnStart();
+	virtual void OnStart();
 	virtual void OnMouseButton(int button, int state, int x, int y);
 	virtual void OnMouseWheel(int button, int direction, int x, int y);
 

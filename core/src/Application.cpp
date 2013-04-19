@@ -1,7 +1,9 @@
 #include <Application.h>
+#include <Exception.h>
 #include <OpenGLExceptions.h>
 
 #include <algorithm>
+#include <iostream>
 
 Application* Application::s_mpInstance = NULL;
 bool Application::s_mStarted = false;
@@ -44,10 +46,15 @@ void Application::Run(int argc, char** argv)
 	SetUpGLUT(argc, argv);
 	SetUpOpenGL();
 
-	if (OnStart())
+	try
 	{
+		OnStart();
 		glutMainLoop();
 		s_mStarted = true;
+	}
+	catch (Exception& e) 
+	{
+		std::cerr << "Fatal Exception: " << e.GetFullDescription() << std::endl;
 	}
 }
 
@@ -132,9 +139,8 @@ void Application::Resize(int width, int height)
 	OnResize();
 }
 
-bool Application::OnStart()
+void Application::OnStart()
 {
-	return true;
 }
 
 void Application::BeforeDisplay()
