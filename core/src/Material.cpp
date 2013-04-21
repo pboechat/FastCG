@@ -103,11 +103,11 @@ void Material::Bind(const glm::mat4& rModel) const
 		std::stringstream variableName;
 		variableName << textureParametersCursor->first << "Tiling";
 
-		std::map<std::string, glm::vec2>::const_iterator it5 = mTexturesTiling.find(textureParametersCursor->first);
+		std::map<std::string, glm::vec2>::const_iterator textureTilingCursor = mTexturesTiling.find(textureParametersCursor->first);
 		glm::vec2 tiling(1.0f, 1.0f);
-		if (it5 != mTexturesTiling.end())
+		if (textureTilingCursor != mTexturesTiling.end())
 		{
-			tiling = it5->second;
+			tiling = textureTilingCursor->second;
 		}
 
 		mShaderPtr->SetVec2(variableName.str(), tiling);

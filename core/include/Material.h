@@ -50,7 +50,7 @@ public:
 	{
 		mTextureParameters[rParameterName] = texturePtr;
 	}
-	
+
 	inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
 	{
 		return mTexturesTiling.find(rTextureName)->second;

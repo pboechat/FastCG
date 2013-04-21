@@ -4,6 +4,8 @@
 #include <Application.h>
 #include <Light.h>
 #include <Material.h>
+#include <Light.h>
+#include <Material.h>
 #include <Texture.h>
 
 #include <string>

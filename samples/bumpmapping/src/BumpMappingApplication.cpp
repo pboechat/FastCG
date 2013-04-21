@@ -22,6 +22,8 @@ BumpMappingApplication::BumpMappingApplication() :
 	mLightPosition = glm::vec3(0.0f, FIELD_SIZE * 0.25f, 0.0f);
 	mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 	mShowFPS = true;
+	mLightPosition = glm::vec3(0.0f, FIELD_SIZE * 0.25f, 0.0f);
+	mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 }
 
 BumpMappingApplication::~BumpMappingApplication()
@@ -153,6 +155,7 @@ void BumpMappingApplication::OnMouseButton(int button, int state, int x, int y)
 		{
 			mCurrentSphereTextureIndex = (++mCurrentSphereTextureIndex % mSphereColorMapTexturePtrs.size());
 		}
+#ifdef USE_PROGRAMMABLE_PIPELINE
 		else if (button == 1)
 		{
 			ShaderPtr floorShaderPtr;
@@ -176,6 +179,7 @@ void BumpMappingApplication::OnMouseButton(int button, int state, int x, int y)
 				spherePtr->GetMaterial()->SetShader(sphereShaderPtr);
 			}
 		}
+#endif
 	}
 }
 
