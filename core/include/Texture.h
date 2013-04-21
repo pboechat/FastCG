@@ -7,22 +7,28 @@
 
 enum WrapMode
 {
-	WM_CLAMP, WM_REPEAT
+	WM_CLAMP, 
+	WM_REPEAT
 };
 
 enum FilterMode
 {
-	FM_POINT, FM_BILINEAR, FM_TRILINEAR
+	FM_POINT, 
+	FM_BILINEAR, 
+	FM_TRILINEAR
 };
 
 enum TextureFormat
 {
-	TF_RGB, TF_RGBA
+	TF_RGB, 
+	TF_RGBA,
+	TF_LUMINANCE_ALPHA
 };
 
 enum DataType
 {
-	DT_FLOAT, DT_UNSIGNED_CHAR
+	DT_FLOAT, 
+	DT_UNSIGNED_CHAR
 };
 
 class Texture

@@ -106,6 +106,7 @@ unsigned int Texture::GetInternalFormatMapping() const
 		return GL_RGB;
 
 	case TF_RGBA:
+	case TF_LUMINANCE_ALPHA:
 		return GL_RGBA;
 
 	default:
@@ -123,6 +124,9 @@ unsigned int Texture::GetFormatMapping() const
 
 	case TF_RGBA:
 		return GL_RGBA;
+
+	case TF_LUMINANCE_ALPHA:
+		return GL_LUMINANCE_ALPHA;
 
 	default:
 		// FIXME: checking invariants

@@ -1,4 +1,6 @@
-﻿#include <Shader.h>
+﻿#ifdef USE_PROGRAMMABLE_PIPELINE
+
+#include <Shader.h>
 #include <ShaderSource.h>
 
 Shader::Shader() :
@@ -61,75 +63,6 @@ void Shader::Link()
 	CheckLink();
 	glValidateProgram(mProgramId);
 	CheckValidate();
-}
-
-void Shader::BindAttributeLocation(const std::string& rAttribute, unsigned int location) const
-{
-	glBindAttribLocation(mProgramId, location, rAttribute.c_str());
-}
-
-void Shader::SetInt(const std::string& rParameterName, int value) const
-{
-	glUniform1i(GetUniformLocation(rParameterName), value);
-}
-
-void Shader::SetFloat(const std::string& rParameterName, float value) const
-{
-	glUniform1f(GetUniformLocation(rParameterName), value);
-}
-
-void Shader::SetBool(const std::string& rParameterName, bool value) const
-{
-	glUniform1i(GetUniformLocation(rParameterName), value);
-}
-
-void Shader::SetVec2(const std::string& rParameterName, float x, float y) const
-{
-	glUniform2f(GetUniformLocation(rParameterName), x, y);
-}
-
-void Shader::SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const
-{
-	glUniform2fv(GetUniformLocation(rParameterName), 2, &rVector[0]);
-}
-
-void Shader::SetVec3(const std::string& rParameterName, float x, float y, float z) const
-{
-	glUniform3f(GetUniformLocation(rParameterName), x, y, z);
-}
-
-void Shader::SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const
-{
-	glUniform3fv(GetUniformLocation(rParameterName), 3, &rVector[0]);
-}
-
-void Shader::SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
-{
-	glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);
-}
-
-void Shader::SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const
-{
-	glUniform4fv(GetUniformLocation(rParameterName), 4, &rVector[0]);
-}
-
-void Shader::SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const
-{
-	glUniformMatrix3fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
-}
-
-void Shader::SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const
-{
-	glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
-}
-
-void Shader::SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr, unsigned int textureUnit) const
-{
-	int unitId = GL_TEXTURE0 + (int)textureUnit;
-	glActiveTexture(unitId);
-	texturePtr->Bind();
-	glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
-	//spTexture->Unbind();
 }
 
 void Shader::DetachShaders()
@@ -220,3 +153,4 @@ void Shader::CheckValidate()
 	}
 }
 
+#endif

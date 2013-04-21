@@ -22,7 +22,7 @@ const unsigned int ColorCheckerApplication::BORDER = 20;
 ColorCheckerApplication::ColorCheckerApplication() :
 	Application("Color Checker", 800, 600)
 {
-	mMainCamera = Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
+	mMainCameraPtr = new Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 }
@@ -139,7 +139,7 @@ void ColorCheckerApplication::OnStart()
 	ParseColorCheckerFile();
 	ConvertLightSpectrumsToRGBs();
 
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	mSolidColorShaderPtr = new Shader("SolidColor");
 	mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
 	mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
@@ -163,7 +163,7 @@ void ColorCheckerApplication::OnStart()
 void ColorCheckerApplication::AddColorChecker(float x, float y, float width, float height, const sRGBColor& color)
 {
 	MaterialPtr solidColorMaterialPtr;
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
 	solidColorMaterialPtr->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #else

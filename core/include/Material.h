@@ -10,21 +10,37 @@
 
 #include <glm/glm.hpp>
 
-class Geometry;
+#ifdef USE_PROGRAMMABLE_PIPELINE
 
-#ifdef USE_OPENGL4
 class Material
 {
 public:
 	Material(ShaderPtr shaderPtr);
 	~Material();
 
-	void Bind(const Geometry& rGeometry) const;
+	void Bind(const glm::mat4& rModel) const;
 	void Unbind() const;
-	void SetFloat(const std::string& rParameterName, float value);
-	void SetVec4(const std::string& rParameterName, const glm::vec4& rVector);
-	void SetTexture(const std::string& rParameterName, const TexturePtr& spTexture);
 
+	inline void SetFloat(const std::string& rParameterName, float value)
+	{
+		mFloatParameters[rParameterName] = value;
+	}
+
+	inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector)
+	{
+		mVec4Parameters[rParameterName] = rVector;
+	}
+
+	inline void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix)
+	{
+		mMat4Parameters[rParameterName] = rMatrix;
+	}
+
+	inline void SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr)
+	{
+		mTextureParameters[rParameterName] = texturePtr;
+	}
+	
 	inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
 	{
 		return mTexturesTiling.find(rTextureName)->second;
@@ -39,16 +55,23 @@ private:
 	ShaderPtr mShaderPtr;
 	std::map<std::string, float> mFloatParameters;
 	std::map<std::string, glm::vec4> mVec4Parameters;
+	std::map<std::string, glm::mat4> mMat4Parameters;
 	std::map<std::string, TexturePtr> mTextureParameters;
 	std::map<std::string, glm::vec2> mTexturesTiling;
 
 };
+
 #else
+
 class Material
 {
 public:
-	Material();
-	Material(const glm::vec4& ambientColor, const glm::vec4& diffuseColor, const glm::vec4& specularColor, const glm::vec4& emissiveColor, float shininess);
+	Material(const glm::vec4& ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 
+		     const glm::vec4& diffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 
+			 const glm::vec4& specularColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 
+			 float shininess = 3, 
+			 bool emissive = false, 
+			 const glm::vec4& emissiveColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	~Material();
 
 	inline const glm::vec4& GetAmbientColor() const
@@ -122,7 +145,7 @@ public:
 	}
 
 	void Bind() const;
-	
+
 private:
 	glm::vec4 mAmbientColor;
 	glm::vec4 mDiffuseColor;
@@ -133,6 +156,7 @@ private:
 	TexturePtr mTexturePtr;
 
 };
+
 #endif
 
 typedef Pointer<Material> MaterialPtr;

@@ -2,6 +2,7 @@
 #define CAMERA_H_
 
 #include <Transformable.h>
+#include <Pointer.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -52,5 +53,7 @@ private:
 	ProjectionMode mProjection;
 
 };
+
+typedef Pointer<Camera> CameraPtr;
 
 #endif

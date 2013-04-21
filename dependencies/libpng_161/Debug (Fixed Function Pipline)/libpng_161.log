@@ -1,0 +1,51 @@
+﻿Build started 20/04/2013 22:03:11.
+     1>Project "C:\FastCG\dependencies\libpng_161\libpng_161.vcxproj" on node 4 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug (Fixed Function Pipline)\libpng_161.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Iinclude /I../zlib_127/include /ZI /nologo /W3 /WX- /Od /Oy- /D _CRT_SECURE_NO_WARNINGS /D _MBCS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug (Fixed Function Pipline)\\" /Fd"Debug (Fixed Function Pipline)\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt src\example.c src\png.c src\pngerror.c src\pngget.c src\pngmem.c src\pngpread.c src\pngread.c src\pngrio.c src\pngrtran.c src\pngrutil.c src\pngset.c src\pngtest.c src\pngtrans.c src\pngwio.c src\pngwrite.c src\pngwtran.c src\pngwutil.c
+         pngwutil.c
+         pngwtran.c
+         pngwrite.c
+         pngwio.c
+         pngtrans.c
+         pngtest.c
+         pngset.c
+         pngrutil.c
+         pngrtran.c
+         pngrio.c
+         pngread.c
+         pngpread.c
+         pngmem.c
+         pngget.c
+         pngerror.c
+         png.c
+         example.c
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"Debug (Fixed Function Pipline)\libpngd.lib" /NOLOGO "Debug (Fixed Function Pipline)\example.obj"
+         "Debug (Fixed Function Pipline)\png.obj"
+         "Debug (Fixed Function Pipline)\pngerror.obj"
+         "Debug (Fixed Function Pipline)\pngget.obj"
+         "Debug (Fixed Function Pipline)\pngmem.obj"
+         "Debug (Fixed Function Pipline)\pngpread.obj"
+         "Debug (Fixed Function Pipline)\pngread.obj"
+         "Debug (Fixed Function Pipline)\pngrio.obj"
+         "Debug (Fixed Function Pipline)\pngrtran.obj"
+         "Debug (Fixed Function Pipline)\pngrutil.obj"
+         "Debug (Fixed Function Pipline)\pngset.obj"
+         "Debug (Fixed Function Pipline)\pngtest.obj"
+         "Debug (Fixed Function Pipline)\pngtrans.obj"
+         "Debug (Fixed Function Pipline)\pngwio.obj"
+         "Debug (Fixed Function Pipline)\pngwrite.obj"
+         "Debug (Fixed Function Pipline)\pngwtran.obj"
+         "Debug (Fixed Function Pipline)\pngwutil.obj"
+         libpng_161.vcxproj -> C:\FastCG\dependencies\libpng_161\Debug (Fixed Function Pipline)\libpngd.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug (Fixed Function Pipline)\libpng_161.unsuccessfulbuild".
+         Touching "Debug (Fixed Function Pipline)\libpng_161.lastbuildstate".
+     1>Done Building Project "C:\FastCG\dependencies\libpng_161\libpng_161.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:07.60

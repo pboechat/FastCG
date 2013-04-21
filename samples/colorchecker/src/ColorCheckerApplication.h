@@ -32,7 +32,7 @@ private:
 	std::string mColorCheckerFilename;
 	std::vector<LightSpectrum*> mLightSpectrums;
 	std::vector<sRGBColor> mBaseColors;
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	ShaderPtr mSolidColorShaderPtr;
 #endif
 

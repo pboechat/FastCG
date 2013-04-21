@@ -1,4 +1,4 @@
-#ifndef SHADER_H_
+#if (!defined(SHADER_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
 #define SHADER_H_
 
 #include <Pointer.h>
@@ -16,7 +16,8 @@
 
 enum ShaderType
 {
-	ST_VERTEX, ST_FRAGMENT
+	ST_VERTEX, 
+	ST_FRAGMENT
 };
 
 class Shader
@@ -46,20 +47,82 @@ public:
 		glUseProgram(0);
 	}
 
-	void BindAttributeLocation(const std::string& rAttribute, unsigned int location) const;
+	inline void BindAttributeLocation(const std::string& rAttribute, unsigned int location) const
+	{
+		glBindAttribLocation(mProgramId, location, rAttribute.c_str());
+	}
 
-	void SetInt(const std::string& rParameterName, int value) const;
-	void SetFloat(const std::string& rParameterName, float value) const;
-	void SetBool(const std::string& rParameterName, bool value) const;
-	void SetVec2(const std::string& rParameterName, float x, float y) const;
-	void SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const;
-	void SetVec3(const std::string& rParameterName, float x, float y, float z) const;
-	void SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const;
-	void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const;
-	void SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const;
-	void SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const;
-	void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const;
-	void SetTexture(const std::string& rParameterName, const TexturePtr& spTexture, unsigned int textureUnit) const;
+	inline void SetInt(const std::string& rParameterName, int value) const
+	{
+		glUniform1i(GetUniformLocation(rParameterName), value);
+	}
+
+	inline void SetFloat(const std::string& rParameterName, float value) const
+	{
+		glUniform1f(GetUniformLocation(rParameterName), value);
+	}
+
+	inline void SetBool(const std::string& rParameterName, bool value) const
+	{
+		glUniform1i(GetUniformLocation(rParameterName), value);
+	}
+
+	inline void SetVec2(const std::string& rParameterName, float x, float y) const
+	{
+		glUniform2f(GetUniformLocation(rParameterName), x, y);
+	}
+
+	inline void SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const
+	{
+		glUniform2fv(GetUniformLocation(rParameterName), 2, &rVector[0]);
+	}
+
+	inline void SetVec3(const std::string& rParameterName, float x, float y, float z) const
+	{
+		glUniform3f(GetUniformLocation(rParameterName), x, y, z);
+	}
+
+	inline void SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const
+	{
+		glUniform3fv(GetUniformLocation(rParameterName), 3, &rVector[0]);
+	}
+
+	inline void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
+	{
+		glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);
+	}
+
+	inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const
+	{
+		glUniform4fv(GetUniformLocation(rParameterName), 4, &rVector[0]);
+	}
+
+	inline void SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const
+	{
+		glUniformMatrix3fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
+	}
+
+	inline void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const
+	{
+		glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
+	}
+
+	inline void SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr, unsigned int textureUnit) const
+	{
+		glActiveTexture(GL_TEXTURE0 + (int)textureUnit);
+		texturePtr->Bind();
+		glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
+		// TODO:
+		//texturePtr->Unbind();
+	}
+
+	inline void SetTexture(const std::string& rParameterName, unsigned int textureId, unsigned int textureUnit) const
+	{
+		glActiveTexture(GL_TEXTURE0 + (int)textureUnit);
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
+	}
+
 	void Compile(const std::string& rShaderFileName, ShaderType shaderType);
 	void Link();
 

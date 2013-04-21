@@ -1,3 +1,5 @@
+#ifdef USE_PROGRAMMABLE_PIPELINE
+
 #include <ShaderSource.h>
 #include <FileReader.h>
 #include <StringUtils.h>
@@ -43,3 +45,5 @@ void ShaderSource::SetShaderFolderPath(const std::string& rShaderFolderPath)
 {
 	s_mShaderFolderPath = rShaderFolderPath;
 }
+
+#endif

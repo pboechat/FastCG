@@ -4,14 +4,13 @@
 #include <Camera.h>
 #include <Light.h>
 #include <Geometry.h>
+#include <Font.h>
+#include <Timer.h>
 
 #include <string>
 #include <vector>
 #include <sstream>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/freeglut.h>
 #include <glm/glm.hpp>
 
 class Application
@@ -51,9 +50,9 @@ public:
 		return mScreenWidth / (float) mScreenHeight;
 	}
 
-	inline const Camera& GetMainCamera() const
+	inline CameraPtr GetMainCamera() const
 	{
-		return mMainCamera;
+		return mMainCameraPtr;
 	}
 
 	inline const glm::vec4& GetGlobalAmbientLight() const
@@ -67,9 +66,13 @@ public:
 	}
 
 protected:
-	Camera mMainCamera;
+	CameraPtr mMainCameraPtr;
 	glm::vec4 mClearColor;
 	glm::vec4 mGlobalAmbientLight;
+	bool mShowFPS;
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	FontPtr mStandardFontPtr;
+#endif
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
@@ -84,6 +87,12 @@ protected:
 	virtual void OnKeyPress(int key);
 	virtual void PrintUsage();
 
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	void DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, FontPtr fontPtr, const glm::vec4& rColor);
+#else
+	void DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor);
+#endif
+
 	inline void AddGeometry(GeometryPtr geometryPtr)
 	{
 		mGeometries.push_back(geometryPtr);
@@ -94,16 +103,50 @@ protected:
 		mLights.push_back(lightPtr);
 	}
 
-	// TODO:
-	//void RemoveGeometry(GeometryPtr geometryPtr);
-
-	// TODO:
-	//void RemoveLight(LightPtr lightPtr);
-
 private:
+
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	struct DrawTextRequest
+	{
+		std::string text;
+		unsigned int size;
+		unsigned int x;
+		unsigned int y;
+		FontPtr fontPtr;
+		glm::vec4 color;
+
+		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, FontPtr fontPtr, const glm::vec4& rColor)
+		{
+			text = rText;
+			this->size = size;
+			this->x = x;
+			this->y = y;
+			this->fontPtr = fontPtr;
+			color = rColor;
+		}
+	};
+#else
+	struct DrawTextRequest
+	{
+		std::string text;
+		unsigned int size;
+		unsigned int x;
+		unsigned int y;
+		glm::vec4 color;
+
+		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor)
+		{
+			text = rText;
+			this->size = size;
+			this->x = x;
+			this->y = y;
+			color = rColor;
+		}
+	};
+#endif
+
 	static Application* s_mpInstance;
 	static bool s_mStarted;
-
 	unsigned int mScreenWidth;
 	unsigned int mScreenHeight;
 	float mHalfScreenWidth;
@@ -112,9 +155,14 @@ private:
 	unsigned int mGLUTWindowHandle;
 	std::vector<LightPtr> mLights;
 	std::vector<GeometryPtr> mGeometries;
+	Timer mFrameTimer;
+	unsigned int mElapsedFrames;
+	double mElapsedTime;
+	std::vector<DrawTextRequest> mDrawTextRequests;
 
 	void SetUpGLUT(int argc, char** argv);
 	void SetUpOpenGL();
+	void DrawAllTexts();
 
 };
 

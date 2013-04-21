@@ -2,7 +2,6 @@
 #define BUMPMAPPINGAPPLICATION_H_
 
 #include <Application.h>
-#include <Shader.h>
 #include <Light.h>
 #include <Material.h>
 #include <Texture.h>
@@ -26,10 +25,6 @@ private:
 	static const unsigned int FIELD_SIZE;
 	static const unsigned int NUM_SPHERE_SEGMENTS;
 
-#ifdef USE_OPENGL4
-	ShaderPtr mBumpedDiffuseShaderPtr;
-	ShaderPtr mBumpedSpecularShaderPtr;
-#endif
 	LightPtr mLightPtr;
 	glm::vec3 mLightPosition;
 	glm::vec3 mLightDirection;

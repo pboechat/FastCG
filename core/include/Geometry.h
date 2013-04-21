@@ -5,8 +5,9 @@
 #include <Pointer.h>
 #include <Material.h>
 
-#include <vector>
 #include <glm/glm.hpp>
+
+#include <vector>
 
 class Geometry : public Transformable
 {
@@ -26,7 +27,7 @@ public:
 
 	void Draw();
 
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	inline bool IsUsingTangents() const
 	{
 		return mUseTangents;
@@ -56,7 +57,7 @@ private:
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mUVs;
 	MaterialPtr mMaterialPtr;
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	std::vector<glm::vec4> mTangents;
 	unsigned int mGeometryVAOId;
 	unsigned int mVerticesVBOId;

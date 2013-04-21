@@ -1,4 +1,4 @@
-#ifndef SHADERSOURCE_H_
+#if (!defined(SHADERSOURCE_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
 #define SHADERSOURCE_H_
 
 #include <string>

@@ -6,7 +6,7 @@
 class PNGLoader
 {
 public:
-	static void Load(const std::string& rFileName, unsigned int* pWidth, unsigned int* pHeight, bool* pTransparency, unsigned char** pData);
+	static void Load(const std::string& rFileName, unsigned int& rWidth, unsigned int& rHeight, bool& rTransparency, unsigned char** ppData);
 
 private:
 	PNGLoader()

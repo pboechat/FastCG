@@ -1,0 +1,59 @@
+﻿Build started 20/04/2013 22:03:11.
+     1>Project "C:\FastCG\dependencies\zlib_127\zlib_127.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug (Fixed Function Pipline)\zlib_127.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Iinclude /ZI /nologo /W3 /WX- /Od /Oy- /D _CRT_SECURE_NO_WARNINGS /D _MBCS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug (Fixed Function Pipline)\\" /Fd"Debug (Fixed Function Pipline)\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt src\adler32.c src\compress.c src\crc32.c src\deflate.c src\gzclose.c src\gzlib.c src\gzread.c src\gzwrite.c src\infback.c src\inffast.c src\inflate.c src\inftrees.c src\trees.c src\uncompr.c src\zutil.c
+         zutil.c
+         uncompr.c
+         trees.c
+         inftrees.c
+         inflate.c
+         inffast.c
+         infback.c
+         gzwrite.c
+     1>c:\fastcg\dependencies\zlib_127\src\gzwrite.c(84): warning C4996: 'write': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _write. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\io.h(318) : see declaration of 'write'
+     1>c:\fastcg\dependencies\zlib_127\src\gzwrite.c(102): warning C4996: 'write': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _write. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\io.h(318) : see declaration of 'write'
+     1>c:\fastcg\dependencies\zlib_127\src\gzwrite.c(561): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _close. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\io.h(302) : see declaration of 'close'
+         gzread.c
+     1>c:\fastcg\dependencies\zlib_127\src\gzread.c(30): warning C4996: 'read': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _read. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\io.h(313) : see declaration of 'read'
+     1>c:\fastcg\dependencies\zlib_127\src\gzread.c(586): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _close. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\io.h(302) : see declaration of 'close'
+         gzlib.c
+     1>c:\fastcg\dependencies\zlib_127\src\gzlib.c(239): warning C4996: 'open': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _open. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\io.h(312) : see declaration of 'open'
+         gzclose.c
+         deflate.c
+         crc32.c
+         compress.c
+         adler32.c
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"Debug (Fixed Function Pipline)\zlibd.lib" /NOLOGO "Debug (Fixed Function Pipline)\adler32.obj"
+         "Debug (Fixed Function Pipline)\compress.obj"
+         "Debug (Fixed Function Pipline)\crc32.obj"
+         "Debug (Fixed Function Pipline)\deflate.obj"
+         "Debug (Fixed Function Pipline)\gzclose.obj"
+         "Debug (Fixed Function Pipline)\gzlib.obj"
+         "Debug (Fixed Function Pipline)\gzread.obj"
+         "Debug (Fixed Function Pipline)\gzwrite.obj"
+         "Debug (Fixed Function Pipline)\infback.obj"
+         "Debug (Fixed Function Pipline)\inffast.obj"
+         "Debug (Fixed Function Pipline)\inflate.obj"
+         "Debug (Fixed Function Pipline)\inftrees.obj"
+         "Debug (Fixed Function Pipline)\trees.obj"
+         "Debug (Fixed Function Pipline)\uncompr.obj"
+         "Debug (Fixed Function Pipline)\zutil.obj"
+         zlib_127.vcxproj -> C:\FastCG\dependencies\zlib_127\Debug (Fixed Function Pipline)\zlibd.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug (Fixed Function Pipline)\zlib_127.unsuccessfulbuild".
+         Touching "Debug (Fixed Function Pipline)\zlib_127.lastbuildstate".
+     1>Done Building Project "C:\FastCG\dependencies\zlib_127\zlib_127.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.17

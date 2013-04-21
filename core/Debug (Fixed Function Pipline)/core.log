@@ -1,0 +1,43 @@
+﻿Build started 21/04/2013 06:05:04.
+     1>Project "C:\FastCG\core\core.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug (Fixed Function Pipline)\core.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Iinclude /I../dependencies/freeglut_281/include /I../dependencies/glew_190/include /I../dependencies/glm_0943/include /I../dependencies/freetype_2411/include /ZI /nologo /W3 /WX- /Od /Oy- /D FREEGLUT_STATIC /D GLEW_BUILD=GLEW_STATIC /D _CRT_SECURE_NO_WARNINGS /D _MBCS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug (Fixed Function Pipline)\\" /Fd"Debug (Fixed Function Pipline)\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Application.cpp src\Camera.cpp src\Font.cpp src\FontRegistry.cpp src\Geometry.cpp src\Material.cpp src\StandardGeometries.cpp
+         Material.cpp
+         Geometry.cpp
+         Generating Code...
+         Compiling...
+         StandardGeometries.cpp
+         Camera.cpp
+         Application.cpp
+         Generating Code...
+         Skipping... (no relevant changes detected)
+         FontRegistry.cpp
+         Font.cpp
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"Debug (Fixed Function Pipline)\cored.lib" /NOLOGO "Debug (Fixed Function Pipline)\Application.obj"
+         "Debug (Fixed Function Pipline)\Camera.obj"
+         "Debug (Fixed Function Pipline)\Directory.obj"
+         "Debug (Fixed Function Pipline)\FileReader.obj"
+         "Debug (Fixed Function Pipline)\Font.obj"
+         "Debug (Fixed Function Pipline)\FontRegistry.obj"
+         "Debug (Fixed Function Pipline)\Geometry.obj"
+         "Debug (Fixed Function Pipline)\Material.obj"
+         "Debug (Fixed Function Pipline)\MathF.obj"
+         "Debug (Fixed Function Pipline)\Random.obj"
+         "Debug (Fixed Function Pipline)\Shader.obj"
+         "Debug (Fixed Function Pipline)\ShaderRegistry.obj"
+         "Debug (Fixed Function Pipline)\ShaderSource.obj"
+         "Debug (Fixed Function Pipline)\StandardGeometries.obj"
+         "Debug (Fixed Function Pipline)\StringUtils.obj"
+         "Debug (Fixed Function Pipline)\Texture.obj"
+         core.vcxproj -> C:\FastCG\core\Debug (Fixed Function Pipline)\cored.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug (Fixed Function Pipline)\core.unsuccessfulbuild".
+         Touching "Debug (Fixed Function Pipline)\core.lastbuildstate".
+     1>Done Building Project "C:\FastCG\core\core.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:06.68

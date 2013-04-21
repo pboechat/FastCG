@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <iostream>
 
-void PNGLoader::Load(const std::string& rFileName, unsigned int* pWidth, unsigned int* pHeight, bool* pTransparency, unsigned char** pData)
+void PNGLoader::Load(const std::string& rFileName, unsigned int& rWidth, unsigned int& rHeight, bool& rTransparency, unsigned char** ppData)
 {
 	png_structp pngStruct;
 	png_infop pngInfo;
@@ -16,8 +16,7 @@ void PNGLoader::Load(const std::string& rFileName, unsigned int* pWidth, unsigne
 
 	if ((pFile = fopen(rFileName.c_str(), "rb")) == 0)
 	{
-		// TODO:
-		THROW_EXCEPTION(Exception, "Error loading PNG: %d", 0);
+		THROW_EXCEPTION(Exception, "Error opening file: %s", rFileName.c_str());
 	}
 
 	// create and initialize the png_struct with the desired error handler functions.
@@ -31,8 +30,7 @@ void PNGLoader::Load(const std::string& rFileName, unsigned int* pWidth, unsigne
 	if (pngStruct == 0)
 	{
 		fclose(pFile);
-		// TODO:
-		THROW_EXCEPTION(Exception, "Error loading PNG: %d", 0);
+		THROW_EXCEPTION(Exception, "Error reading PNG struct: %s", rFileName.c_str());
 	}
 
 	// allocate/initialize the memory for image information.
@@ -43,8 +41,7 @@ void PNGLoader::Load(const std::string& rFileName, unsigned int* pWidth, unsigne
 	{
 		fclose(pFile);
 		png_destroy_read_struct(&pngStruct, NULL, NULL);
-		// TODO:
-		THROW_EXCEPTION(Exception, "Error loading PNG: %d", 0);
+		THROW_EXCEPTION(Exception, "Error reading PNG info: %s", rFileName.c_str());
 	}
 
 	// set error handling if you are using the setjmp/longjmp method
@@ -56,14 +53,15 @@ void PNGLoader::Load(const std::string& rFileName, unsigned int* pWidth, unsigne
 		png_destroy_read_struct(&pngStruct, &pngInfo, NULL);
 		fclose(pFile);
 		// if we get here, we had a problem reading the file
-		// TODO:
-		THROW_EXCEPTION(Exception, "Error loading PNG: %d", 0);
+		THROW_EXCEPTION(Exception, "Error loading PNG: %s", rFileName.c_str());
 	}
 
 	// set up the output control if you are using standard C streams
 	png_init_io(pngStruct, pFile);
+
 	// if we have already read some of the signature
 	png_set_sig_bytes(pngStruct, signatureRead);
+
 	// if you have enough memory to read in the entire image at once,
 	// and you need to specify only transforms that can be controlled with one of the PNG_TRANSFORM_bits
 	// (this presently excludes dithering, filling, setting background, and doing gamma adjustment),
@@ -72,18 +70,18 @@ void PNGLoader::Load(const std::string& rFileName, unsigned int* pWidth, unsigne
 	// forces 8 bit PNG_TRANSFORM_EXPAND forces to expand a palette into RGB
 	png_read_png(pngStruct, pngInfo, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_EXPAND, NULL);
 	int bitDepth;
-	png_get_IHDR(pngStruct, pngInfo, pWidth, pHeight, &bitDepth, &colorType, &interlaceType, 0, 0);
+	png_get_IHDR(pngStruct, pngInfo, &rWidth, &rHeight, &bitDepth, &colorType, &interlaceType, 0, 0);
 
-	*pTransparency = (colorType == PNG_COLOR_TYPE_RGB_ALPHA);
+	rTransparency = (colorType == PNG_COLOR_TYPE_RGB_ALPHA);
 
 	unsigned int rowBytes = png_get_rowbytes(pngStruct, pngInfo);
-	*pData = (unsigned char*) malloc(rowBytes * (*pHeight));
+	*ppData = (unsigned char*) malloc(rowBytes * rHeight);
 	png_bytepp rowPointers = png_get_rows(pngStruct, pngInfo);
 
-	for (unsigned int i = 0; i < (*pHeight); i++)
+	for (unsigned int i = 0; i < rHeight; i++)
 	{
 		// note that png is ordered top to bottom, but OpenGL expect it bottom to top so the order or swapped
-		memcpy(*pData + (rowBytes * ((*pHeight) - 1 - i)), (void*) rowPointers[i], rowBytes);
+		memcpy(*ppData + (rowBytes * (rHeight - 1 - i)), (void*) rowPointers[i], rowBytes);
 	}
 
 	// clean up after the read, and free any memory allocated

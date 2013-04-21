@@ -13,7 +13,7 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<uns
 	mUVs(uvs), 
 	mMaterialPtr(materialPtr)
 {
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	mGeometryVAOId = 0;
 	mUseTangents = false;
 #else
@@ -28,7 +28,7 @@ Geometry::~Geometry()
 
 void Geometry::AllocateResources()
 {
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
@@ -107,7 +107,7 @@ void Geometry::AllocateResources()
 
 void Geometry::DeallocateResources()
 {
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mUseTangents)
 	{
 		glDeleteBuffers(1, &mTangentsVBOId);
@@ -124,19 +124,25 @@ void Geometry::DeallocateResources()
 
 void Geometry::Draw()
 {
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mGeometryVAOId == 0)
 	{
 		AllocateResources();
 	}
 
-	mMaterialPtr->Bind(*this);
+	if (mMaterialPtr != 0)
+	{
+		mMaterialPtr->Bind(GetModel());
+	}
 
 	glBindVertexArray(mGeometryVAOId);
 	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
 	glBindVertexArray(0);
 
-	mMaterialPtr->Unbind();
+	if (mMaterialPtr != 0)
+	{
+		mMaterialPtr->Unbind();
+	}
 #else
 	if (mDisplayListId == 0)
 	{
@@ -155,7 +161,7 @@ void Geometry::Draw()
 #endif
 }
 
-#ifdef USE_OPENGL4
+#ifdef USE_PROGRAMMABLE_PIPELINE
 void Geometry::CalculateTangents()
 {
 	if (mGeometryVAOId != 0) 

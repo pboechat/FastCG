@@ -1,0 +1,102 @@
+﻿Build started 20/04/2013 22:03:12.
+     1>Project "C:\FastCG\dependencies\freetype_2411\freetype.vcxproj" on node 4 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug (Fixed Function Pipline)\freetype_2411.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Iinclude /Zi /nologo /W4 /WX- /MP /Od /Oy- /D _DEBUG /D WIN32 /D _LIB /D _CRT_SECURE_NO_WARNINGS /D FT_DEBUG_LEVEL_ERROR /D FT_DEBUG_LEVEL_TRACE /D FT2_BUILD_LIBRARY /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Za /Zc:wchar_t /Zc:forScope /Fo"Debug (Fixed Function Pipline)\\" /Fd"Debug (Fixed Function Pipline)\vc100.pdb" /Gd /TC /wd4001 /analyze- /errorReport:prompt src\autofit\autofit.c src\base\ftbase.c src\base\ftbbox.c src\base\ftbitmap.c src\base\ftdebug.c src\base\ftfstype.c src\base\ftgasp.c src\base\ftglyph.c src\base\ftgxval.c src\base\ftinit.c src\base\ftlcdfil.c src\base\ftmm.c src\base\ftotval.c src\base\ftpatent.c src\base\ftpfr.c src\base\ftstroke.c src\base\ftsynth.c src\base\ftsystem.c src\base\fttype1.c src\base\ftwinfnt.c src\base\ftxf86.c src\bdf\bdf.c src\cache\ftcache.c src\cff\cff.c src\cid\type1cid.c src\gzip\ftgzip.c src\lzw\ftlzw.c src\pcf\pcf.c src\pfr\pfr.c src\psaux\psaux.c src\pshinter\pshinter.c src\psnames\psmodule.c src\raster\raster.c src\sfnt\sfnt.c src\smooth\smooth.c src\truetype\truetype.c src\type1\type1.c src\type42\type42.c src\winfonts\winfnt.c
+         autofit.c
+         ftbase.c
+         ftbbox.c
+         ftbitmap.c
+         ftdebug.c
+         ftfstype.c
+         ftgasp.c
+         ftglyph.c
+         ftgxval.c
+         ftinit.c
+         ftlcdfil.c
+         ftmm.c
+         ftotval.c
+         ftpatent.c
+         ftpfr.c
+         ftstroke.c
+         ftsynth.c
+         ftsystem.c
+         fttype1.c
+         ftwinfnt.c
+         ftxf86.c
+         bdf.c
+         ftcache.c
+         cff.c
+         type1cid.c
+         ftgzip.c
+         ftlzw.c
+         pcf.c
+         pfr.c
+         psaux.c
+         pshinter.c
+         psmodule.c
+         raster.c
+         sfnt.c
+         smooth.c
+         truetype.c
+         type1.c
+     1>c:\fastcg\dependencies\freetype_2411\src\type1\t1load.c(323): warning C4245: '=' : conversion from 'int' to 'FT_UInt', signed/unsigned mismatch
+     1>c:\fastcg\dependencies\freetype_2411\src\type1\t1load.c(336): warning C4245: '=' : conversion from 'int' to 'FT_UInt', signed/unsigned mismatch
+     1>c:\fastcg\dependencies\freetype_2411\src\type1\t1load.c(337): warning C4245: '=' : conversion from 'int' to 'FT_ULong', signed/unsigned mismatch
+     1>c:\fastcg\dependencies\freetype_2411\src\smooth\ftsmooth.c(396): warning C4701: potentially uninitialized local variable 'bitmap' used
+     1>c:\fastcg\dependencies\freetype_2411\src\smooth\ftsmooth.c(396): warning C4701: potentially uninitialized local variable 'memory' used
+     1>c:\fastcg\dependencies\freetype_2411\src\smooth\ftsmooth.c(391): warning C4701: potentially uninitialized local variable 'x_shift' used
+     1>c:\fastcg\dependencies\freetype_2411\src\smooth\ftsmooth.c(391): warning C4701: potentially uninitialized local variable 'y_shift' used
+         type42.c
+     1>c:\fastcg\dependencies\freetype_2411\src\truetype\ttgxvar.c(706): warning C4245: '=' : conversion from 'int' to 'FT_UInt', signed/unsigned mismatch
+         winfnt.c
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"Debug (Fixed Function Pipline)\freetype2411d.lib" /NOLOGO "Debug (Fixed Function Pipline)\autofit.obj"
+         "Debug (Fixed Function Pipline)\ftbase.obj"
+         "Debug (Fixed Function Pipline)\ftbbox.obj"
+         "Debug (Fixed Function Pipline)\ftbitmap.obj"
+         "Debug (Fixed Function Pipline)\ftdebug.obj"
+         "Debug (Fixed Function Pipline)\ftfstype.obj"
+         "Debug (Fixed Function Pipline)\ftgasp.obj"
+         "Debug (Fixed Function Pipline)\ftglyph.obj"
+         "Debug (Fixed Function Pipline)\ftgxval.obj"
+         "Debug (Fixed Function Pipline)\ftinit.obj"
+         "Debug (Fixed Function Pipline)\ftlcdfil.obj"
+         "Debug (Fixed Function Pipline)\ftmm.obj"
+         "Debug (Fixed Function Pipline)\ftotval.obj"
+         "Debug (Fixed Function Pipline)\ftpatent.obj"
+         "Debug (Fixed Function Pipline)\ftpfr.obj"
+         "Debug (Fixed Function Pipline)\ftstroke.obj"
+         "Debug (Fixed Function Pipline)\ftsynth.obj"
+         "Debug (Fixed Function Pipline)\ftsystem.obj"
+         "Debug (Fixed Function Pipline)\fttype1.obj"
+         "Debug (Fixed Function Pipline)\ftwinfnt.obj"
+         "Debug (Fixed Function Pipline)\ftxf86.obj"
+         "Debug (Fixed Function Pipline)\bdf.obj"
+         "Debug (Fixed Function Pipline)\ftcache.obj"
+         "Debug (Fixed Function Pipline)\cff.obj"
+         "Debug (Fixed Function Pipline)\type1cid.obj"
+         "Debug (Fixed Function Pipline)\ftgzip.obj"
+         "Debug (Fixed Function Pipline)\ftlzw.obj"
+         "Debug (Fixed Function Pipline)\pcf.obj"
+         "Debug (Fixed Function Pipline)\pfr.obj"
+         "Debug (Fixed Function Pipline)\psaux.obj"
+         "Debug (Fixed Function Pipline)\pshinter.obj"
+         "Debug (Fixed Function Pipline)\psmodule.obj"
+         "Debug (Fixed Function Pipline)\raster.obj"
+         "Debug (Fixed Function Pipline)\sfnt.obj"
+         "Debug (Fixed Function Pipline)\smooth.obj"
+         "Debug (Fixed Function Pipline)\truetype.obj"
+         "Debug (Fixed Function Pipline)\type1.obj"
+         "Debug (Fixed Function Pipline)\type42.obj"
+         "Debug (Fixed Function Pipline)\winfnt.obj"
+         freetype.vcxproj -> C:\FastCG\dependencies\freetype_2411\Debug (Fixed Function Pipline)\freetype2411d.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug (Fixed Function Pipline)\freetype_2411.unsuccessfulbuild".
+         Touching "Debug (Fixed Function Pipline)\freetype_2411.lastbuildstate".
+     1>Done Building Project "C:\FastCG\dependencies\freetype_2411\freetype.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.40

@@ -1,0 +1,70 @@
+﻿Build started 20/04/2013 22:03:10.
+     1>Project "C:\FastCG\dependencies\freeglut_281\freeglut_281.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug (Fixed Function Pipline)\freeglut_281.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Iinclude /ZI /nologo /W3 /WX- /Od /Oy- /D FREEGLUT_STATIC /D _CRT_SECURE_NO_WARNINGS /D _MBCS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug (Fixed Function Pipline)\\" /Fd"Debug (Fixed Function Pipline)\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt src\freeglut_callbacks.c src\freeglut_cursor.c src\freeglut_display.c src\freeglut_ext.c src\freeglut_font.c src\freeglut_font_data.c src\freeglut_gamemode.c src\freeglut_geometry.c src\freeglut_glutfont_definitions.c src\freeglut_init.c src\freeglut_input_devices.c src\freeglut_joystick.c src\freeglut_main.c src\freeglut_menu.c src\freeglut_misc.c src\freeglut_overlay.c src\freeglut_spaceball.c src\freeglut_state.c src\freeglut_stroke_mono_roman.c src\freeglut_stroke_roman.c src\freeglut_structure.c src\freeglut_teapot.c src\freeglut_videoresize.c src\freeglut_window.c src\freeglut_xinput.c
+         freeglut_xinput.c
+         freeglut_window.c
+         fgSetupPixelFormat(): there is still some work to do here!
+         freeglut_videoresize.c
+         freeglut_teapot.c
+         freeglut_structure.c
+         freeglut_stroke_roman.c
+         freeglut_stroke_mono_roman.c
+         freeglut_state.c
+         freeglut_spaceball.c
+         freeglut_overlay.c
+         freeglut_misc.c
+         freeglut_menu.c
+         freeglut_main.c
+         freeglut_joystick.c
+         freeglut_input_devices.c
+         freeglut_init.c
+         freeglut_glutfont_definitions.c
+         freeglut_geometry.c
+         freeglut_gamemode.c
+         freeglut_font_data.c
+         Generating Code...
+         Compiling...
+         freeglut_font.c
+         freeglut_ext.c
+         freeglut_display.c
+         freeglut_cursor.c
+         freeglut_callbacks.c
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:"Debug (Fixed Function Pipline)\freeglut_static.lib" /NOLOGO "Debug (Fixed Function Pipline)\freeglut_callbacks.obj"
+         "Debug (Fixed Function Pipline)\freeglut_cursor.obj"
+         "Debug (Fixed Function Pipline)\freeglut_display.obj"
+         "Debug (Fixed Function Pipline)\freeglut_ext.obj"
+         "Debug (Fixed Function Pipline)\freeglut_font.obj"
+         "Debug (Fixed Function Pipline)\freeglut_font_data.obj"
+         "Debug (Fixed Function Pipline)\freeglut_gamemode.obj"
+         "Debug (Fixed Function Pipline)\freeglut_geometry.obj"
+         "Debug (Fixed Function Pipline)\freeglut_glutfont_definitions.obj"
+         "Debug (Fixed Function Pipline)\freeglut_init.obj"
+         "Debug (Fixed Function Pipline)\freeglut_input_devices.obj"
+         "Debug (Fixed Function Pipline)\freeglut_joystick.obj"
+         "Debug (Fixed Function Pipline)\freeglut_main.obj"
+         "Debug (Fixed Function Pipline)\freeglut_menu.obj"
+         "Debug (Fixed Function Pipline)\freeglut_misc.obj"
+         "Debug (Fixed Function Pipline)\freeglut_overlay.obj"
+         "Debug (Fixed Function Pipline)\freeglut_spaceball.obj"
+         "Debug (Fixed Function Pipline)\freeglut_state.obj"
+         "Debug (Fixed Function Pipline)\freeglut_stroke_mono_roman.obj"
+         "Debug (Fixed Function Pipline)\freeglut_stroke_roman.obj"
+         "Debug (Fixed Function Pipline)\freeglut_structure.obj"
+         "Debug (Fixed Function Pipline)\freeglut_teapot.obj"
+         "Debug (Fixed Function Pipline)\freeglut_videoresize.obj"
+         "Debug (Fixed Function Pipline)\freeglut_window.obj"
+         "Debug (Fixed Function Pipline)\freeglut_xinput.obj"
+         freeglut_281.vcxproj -> C:\FastCG\dependencies\freeglut_281\Debug (Fixed Function Pipline)\freeglut_static.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug (Fixed Function Pipline)\freeglut_281.unsuccessfulbuild".
+         Touching "Debug (Fixed Function Pipline)\freeglut_281.lastbuildstate".
+     1>Done Building Project "C:\FastCG\dependencies\freeglut_281\freeglut_281.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:06.86

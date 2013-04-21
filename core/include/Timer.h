@@ -1,25 +1,26 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
+#include <Exception.h>
+
 #include <Windows.h>
 
 class Timer
 {
 public:
 	Timer() :
-		mStart(0), mEnd(0), mMilliseconds(0)
+		mStart(0), mEnd(0), mSeconds(0)
 	{
 		LARGE_INTEGER frequency;
 
 		if (QueryPerformanceFrequency(&frequency))
 		{
-			mMilliseconds = 1000.0 / frequency.QuadPart;
+			mSeconds = 1.0 / frequency.QuadPart;
 		}
 
 		else
 		{
-			// TODO:
-			throw Exception("Cannot query performance counter frequency!");
+			THROW_EXCEPTION(Exception, "Cannot query performance counter frequency: %d", 0);
 		}
 	}
 
@@ -33,13 +34,12 @@ public:
 
 		if (QueryPerformanceCounter(&time))
 		{
-			return time.QuadPart * mMilliseconds;
+			return time.QuadPart * mSeconds;
 		}
 
 		else
 		{
-			// TODO:
-			throw Exception("Cannot query performance counter!");
+			THROW_EXCEPTION(Exception, "Cannot query performance counter: %d", 0);
 		}
 	}
 
@@ -61,7 +61,7 @@ public:
 private:
 	double mStart;
 	double mEnd;
-	double mMilliseconds;
+	double mSeconds;
 
 };
 
