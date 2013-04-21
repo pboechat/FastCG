@@ -105,45 +105,33 @@ protected:
 
 private:
 
+	struct DrawTextRequest
+	{
+		std::string text;
+		unsigned int size;
+		unsigned int x;
+		unsigned int y;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	struct DrawTextRequest
-	{
-		std::string text;
-		unsigned int size;
-		unsigned int x;
-		unsigned int y;
 		FontPtr fontPtr;
-		glm::vec4 color;
-
-		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, FontPtr fontPtr, const glm::vec4& rColor)
-		{
-			text = rText;
-			this->size = size;
-			this->x = x;
-			this->y = y;
-			this->fontPtr = fontPtr;
-			color = rColor;
-		}
-	};
-#else
-	struct DrawTextRequest
-	{
-		std::string text;
-		unsigned int size;
-		unsigned int x;
-		unsigned int y;
-		glm::vec4 color;
-
-		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor)
-		{
-			text = rText;
-			this->size = size;
-			this->x = x;
-			this->y = y;
-			color = rColor;
-		}
-	};
 #endif
+		glm::vec4 color;
+
+#ifdef USE_PROGRAMMABLE_PIPELINE
+		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, FontPtr fontPtr, const glm::vec4& rColor)
+#else
+		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor)
+#endif
+		{
+			text = rText;
+			this->size = size;
+			this->x = x;
+			this->y = y;
+#ifdef USE_PROGRAMMABLE_PIPELINE
+			this->fontPtr = fontPtr;
+#endif
+			color = rColor;
+		}
+	};
 
 	static Application* s_mpInstance;
 	static bool s_mStarted;

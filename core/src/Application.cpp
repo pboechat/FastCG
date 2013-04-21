@@ -263,6 +263,15 @@ void Application::DrawAllTexts()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glDisable(GL_LIGHTING);
+
+	glPushAttrib(GL_TRANSFORM_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]);
+	glPopAttrib();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
 #endif
 
 	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
@@ -270,7 +279,7 @@ void Application::DrawAllTexts()
 		DrawTextRequest& rDrawTextRequest = mDrawTextRequests[i];
 #ifndef USE_PROGRAMMABLE_PIPELINE
 		glColor4fv(&rDrawTextRequest.color[0]);
-		glRasterPos2i(rDrawTextRequest.x, rDrawTextRequest.y);
+		glRasterPos2i(rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y));
 		glutBitmapString(GLUT_BITMAP_HELVETICA_12, (const unsigned char*)rDrawTextRequest.text.c_str());		
 #else
 		rDrawTextRequest.fontPtr->DrawText(rDrawTextRequest.text, rDrawTextRequest.size, rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y), rDrawTextRequest.color);
@@ -278,6 +287,11 @@ void Application::DrawAllTexts()
 	}
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
+	glPushAttrib(GL_TRANSFORM_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+
 	glEnable(GL_LIGHTING);
 #endif
 	glDisable(GL_BLEND);

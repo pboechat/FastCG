@@ -18,6 +18,16 @@ public:
 	Material(ShaderPtr shaderPtr);
 	~Material();
 
+	inline ShaderPtr GetShader() const
+	{
+		return mShaderPtr;
+	}
+
+	inline void SetShader(ShaderPtr shaderPtr)
+	{
+		mShaderPtr = shaderPtr;
+	}
+
 	void Bind(const glm::mat4& rModel) const;
 	void Unbind() const;
 

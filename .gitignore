@@ -1,13 +1,16 @@
 [Dd]ebug/
 [Rr]elease/
-.metadata/
-RemoteSystemsTempFiles/
+[Dd]ebug_FFP/
+[Rr]elease_FFP/
 ipch/
 
 *.sdf
 *.opensdf
 *.suo
 *.vcxproj.user
+
+# AStyle Backup
+*.orig
 
 # Compiled Object files
 *.slo

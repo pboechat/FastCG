@@ -48,5 +48,17 @@
     <None Include="shaders\Font.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\Diffuse.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

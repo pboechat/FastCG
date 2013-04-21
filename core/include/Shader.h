@@ -32,6 +32,11 @@ public:
 	Shader(const std::string& rName);
 	~Shader();
 
+	inline const std::string& GetName() const
+	{
+		return mName;
+	}
+
 	inline unsigned int GetProgramId()
 	{
 		return mProgramId;
