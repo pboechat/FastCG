@@ -1,3 +1,5 @@
+#version 330
+
 #include "shaders/FastCG.glsl"
 
 in vec4 eyeSpacePosition;

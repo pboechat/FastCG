@@ -1,7 +1,8 @@
-#ifndef GEOMETRY_H_
-#define GEOMETRY_H_
+#ifndef TRIANGLEMESH_H_
+#define TRIANGLEMESH_H_
 
 #include <Transformable.h>
+#include <Drawable.h>
 #include <Pointer.h>
 #include <Material.h>
 
@@ -9,11 +10,11 @@
 
 #include <vector>
 
-class Geometry : public Transformable
+class TriangleMesh : public Transformable, public Drawable
 {
 public:
-	Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr);
-	virtual ~Geometry();
+	TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr);
+	virtual ~TriangleMesh();
 
 	inline MaterialPtr GetMaterial() const
 	{
@@ -25,7 +26,7 @@ public:
 		mMaterialPtr = materialPtr;
 	}
 
-	void Draw();
+	virtual void Draw();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	inline bool IsUsingTangents() const
@@ -59,7 +60,7 @@ private:
 	MaterialPtr mMaterialPtr;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	std::vector<glm::vec4> mTangents;
-	unsigned int mGeometryVAOId;
+	unsigned int mTriangleMeshVAOId;
 	unsigned int mVerticesVBOId;
 	unsigned int mNormalsVBOId;
 	unsigned int mUVsVBOId;
@@ -74,6 +75,6 @@ private:
 
 };
 
-typedef Pointer<Geometry> GeometryPtr;
+typedef Pointer<TriangleMesh> TriangleMeshPtr;
 
 #endif

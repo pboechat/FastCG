@@ -1,6 +1,6 @@
 #include <Material.h>
 #include <Application.h>
-#include <Geometry.h>
+#include <TriangleMesh.h>
 
 #include <GL/gl.h>
 

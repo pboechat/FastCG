@@ -145,9 +145,9 @@ void Application::Display()
 	}
 #endif
 
-	for (unsigned int i = 0; i < mGeometries.size(); i++)
+	for (unsigned int i = 0; i < mDrawables.size(); i++)
 	{
-		mGeometries[i]->Draw();
+		mDrawables[i]->Draw();
 	}
 
 	mFrameTimer.End();
@@ -212,7 +212,7 @@ void Application::Quit()
 {
 	s_mStarted = false;
 	OnFinish();
-	mGeometries.clear();
+	mDrawables.clear();
 	glutDestroyWindow(mGLUTWindowHandle);
 }
 bool Application::HasStarted()

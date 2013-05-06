@@ -182,11 +182,13 @@
     <ClInclude Include="include\Application.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\Directory.h" />
+    <ClInclude Include="include\Drawable.h" />
     <ClInclude Include="include\Exception.h" />
     <ClInclude Include="include\FileReader.h" />
     <ClInclude Include="include\Font.h" />
     <ClInclude Include="include\FontRegistry.h" />
-    <ClInclude Include="include\Geometry.h" />
+    <ClInclude Include="include\LineStrip.h" />
+    <ClInclude Include="include\TriangleMesh.h" />
     <ClInclude Include="include\IOExceptions.h" />
     <ClInclude Include="include\Light.h" />
     <ClInclude Include="include\Material.h" />
@@ -210,7 +212,8 @@
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />
-    <ClCompile Include="src\Geometry.cpp" />
+    <ClCompile Include="src\LineStrip.cpp" />
+    <ClCompile Include="src\TriangleMesh.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\MathF.cpp" />
     <ClCompile Include="src\Random.cpp" />
@@ -227,6 +230,10 @@
     <None Include="shaders\FastCG.glsl" />
     <None Include="shaders\Font.frag" />
     <None Include="shaders\Font.vert" />
+    <None Include="shaders\MultiColorLine.frag" />
+    <None Include="shaders\MultiColorLine.vert" />
+    <None Include="shaders\SingleColorLine.frag" />
+    <None Include="shaders\SingleColorLine.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -29,7 +29,12 @@ class Pointer
 {
 public:
 	Pointer(T* pObject = 0);
-	Pointer(const Pointer& rPointer);
+
+	template<class U>
+	Pointer(U* pObject);
+
+	template<class U>
+	Pointer(Pointer<U>& rPointer);
 	~Pointer();
 
 	inline operator T* () const;
@@ -38,13 +43,27 @@ public:
 
 	inline T* Get() const;
 
-	Pointer& operator=(T* pObject);
-	Pointer& operator=(const Pointer& rPointer);
+	template<class U>
+	Pointer<T>& operator=(U* pObject);
 
-	inline bool operator==(T* pObject) const;
-	inline bool operator!=(T* pObject) const;
-	inline bool operator==(const Pointer& rReference) const;
-	inline bool operator!=(const Pointer& rReference) const;
+	Pointer<T>& operator=(const Pointer<T>& rPointer);
+
+	template<class U>
+	Pointer<T>& operator=(/*const */Pointer<U>& rPointer);
+
+	template<class U>
+	inline bool operator==(U* pObject) const;
+
+	template<class U>
+	inline bool operator!=(U* pObject) const;
+
+	template<class U>
+	inline bool operator==(const Pointer<U>& rReference) const;
+
+	template<class U>
+	inline bool operator!=(const Pointer<U>& rReference) const;
+
+	inline ReferenceCounter* GetReferenceCounter();
 
 protected:
 	T* mpObject;
@@ -53,7 +72,7 @@ protected:
 };
 
 template<class T>
-Pointer<T>::Pointer(T* pObject) :
+Pointer<T>::Pointer(T* pObject = 0) :
 	mpObject(pObject),
 	mpReferenceCounter(0)
 {
@@ -62,9 +81,20 @@ Pointer<T>::Pointer(T* pObject) :
 }
 
 template<class T>
-Pointer<T>::Pointer(const Pointer& rPointer) :
-	mpObject(rPointer.mpObject),
-	mpReferenceCounter(rPointer.mpReferenceCounter)
+template<class U>
+Pointer<T>::Pointer(U* pObject) :
+	mpObject(pObject),
+	mpReferenceCounter(0)
+{
+	mpReferenceCounter = new ReferenceCounter();
+	mpReferenceCounter->AddReference();
+}
+
+template<class T>
+template<class U>
+Pointer<T>::Pointer(Pointer<U>& rPointer) :
+	mpObject(rPointer.Get()),
+	mpReferenceCounter(rPointer.GetReferenceCounter())
 {
 	mpReferenceCounter->AddReference();
 }
@@ -77,6 +107,12 @@ Pointer<T>::~Pointer()
 		delete mpObject;
 		delete mpReferenceCounter;
 	}
+}
+
+template<class T>
+inline ReferenceCounter* Pointer<T>::GetReferenceCounter()
+{
+	return mpReferenceCounter;
 }
 
 template<class T>
@@ -104,7 +140,8 @@ inline T* Pointer<T>::Get() const
 }
 
 template<class T>
-Pointer<T>& Pointer<T>::operator=(T* pObject)
+template<class U>
+inline Pointer<T>& Pointer<T>::operator=(U* pObject)
 {
 	if (mpObject != pObject)
 	{
@@ -123,7 +160,7 @@ Pointer<T>& Pointer<T>::operator=(T* pObject)
 }
 
 template<class T>
-Pointer<T>& Pointer<T>::operator=(const Pointer& rPointer)
+Pointer<T>& Pointer<T>::operator=(const Pointer<T>& rPointer)
 {
 	if (mpObject != rPointer.mpObject)
 	{
@@ -142,27 +179,51 @@ Pointer<T>& Pointer<T>::operator=(const Pointer& rPointer)
 }
 
 template<class T>
-inline bool Pointer<T>::operator==(T* pObject) const
+template<class U>
+inline Pointer<T>& Pointer<T>::operator=(/*const */Pointer<U>& rPointer)
+{
+	if (mpObject != rPointer.Get())
+	{
+		if (mpReferenceCounter->Release() == 0)
+		{
+			delete mpObject;
+			delete mpReferenceCounter;
+		}
+
+		mpObject = rPointer.Get();
+		mpReferenceCounter = rPointer.GetReferenceCounter();
+		mpReferenceCounter->AddReference();
+	}
+
+	return *this;
+}
+
+template<class T>
+template<class U>
+inline bool Pointer<T>::operator==(U* pObject) const
 {
 	return mpObject == pObject;
 }
 
 template<class T>
-inline bool Pointer<T>::operator!=(T* pObject) const
+template<class U>
+inline bool Pointer<T>::operator!=(U* pObject) const
 {
 	return mpObject != pObject;
 }
 
 template<class T>
-inline bool Pointer<T>::operator==(const Pointer& rPointer) const
+template<class U>
+inline bool Pointer<T>::operator==(const Pointer<U>& rPointer) const
 {
-	return mpObject == rPointer.mpObject;
+	return mpObject == rPointer.Get();
 }
 
 template<class T>
-inline bool Pointer<T>::operator!=(const Pointer& rPointer) const
+template<class U>
+inline bool Pointer<T>::operator!=(const Pointer<U>& rPointer) const
 {
-	return mpObject != rPointer.mpObject;
+	return mpObject != rPointer.Get();
 }
 
 #endif

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-GeometryPtr StandardGeometries::CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr)
+TriangleMeshPtr StandardGeometries::CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -50,10 +50,10 @@ GeometryPtr StandardGeometries::CreateXYPlane(float width, float height, unsigne
 		}
 	}
 
-	return new Geometry(vertices, indexes, normals, uvs, materialPtr);
+	return new TriangleMesh(vertices, indexes, normals, uvs, materialPtr);
 }
 
-GeometryPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr)
+TriangleMeshPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -99,10 +99,10 @@ GeometryPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned
 		}
 	}
 
-	return new Geometry(vertices, indexes, normals, uvs, materialPtr);
+	return new TriangleMesh(vertices, indexes, normals, uvs, materialPtr);
 }
 
-GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegments, unsigned int radialSegments, const MaterialPtr& materialPtr)
+TriangleMeshPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegments, unsigned int radialSegments, const MaterialPtr& materialPtr)
 {
 	unsigned int vertexQuantity = (zSegments - 2) * (radialSegments + 1) + 2;
 	std::vector<glm::vec3> vertices(vertexQuantity);
@@ -245,6 +245,6 @@ GeometryPtr StandardGeometries::CreateSphere(float radius, unsigned int zSegment
 		THROW_EXCEPTION(Exception, "Invalid triangle quantity: %d", triangleQuantity);
 	}
 
-	return new Geometry(vertices, indexes, normals, uvs, materialPtr);
+	return new TriangleMesh(vertices, indexes, normals, uvs, materialPtr);
 }
 

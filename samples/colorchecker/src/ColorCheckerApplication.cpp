@@ -172,10 +172,10 @@ void ColorCheckerApplication::AddColorChecker(float x, float y, float width, flo
 	solidColorMaterialPtr->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 	solidColorMaterialPtr->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #endif
-	GeometryPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
+	TriangleMeshPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
 	colorCheckerPtr->Translate(glm::vec3(x, y, 0.0f));
 	colorCheckerPtr->SetMaterial(solidColorMaterialPtr);
-	AddGeometry(colorCheckerPtr);
+	AddDrawable(colorCheckerPtr);
 }
 
 int ColorCheckerApplication::GetColorPatchIndex(int x, int y)

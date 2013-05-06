@@ -26,9 +26,6 @@
     <ClInclude Include="include\FileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Geometry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\IOExceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -83,6 +80,15 @@
     <ClInclude Include="include\FontRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TriangleMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\LineStrip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Drawable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -92,9 +98,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\FileReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Material.cpp">
@@ -133,6 +136,12 @@
     <ClCompile Include="src\FontRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\TriangleMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LineStrip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BlinnPhong.frag">
@@ -148,6 +157,18 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\Font.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\MultiColorLine.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\MultiColorLine.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\SingleColorLine.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\SingleColorLine.vert">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

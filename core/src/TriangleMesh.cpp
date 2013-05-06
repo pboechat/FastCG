@@ -1,4 +1,4 @@
-#include <Geometry.h>
+#include <TriangleMesh.h>
 #include <Shader.h>
 #include <OpenGLExceptions.h>
 
@@ -6,7 +6,7 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr) :
+TriangleMesh::TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr) :
 	mVertices(vertices), 
 	mIndexes(indexes), 
 	mNormals(normals), 
@@ -14,19 +14,19 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<uns
 	mMaterialPtr(materialPtr)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mGeometryVAOId = 0;
+	mTriangleMeshVAOId = 0;
 	mUseTangents = false;
 #else
 	mDisplayListId = 0;
 #endif
 }
 
-Geometry::~Geometry()
+TriangleMesh::~TriangleMesh()
 {
 	DeallocateResources();
 }
 
-void Geometry::AllocateResources()
+void TriangleMesh::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	// create vertex buffer object and attach data
@@ -53,8 +53,8 @@ void Geometry::AllocateResources()
 	}
 
 	// create vertex array object with all previous vbos attached
-	glGenVertexArrays(1, &mGeometryVAOId);
-	glBindVertexArray(mGeometryVAOId);
+	glGenVertexArrays(1, &mTriangleMeshVAOId);
+	glBindVertexArray(mTriangleMeshVAOId);
 
 	glEnableVertexAttribArray(Shader::VERTICES_ATTRIBUTE_INDEX);
 	glEnableVertexAttribArray(Shader::NORMALS_ATTRIBUTE_INDEX);
@@ -105,7 +105,7 @@ void Geometry::AllocateResources()
 #endif
 }
 
-void Geometry::DeallocateResources()
+void TriangleMesh::DeallocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mUseTangents)
@@ -116,16 +116,16 @@ void Geometry::DeallocateResources()
 	glDeleteBuffers(1, &mUVsVBOId);
 	glDeleteBuffers(1, &mNormalsVBOId);
 	glDeleteBuffers(1, &mVerticesVBOId);
-	glDeleteBuffers(1, &mGeometryVAOId);
+	glDeleteBuffers(1, &mTriangleMeshVAOId);
 #else
 	glDeleteLists(mDisplayListId, 1);
 #endif
 }
 
-void Geometry::Draw()
+void TriangleMesh::Draw()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	if (mGeometryVAOId == 0)
+	if (mTriangleMeshVAOId == 0)
 	{
 		AllocateResources();
 	}
@@ -135,7 +135,7 @@ void Geometry::Draw()
 		mMaterialPtr->Bind(GetModel());
 	}
 
-	glBindVertexArray(mGeometryVAOId);
+	glBindVertexArray(mTriangleMeshVAOId);
 	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
 	glBindVertexArray(0);
 
@@ -162,11 +162,11 @@ void Geometry::Draw()
 }
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-void Geometry::CalculateTangents()
+void TriangleMesh::CalculateTangents()
 {
-	if (mGeometryVAOId != 0) 
+	if (mTriangleMeshVAOId != 0) 
 	{
-		THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mGeometryVAOId);
+		THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mTriangleMeshVAOId);
 	}
 
 	mTangents = std::vector<glm::vec4>(mVertices.size());

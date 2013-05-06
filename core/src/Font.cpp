@@ -33,7 +33,7 @@ Font::~Font()
 	DeallocateResources();
 }
 
-GeometryPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t)
+TriangleMeshPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t)
 {
 	std::vector<glm::vec3> vertices(4);
 	std::vector<glm::vec3> normals(4);
@@ -62,7 +62,7 @@ GeometryPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int heig
 	indexes[4] = 2;
 	indexes[5] = 3;
 
-	return new Geometry(vertices, indexes, normals, uvs, 0);
+	return new TriangleMesh(vertices, indexes, normals, uvs, 0);
 }
 
 void Font::AllocateResources()
@@ -165,7 +165,7 @@ void Font::DrawText(const std::string& rText, unsigned int size, unsigned int x,
 		glm::vec2 offset = mOffsets[c];
 		unsigned int spacing = mSpacings[c];
 
-		GeometryPtr billboardPtr = mBillboards[c];
+		TriangleMeshPtr billboardPtr = mBillboards[c];
 
 		glm::mat4 model(1);
 		glm::vec2 screenPosition = glm::vec2(left, y) + offset;

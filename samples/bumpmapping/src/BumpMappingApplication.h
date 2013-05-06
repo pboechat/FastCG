@@ -34,7 +34,7 @@ private:
 	std::vector<TexturePtr> mFloorBumpMapTexturePtrs;
 	std::vector<TexturePtr> mSphereColorMapTexturePtrs;
 	std::vector<TexturePtr> mSphereBumpMapTexturePtrs;
-	std::vector<GeometryPtr> mSpherePtrs;
+	std::vector<TriangleMeshPtr> mSpherePtrs;
 	MaterialPtr mFloorMaterialPtr;
 	unsigned int mCurrentFloorTextureIndex;
 	unsigned int mCurrentSphereTextureIndex;

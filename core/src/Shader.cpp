@@ -58,6 +58,7 @@ void Shader::Link()
 	BindAttributeLocation("normal", NORMALS_ATTRIBUTE_INDEX);
 	BindAttributeLocation("uv", UVS_ATTRIBUTE_INDEX);
 	BindAttributeLocation("tangent", TANGENTS_ATTRIBUTE_INDEX);
+	BindAttributeLocation("color", COLORS_ATTRIBUTE_INDEX);
 
 	glLinkProgram(mProgramId);
 	CheckLink();

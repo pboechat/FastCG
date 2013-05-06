@@ -27,6 +27,7 @@ public:
 	static const unsigned int NORMALS_ATTRIBUTE_INDEX = 1;
 	static const unsigned int UVS_ATTRIBUTE_INDEX = 2;
 	static const unsigned int TANGENTS_ATTRIBUTE_INDEX = 3;
+	static const unsigned int COLORS_ATTRIBUTE_INDEX = 4;
 
 	Shader();
 	Shader(const std::string& rName);

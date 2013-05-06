@@ -3,7 +3,7 @@
 
 #include <Camera.h>
 #include <Light.h>
-#include <Geometry.h>
+#include <TriangleMesh.h>
 #include <Font.h>
 #include <Timer.h>
 
@@ -93,9 +93,9 @@ protected:
 	void DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor);
 #endif
 
-	inline void AddGeometry(GeometryPtr geometryPtr)
+	inline void AddDrawable(DrawablePtr drawablePtr)
 	{
-		mGeometries.push_back(geometryPtr);
+		mDrawables.push_back(drawablePtr);
 	}
 
 	inline void AddLight(LightPtr lightPtr)
@@ -142,7 +142,7 @@ private:
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
 	std::vector<LightPtr> mLights;
-	std::vector<GeometryPtr> mGeometries;
+	std::vector<DrawablePtr> mDrawables;
 	Timer mFrameTimer;
 	unsigned int mElapsedFrames;
 	double mElapsedTime;

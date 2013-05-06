@@ -76,11 +76,11 @@ void BumpMappingApplication::OnStart()
 	mFloorMaterialPtr->SetTexture(mFloorColorMapTexturePtrs[mCurrentFloorTextureIndex]);
 #endif
 
-	GeometryPtr floorPtr = StandardGeometries::CreateXZPlane((float)FIELD_SIZE, (float)FIELD_SIZE, 100, 100, glm::vec3(0, 0, 0), mFloorMaterialPtr);
+	TriangleMeshPtr floorPtr = StandardGeometries::CreateXZPlane((float)FIELD_SIZE, (float)FIELD_SIZE, 100, 100, glm::vec3(0, 0, 0), mFloorMaterialPtr);
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	floorPtr->CalculateTangents();
 #endif
-	AddGeometry(floorPtr);
+	AddDrawable(floorPtr);
 
 	for (unsigned int z = 0; z < FIELD_SIZE; z += 10)
 	{
@@ -99,13 +99,13 @@ void BumpMappingApplication::OnStart()
 
 			float sphereRadius = (FIELD_SIZE * 0.025f);
 
-			GeometryPtr spherePtr = StandardGeometries::CreateSphere(sphereRadius, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS, sphereMaterialPtr);
+			TriangleMeshPtr spherePtr = StandardGeometries::CreateSphere(sphereRadius, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS, sphereMaterialPtr);
 #ifdef USE_PROGRAMMABLE_PIPELINE
 			spherePtr->CalculateTangents();
 #endif
 			spherePtr->Translate(glm::vec3(-(FIELD_SIZE * 0.5f - (2 * sphereRadius)) + x, sphereRadius, -(FIELD_SIZE * 0.5f - (2 * sphereRadius)) + z));
 			mSpherePtrs.push_back(spherePtr);
-			AddGeometry(spherePtr);
+			AddDrawable(spherePtr);
 		}
 	}
 }
@@ -123,7 +123,7 @@ void BumpMappingApplication::BeforeDisplay()
 
 	for (unsigned int i = 0; i < mSpherePtrs.size(); i++)
 	{
-		GeometryPtr spherePtr = mSpherePtrs[i];
+		TriangleMeshPtr spherePtr = mSpherePtrs[i];
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		spherePtr->GetMaterial()->SetTexture("colorMap", mSphereColorMapTexturePtrs[mCurrentSphereTextureIndex]);
 		spherePtr->GetMaterial()->SetTexture("bumpMap", mSphereBumpMapTexturePtrs[mCurrentSphereTextureIndex]);
@@ -175,7 +175,7 @@ void BumpMappingApplication::OnMouseButton(int button, int state, int x, int y)
 
 			for (unsigned int i = 0; i < mSpherePtrs.size(); i++)
 			{
-				GeometryPtr spherePtr = mSpherePtrs[i];
+				TriangleMeshPtr spherePtr = mSpherePtrs[i];
 				spherePtr->GetMaterial()->SetShader(sphereShaderPtr);
 			}
 		}
