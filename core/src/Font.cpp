@@ -3,7 +3,7 @@
 #include <Font.h>
 #include <Exception.h>
 #include <ShaderRegistry.h>
-#include <MathF.h>
+#include <MathT.h>
 #include <Application.h>
 
 #include <ft2build.h>

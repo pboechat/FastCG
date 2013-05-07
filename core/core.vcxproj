@@ -187,12 +187,13 @@
     <ClInclude Include="include\FileReader.h" />
     <ClInclude Include="include\Font.h" />
     <ClInclude Include="include\FontRegistry.h" />
+    <ClInclude Include="include\KeyCode.h" />
     <ClInclude Include="include\LineStrip.h" />
     <ClInclude Include="include\TriangleMesh.h" />
     <ClInclude Include="include\IOExceptions.h" />
     <ClInclude Include="include\Light.h" />
     <ClInclude Include="include\Material.h" />
-    <ClInclude Include="include\MathF.h" />
+    <ClInclude Include="include\MathT.h" />
     <ClInclude Include="include\OpenGLExceptions.h" />
     <ClInclude Include="include\Pointer.h" />
     <ClInclude Include="include\Random.h" />
@@ -215,7 +216,6 @@
     <ClCompile Include="src\LineStrip.cpp" />
     <ClCompile Include="src\TriangleMesh.cpp" />
     <ClCompile Include="src\Material.cpp" />
-    <ClCompile Include="src\MathF.cpp" />
     <ClCompile Include="src\Random.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\ShaderRegistry.cpp" />

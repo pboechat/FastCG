@@ -3,7 +3,7 @@
 
 #include "LightSpectrum.h"
 #include "CIEXYZColor.h"
-#include <MathF.h>
+#include <MathT.h>
 
 class ColorMatchingFunctions
 {

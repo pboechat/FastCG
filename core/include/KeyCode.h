@@ -1,0 +1,141 @@
+#ifndef KEYCODE_H__
+#define KEYCODE_H__
+
+class KeyCode
+{
+public:
+	static const int SOH = 1;
+	static const int STX = 2;
+	static const int ETX = 3;
+	static const int EOT = 4;
+	static const int ENQ = 5;
+	static const int ACK = 6;
+	static const int BEL = 7;
+	static const int BACKSPACE = 8;
+	static const int HT = 9;
+	static const int LF = 10;
+	static const int VT = 11;
+	static const int FF = 12;
+	static const int RETURN = 13;
+	static const int SO = 14;
+	static const int SI = 15;
+	static const int DLE = 16;
+	static const int DC1 = 17;
+	static const int DC2 = 18;
+	static const int DC3 = 19;
+	static const int DC4 = 20;
+	static const int NAK = 21;
+	static const int SYN = 22;
+	static const int ETB = 23;
+	static const int CAN = 24;
+	static const int EM = 25;
+	static const int SUB = 26;
+	static const int ESC = 27;
+	static const int FS = 28;
+	static const int GS = 29;
+	static const int RS = 30;
+	static const int US = 31;
+	static const int SPACE = 32;
+	static const int EXCLAMATION = 33;
+	static const int QUOTATION = 34;
+	static const int HASH = 35;
+	static const int DOLLAR = 36;
+	static const int PERCENT = 37;
+	static const int AMPERSAND = 38;
+	static const int APOSTROPHE = 39;
+	static const int OPEN_PARENTHESES = 40;
+	static const int CLOSE_PARENTHESES = 41;
+	static const int ASTERISK = 42;
+	static const int PLUS = 43;
+	static const int COMMA = 44;
+	static const int HYPHEN = 45;
+	static const int DOT = 46;
+	static const int SLASH = 47;
+	static const int KEY_0 = 48;
+	static const int KEY_1 = 49;
+	static const int KEY_2 = 50;
+	static const int KEY_3 = 51;
+	static const int KEY_4 = 52;
+	static const int KEY_5 = 53;
+	static const int KEY_6 = 54;
+	static const int KEY_7 = 55;
+	static const int KEY_8 = 56;
+	static const int KEY_9 = 57;
+	static const int COLON = 58;
+	static const int SEMICOLON = 59;
+	static const int LESS_THAN = 60;
+	static const int EQUALS = 61;
+	static const int GREATER_THAN = 62;
+	static const int QUESTION_MARK = 63;
+	static const int AT = 64;
+	static const int A = 65;
+	static const int B = 66;
+	static const int C = 67;
+	static const int D = 68;
+	static const int E = 69;
+	static const int F = 70;
+	static const int G = 71;
+	static const int H = 72;
+	static const int I = 73;
+	static const int J = 74;
+	static const int K = 75;
+	static const int L = 76;
+	static const int M = 77;
+	static const int N = 78;
+	static const int O = 79;
+	static const int P = 80;
+	static const int Q = 81;
+	static const int R = 82;
+	static const int S = 83;
+	static const int T = 84;
+	static const int U = 85;
+	static const int V = 86;
+	static const int W = 87;
+	static const int X = 88;
+	static const int Y = 89;
+	static const int Z = 90;
+	static const int OPEN_SQUARE_BRACKET = 91;
+	static const int BACKSLASH = 92;
+	static const int CLOSE_SQUARE_BRACKET = 93;
+	static const int CIRCUMFLEX = 94;
+	static const int UNDERSCORE = 95;
+	static const int GRAVE = 96;
+	static const int a = 97;
+	static const int b = 98;
+	static const int c = 99;
+	static const int d = 100;
+	static const int e = 101;
+	static const int f = 102;
+	static const int g = 103;
+	static const int h = 104;
+	static const int i = 105;
+	static const int j = 106;
+	static const int k = 107;
+	static const int l = 108;
+	static const int m = 109;
+	static const int n = 110;
+	static const int o = 111;
+	static const int p = 112;
+	static const int q = 113;
+	static const int r = 114;
+	static const int s = 115;
+	static const int t = 116;
+	static const int u = 117;
+	static const int v = 118;
+	static const int w = 119;
+	static const int x = 120;
+	static const int y = 121;
+	static const int z = 122;
+	static const int OPEN_BRACES = 123;
+	static const int PIPE = 124;
+	static const int CLOSE_BRACES = 125;
+	static const int TILDE = 126;
+	static const int DEL = 127;
+
+private:
+	KeyCode() {}
+	~KeyCode() {}
+
+};
+
+#endif

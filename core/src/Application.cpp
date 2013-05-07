@@ -8,7 +8,6 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -39,6 +38,18 @@ Application::~Application()
 	{
 		Quit();
 	}
+}
+
+void Application::RemoveDrawable(DrawablePtr drawablePtr)
+{
+	std::vector<DrawablePtr>::iterator drawableIterator = std::find(mDrawables.begin(), mDrawables.end(), drawablePtr);
+
+	if (drawableIterator == mDrawables.end())
+	{
+		THROW_EXCEPTION(Exception, "Drawable not found");
+	}
+
+	mDrawables.erase(drawableIterator);
 }
 
 void Application::PrintUsage()

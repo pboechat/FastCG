@@ -1,6 +1,7 @@
 #ifndef BSPLINE_H_
 #define BSPLINE_H_
 
+#include <Pointer.h>
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -8,19 +9,23 @@
 class BSpline
 {
 public:
-	BSpline(int degree, const std::vector<float>& rKnots, const std::vector<glm::vec2>& rControlPoints);
+	static Pointer<BSpline> CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped);
 
-	float Get(float x) const;
+	unsigned int GetDegree() const;
+	glm::vec2 GetValue(float x) const;
 
 private:
-	int mDegree;
+	unsigned int mDegree;
 	std::vector<float> mKnots;
 	std::vector<glm::vec2> mControlPoints;
 
-	unsigned int FindUpperKnotBound(float x) const;
+	BSpline(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, const std::vector<float>& rKnots);
 
-	float DeBoors(int k, int i, float x) const;
+	unsigned int FindKnotSpanLowerBound(float x) const;
+	float DeBoors(int n, int i, float x) const;
 
 };
+
+typedef Pointer<BSpline> BSplinePtr;
 
 #endif

@@ -32,9 +32,6 @@
     <ClInclude Include="include\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\MathF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\OpenGLExceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -89,6 +86,12 @@
     <ClInclude Include="include\Drawable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\KeyCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MathT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -101,9 +104,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MathF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Random.cpp">

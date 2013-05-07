@@ -7,6 +7,7 @@
 #include <Font.h>
 #include <Timer.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -97,6 +98,8 @@ protected:
 	{
 		mDrawables.push_back(drawablePtr);
 	}
+
+	void RemoveDrawable(DrawablePtr drawablePtr);
 
 	inline void AddLight(LightPtr lightPtr)
 	{

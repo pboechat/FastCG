@@ -2,7 +2,7 @@
 #include <sRGBColor.h>
 #include <ColorExceptions.h>
 
-#include <MathF.h>
+#include <MathT.h>
 
 // TODO:
 const CIEXYZColor CIEXYZColor::A(1, 1, 1);

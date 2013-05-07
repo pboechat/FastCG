@@ -45,6 +45,7 @@ void LineStrip::AllocateResources()
 	if (mUseSingleColor)
 	{
 		mLineMaterialPtr = new Material(ShaderRegistry::Find("SingleColorLine"));
+		mLineMaterialPtr->SetVec4("color", mColor);
 	}
 	else
 	{

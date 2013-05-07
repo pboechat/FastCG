@@ -145,42 +145,44 @@ void BumpMappingApplication::BeforeDisplay()
 
 void BumpMappingApplication::OnMouseButton(int button, int state, int x, int y)
 {
-	if (state == 0)
+	if (state != 0)
 	{
-		if (button == 0)
-		{
-			mCurrentFloorTextureIndex = (++mCurrentFloorTextureIndex % mFloorColorMapTexturePtrs.size());
-		}
-		else if (button == 2)
-		{
-			mCurrentSphereTextureIndex = (++mCurrentSphereTextureIndex % mSphereColorMapTexturePtrs.size());
-		}
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		else if (button == 1)
-		{
-			ShaderPtr floorShaderPtr;
-			ShaderPtr sphereShaderPtr;
-			if (mFloorMaterialPtr->GetShader()->GetName() == "BumpedSpecular")
-			{
-				floorShaderPtr = ShaderRegistry::Find("Specular");
-				sphereShaderPtr = ShaderRegistry::Find("Diffuse");
-			}
-			else
-			{
-				floorShaderPtr = ShaderRegistry::Find("BumpedSpecular");
-				sphereShaderPtr = ShaderRegistry::Find("BumpedDiffuse");
-			}
-
-			mFloorMaterialPtr->SetShader(floorShaderPtr);
-
-			for (unsigned int i = 0; i < mSpherePtrs.size(); i++)
-			{
-				TriangleMeshPtr spherePtr = mSpherePtrs[i];
-				spherePtr->GetMaterial()->SetShader(sphereShaderPtr);
-			}
-		}
-#endif
+		return;
 	}
+
+	if (button == 0)
+	{
+		mCurrentFloorTextureIndex = (++mCurrentFloorTextureIndex % mFloorColorMapTexturePtrs.size());
+	}
+	else if (button == 2)
+	{
+		mCurrentSphereTextureIndex = (++mCurrentSphereTextureIndex % mSphereColorMapTexturePtrs.size());
+	}
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	else if (button == 1)
+	{
+		ShaderPtr floorShaderPtr;
+		ShaderPtr sphereShaderPtr;
+		if (mFloorMaterialPtr->GetShader()->GetName() == "BumpedSpecular")
+		{
+			floorShaderPtr = ShaderRegistry::Find("Specular");
+			sphereShaderPtr = ShaderRegistry::Find("Diffuse");
+		}
+		else
+		{
+			floorShaderPtr = ShaderRegistry::Find("BumpedSpecular");
+			sphereShaderPtr = ShaderRegistry::Find("BumpedDiffuse");
+		}
+
+		mFloorMaterialPtr->SetShader(floorShaderPtr);
+
+		for (unsigned int i = 0; i < mSpherePtrs.size(); i++)
+		{
+			TriangleMeshPtr spherePtr = mSpherePtrs[i];
+			spherePtr->GetMaterial()->SetShader(sphereShaderPtr);
+		}
+	}
+#endif
 }
 
 void BumpMappingApplication::OnMouseWheel(int button, int direction, int x, int y)

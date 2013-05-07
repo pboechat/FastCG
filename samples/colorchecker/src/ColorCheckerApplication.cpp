@@ -5,7 +5,7 @@
 #include <StringUtils.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
-#include <MathF.h>
+#include <MathT.h>
 #include <Camera.h>
 #include <StandardGeometries.h>
 
@@ -183,8 +183,8 @@ int ColorCheckerApplication::GetColorPatchIndex(int x, int y)
 	float patchWidth = GetScreenWidth() / (float) H_NUM_PATCHES;
 	float patchHeight = GetScreenHeight() / (float) V_NUM_PATCHES;
 
-	int patchX = MathF::FloorToInt(x / patchWidth);
-	int patchY = MathF::FloorToInt(y / patchHeight);
+	int patchX = (int)MathF::Floor(x / patchWidth);
+	int patchY = (int)MathF::Floor(y / patchHeight);
 
 	return patchY * H_NUM_PATCHES + patchX;
 }
