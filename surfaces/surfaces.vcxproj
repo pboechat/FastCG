@@ -99,10 +99,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\BSpline.h" />
+    <ClInclude Include="include\BSplineCurve.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\BSpline.cpp" />
+    <ClCompile Include="src\BSplineCurve.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

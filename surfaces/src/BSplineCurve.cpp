@@ -1,9 +1,9 @@
-#include <BSpline.h>
+#include <BSplineCurve.h>
 #include <Exception.h>
 
-const unsigned int BSpline::MINIMUM_DEGREE = 2;
+const unsigned int BSplineCurve::MINIMUM_DEGREE = 2;
 
-Pointer<BSpline> BSpline::CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped)
+Pointer<BSplineCurve> BSplineCurve::CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped)
 {
 	if (degree < MINIMUM_DEGREE)
 	{
@@ -50,17 +50,17 @@ Pointer<BSpline> BSpline::CreateUniform(unsigned int degree, const std::vector<g
 		knots[i] = 1.0f;
 	}
 
-	return new BSpline(degree, rControlPoints, knots);
+	return new BSplineCurve(degree, rControlPoints, knots);
 }
 
-BSpline::BSpline(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, const std::vector<float>& rKnots) :
+BSplineCurve::BSplineCurve(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, const std::vector<float>& rKnots) :
 	mDegree(degree),
 	mControlPoints(rControlPoints),
 	mKnots(rKnots)
 {
 }
 
-glm::vec2 BSpline::GetValue(float x) const
+glm::vec2 BSplineCurve::GetValue(float x) const
 {
 	glm::vec2 point;
 
@@ -72,25 +72,7 @@ glm::vec2 BSpline::GetValue(float x) const
 	return point;
 }
 
-unsigned int BSpline::FindKnotSpanLowerBound(float x) const
-{
-	if (x < 0)
-	{
-		THROW_EXCEPTION(Exception, "Out of domain: %f", x);
-	}
-
-	for (unsigned int i = 0; i < mKnots.size(); i++)
-	{
-		if (x < mKnots[i])
-		{
-			return i - 1;
-		}
-	}
-
-	THROW_EXCEPTION(Exception, "Out of domain: %f", x);
-}
-
-float BSpline::DeBoors(int n, int i, float x) const
+float BSplineCurve::DeBoors(int n, int i, float x) const
 {
 	if (n == 0)
 	{

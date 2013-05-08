@@ -9,17 +9,19 @@
 
 const unsigned int BSplinesApplication::NUM_BSPLINE_SAMPLES = 100;
 const glm::vec4 BSplinesApplication::BSPLINE_COLOR(1.0f, 0.0f, 0.0f, 1.0f);
+const glm::vec4 BSplinesApplication::KNOT_COLOR(1.0f, 0.0f, 0.0f, 1.0f);
 const glm::vec4 BSplinesApplication::CONTROL_POLYGON_COLOR(0.0f, 0.0f, 1.0f, 1.0f);
 const glm::vec4 BSplinesApplication::CONTROL_POINT_COLOR(0.0f, 0.0f, 1.0f, 1.0f);
 const glm::vec4 BSplinesApplication::SELECTED_CONTROL_POINT_COLOR(0.0f, 1.0f, 1.0f, 1.0f);
-const float BSplinesApplication::CONTROL_POINT_SIDE = 7.5f;
+const float BSplinesApplication::CONTROL_POINT_SIZE = 7.5f;
+const float BSplinesApplication::KNOT_SIZE = 3.5f;
 const glm::vec4 BSplinesApplication::CONTROL_POINT_SELECTION_AREA(-10.0f, -10.0f, 10.0f, 10.0f);
 
 BSplinesApplication::BSplinesApplication() :
 	Application("bsplines", 800, 600),
 	mState(BSPLINE_DEFINITION),
 	mSelectedControlPointIndex(-1),
-	mBSplineDegree(BSpline::MINIMUM_DEGREE)
+	mBSplineDegree(BSplineCurve::MINIMUM_DEGREE)
 {
 	mMainCameraPtr = new Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -123,7 +125,7 @@ void BSplinesApplication::OnKeyPress(int key)
 		}
 		else if (key == KeyCode::MINUS)
 		{
-			mBSplineDegree = MathUI::Max(mBSplineDegree - 1, BSpline::MINIMUM_DEGREE);
+			mBSplineDegree = MathUI::Max(mBSplineDegree - 1, BSplineCurve::MINIMUM_DEGREE);
 		}
 		else if (key == KeyCode::RETURN)
 		{
@@ -139,6 +141,39 @@ void BSplinesApplication::OnKeyPress(int key)
 	}
 }
 
+void BSplinesApplication::CreateBSpline() 
+{
+	std::vector<glm::vec3> vertices;
+
+	mBSplinePtr = BSplineCurve::CreateUniform(mBSplineDegree, mBSplineControlPoints, true);
+
+	glm::vec2 start = mBSplineControlPoints[0];
+	float increment = 1.0f / NUM_BSPLINE_SAMPLES;
+	float u = 0.0f;
+	while (u <= 1.0f)
+	{
+		glm::vec2 point = mBSplinePtr->GetValue(u);
+		vertices.push_back(glm::vec3(point.x, point.y, 0.0f));
+		u += increment;
+	}
+
+	mBSplineLineStripPtr = new LineStrip(vertices, BSPLINE_COLOR);
+	AddDrawable(mBSplineLineStripPtr);
+
+	const std::vector<float>& rKnots = mBSplinePtr->GetKnots();
+	vertices.clear();
+
+	for (unsigned int i = 0; i < rKnots.size(); i++)
+	{
+		u = rKnots[i];
+		glm::vec2 point = mBSplinePtr->GetValue(u);
+		vertices.push_back(glm::vec3(point.x, point.y, 0.0f));
+	}
+
+	mBSplineKnotsPtr = new Points(vertices, KNOT_SIZE, KNOT_COLOR);
+	AddDrawable(mBSplineKnotsPtr);
+}
+
 void BSplinesApplication::SetState(State state)
 {
 	if (mState == state)
@@ -150,26 +185,12 @@ void BSplinesApplication::SetState(State state)
 
 	if (mState == BSPLINE_DEFINITION)
 	{
-		RemoveDrawable(mBSplineCurvePtr);
+		RemoveBSpline();
+
 	}
 	else
 	{
-		std::vector<glm::vec3> vertices;
-
-		mBSplinePtr = BSpline::CreateUniform(mBSplineDegree, mBSplineControlPoints, true);
-		glm::vec2 start = mBSplineControlPoints[0];
-		float increment = 1.0f / NUM_BSPLINE_SAMPLES;
-		float u = 0.0f;
-		while (u <= 1.0f)
-		{
-			glm::vec2 point = mBSplinePtr->GetValue(u);
-			vertices.push_back(glm::vec3(point.x, point.y, 0.0f));
-			u += increment;
-		}
-
-		mBSplineCurvePtr = new LineStrip(vertices, BSPLINE_COLOR);
-
-		AddDrawable(mBSplineCurvePtr);
+		CreateBSpline();
 	}
 }
 
@@ -183,7 +204,7 @@ void BSplinesApplication::RemoveControlPoint()
 	mBSplineControlPoints.erase(--mBSplineControlPoints.end());
 	mSelectedControlPointIndex = -1;
 
-	mBSplineDegree = MathUI::Max(MathUI::Min(mBSplineDegree, mBSplineControlPoints.size() - 1), BSpline::MINIMUM_DEGREE);
+	mBSplineDegree = MathUI::Max(MathUI::Min(mBSplineDegree, mBSplineControlPoints.size() - 1), BSplineCurve::MINIMUM_DEGREE);
 
 	if (mBSplineControlPoints.size() > 1)
 	{
@@ -234,7 +255,7 @@ void BSplinesApplication::UpdateControlPoints()
 	mBSplineControlPolygonPtr = new LineStrip(vertices, CONTROL_POLYGON_COLOR);
 	AddDrawable(mBSplineControlPolygonPtr);
 
-	mBSplineControlPointsPtr = new Points(vertices, CONTROL_POINT_SIDE, colors);
+	mBSplineControlPointsPtr = new Points(vertices, CONTROL_POINT_SIZE, colors);
 	AddDrawable(mBSplineControlPointsPtr);
 }
 
@@ -252,4 +273,13 @@ int BSplinesApplication::GetControlPointIndex(const glm::vec3& rPoint)
 	}
 
 	return -1;
+}
+
+void BSplinesApplication::RemoveBSpline()
+{
+	RemoveDrawable(mBSplineLineStripPtr);
+	RemoveDrawable(mBSplineKnotsPtr);
+	mBSplineLineStripPtr = 0;
+	mBSplineKnotsPtr = 0;
+	mBSplinePtr = 0;
 }
