@@ -6,8 +6,6 @@
 #include <algorithm>
 #include <sstream>
 
-const unsigned int BSplinesApplication::MIN_DEGREE = 1;
-const unsigned int BSplinesApplication::MAX_DEGREE = 10;
 const unsigned int BSplinesApplication::NUM_BSPLINE_SAMPLES = 100;
 const glm::vec4 BSplinesApplication::BSPLINE_COLOR(1.0f, 0.0f, 0.0f, 1.0f);
 const glm::vec4 BSplinesApplication::CONTROL_POLYGON_COLOR(0.0f, 0.0f, 1.0f, 1.0f);
@@ -15,7 +13,7 @@ const glm::vec4 BSplinesApplication::CONTROL_POLYGON_COLOR(0.0f, 0.0f, 1.0f, 1.0
 BSplinesApplication::BSplinesApplication() :
 	Application("bsplines", 800, 600),
 	mState(BSPLINE_DEFINITION),
-	mBSplineDegree(MIN_DEGREE)
+	mBSplineDegree(BSpline::MINIMUM_DEGREE)
 {
 	mMainCameraPtr = new Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -32,9 +30,14 @@ void BSplinesApplication::OnStart()
 
 void BSplinesApplication::BeforeDisplay()
 {
+	DrawText("Press 'Enter' to plot B-Spline", 12, 20, 20, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Press 'Backspace' to reset B-Spline", 12, 20, 35, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Click on screen to add control point", 12, 20, 50, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Press '+' and '-' to increase/decrease degree", 12, 20, 65, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
 	char buffer[128];
 	sprintf(buffer, "Degree: %d", mBSplineDegree);
-	DrawText(buffer, 12, 20, 20, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText(buffer, 12, 20, 90, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void BSplinesApplication::OnMouseButton(int button, int state, int x, int y)
@@ -63,11 +66,11 @@ void BSplinesApplication::OnKeyPress(int key)
 	{
 		if (key == KeyCode::PLUS)
 		{
-			mBSplineDegree = MathUI::Min(mBSplineDegree + 1, MAX_DEGREE);
+			mBSplineDegree = MathUI::Min(mBSplineDegree + 1, mBSplineControlPoints.size() - 1);
 		}
 		else if (key == KeyCode::HYPHEN)
 		{
-			mBSplineDegree = MathUI::Max(mBSplineDegree - 1, MIN_DEGREE);
+			mBSplineDegree = MathUI::Max(mBSplineDegree - 1, BSpline::MINIMUM_DEGREE);
 		}
 		else if (key == KeyCode::RETURN)
 		{
@@ -104,7 +107,7 @@ void BSplinesApplication::SetState(State state)
 		glm::vec2 start = mBSplineControlPoints[0];
 		float increment = 1.0f / NUM_BSPLINE_SAMPLES;
 		float u = 0.0f;
-		while (u < 1.0f)
+		while (u <= 1.0f)
 		{
 			glm::vec2 point = mBSplinePtr->GetValue(u);
 			vertices.push_back(glm::vec3(point.x, point.y, 0.0f));
@@ -136,12 +139,15 @@ void BSplinesApplication::RemoveControlPoint()
 
 	mBSplineControlPoints.erase(--mBSplineControlPoints.end());
 
+	mBSplineDegree = MathUI::Max(MathUI::Min(mBSplineDegree, mBSplineControlPoints.size() - 1), BSpline::MINIMUM_DEGREE);
+
 	if (mBSplineControlPoints.size() > 1)
 	{
 		UpdateBSplineControlPointsLineStrip();
 	}
 	else if (mControlPolygonPtr != 0)
 	{
+		mBSplineControlPoints.clear();
 		RemoveDrawable(mControlPolygonPtr);
 		mControlPolygonPtr = 0;
 	}

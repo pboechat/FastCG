@@ -9,11 +9,12 @@
 class FontRegistry
 {
 public:
+	static const unsigned int STANDARD_FONT_SIZE;
+
 	static void LoadFontsFromDisk(const std::string& rFontsDirectory);
 	static FontPtr Find(const std::string& rFontName);
 
 private:
-	static const unsigned int STANDARD_FONT_SIZE;
 	static std::map<std::string, FontPtr> mFontsByName;
 
 	FontRegistry()

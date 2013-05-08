@@ -22,7 +22,6 @@ public:
 
 private:
 	static const unsigned int MIN_DEGREE;
-	static const unsigned int MAX_DEGREE;
 	static const unsigned int NUM_BSPLINE_SAMPLES;
 	static const glm::vec4 BSPLINE_COLOR;
 	static const glm::vec4 CONTROL_POLYGON_COLOR;

@@ -17,7 +17,7 @@ public:
 	Font(const std::string& rFileName, unsigned int size);
 	~Font();
 
-	void DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor);
+	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 
 private:
 	static const unsigned int NUM_CHARS;
@@ -27,7 +27,7 @@ private:
 	ShaderPtr mFontShaderPtr;
 	std::vector<TriangleMeshPtr> mBillboards;
 	std::vector<unsigned int> mCharactersTexturesIds;
-	std::vector<unsigned int> mSpacings;
+	std::vector<int> mSpacings;
 	std::vector<glm::vec2> mOffsets;
 
 	void AllocateResources();

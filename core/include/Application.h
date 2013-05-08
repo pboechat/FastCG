@@ -89,9 +89,9 @@ protected:
 	virtual void PrintUsage();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	void DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, FontPtr fontPtr, const glm::vec4& rColor);
+	void DrawText(const std::string& rText, unsigned int size, int x, int y, FontPtr fontPtr, const glm::vec4& rColor);
 #else
-	void DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor);
+	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 #endif
 
 	inline void AddDrawable(DrawablePtr drawablePtr)
@@ -112,17 +112,17 @@ private:
 	{
 		std::string text;
 		unsigned int size;
-		unsigned int x;
-		unsigned int y;
+		int x;
+		int y;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		FontPtr fontPtr;
 #endif
 		glm::vec4 color;
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, FontPtr fontPtr, const glm::vec4& rColor)
+		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, FontPtr fontPtr, const glm::vec4& rColor)
 #else
-		DrawTextRequest(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor)
+		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 #endif
 		{
 			text = rText;

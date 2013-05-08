@@ -64,6 +64,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bsplines", "samples\bspline
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "surfaces", "surfaces\surfaces.vcxproj", "{28254470-4EEA-4A53-9793-F828136B0C3F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F489C13F-4989-48E2-AA57-FA4FEA4F9021} = {F489C13F-4989-48E2-AA57-FA4FEA4F9021}
+		{7738DB66-1F07-4C44-876A-99D155B13C75} = {7738DB66-1F07-4C44-876A-99D155B13C75}
+		{083DF5F2-9F5A-4C1C-9A5F-9A109B1227F4} = {083DF5F2-9F5A-4C1C-9A5F-9A109B1227F4}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

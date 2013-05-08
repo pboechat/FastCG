@@ -110,16 +110,16 @@ void Font::AllocateResources()
 
 		FT_Bitmap& bitmap = bitmapGlyph->bitmap;
 
-		unsigned int characterWidth = (unsigned int)bitmap.width;
-		unsigned int characterHeight = (unsigned int)bitmap.rows;
-		unsigned int textureWidth = MathF::UpperPowerOfTwo(characterWidth);
-		unsigned int textureHeight = MathF::UpperPowerOfTwo(characterHeight);
+		int characterWidth = bitmap.width;
+		int characterHeight = bitmap.rows;
+		int textureWidth = MathF::UpperPowerOfTwo(bitmap.width);
+		int textureHeight = MathF::UpperPowerOfTwo(bitmap.rows);
 
 		unsigned char* pData = new unsigned char[2 * textureWidth * textureHeight];
 
-		for (unsigned int j = 0; j < textureHeight; j++) 
+		for (int j = 0; j < textureHeight; j++) 
 		{
-			for (unsigned int i = 0; i < textureWidth; i++)
+			for (int i = 0; i < textureWidth; i++)
 			{
 				pData[2 * (i + j * textureWidth)] = 255;
 				pData[2 * (i + j * textureWidth) + 1] = (i >= characterWidth || j >= characterHeight) ? 0 : bitmap.buffer[i + characterWidth * j];
@@ -150,26 +150,31 @@ void Font::DeallocateResources()
 	glDeleteTextures(128, &mCharactersTexturesIds[0]);
 }
 
-void Font::DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor)
+void Font::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
 	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 projection = glm::ortho(0.0f, (float)Application::GetInstance()->GetScreenWidth(), 0.0f, (float)Application::GetInstance()->GetScreenHeight());
 
 	float scale = size / (float) mSize;
 
-	unsigned int left = (unsigned int)x;
+	int left = x;
 	for (unsigned int i = 0; i < rText.size(); i++)
 	{
-		unsigned char c = (unsigned char)rText[i];
+		unsigned char c = rText[i];
 
-		glm::vec2 offset = mOffsets[c];
-		unsigned int spacing = mSpacings[c];
+		glm::mat4 scaleMatrix(1);
+		scaleMatrix = glm::scale(scaleMatrix, glm::vec3(scale, scale, scale));
+		glm::vec4 offset = glm::vec4(mOffsets[c], 0.0f, 1.0f);
+		offset = offset * scaleMatrix;
+
+		int spacing = (int)(mSpacings[c] * scale);
 
 		TriangleMeshPtr billboardPtr = mBillboards[c];
 
 		glm::mat4 model(1);
-		glm::vec2 screenPosition = glm::vec2(left, y) + offset;
-		model[3] = glm::vec4(screenPosition, 0.0f, 1.0f);
+		glm::vec4 screenPosition = glm::vec4(left, y, 0.0f, 1.0f) + offset;
+		screenPosition.w = 1.0f;
+		model[3] = screenPosition;
 		model = glm::scale(model, glm::vec3(scale, scale, scale));
 
 		mFontShaderPtr->Bind();

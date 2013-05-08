@@ -9,6 +9,7 @@
 class BSpline
 {
 public:
+	static const unsigned int MINIMUM_DEGREE;
 	static Pointer<BSpline> CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped);
 
 	unsigned int GetDegree() const;
