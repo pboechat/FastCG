@@ -115,7 +115,9 @@ void Application::SetUpOpenGL()
 {
 	glEnable(GL_DEPTH_TEST);
 
-#ifndef USE_PROGRAMMABLE_PIPELINE
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	glEnable(GL_PROGRAM_POINT_SIZE);
+#else
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);

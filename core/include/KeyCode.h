@@ -30,7 +30,7 @@ public:
 	static const int CAN = 24;
 	static const int EM = 25;
 	static const int SUB = 26;
-	static const int ESC = 27;
+	static const int ESCAPE = 27;
 	static const int FS = 28;
 	static const int GS = 29;
 	static const int RS = 30;

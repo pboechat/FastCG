@@ -1,4 +1,4 @@
-#include <LineStrip.h>
+#include <Points.h>
 #include <Exception.h>
 #include <ShaderRegistry.h>
 
@@ -6,13 +6,14 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const glm::vec4& rColor) :
+Points::Points(const std::vector<glm::vec3>& rVertices, float size, const glm::vec4& rColor) :
 	mVertices(rVertices),
+	mSize(size),
 	mUseSingleColor(true),
 	mColor(rColor)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mLineStripVAOId = 0;
+	mPointsVAOId = 0;
 	mVerticesVBOId = 0;
 	mColorsVBOId = 0;
 #else
@@ -20,13 +21,14 @@ LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const glm::vec4& r
 #endif
 }
 
-LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<glm::vec4>& rColors) : 
+Points::Points(const std::vector<glm::vec3>& rVertices, float size, const std::vector<glm::vec4>& rColors) : 
 	mVertices(rVertices), 
+	mSize(size),
 	mUseSingleColor(false),
 	mColors(rColors)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mLineStripVAOId = 0;
+	mPointsVAOId = 0;
 	mVerticesVBOId = 0;
 	mColorsVBOId = 0;
 #else
@@ -34,23 +36,24 @@ LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<
 #endif
 }
 
-LineStrip::~LineStrip()
+Points::~Points()
 {
 	DeallocateResources();
 }
 
-void LineStrip::AllocateResources()
+void Points::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mUseSingleColor)
 	{
-		mLineStripMaterialPtr = new Material(ShaderRegistry::Find("SingleColorLineStrip"));
-		mLineStripMaterialPtr->SetVec4("color", mColor);
+		mPointsMaterialPtr = new Material(ShaderRegistry::Find("SingleColorPoints"));
+		mPointsMaterialPtr->SetVec4("color", mColor);
 	}
 	else
 	{
-		mLineStripMaterialPtr = new Material(ShaderRegistry::Find("MultiColorLineStrip"));
+		mPointsMaterialPtr = new Material(ShaderRegistry::Find("MultiColorPoints"));
 	}
+	mPointsMaterialPtr->SetFloat("size", mSize);
 
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
@@ -66,8 +69,8 @@ void LineStrip::AllocateResources()
 	}
 
 	// create vertex array object with all previous vbos attached
-	glGenVertexArrays(1, &mLineStripVAOId);
-	glBindVertexArray(mLineStripVAOId);
+	glGenVertexArrays(1, &mPointsVAOId);
+	glBindVertexArray(mPointsVAOId);
 
 	glEnableVertexAttribArray(Shader::VERTICES_ATTRIBUTE_INDEX);
 	if (!mUseSingleColor)
@@ -104,7 +107,7 @@ void LineStrip::AllocateResources()
 
 	CHECK_FOR_OPENGL_ERRORS();
 
-	glPushAttrib(GL_CURRENT_BIT);
+	glPushAttrib(GL_CURRENT_BIT | GL_POINT_BIT);
 
 	glNewList(mDisplayListId, GL_COMPILE);
 
@@ -113,14 +116,16 @@ void LineStrip::AllocateResources()
 		glColor4fv(&mColor[0]);
 	}
 
-	glDrawArrays(GL_LINE_STRIP, 0, mVertices.size());
+	glPointSize(mSize);
+
+	glDrawArrays(GL_POINTS, 0, mVertices.size());
 	glEndList();
 
 	glPopAttrib();
 #endif
 }
 
-void LineStrip::DeallocateResources()
+void Points::DeallocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (!mUseSingleColor)
@@ -128,27 +133,27 @@ void LineStrip::DeallocateResources()
 		glDeleteBuffers(1, &mColorsVBOId);
 	}
 	glDeleteBuffers(1, &mVerticesVBOId);
-	glDeleteBuffers(1, &mLineStripVAOId);
+	glDeleteBuffers(1, &mPointsVAOId);
 #else
 	glDeleteLists(mDisplayListId, 1);
 #endif
 }
 
-void LineStrip::Draw()
+void Points::Draw()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	if (mLineStripVAOId == 0)
+	if (mPointsVAOId == 0)
 	{
 		AllocateResources();
 	}
 
-	mLineStripMaterialPtr->Bind(GetModel());
+	mPointsMaterialPtr->Bind(GetModel());
 
-	glBindVertexArray(mLineStripVAOId);
-	glDrawArrays(GL_LINE_STRIP, 0, mVertices.size());
+	glBindVertexArray(mPointsVAOId);
+	glDrawArrays(GL_POINTS, 0, mVertices.size());
 	glBindVertexArray(0);
 
-	mLineStripMaterialPtr->Unbind();
+	mPointsMaterialPtr->Unbind();
 #else
 	if (mDisplayListId == 0)
 	{

@@ -1,5 +1,5 @@
-#ifndef LINESTRIP_H_
-#define LINESTRIP_H_
+#ifndef POINTS_H_
+#define POINTS_H_
 
 #include <Transformable.h>
 #include <Drawable.h>
@@ -10,12 +10,12 @@
 
 #include <vector>
 
-class LineStrip : public Transformable, public Drawable
+class Points : public Transformable, public Drawable
 {
 public:
-	LineStrip(const std::vector<glm::vec3>& rVertices, const glm::vec4& rColor);
-	LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<glm::vec4>& rColors);
-	~LineStrip();
+	Points(const std::vector<glm::vec3>& rVertices, float size, const glm::vec4& rColor);
+	Points(const std::vector<glm::vec3>& rVertices, float size, const std::vector<glm::vec4>& rColors);
+	~Points();
 
 	inline bool IsUsingSingleColor() const
 	{
@@ -27,11 +27,12 @@ public:
 private:
 	std::vector<glm::vec3> mVertices;
 	std::vector<glm::vec4> mColors;
+	float mSize;
 	glm::vec4 mColor;
 	bool mUseSingleColor;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	MaterialPtr mLineStripMaterialPtr;
-	unsigned int mLineStripVAOId;
+	MaterialPtr mPointsMaterialPtr;
+	unsigned int mPointsVAOId;
 	unsigned int mVerticesVBOId;
 	unsigned int mColorsVBOId;
 #else
@@ -43,6 +44,6 @@ private:
 
 };
 
-typedef Pointer<LineStrip> LineStripPtr;
+typedef Pointer<Points> PointsPtr;
 
 #endif

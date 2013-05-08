@@ -189,6 +189,7 @@
     <ClInclude Include="include\FontRegistry.h" />
     <ClInclude Include="include\KeyCode.h" />
     <ClInclude Include="include\LineStrip.h" />
+    <ClInclude Include="include\Points.h" />
     <ClInclude Include="include\TriangleMesh.h" />
     <ClInclude Include="include\IOExceptions.h" />
     <ClInclude Include="include\Light.h" />
@@ -214,6 +215,7 @@
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />
     <ClCompile Include="src\LineStrip.cpp" />
+    <ClCompile Include="src\Points.cpp" />
     <ClCompile Include="src\TriangleMesh.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Random.cpp" />

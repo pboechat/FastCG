@@ -92,6 +92,9 @@
     <ClInclude Include="include\MathT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Points.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -140,6 +143,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\LineStrip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Points.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
