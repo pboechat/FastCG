@@ -1,4 +1,5 @@
 #include "BSplinesApplication.h"
+#include <FontRegistry.h>
 #include <Camera.h>
 #include <KeyCode.h>
 #include <MathT.h>
@@ -31,14 +32,31 @@ BSplinesApplication::~BSplinesApplication()
 
 void BSplinesApplication::BeforeDisplay()
 {
-	DrawText("Press 'Enter' to plot B-Spline", 12, 20, 20, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	DrawText("Press 'Backspace' to reset B-Spline", 12, 20, 35, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	DrawText("Click on screen to add control point", 12, 20, 50, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	DrawText("Press '+' and '-' to increase/decrease degree", 12, 20, 65, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-
 	char buffer[128];
 	sprintf(buffer, "Degree: %d", mBSplineDegree);
-	DrawText(buffer, 12, 20, 90, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	int top = 20;
+	int heightIncrement = FontRegistry::STANDARD_FONT_SIZE + 8;
+	DrawText("Press 'Enter' to plot B-Spline", FontRegistry::STANDARD_FONT_SIZE, 20, top , mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	top += heightIncrement;
+	DrawText("Press 'Backspace' to reset B-Spline", FontRegistry::STANDARD_FONT_SIZE, 20, top, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	top += heightIncrement;
+	DrawText("Right mouse-click to add control point", FontRegistry::STANDARD_FONT_SIZE, 20, top, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	top += heightIncrement;
+	DrawText("Left mouse-click to remove control point", FontRegistry::STANDARD_FONT_SIZE, 20, top, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	top += heightIncrement;
+	DrawText("Press '+' and '-' to increase/decrease degree", FontRegistry::STANDARD_FONT_SIZE, 20, top, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	top += heightIncrement;
+	DrawText(buffer, FontRegistry::STANDARD_FONT_SIZE, 20, top, mStandardFontPtr, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+#else
+	DrawText("Press 'Enter' to plot B-Spline", 12, 20, 20, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Press 'Backspace' to reset B-Spline", 12, 20, 35, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Right mouse-click to add control point", 12, 20, 50, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Left mouse-click to remove control point", 12, 20, 65, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText("Press '+' and '-' to increase/decrease degree", 12, 20, 90, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	DrawText(buffer, 12, 20, 105, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+#endif
 }
 
 void BSplinesApplication::OnMouseButton(int button, int state, int x, int y)
@@ -103,7 +121,7 @@ void BSplinesApplication::OnKeyPress(int key)
 		{
 			mBSplineDegree = MathUI::Min(mBSplineDegree + 1, mBSplineControlPoints.size() - 1);
 		}
-		else if (key == KeyCode::HYPHEN)
+		else if (key == KeyCode::MINUS)
 		{
 			mBSplineDegree = MathUI::Max(mBSplineDegree - 1, BSpline::MINIMUM_DEGREE);
 		}

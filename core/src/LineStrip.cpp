@@ -1,15 +1,16 @@
 #include <LineStrip.h>
 #include <Exception.h>
 #include <ShaderRegistry.h>
+#include <OpenGLExceptions.h>
+
+#include <memory>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
 LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const glm::vec4& rColor) :
-	mVertices(rVertices),
-	mUseSingleColor(true),
-	mColor(rColor)
+	mVertices(rVertices)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mLineStripVAOId = 0;
@@ -18,12 +19,15 @@ LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const glm::vec4& r
 #else
 	mDisplayListId = 0;
 #endif
+
+	for (unsigned int i = 0; i < mVertices.size(); i++)
+	{
+		mColors.push_back(rColor);
+	}
 }
 
 LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<glm::vec4>& rColors) : 
-	mVertices(rVertices), 
-	mUseSingleColor(false),
-	mColors(rColors)
+	mVertices(rVertices)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mLineStripVAOId = 0;
@@ -32,6 +36,8 @@ LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<
 #else
 	mDisplayListId = 0;
 #endif
+
+	mColors = rColors;
 }
 
 LineStrip::~LineStrip()
@@ -42,91 +48,56 @@ LineStrip::~LineStrip()
 void LineStrip::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	if (mUseSingleColor)
-	{
-		mLineStripMaterialPtr = new Material(ShaderRegistry::Find("SingleColorLineStrip"));
-		mLineStripMaterialPtr->SetVec4("color", mColor);
-	}
-	else
-	{
-		mLineStripMaterialPtr = new Material(ShaderRegistry::Find("MultiColorLineStrip"));
-	}
+	mLineStripMaterialPtr = new Material(ShaderRegistry::Find("LineStrip"));
 
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
 	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * 3 * sizeof(float), &mVertices[0], GL_STATIC_DRAW);
 
-	if (!mUseSingleColor)
-	{
-		// create colors buffer object and attach data
-		glGenBuffers(1, &mColorsVBOId);
-		glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
-		glBufferData(GL_ARRAY_BUFFER, mColors.size() * 4 * sizeof(float), &mColors[0], GL_STATIC_DRAW);
-	}
+	// create colors buffer object and attach data
+	glGenBuffers(1, &mColorsVBOId);
+	glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
+	glBufferData(GL_ARRAY_BUFFER, mColors.size() * 4 * sizeof(float), &mColors[0], GL_STATIC_DRAW);
 
 	// create vertex array object with all previous vbos attached
 	glGenVertexArrays(1, &mLineStripVAOId);
 	glBindVertexArray(mLineStripVAOId);
 
 	glEnableVertexAttribArray(Shader::VERTICES_ATTRIBUTE_INDEX);
-	if (!mUseSingleColor)
-	{
-		glEnableVertexAttribArray(Shader::COLORS_ATTRIBUTE_INDEX);
-	}
+	glEnableVertexAttribArray(Shader::COLORS_ATTRIBUTE_INDEX);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
 	glVertexAttribPointer(Shader::VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	if (!mUseSingleColor)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
-		glVertexAttribPointer(Shader::COLORS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
+	glVertexAttribPointer(Shader::COLORS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// TODO: check for errors!
 #else
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (!mUseSingleColor)
-	{
-		glEnableClientState(GL_COLOR_ARRAY);
-	}
+	glEnableClientState(GL_COLOR_ARRAY);
 
 	// create vertex array buffer and attach data
 	glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
 
-	if (!mUseSingleColor)
-	{
-		glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
-	}
+	// create color array buffer and attach data
+	glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
 
 	mDisplayListId = glGenLists(1);
 
 	CHECK_FOR_OPENGL_ERRORS();
 
-	glPushAttrib(GL_CURRENT_BIT);
-
 	glNewList(mDisplayListId, GL_COMPILE);
-
-	if (mUseSingleColor)
-	{
-		glColor4fv(&mColor[0]);
-	}
-
 	glDrawArrays(GL_LINE_STRIP, 0, mVertices.size());
 	glEndList();
-
-	glPopAttrib();
 #endif
 }
 
 void LineStrip::DeallocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	if (!mUseSingleColor)
-	{
-		glDeleteBuffers(1, &mColorsVBOId);
-	}
+	glDeleteBuffers(1, &mColorsVBOId);
 	glDeleteBuffers(1, &mVerticesVBOId);
 	glDeleteBuffers(1, &mLineStripVAOId);
 #else
@@ -166,7 +137,6 @@ void LineStrip::Draw()
 	glCallList(mDisplayListId);
 
 	glPopAttrib();
-
 	glPopMatrix();
 #endif
 }

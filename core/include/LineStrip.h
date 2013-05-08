@@ -17,18 +17,11 @@ public:
 	LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<glm::vec4>& rColors);
 	~LineStrip();
 
-	inline bool IsUsingSingleColor() const
-	{
-		return mUseSingleColor;
-	}
-
 	virtual void Draw();
 
 private:
 	std::vector<glm::vec3> mVertices;
 	std::vector<glm::vec4> mColors;
-	glm::vec4 mColor;
-	bool mUseSingleColor;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	MaterialPtr mLineStripMaterialPtr;
 	unsigned int mLineStripVAOId;

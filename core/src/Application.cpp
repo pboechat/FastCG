@@ -175,7 +175,7 @@ void Application::Display()
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		DrawText(text, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 144, FontRegistry::STANDARD_FONT_SIZE, mStandardFontPtr, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
-		DrawText(text, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 144, FontRegistry::STANDARD_FONT_SIZE, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		DrawText(text, 16, mScreenWidth - 144, 16, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #endif
 	}
 
@@ -321,7 +321,7 @@ void Application::DrawText(const std::string& rText, unsigned int size, int x, i
 	mDrawTextRequests.push_back(DrawTextRequest(rText, size, x, y, fontPtr, rColor));
 }
 #else
-void Application::DrawText(const std::string& rText, unsigned int size, unsigned int x, unsigned int y, const glm::vec4& rColor)
+void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
 	// add a new draw text request to be processed at the end of the frame
 	mDrawTextRequests.push_back(DrawTextRequest(rText, size, x, y, rColor));

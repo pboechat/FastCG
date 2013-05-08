@@ -17,19 +17,12 @@ public:
 	Points(const std::vector<glm::vec3>& rVertices, float size, const std::vector<glm::vec4>& rColors);
 	~Points();
 
-	inline bool IsUsingSingleColor() const
-	{
-		return mUseSingleColor;
-	}
-
 	virtual void Draw();
 
 private:
 	std::vector<glm::vec3> mVertices;
 	std::vector<glm::vec4> mColors;
 	float mSize;
-	glm::vec4 mColor;
-	bool mUseSingleColor;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	MaterialPtr mPointsMaterialPtr;
 	unsigned int mPointsVAOId;

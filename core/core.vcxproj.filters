@@ -165,16 +165,16 @@
     <None Include="shaders\Font.vert">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\MultiColorLine.frag">
+    <None Include="shaders\LineStrip.frag">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\MultiColorLine.vert">
+    <None Include="shaders\LineStrip.vert">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\SingleColorLine.frag">
+    <None Include="shaders\Points.frag">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\SingleColorLine.vert">
+    <None Include="shaders\Points.vert">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

@@ -5,7 +5,7 @@
 #include <StringUtils.h>
 #include <Exception.h>
 
-const unsigned int FontRegistry::STANDARD_FONT_SIZE = 24;
+const unsigned int FontRegistry::STANDARD_FONT_SIZE = 14;
 std::map<std::string, FontPtr> FontRegistry::mFontsByName;
 
 bool FontRegistry::ExtractFontInfo(const std::string& rFontFileName, std::string& rFontName)

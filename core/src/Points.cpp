@@ -1,6 +1,7 @@
 #include <Points.h>
 #include <Exception.h>
 #include <ShaderRegistry.h>
+#include <OpenGLExceptions.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -8,9 +9,7 @@
 
 Points::Points(const std::vector<glm::vec3>& rVertices, float size, const glm::vec4& rColor) :
 	mVertices(rVertices),
-	mSize(size),
-	mUseSingleColor(true),
-	mColor(rColor)
+	mSize(size)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mPointsVAOId = 0;
@@ -19,13 +18,16 @@ Points::Points(const std::vector<glm::vec3>& rVertices, float size, const glm::v
 #else
 	mDisplayListId = 0;
 #endif
+
+	for (unsigned int i = 0; i < mVertices.size(); i++)
+	{
+		mColors.push_back(rColor);
+	}
 }
 
 Points::Points(const std::vector<glm::vec3>& rVertices, float size, const std::vector<glm::vec4>& rColors) : 
 	mVertices(rVertices), 
-	mSize(size),
-	mUseSingleColor(false),
-	mColors(rColors)
+	mSize(size)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mPointsVAOId = 0;
@@ -34,6 +36,8 @@ Points::Points(const std::vector<glm::vec3>& rVertices, float size, const std::v
 #else
 	mDisplayListId = 0;
 #endif
+
+	mColors = rColors;
 }
 
 Points::~Points()
@@ -44,15 +48,7 @@ Points::~Points()
 void Points::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	if (mUseSingleColor)
-	{
-		mPointsMaterialPtr = new Material(ShaderRegistry::Find("SingleColorPoints"));
-		mPointsMaterialPtr->SetVec4("color", mColor);
-	}
-	else
-	{
-		mPointsMaterialPtr = new Material(ShaderRegistry::Find("MultiColorPoints"));
-	}
+	mPointsMaterialPtr = new Material(ShaderRegistry::Find("Points"));
 	mPointsMaterialPtr->SetFloat("size", mSize);
 
 	// create vertex buffer object and attach data
@@ -60,61 +56,42 @@ void Points::AllocateResources()
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
 	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * 3 * sizeof(float), &mVertices[0], GL_STATIC_DRAW);
 
-	if (!mUseSingleColor)
-	{
-		// create colors buffer object and attach data
-		glGenBuffers(1, &mColorsVBOId);
-		glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
-		glBufferData(GL_ARRAY_BUFFER, mColors.size() * 4 * sizeof(float), &mColors[0], GL_STATIC_DRAW);
-	}
+	// create colors buffer object and attach data
+	glGenBuffers(1, &mColorsVBOId);
+	glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
+	glBufferData(GL_ARRAY_BUFFER, mColors.size() * 4 * sizeof(float), &mColors[0], GL_STATIC_DRAW);
 
 	// create vertex array object with all previous vbos attached
 	glGenVertexArrays(1, &mPointsVAOId);
 	glBindVertexArray(mPointsVAOId);
 
 	glEnableVertexAttribArray(Shader::VERTICES_ATTRIBUTE_INDEX);
-	if (!mUseSingleColor)
-	{
-		glEnableVertexAttribArray(Shader::COLORS_ATTRIBUTE_INDEX);
-	}
+	glEnableVertexAttribArray(Shader::COLORS_ATTRIBUTE_INDEX);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
 	glVertexAttribPointer(Shader::VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	if (!mUseSingleColor)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
-		glVertexAttribPointer(Shader::COLORS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, mColorsVBOId);
+	glVertexAttribPointer(Shader::COLORS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// TODO: check for errors!
 #else
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (!mUseSingleColor)
-	{
-		glEnableClientState(GL_COLOR_ARRAY);
-	}
+	glEnableClientState(GL_COLOR_ARRAY);
 
 	// create vertex array buffer and attach data
 	glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
 
-	if (!mUseSingleColor)
-	{
-		glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
-	}
+	// create color array buffer and attach data
+	glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
 
 	mDisplayListId = glGenLists(1);
 
 	CHECK_FOR_OPENGL_ERRORS();
 
-	glPushAttrib(GL_CURRENT_BIT | GL_POINT_BIT);
+	glPushAttrib(GL_POINT_BIT);
 
 	glNewList(mDisplayListId, GL_COMPILE);
-
-	if (mUseSingleColor)
-	{
-		glColor4fv(&mColor[0]);
-	}
 
 	glPointSize(mSize);
 
@@ -128,10 +105,7 @@ void Points::AllocateResources()
 void Points::DeallocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	if (!mUseSingleColor)
-	{
-		glDeleteBuffers(1, &mColorsVBOId);
-	}
+	glDeleteBuffers(1, &mColorsVBOId);
 	glDeleteBuffers(1, &mVerticesVBOId);
 	glDeleteBuffers(1, &mPointsVAOId);
 #else
@@ -171,7 +145,6 @@ void Points::Draw()
 	glCallList(mDisplayListId);
 
 	glPopAttrib();
-
 	glPopMatrix();
 #endif
 }
