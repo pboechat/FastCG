@@ -105,7 +105,7 @@ void LineStrip::DeallocateResources()
 #endif
 }
 
-void LineStrip::Draw()
+void LineStrip::OnDraw()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mLineStripVAOId == 0)

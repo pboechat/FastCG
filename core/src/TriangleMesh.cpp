@@ -21,6 +21,20 @@ TriangleMesh::TriangleMesh(const std::vector<glm::vec3>& vertices, const std::ve
 #endif
 }
 
+#ifdef USE_PROGRAMMABLE_PIPELINE
+TriangleMesh::TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr) :
+	mTriangleMeshVAOId(0),
+	mVertices(vertices), 
+	mIndexes(indexes), 
+	mNormals(normals), 
+	mTangents(tangents),
+	mUVs(uvs), 
+	mMaterialPtr(materialPtr),
+	mUseTangents(true)
+{
+}
+#endif
+
 TriangleMesh::~TriangleMesh()
 {
 	DeallocateResources();
@@ -122,7 +136,7 @@ void TriangleMesh::DeallocateResources()
 #endif
 }
 
-void TriangleMesh::Draw()
+void TriangleMesh::OnDraw()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mTriangleMeshVAOId == 0)

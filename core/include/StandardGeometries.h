@@ -11,7 +11,7 @@ class StandardGeometries
 public:
 	static TriangleMeshPtr CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr);
 	static TriangleMeshPtr CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr);
-	static TriangleMeshPtr CreateSphere(float radius, unsigned int zSegments, unsigned int radialSegments, const MaterialPtr& materialPtr);
+	static TriangleMeshPtr CreateSphere(float radius, unsigned int slices, MaterialPtr materialPtr);
 
 private:
 	StandardGeometries()

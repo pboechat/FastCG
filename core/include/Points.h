@@ -17,7 +17,8 @@ public:
 	Points(const std::vector<glm::vec3>& rVertices, float size, const std::vector<glm::vec4>& rColors);
 	~Points();
 
-	virtual void Draw();
+protected:
+	virtual void OnDraw();
 
 private:
 	std::vector<glm::vec3> mVertices;

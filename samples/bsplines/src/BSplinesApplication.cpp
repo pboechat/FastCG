@@ -32,7 +32,7 @@ BSplinesApplication::~BSplinesApplication()
 {
 }
 
-void BSplinesApplication::BeforeDisplay()
+void BSplinesApplication::BeforeUpdate()
 {
 	char buffer[128];
 	sprintf(buffer, "Degree: %d", mBSplineDegree);

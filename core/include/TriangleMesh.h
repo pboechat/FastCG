@@ -14,6 +14,9 @@ class TriangleMesh : public Transformable, public Drawable
 {
 public:
 	TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr);
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr);
+#endif
 	virtual ~TriangleMesh();
 
 	inline MaterialPtr GetMaterial() const
@@ -25,8 +28,6 @@ public:
 	{
 		mMaterialPtr = materialPtr;
 	}
-
-	virtual void Draw();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	inline bool IsUsingTangents() const
@@ -51,6 +52,9 @@ public:
 
 	void CalculateTangents();
 #endif
+
+protected:
+	virtual void OnDraw();
 
 private:
 	std::vector<glm::vec3> mVertices;

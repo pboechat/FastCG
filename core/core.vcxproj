@@ -118,10 +118,13 @@
     <ClInclude Include="include\Drawable.h" />
     <ClInclude Include="include\Exception.h" />
     <ClInclude Include="include\FileReader.h" />
+    <ClInclude Include="include\FirstPersonCameraController.h" />
     <ClInclude Include="include\Font.h" />
     <ClInclude Include="include\FontRegistry.h" />
+    <ClInclude Include="include\Input.h" />
     <ClInclude Include="include\KeyCode.h" />
     <ClInclude Include="include\LineStrip.h" />
+    <ClInclude Include="include\MouseButton.h" />
     <ClInclude Include="include\Points.h" />
     <ClInclude Include="include\TriangleMesh.h" />
     <ClInclude Include="include\IOExceptions.h" />
@@ -139,14 +142,17 @@
     <ClInclude Include="include\Timer.h" />
     <ClInclude Include="include\Transformable.h" />
     <ClInclude Include="include\ShaderRegistry.h" />
+    <ClInclude Include="include\Updateable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Directory.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
+    <ClCompile Include="src\FirstPersonCameraController.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />
+    <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\LineStrip.cpp" />
     <ClCompile Include="src\Points.cpp" />
     <ClCompile Include="src\TriangleMesh.cpp" />

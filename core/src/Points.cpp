@@ -113,7 +113,7 @@ void Points::DeallocateResources()
 #endif
 }
 
-void Points::Draw()
+void Points::OnDraw()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mPointsVAOId == 0)

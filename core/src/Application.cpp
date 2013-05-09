@@ -3,6 +3,9 @@
 #include <OpenGLExceptions.h>
 #include <ShaderRegistry.h>
 #include <FontRegistry.h>
+#include <Input.h>
+#include <KeyCode.h>
+#include <MouseButton.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -15,6 +18,7 @@ Application* Application::s_mpInstance = NULL;
 bool Application::s_mStarted = false;
 
 Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
+	mpInput(0),
 	mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
@@ -38,6 +42,18 @@ Application::~Application()
 	{
 		Quit();
 	}
+}
+
+void Application::RemoveUpdateable(UpdateablePtr updateablePtr)
+{
+	std::vector<UpdateablePtr>::iterator updateableIterator = std::find(mUpdateables.begin(), mUpdateables.end(), updateablePtr);
+
+	if (updateableIterator == mUpdateables.end())
+	{
+		THROW_EXCEPTION(Exception, "Updateable not found");
+	}
+
+	mUpdateables.erase(updateableIterator);
 }
 
 void Application::RemoveDrawable(DrawablePtr drawablePtr)
@@ -69,6 +85,8 @@ void Application::Run(int argc, char** argv)
 	SetUpGLUT(argc, argv);
 	SetUpOpenGL();
 
+	mpInput = new Input();
+
 	try
 	{
 #ifdef USE_PROGRAMMABLE_PIPELINE
@@ -78,7 +96,9 @@ void Application::Run(int argc, char** argv)
 		mStandardFontPtr = FontRegistry::Find("verdana");
 #endif
 
+		mStartTimer.Start();
 		OnStart();
+		mUpdateTimer.Start();
 		glutMainLoop();
 		s_mStarted = true;
 	}
@@ -100,15 +120,19 @@ void Application::SetUpGLUT(int argc, char** argv)
 	glutInitWindowSize(mScreenWidth, mScreenHeight);
 	mGLUTWindowHandle = glutCreateWindow(mWindowTitle.c_str());
 	glewInit();
+	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+	glutIgnoreKeyRepeat(1);
+	glutIdleFunc(GLUTIdleCallback);
 	glutDisplayFunc(GLUTDisplayCallback);
-	glutIdleFunc(GLUTDisplayCallback);
 	glutReshapeFunc(GLUTReshapeWindowCallback);
 	glutMouseFunc(GLUTMouseButtonCallback);
 	glutMouseWheelFunc(GLUTMouseWheelCallback);
 	glutMotionFunc(GLUTMouseMoveCallback);
 	glutPassiveMotionFunc(GLUTMouseMoveCallback);
 	glutKeyboardFunc(GLUTKeyboardCallback);
+	glutKeyboardUpFunc(GLUTKeyboardUpCallback);
 	glutSpecialFunc(GLUTSpecialKeysCallback);
+	glutSpecialUpFunc(GLUTSpecialKeysUpCallback);
 }
 
 void Application::SetUpOpenGL()
@@ -124,9 +148,20 @@ void Application::SetUpOpenGL()
 #endif
 }
 
-void Application::Display()
+void Application::Update()
 {
-	BeforeDisplay();
+	BeforeUpdate();
+
+	mpInput->Swap();
+
+	mUpdateTimer.End();
+
+	for (unsigned int i = 0; i < mUpdateables.size(); i++)
+	{
+		mUpdateables[i]->Update((float)mStartTimer.GetTime(), (float)mUpdateTimer.GetElapsedTime());
+	}
+
+	mUpdateTimer.Start();
 
 	mFrameTimer.Start();
 
@@ -183,7 +218,7 @@ void Application::Display()
 
 	glutSwapBuffers();
 
-	AfterDisplay();
+	AfterUpdate();
 }
 
 void Application::Resize(int width, int height)
@@ -200,11 +235,11 @@ void Application::OnStart()
 {
 }
 
-void Application::BeforeDisplay()
+void Application::BeforeUpdate()
 {
 }
 
-void Application::AfterDisplay()
+void Application::AfterUpdate()
 {
 }
 
@@ -223,11 +258,18 @@ void Application::SetUpViewport()
 
 void Application::Quit()
 {
+	if (mpInput != 0)
+	{
+		delete mpInput;
+	}
+
 	s_mStarted = false;
 	OnFinish();
+	mStartTimer.End();
 	mDrawables.clear();
 	glutDestroyWindow(mGLUTWindowHandle);
 }
+
 bool Application::HasStarted()
 {
 	return s_mStarted;
@@ -235,22 +277,42 @@ bool Application::HasStarted()
 
 void Application::MouseButton(int button, int state, int x, int y)
 {
+	mpInput->SetMouseButton(button, (state == MouseButton::PRESSED));
 	OnMouseButton(button, state, x, y);
 }
 
 void Application::MouseWheel(int button, int direction, int x, int y)
 {
+	if (direction == 1)
+	{
+		mpInput->IncrementMouseWheelDelta();
+	}
+	else if (direction == -1)
+	{
+		mpInput->DecrementMouseWheelDelta();
+	}
+
 	OnMouseWheel(button, direction, x, y);
 }
 
 void Application::MouseMove(int x, int y)
 {
+	mpInput->SetMousePosition(glm::vec2((float)x, (float)y));
 	OnMouseMove(x, y);
 }
 
-void Application::Keyboard(int key, int x, int y)
+void Application::Keyboard(int keyCode, int x, int y, bool state)
 {
-	OnKeyPress(key);
+	mpInput->SetKey(keyCode, state);
+
+	if (state)
+	{
+		OnKeyPress(keyCode);
+	}
+	else
+	{
+		OnKeyRelease(keyCode);
+	}
 }
 
 void Application::OnMouseButton(int button, int state, int x, int y)
@@ -265,7 +327,11 @@ void Application::OnMouseMove(int x, int y)
 {
 }
 
-void Application::OnKeyPress(int key)
+void Application::OnKeyPress(int keyCode)
+{
+}
+
+void Application::OnKeyRelease(int keyCode)
 {
 }
 
@@ -328,9 +394,14 @@ void Application::DrawText(const std::string& rText, unsigned int size, int x, i
 }
 #endif
 
+void GLUTIdleCallback()
+{
+	Application::GetInstance()->Update();
+}
+
 void GLUTDisplayCallback()
 {
-	Application::GetInstance()->Display();
+	Application::GetInstance()->Update();
 }
 
 void GLUTReshapeWindowCallback(int width, int height)
@@ -353,14 +424,24 @@ void GLUTMouseMoveCallback(int x, int y)
 	Application::GetInstance()->MouseMove(x, y);
 }
 
-void GLUTKeyboardCallback(unsigned char key, int x, int y)
+void GLUTKeyboardCallback(unsigned char keyCode, int x, int y)
 {
-	Application::GetInstance()->Keyboard((int) key, x, y);
+	Application::GetInstance()->Keyboard((int) keyCode, x, y, true);
 }
 
-void GLUTSpecialKeysCallback(int key, int x, int y)
+void GLUTKeyboardUpCallback(unsigned char keyCode, int x, int y)
 {
-	Application::GetInstance()->Keyboard(key, x, y);
+	Application::GetInstance()->Keyboard((int) keyCode, x, y, false);
+}
+
+void GLUTSpecialKeysCallback(int keyCode, int x, int y)
+{
+	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, true);
+}
+
+void GLUTSpecialKeysUpCallback(int keyCode, int x, int y)
+{
+	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, false);
 }
 
 void ExitCallback()

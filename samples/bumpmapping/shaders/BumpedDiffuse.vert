@@ -23,8 +23,11 @@ void main()
 
 	vec3 vertexPosition = vec3(_ModelView * position);
 
-	lightDirection = normalize(tangentSpaceMatrix * (_Light0Position - vertexPosition));
+	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
+	lightDirection = tangentSpaceMatrix * normalize(lightPosition - vertexPosition);
+	
 	viewerDirection = tangentSpaceMatrix * normalize(-vertexPosition);
+	
 	textureCoordinates = uv;
 
 	gl_Position = _ModelViewProjection * position;

@@ -6,7 +6,34 @@
 class Drawable
 {
 public:
-	virtual void Draw() = 0;
+	Drawable() :
+	  mEnabled(true)
+	{
+	}
+
+	void Draw()
+	{
+		if (mEnabled)
+		{
+			OnDraw();
+		}
+	}
+
+	inline bool IsEnabled() const
+	{
+		return mEnabled;
+	}
+
+	inline void SetEnabled(bool enabled)
+	{
+		mEnabled = enabled;
+	}
+
+protected:
+	virtual void OnDraw() = 0;
+
+private:
+	bool mEnabled;
 
 };
 

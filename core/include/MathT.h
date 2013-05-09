@@ -17,6 +17,8 @@ public:
 	inline static bool IsPowerOfTwo(unsigned int i);
 	inline static unsigned int UpperPowerOfTwo(unsigned int i);
 
+	inline static T Round(T a);
+
 	inline static T Sqrt(T a);
 
 	inline static T Ceil(T a);
@@ -78,6 +80,13 @@ inline unsigned int Math<T>::UpperPowerOfTwo(unsigned int i)
 	i |= i >> 16;
 	i++;
 	return i;
+}
+
+template<typename T>
+inline T Math<T>::Round(T a)
+{
+	double number = (double)a;
+	return (T)((number < 0.0) ? ceil(number - 0.5) : floor(number + 0.5));
 }
 
 template<typename T>

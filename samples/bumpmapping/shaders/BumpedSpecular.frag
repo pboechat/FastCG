@@ -15,21 +15,22 @@ in vec2 textureCoordinates;
 
 void main()
 {
-	vec3 diffuseColor = texture(colorMap, (textureCoordinates * colorMapTiling)).xyz;
-	vec3 normal = texture(bumpMap, (textureCoordinates * bumpMapTiling)).xyz;
+	vec4 diffuseColor = texture2D(colorMap, (textureCoordinates * colorMapTiling));
 
-	vec3 ambientContribution = vec3(_GlobalLightAmbientColor);
+	vec3 normal = normalize(texture2D(bumpMap, (textureCoordinates * bumpMapTiling)).xyz * 2.0 - 1.0);
 
-	float diffuseAttenuation = max(dot(lightDirection, normal), 0.0); 
-	vec3 diffuseContribution = vec3(_Light0DiffuseColor) * diffuseColor * diffuseAttenuation;
+	vec4 ambientContribution = _GlobalLightAmbientColor;
 
-	vec3 specularContribution = vec3(0);
-	if (diffuseAttenuation > 0) 
+	float diffuseAttenuation = max(dot(normal, lightDirection), 0.0); 
+	vec4 diffuseContribution = _Light0DiffuseColor * diffuseColor * diffuseAttenuation;
+
+	vec4 specularContribution = vec4(0.0);
+	if (diffuseAttenuation > 0.0) 
 	{
 		vec3 reflection = reflect(-lightDirection, normal);
-		float specularAttenuation = pow(max(dot(reflection, viewerDirection), 0.0), shininess);
-		specularContribution = vec3(specularColor) * specularAttenuation;
+		float specularAttenuation = pow(max(dot(reflection, normalize(viewerDirection)), 0.0), shininess);
+		specularContribution = _Light0SpecularColor * specularColor * specularAttenuation;
 	}
 
-	gl_FragColor = vec4(ambientContribution + diffuseContribution + specularContribution, 1.0);
+	gl_FragColor = ambientContribution + diffuseContribution + specularContribution;
 }

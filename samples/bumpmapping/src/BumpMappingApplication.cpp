@@ -1,29 +1,35 @@
 #include "BumpMappingApplication.h"
+#include "FloorController.h"
+#include "SpheresController.h"
+#include "LightAnimator.h"
+
+#include <Light.h>
+#include <Material.h>
+#include <Texture.h>
+#include <OpenGLExceptions.h>
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
-#include <Material.h>
-#include <OpenGLExceptions.h>
+#include <KeyCode.h>
+#include <MouseButton.h>
 #include <PNGLoader.h>
+#include <FirstPersonCameraController.h>
 
-#include <iostream>
-
-const unsigned int BumpMappingApplication::FIELD_SIZE = 100;
-const unsigned int BumpMappingApplication::NUM_SPHERE_SEGMENTS = 30;
+const unsigned int BumpMappingApplication::FLOOR_SIZE = 100;
+const float BumpMappingApplication::SPHERE_RADIUS = (FLOOR_SIZE * 0.025f);
+const unsigned int BumpMappingApplication::NUMBER_OF_SPHERE_SLICES = 30;
+const float BumpMappingApplication::WALK_SPEED = 20.0f;
+const float BumpMappingApplication::TURN_SPEED = 60.0f;
 
 BumpMappingApplication::BumpMappingApplication() :
-	Application("bumpmapping", 800, 600),
-	mCurrentFloorTextureIndex(0),
-	mCurrentSphereTextureIndex(0),
-	mFloorTextureTiling(1.0f, 1.0f)
+	Application("bumpmapping", 800, 600)
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	mMainCameraPtr->Translate(glm::vec3(0, FIELD_SIZE * 0.5f, (float)FIELD_SIZE));
-	mLightPosition = glm::vec3(0.0f, FIELD_SIZE * 0.25f, 0.0f);
-	mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+
+	mMainCameraPtr->Translate(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
+	mMainCameraPtr->Rotate(-20.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
 	mShowFPS = true;
-	mLightPosition = glm::vec3(0.0f, FIELD_SIZE * 0.25f, 0.0f);
-	mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 }
 
 BumpMappingApplication::~BumpMappingApplication()
@@ -36,163 +42,84 @@ TexturePtr BumpMappingApplication::LoadPNGAsTexture(const std::string& rFileName
 	unsigned int height;
 	bool transparency;
 	unsigned char* pData;
-
 	PNGLoader::Load(rFileName, width, height, transparency, &pData);
-
 	TexturePtr texturePtr = new Texture(width, height, (transparency) ? TF_RGBA : TF_RGB, DT_UNSIGNED_CHAR, FM_BILINEAR, WM_REPEAT, pData);
 	CHECK_FOR_OPENGL_ERRORS();
-
 	return texturePtr;
 }
 
 void BumpMappingApplication::OnStart()
 {
-	mLightPtr = new Light();
-	mLightPtr->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	mLightPtr->SetDiffuseColor(glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
-	mLightPtr->SetSpecularColor(glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
-	mLightPtr->SetPosition(mLightPosition);
-	AddLight(mLightPtr);
+	LightPtr lightPtr = new Light();
+	lightPtr->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	lightPtr->SetDiffuseColor(glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
+	lightPtr->SetSpecularColor(glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
+	lightPtr->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
+	AddLight(lightPtr);
+	AddUpdateable(new LightAnimator(lightPtr, 40.0f, (float)FLOOR_SIZE, glm::vec3(0.0f, 0.0f, 1.0f)));
 
-	mFloorColorMapTexturePtrs.push_back(LoadPNGAsTexture("textures/FloorColorMap1.png"));
-	mFloorBumpMapTexturePtrs.push_back(LoadPNGAsTexture("textures/FloorBumpMap1.png"));
+	std::vector<TexturePtr> floorColorMapTexturesPtrs;
+	std::vector<TexturePtr> floorBumpMapTexturesPtrs;
+	floorColorMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/FloorColorMap1.png"));
+	floorBumpMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/FloorBumpMap1.png"));
+	floorColorMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/FloorColorMap2.png"));
+	floorBumpMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/FloorBumpMap2.png"));
 
-	mFloorColorMapTexturePtrs.push_back(LoadPNGAsTexture("textures/FloorColorMap2.png"));
-	mFloorBumpMapTexturePtrs.push_back(LoadPNGAsTexture("textures/FloorBumpMap2.png"));
+	std::vector<TexturePtr> sphereColorMapTexturesPtrs;
+	std::vector<TexturePtr> sphereBumpMapTexturesPtrs;
+	sphereColorMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
+	sphereBumpMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
+	sphereColorMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
+	sphereBumpMapTexturesPtrs.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
 
-	mSphereColorMapTexturePtrs.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
-	mSphereBumpMapTexturePtrs.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
-
+	MaterialPtr floorMaterialPtr;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mFloorMaterialPtr = new Material(ShaderRegistry::Find("BumpedSpecular"));
-	mFloorMaterialPtr->SetTexture("colorMap", mFloorColorMapTexturePtrs[mCurrentFloorTextureIndex]);
-	mFloorMaterialPtr->SetTexture("bumpMap", mFloorBumpMapTexturePtrs[mCurrentFloorTextureIndex]);
-	mFloorMaterialPtr->SetVec4("specularColor", glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-	mFloorMaterialPtr->SetFloat("shininess", 3.0f);
-	mFloorMaterialPtr->SetTextureTiling("colorMap", mFloorTextureTiling);
-	mFloorMaterialPtr->SetTextureTiling("bumpMap", mFloorTextureTiling);
+	floorMaterialPtr = new Material(ShaderRegistry::Find("BumpedSpecular"));
+	floorMaterialPtr->SetTexture("colorMap", floorColorMapTexturesPtrs[0]);
+	floorMaterialPtr->SetTexture("bumpMap", floorBumpMapTexturesPtrs[0]);
+	floorMaterialPtr->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	floorMaterialPtr->SetFloat("shininess", 5.0f);
 #else
-	mFloorMaterialPtr = new Material();
-	mFloorMaterialPtr->SetTexture(mFloorColorMapTexturePtrs[mCurrentFloorTextureIndex]);
+	floorMaterialPtr = new Material();
+	floorMaterialPtr->SetTexture(floorColorMapTexturesPtrs[0]);
+	floorMaterialPtr->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	floorMaterialPtr->SetShininess(5.0f);
 #endif
-
-	TriangleMeshPtr floorPtr = StandardGeometries::CreateXZPlane((float)FIELD_SIZE, (float)FIELD_SIZE, 100, 100, glm::vec3(0, 0, 0), mFloorMaterialPtr);
+	TriangleMeshPtr floorPtr = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 100, 100, glm::vec3(0, 0, 0), floorMaterialPtr);
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	floorPtr->CalculateTangents();
 #endif
 	AddDrawable(floorPtr);
+	AddUpdateable(new FloorController(floorPtr, floorColorMapTexturesPtrs, floorBumpMapTexturesPtrs));
 
-	for (unsigned int z = 0; z < FIELD_SIZE; z += 10)
+	std::vector<TriangleMeshPtr> spheres;
+	for (unsigned int z = 0; z < FLOOR_SIZE; z += 10)
 	{
-		for (unsigned int x = 0; x < FIELD_SIZE; x += 10)
+		for (unsigned int x = 0; x < FLOOR_SIZE; x += 10)
 		{
 			MaterialPtr sphereMaterialPtr;
-
 #ifdef USE_PROGRAMMABLE_PIPELINE
-			sphereMaterialPtr = new Material(ShaderRegistry::Find("BumpedDiffuse"));
-			sphereMaterialPtr->SetTexture("colorMap", mSphereColorMapTexturePtrs[mCurrentSphereTextureIndex]);
-			sphereMaterialPtr->SetTexture("bumpMap", mSphereBumpMapTexturePtrs[mCurrentSphereTextureIndex]);
+			sphereMaterialPtr = new Material(ShaderRegistry::Find("BumpedSpecular"));
+			sphereMaterialPtr->SetTexture("colorMap", sphereColorMapTexturesPtrs[0]);
+			sphereMaterialPtr->SetTexture("bumpMap", sphereBumpMapTexturesPtrs[0]);
+			sphereMaterialPtr->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+			sphereMaterialPtr->SetFloat("shininess", 10.0f);
 #else
 			sphereMaterialPtr = new Material();
-			sphereMaterialPtr->SetTexture(mSphereColorMapTexturePtrs[mCurrentSphereTextureIndex]);
+			sphereMaterialPtr->SetTexture(sphereColorMapTexturesPtrs[0]);
+			sphereMaterialPtr->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+			sphereMaterialPtr->SetShininess(10.0f);
 #endif
-
-			float sphereRadius = (FIELD_SIZE * 0.025f);
-
-			TriangleMeshPtr spherePtr = StandardGeometries::CreateSphere(sphereRadius, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS, sphereMaterialPtr);
+			TriangleMeshPtr spherePtr = StandardGeometries::CreateSphere(SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES, sphereMaterialPtr);
 #ifdef USE_PROGRAMMABLE_PIPELINE
 			spherePtr->CalculateTangents();
 #endif
-			spherePtr->Translate(glm::vec3(-(FIELD_SIZE * 0.5f - (2 * sphereRadius)) + x, sphereRadius, -(FIELD_SIZE * 0.5f - (2 * sphereRadius)) + z));
-			mSpherePtrs.push_back(spherePtr);
+			spherePtr->Translate(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 			AddDrawable(spherePtr);
+			spheres.push_back(spherePtr);
 		}
 	}
-}
+	AddUpdateable(new SpheresController(spheres, 50.0f, glm::vec3(0.0f, 1.0f, 0.0f), sphereColorMapTexturesPtrs, sphereBumpMapTexturesPtrs));
 
-void BumpMappingApplication::BeforeDisplay()
-{
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mFloorMaterialPtr->SetTexture("colorMap", mFloorColorMapTexturePtrs[mCurrentFloorTextureIndex]);
-	mFloorMaterialPtr->SetTexture("bumpMap", mFloorBumpMapTexturePtrs[mCurrentFloorTextureIndex]);
-	mFloorMaterialPtr->SetTextureTiling("colorMap", mFloorTextureTiling);
-	mFloorMaterialPtr->SetTextureTiling("bumpMap", mFloorTextureTiling);
-#else
-	mFloorMaterialPtr->SetTexture(mFloorColorMapTexturePtrs[mCurrentFloorTextureIndex]);
-#endif
-
-	for (unsigned int i = 0; i < mSpherePtrs.size(); i++)
-	{
-		TriangleMeshPtr spherePtr = mSpherePtrs[i];
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		spherePtr->GetMaterial()->SetTexture("colorMap", mSphereColorMapTexturePtrs[mCurrentSphereTextureIndex]);
-		spherePtr->GetMaterial()->SetTexture("bumpMap", mSphereBumpMapTexturePtrs[mCurrentSphereTextureIndex]);
-#else
-		spherePtr->GetMaterial()->SetTexture(mSphereColorMapTexturePtrs[mCurrentSphereTextureIndex]);
-#endif
-		spherePtr->Rotate(1.0f, glm::vec3(0, 1, 0));
-	}
-
-	mLightPosition += mLightDirection;
-
-	if (mLightPosition.z <= -(FIELD_SIZE * 1.5f) || mLightPosition.z >= (FIELD_SIZE * 0.5f))
-	{
-		mLightDirection *= -1.0f;
-	}
-
-	mLightPtr->SetPosition(mLightPosition);
-}
-
-void BumpMappingApplication::OnMouseButton(int button, int state, int x, int y)
-{
-	if (state != 0)
-	{
-		return;
-	}
-
-	if (button == 0)
-	{
-		mCurrentFloorTextureIndex = (++mCurrentFloorTextureIndex % mFloorColorMapTexturePtrs.size());
-	}
-	else if (button == 2)
-	{
-		mCurrentSphereTextureIndex = (++mCurrentSphereTextureIndex % mSphereColorMapTexturePtrs.size());
-	}
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	else if (button == 1)
-	{
-		ShaderPtr floorShaderPtr;
-		ShaderPtr sphereShaderPtr;
-		if (mFloorMaterialPtr->GetShader()->GetName() == "BumpedSpecular")
-		{
-			floorShaderPtr = ShaderRegistry::Find("Specular");
-			sphereShaderPtr = ShaderRegistry::Find("Diffuse");
-		}
-		else
-		{
-			floorShaderPtr = ShaderRegistry::Find("BumpedSpecular");
-			sphereShaderPtr = ShaderRegistry::Find("BumpedDiffuse");
-		}
-
-		mFloorMaterialPtr->SetShader(floorShaderPtr);
-
-		for (unsigned int i = 0; i < mSpherePtrs.size(); i++)
-		{
-			TriangleMeshPtr spherePtr = mSpherePtrs[i];
-			spherePtr->GetMaterial()->SetShader(sphereShaderPtr);
-		}
-	}
-#endif
-}
-
-void BumpMappingApplication::OnMouseWheel(int button, int direction, int x, int y)
-{
-	if (direction > 0)
-	{
-		mFloorTextureTiling += glm::vec2(0.1f, 0.1f);
-	}
-	else
-	{
-		mFloorTextureTiling -= glm::vec2(0.1f, 0.1f);
-	}
+	AddUpdateable(new FirstPersonCameraController(WALK_SPEED, TURN_SPEED));
 }

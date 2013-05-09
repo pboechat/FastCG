@@ -16,7 +16,7 @@ public:
 	BSplinesApplication();
 	virtual ~BSplinesApplication();
 
-	virtual void BeforeDisplay();
+	virtual void BeforeUpdate();
 	virtual void OnMouseButton(int button, int state, int x, int y);
 	virtual void OnKeyPress(int key);
 

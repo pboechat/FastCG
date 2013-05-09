@@ -111,10 +111,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\BumpMappingApplication.h" />
+    <ClInclude Include="src\FloorController.h" />
+    <ClInclude Include="src\LightAnimator.h" />
+    <ClInclude Include="src\SpheresController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\BumpMappingApplication.cpp" />
+    <ClCompile Include="src\FloorController.cpp" />
+    <ClCompile Include="src\LightAnimator.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\SpheresController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BumpedDiffuse.frag" />

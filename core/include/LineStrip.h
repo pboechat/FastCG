@@ -17,7 +17,8 @@ public:
 	LineStrip(const std::vector<glm::vec3>& rVertices, const std::vector<glm::vec4>& rColors);
 	~LineStrip();
 
-	virtual void Draw();
+protected:
+	virtual void OnDraw();
 
 private:
 	std::vector<glm::vec3> mVertices;

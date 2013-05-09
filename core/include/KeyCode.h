@@ -1,50 +1,15 @@
-#ifndef KEYCODE_H__
-#define KEYCODE_H__
+#ifndef KEYCODE_H_
+#define KEYCODE_H_
+
+#include <Exception.h>
 
 class KeyCode
 {
 public:
-	static const int SOH = 1;
-	static const int STX = 2;
-	static const int ETX = 3;
-	static const int EOT = 4;
-	static const int ENQ = 5;
-	static const int ACK = 6;
-	static const int BEL = 7;
 	static const int BACKSPACE = 8;
-	static const int HT = 9;
-	static const int LF = 10;
-	static const int VT = 11;
-	static const int FF = 12;
 	static const int RETURN = 13;
-	static const int SO = 14;
-	static const int SI = 15;
-	static const int DLE = 16;
-	static const int DC1 = 17;
-	static const int DC2 = 18;
-	static const int DC3 = 19;
-	static const int DC4 = 20;
-	static const int NAK = 21;
-	static const int SYN = 22;
-	static const int ETB = 23;
-	static const int CAN = 24;
-	static const int EM = 25;
-	static const int SUB = 26;
 	static const int ESCAPE = 27;
-	static const int FS = 28;
-	static const int GS = 29;
-	static const int RS = 30;
-	static const int US = 31;
 	static const int SPACE = 32;
-	static const int EXCLAMATION_MARK = 33;
-	static const int QUOTATION_MARK = 34;
-	static const int HASH = 35;
-	static const int DOLLAR = 36;
-	static const int PERCENT = 37;
-	static const int AMPERSAND = 38;
-	static const int APOSTROPHE = 39;
-	static const int OPEN_PARENTHESES = 40;
-	static const int CLOSE_PARENTHESES = 41;
 	static const int ASTERISK = 42;
 	static const int PLUS = 43;
 	static const int COMMA = 44;
@@ -62,77 +27,214 @@ public:
 	static const int NUMBER_8 = 56;
 	static const int NUMBER_9 = 57;
 	static const int COLON = 58;
-	static const int SEMICOLON = 59;
-	static const int LESS_THAN = 60;
+	static const int SEMI_COLON = 59;
 	static const int EQUALS = 61;
-	static const int GREATER_THAN = 62;
-	static const int QUESTION_MARK = 63;
-	static const int AT = 64;
-	static const int LETTER_A = 65;
-	static const int LETTER_B = 66;
-	static const int LETTER_C = 67;
-	static const int LETTER_D = 68;
-	static const int LETTER_E = 69;
-	static const int LETTER_F = 70;
-	static const int LETTER_G = 71;
-	static const int LETTER_H = 72;
-	static const int LETTER_I = 73;
-	static const int LETTER_J = 74;
-	static const int LETTER_K = 75;
-	static const int LETTER_L = 76;
-	static const int LETTER_M = 77;
-	static const int LETTER_N = 78;
-	static const int LETTER_O = 79;
-	static const int LETTER_P = 80;
-	static const int LETTER_Q = 81;
-	static const int LETTER_R = 82;
-	static const int LETTER_S = 83;
-	static const int LETTER_T = 84;
-	static const int LETTER_U = 85;
-	static const int LETTER_V = 86;
-	static const int LETTER_W = 87;
-	static const int LETTER_X = 88;
-	static const int LETTER_Y = 89;
-	static const int LETTER_Z = 90;
+	/* remapped special keys (62 - 90) */
+	static const int LEFT_ARROW = 62;
+	static const int UP_ARROW = 63;
+	static const int RIGHT_ARROW = 64;
+	static const int DOWN_ARROW = 65;
+	static const int F1 = 66;
+	static const int F2 = 67;
+	static const int F3 = 68;
+	static const int F4 = 69;
+	static const int F5 = 70;
+	static const int F6 = 71;
+	static const int F7 = 72;
+	static const int F8 = 73;
+	static const int F9 = 74;
+	static const int F10 = 75;
+	static const int F11 = 76;
+	static const int F12 = 77;
+	static const int PAGE_UP = 78;
+	static const int PAGE_DOWN = 79;
+	static const int HOME = 80;
+	static const int END = 81;
+	static const int INSERT = 82;
+	static const int SHIFT = 83;
+	static const int RIGHT_SHIFT = 84;
+	static const int CONTROL = 85;
+	static const int RIGHT_CONTROL = 86;
+	static const int ALT = 87;
+	static const int RIGHT_ALT = 88;
+	/* remapped special keys */
 	static const int OPEN_SQUARE_BRACKET = 91;
 	static const int BACKSLASH = 92;
 	static const int CLOSE_SQUARE_BRACKET = 93;
-	static const int CIRCUMFLEX = 94;
-	static const int UNDERSCORE = 95;
-	static const int GRAVE = 96;
-	static const int LETTER_a = 97;
-	static const int LETTER_b = 98;
-	static const int LETTER_c = 99;
-	static const int LETTER_d = 100;
-	static const int LETTER_e = 101;
-	static const int LETTER_f = 102;
-	static const int LETTER_g = 103;
-	static const int LETTER_h = 104;
-	static const int LETTER_i = 105;
-	static const int LETTER_j = 106;
-	static const int LETTER_k = 107;
-	static const int LETTER_l = 108;
-	static const int LETTER_m = 109;
-	static const int LETTER_n = 110;
-	static const int LETTER_o = 111;
-	static const int LETTER_p = 112;
-	static const int LETTER_q = 113;
-	static const int LETTER_r = 114;
-	static const int LETTER_s = 115;
-	static const int LETTER_t = 116;
-	static const int LETTER_u = 117;
-	static const int LETTER_v = 118;
-	static const int LETTER_w = 119;
-	static const int LETTER_x = 120;
-	static const int LETTER_y = 121;
-	static const int LETTER_z = 122;
-	static const int OPEN_BRACES = 123;
-	static const int PIPE = 124;
-	static const int CLOSE_BRACES = 125;
+	static const int LETTER_A = 97;
+	static const int LETTER_B = 98;
+	static const int LETTER_C = 99;
+	static const int LETTER_D = 100;
+	static const int LETTER_E = 101;
+	static const int LETTER_F = 102;
+	static const int LETTER_G = 103;
+	static const int LETTER_H = 104;
+	static const int LETTER_I = 105;
+	static const int LETTER_J = 106;
+	static const int LETTER_K = 107;
+	static const int LETTER_L = 108;
+	static const int LETTER_M = 109;
+	static const int LETTER_N = 110;
+	static const int LETTER_O = 111;
+	static const int LETTER_P = 112;
+	static const int LETTER_Q = 113;
+	static const int LETTER_R = 114;
+	static const int LETTER_S = 115;
+	static const int LETTER_T = 116;
+	static const int LETTER_U = 117;
+	static const int LETTER_V = 118;
+	static const int LETTER_W = 119;
+	static const int LETTER_X = 120;
+	static const int LETTER_Y = 121;
+	static const int LETTER_Z = 122;
 	static const int TILDE = 126;
 	static const int DEL = 127;
 
+	static int ToRegularKeyCode(int specialKeyCode)
+	{
+		if (specialKeyCode == SPECIAL_LEFT_ARROW)
+		{
+			return LEFT_ARROW;
+		}
+		else if (specialKeyCode == SPECIAL_UP_ARROW)
+		{
+			return UP_ARROW;
+		}
+		else if (specialKeyCode == SPECIAL_RIGHT_ARROW)
+		{
+			return RIGHT_ARROW;
+		}
+		else if (specialKeyCode == SPECIAL_DOWN_ARROW)
+		{
+			return DOWN_ARROW;
+		}
+		else if (specialKeyCode == SPECIAL_F1)
+		{
+			return F1;
+		}
+		else if (specialKeyCode == SPECIAL_F2)
+		{
+			return F2;
+		}
+		else if (specialKeyCode == SPECIAL_F3)
+		{
+			return F3;
+		}
+		else if (specialKeyCode == SPECIAL_F4)
+		{
+			return F4;
+		}
+		else if (specialKeyCode == SPECIAL_F5)
+		{
+			return F5;
+		}
+		else if (specialKeyCode == SPECIAL_F6)
+		{
+			return F6;
+		}
+		else if (specialKeyCode == SPECIAL_F7)
+		{
+			return F7;
+		}
+		else if (specialKeyCode == SPECIAL_F8)
+		{
+			return F8;
+		}
+		else if (specialKeyCode == SPECIAL_F9)
+		{
+			return F9;
+		}
+		else if (specialKeyCode == SPECIAL_F10)
+		{
+			return F10;
+		}
+		else if (specialKeyCode == SPECIAL_F11)
+		{
+			return F11;
+		}
+		else if (specialKeyCode == SPECIAL_F12)
+		{
+			return F12;
+		}
+		else if (specialKeyCode == SPECIAL_PAGE_UP)
+		{
+			return PAGE_UP;
+		}
+		else if (specialKeyCode == SPECIAL_PAGE_DOWN)
+		{
+			return PAGE_DOWN;
+		}
+		else if (specialKeyCode == SPECIAL_HOME)
+		{
+			return HOME;
+		}
+		else if (specialKeyCode == SPECIAL_END)
+		{
+			return END;
+		}
+		else if (specialKeyCode == SPECIAL_INSERT)
+		{
+			return INSERT;
+		}
+		else if (specialKeyCode == SPECIAL_SHIFT)
+		{
+			return SHIFT;
+		}
+		else if (specialKeyCode == SPECIAL_RIGHT_SHIFT)
+		{
+			return RIGHT_SHIFT;
+		}
+		else if (specialKeyCode == SPECIAL_CONTROL)
+		{
+			return CONTROL;
+		}
+		else if (specialKeyCode == SPECIAL_RIGHT_CONTROL)
+		{
+			return RIGHT_CONTROL;
+		}
+		else if (specialKeyCode == SPECIAL_ALT)
+		{
+			return ALT;
+		}
+		else if (specialKeyCode == SPECIAL_RIGHT_ALT)
+		{
+			return RIGHT_ALT;
+		}
+		else 
+		{
+			THROW_EXCEPTION(Exception, "Unmapped special key code: %d", specialKeyCode);
+		}
+	}
 private:
+	/* special keys */
+	static const int SPECIAL_LEFT_ARROW = 100;
+	static const int SPECIAL_UP_ARROW = 101;
+	static const int SPECIAL_RIGHT_ARROW = 102;
+	static const int SPECIAL_DOWN_ARROW = 103;
+	static const int SPECIAL_F1 = 1;
+	static const int SPECIAL_F2 = 2;
+	static const int SPECIAL_F3 = 3;
+	static const int SPECIAL_F4 = 4;
+	static const int SPECIAL_F5 = 5;
+	static const int SPECIAL_F6 = 6;
+	static const int SPECIAL_F7 = 7;
+	static const int SPECIAL_F8 = 8;
+	static const int SPECIAL_F9 = 9;
+	static const int SPECIAL_F10 = 10;
+	static const int SPECIAL_F11 = 11;
+	static const int SPECIAL_F12 = 12;
+	static const int SPECIAL_PAGE_UP = 104;
+	static const int SPECIAL_PAGE_DOWN = 105;
+	static const int SPECIAL_HOME = 106;
+	static const int SPECIAL_END = 107;
+	static const int SPECIAL_INSERT = 108;
+	static const int SPECIAL_SHIFT = 112;
+	static const int SPECIAL_RIGHT_SHIFT = 113;
+	static const int SPECIAL_CONTROL = 114;
+	static const int SPECIAL_RIGHT_CONTROL = 115;
+	static const int SPECIAL_ALT = 116;
+	static const int SPECIAL_RIGHT_ALT = 117;
+
 	KeyCode() {}
 	~KeyCode() {}
 

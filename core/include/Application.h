@@ -3,7 +3,8 @@
 
 #include <Camera.h>
 #include <Light.h>
-#include <TriangleMesh.h>
+#include <Updateable.h>
+#include <Drawable.h>
 #include <Font.h>
 #include <Timer.h>
 
@@ -13,6 +14,8 @@
 #include <sstream>
 
 #include <glm/glm.hpp>
+
+class Input;
 
 class Application
 {
@@ -29,12 +32,12 @@ public:
 
 	void Run(int argc, char** argv);
 	void Quit();
-	void Display();
+	void Update();
 	void Resize(int width, int height);
 	void MouseButton(int button, int state, int x, int y);
 	void MouseWheel(int button, int direction, int x, int y);
 	void MouseMove(int x, int y);
-	void Keyboard(int key, int x, int y);
+	void Keyboard(int key, int x, int y, bool state);
 
 	inline unsigned int GetScreenWidth() const
 	{
@@ -77,15 +80,16 @@ protected:
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
-	virtual void BeforeDisplay();
-	virtual void AfterDisplay();
+	virtual void BeforeUpdate();
+	virtual void AfterUpdate();
 	virtual void OnResize();
 	virtual void OnStart();
 	virtual void OnFinish();
 	virtual void OnMouseButton(int button, int state, int x, int y);
 	virtual void OnMouseWheel(int button, int direction, int x, int y);
 	virtual void OnMouseMove(int x, int y);
-	virtual void OnKeyPress(int key);
+	virtual void OnKeyPress(int keyCode);
+	virtual void OnKeyRelease(int keyCode);
 	virtual void PrintUsage();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
@@ -93,6 +97,13 @@ protected:
 #else
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 #endif
+
+	inline void AddUpdateable(UpdateablePtr updateablePtr)
+	{
+		mUpdateables.push_back(updateablePtr);
+	}
+
+	void RemoveUpdateable(UpdateablePtr drawablePtr);
 
 	inline void AddDrawable(DrawablePtr drawablePtr)
 	{
@@ -138,6 +149,7 @@ private:
 
 	static Application* s_mpInstance;
 	static bool s_mStarted;
+	Input* mpInput;
 	unsigned int mScreenWidth;
 	unsigned int mScreenHeight;
 	float mHalfScreenWidth;
@@ -145,8 +157,11 @@ private:
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
 	std::vector<LightPtr> mLights;
+	std::vector<UpdateablePtr> mUpdateables;
 	std::vector<DrawablePtr> mDrawables;
+	Timer mStartTimer;
 	Timer mFrameTimer;
+	Timer mUpdateTimer;
 	unsigned int mElapsedFrames;
 	double mElapsedTime;
 	std::vector<DrawTextRequest> mDrawTextRequests;
@@ -154,16 +169,19 @@ private:
 	void SetUpGLUT(int argc, char** argv);
 	void SetUpOpenGL();
 	void DrawAllTexts();
-
+	
 };
 
+void GLUTIdleCallback();
 void GLUTDisplayCallback();
 void GLUTReshapeWindowCallback(int width, int height);
 void GLUTMouseButtonCallback(int button, int state, int x, int y);
 void GLUTMouseWheelCallback(int button, int direction, int x, int y);
 void GLUTMouseMoveCallback(int x, int y);
 void GLUTKeyboardCallback(unsigned char key, int x, int y);
+void GLUTKeyboardUpCallback(unsigned char key, int x, int y);
 void GLUTSpecialKeysCallback(int key, int x, int y);
+void GLUTSpecialKeysUpCallback(int key, int x, int y);
 void ExitCallback();
  
 #endif

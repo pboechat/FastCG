@@ -13,14 +13,12 @@ void main()
 {
 	vec4 diffuseColor = texture(colorMap, (textureCoordinates * colorMapTiling));
 
-	vec3 lightPos = vec3(_View * vec4(_Light0Position, 1.0));
-	vec3 lightDir = normalize(lightPos - eyeSpacePosition.xyz);
-	vec3 viewDir = normalize(-eyeSpacePosition.xyz);
-	vec3 reflection = reflect(-lightDir, vertexNormal);
+	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
+	vec3 lightDirection = normalize(lightPosition - eyeSpacePosition.xyz);
 	
 	vec4 ambientContribution = _GlobalLightAmbientColor;
 	
-	float diffuseAttenuation = max(dot(lightDir, vertexNormal), 0.0);
+	float diffuseAttenuation = max(dot(lightDirection, vertexNormal), 0.0);
 	vec4 diffuseContribution = _Light0DiffuseColor * diffuseColor * diffuseAttenuation;
 
 	gl_FragColor = ambientContribution + diffuseContribution;

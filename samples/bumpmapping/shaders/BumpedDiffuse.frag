@@ -13,13 +13,14 @@ in vec2 textureCoordinates;
 
 void main()
 {
-	vec3 diffuseColor = texture(colorMap, (textureCoordinates * colorMapTiling)).xyz;
-	vec3 normal = texture(bumpMap, (textureCoordinates * bumpMapTiling)).xyz;
+	vec4 diffuseColor = texture(colorMap, (textureCoordinates * colorMapTiling));
 
-	vec3 ambientContribution = vec3(_GlobalLightAmbientColor);
+	vec3 normal = normalize(texture(bumpMap, (textureCoordinates * bumpMapTiling)).xyz * 2.0 - 1.0);
+
+	vec4 ambientContribution = _GlobalLightAmbientColor;
 
 	float diffuseAttenuation = max(dot(lightDirection, normal), 0.0); 
-	vec3 diffuseContribution = vec3(_Light0DiffuseColor) * diffuseColor * diffuseAttenuation;
+	vec4 diffuseContribution = _Light0DiffuseColor * diffuseColor * diffuseAttenuation;
 
-	gl_FragColor = vec4(ambientContribution + diffuseContribution, 1.0);
+	gl_FragColor = ambientContribution + diffuseContribution;
 }

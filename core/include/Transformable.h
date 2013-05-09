@@ -46,6 +46,16 @@ public:
 		mModel = glm::rotate(mModel, angle, axis);
 	}
 
+	inline glm::vec3 GetForward() const
+	{
+		return glm::vec3(GetModel() * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
+	}
+
+	inline glm::vec3 GetUp() const
+	{
+		return glm::vec3(GetModel() * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	}
+
 protected:
 	glm::mat4 mModel;
 
