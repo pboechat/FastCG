@@ -1,42 +1,52 @@
 #include <Camera.h>
-#include <Application.h>
-#include <Exception.h>
 
-Camera::~Camera()
-{
-}
+IMPLEMENT_TYPE(Camera, Component);
 
-glm::mat4 Camera::GetProjection() const
+/*glm::mat4 Camera::GetProjection() const
 {
-	if (mProjection == PM_PERSPECTIVE)
+	if (mProjectionMode == PM_PERSPECTIVE)
 	{
-		return glm::perspective(mFieldOfView, Application::GetInstance()->GetAspectRatio(), mNear, mFar);
+		return glm::perspective(mFieldOfView, mAspectRatio, mFrustumNear, mFrustumFar);
 	}
 
-	else if (mProjection == PM_ORTHOGRAPHIC)
+	else if (mProjectionMode == PM_ORTHOGRAPHIC)
 	{
-		return glm::ortho(mLeft, mRight, mBottom, mTop, mNear, mFar);
+		return glm::ortho(mFrustumLeft, mFrustumRight, mFrustumBottom, mFrustumTop, mFrustumNear, mFrustumFar);
 	}
 
 	else
 	{
-		THROW_EXCEPTION(Exception, "Unknown projection: %d", mProjection);
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "Unknown projection: %d", mProjectionMode);
 	}
-}
+}*/
 
-glm::mat4 Camera::GetView() const
+/*glm::mat4 Camera::GetView() const
 {
-	return glm::lookAt(GetPosition(), GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
-}
+	const Transform* pTransform = GetGameObject()->GetTransform();
+	return glm::lookAt(pTransform->GetPosition(), pTransform->GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
+}*/
 
-void Camera::operator =(const Camera& rOther)
+/*void Camera::SetUp(float fieldOfView, float frustumNear, float frustumFar, float frustumBottom, float frustumTop, float frustumLeft, float frustumRight, ProjectionMode projectionMode)
+{
+	mFieldOfView = fieldOfView;
+	mFrustumNear = frustumNear;
+	mFrustumFar = frustumFar;
+	mFrustumBottom = frustumBottom;
+	mFrustumTop = frustumTop;
+	mFrustumLeft = frustumLeft;
+	mFrustumRight = frustumRight;
+	mProjectionMode = projectionMode;
+}*/
+
+/*void Camera::operator =(const Camera& rOther)
 {
 	mFieldOfView = rOther.mFieldOfView;
-	mNear = rOther.mNear;
-	mFar = rOther.mFar;
-	mTop = rOther.mTop;
-	mBottom = rOther.mBottom;
-	mLeft = rOther.mLeft;
-	mRight = rOther.mRight;
-	mProjection = rOther.mProjection;
-}
+	mFrustumNear = rOther.mFrustumNear;
+	mFrustumFar = rOther.mFrustumFar;
+	mFrustumTop = rOther.mFrustumTop;
+	mFrustumBottom = rOther.mFrustumBottom;
+	mFrustumLeft = rOther.mFrustumLeft;
+	mFrustumRight = rOther.mFrustumRight;
+	mProjectionMode = rOther.mProjectionMode;
+}*/

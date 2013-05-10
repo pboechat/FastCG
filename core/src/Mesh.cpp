@@ -1,17 +1,17 @@
-#include <TriangleMesh.h>
+#include <Mesh.h>
 #include <Shader.h>
+#include <Exception.h>
 #include <OpenGLExceptions.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-TriangleMesh::TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr) :
+Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs) :
 	mVertices(vertices), 
 	mIndexes(indexes), 
 	mNormals(normals), 
-	mUVs(uvs), 
-	mMaterialPtr(materialPtr)
+	mUVs(uvs)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mTriangleMeshVAOId = 0;
@@ -22,25 +22,24 @@ TriangleMesh::TriangleMesh(const std::vector<glm::vec3>& vertices, const std::ve
 }
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-TriangleMesh::TriangleMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs, const MaterialPtr& materialPtr) :
+Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs) :
 	mTriangleMeshVAOId(0),
 	mVertices(vertices), 
 	mIndexes(indexes), 
 	mNormals(normals), 
 	mTangents(tangents),
 	mUVs(uvs), 
-	mMaterialPtr(materialPtr),
 	mUseTangents(true)
 {
 }
 #endif
 
-TriangleMesh::~TriangleMesh()
+Mesh::~Mesh()
 {
 	DeallocateResources();
 }
 
-void TriangleMesh::AllocateResources()
+void Mesh::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	// create vertex buffer object and attach data
@@ -119,7 +118,7 @@ void TriangleMesh::AllocateResources()
 #endif
 }
 
-void TriangleMesh::DeallocateResources()
+void Mesh::DeallocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mUseTangents)
@@ -136,7 +135,7 @@ void TriangleMesh::DeallocateResources()
 #endif
 }
 
-void TriangleMesh::OnDraw()
+void Mesh::DrawCall()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mTriangleMeshVAOId == 0)
@@ -144,39 +143,22 @@ void TriangleMesh::OnDraw()
 		AllocateResources();
 	}
 
-	if (mMaterialPtr != 0)
-	{
-		mMaterialPtr->Bind(GetModel());
-	}
-
 	glBindVertexArray(mTriangleMeshVAOId);
 	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
 	glBindVertexArray(0);
 
-	if (mMaterialPtr != 0)
-	{
-		mMaterialPtr->Unbind();
-	}
 #else
 	if (mDisplayListId == 0)
 	{
 		AllocateResources();
 	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glMultMatrixf(&GetModel()[0][0]);
-
-	mMaterialPtr->Bind();
-
 	glCallList(mDisplayListId);
-
-	glPopMatrix();
 #endif
 }
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-void TriangleMesh::CalculateTangents()
+void Mesh::CalculateTangents()
 {
 	if (mTriangleMeshVAOId != 0) 
 	{

@@ -1,21 +1,17 @@
-#ifndef TRANSFORMABLE_H_
-#define TRANSFORMABLE_H_
+#ifndef TRANSFORM_H_
+#define TRANSFORM_H_
+
+#include <Component.h>
+#include <GameObject.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-class Transformable
+class Transform : public Component
 {
+	DECLARE_TYPE;
+
 public:
-	Transformable() :
-		mModel(1.0f)
-	{
-	}
-
-	virtual ~Transformable()
-	{
-	}
-
 	inline glm::vec3 GetPosition() const
 	{
 		return glm::vec3(mModel[3]);
@@ -48,17 +44,30 @@ public:
 
 	inline glm::vec3 GetForward() const
 	{
-		return glm::vec3(GetModel() * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
+		return glm::vec3(mModel * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
 	}
 
 	inline glm::vec3 GetUp() const
 	{
-		return glm::vec3(GetModel() * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		return glm::vec3(mModel * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	}
 
-protected:
+	friend class GameObject;
+
+private:
 	glm::mat4 mModel;
 
+	Transform() :
+		mModel(1.0f)
+	{
+	}
+
+	~Transform()
+	{
+	}
+
 };
+
+typedef Pointer<Transform> TransformPtr;
 
 #endif

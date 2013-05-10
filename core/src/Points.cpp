@@ -1,6 +1,6 @@
 #include <Points.h>
+#include <Shader.h>
 #include <Exception.h>
-#include <ShaderRegistry.h>
 #include <OpenGLExceptions.h>
 
 #include <GL/glew.h>
@@ -48,9 +48,6 @@ Points::~Points()
 void Points::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mPointsMaterialPtr = new Material(ShaderRegistry::Find("Points"));
-	mPointsMaterialPtr->SetFloat("size", mSize);
-
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
@@ -113,7 +110,7 @@ void Points::DeallocateResources()
 #endif
 }
 
-void Points::OnDraw()
+void Points::DrawCall()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mPointsVAOId == 0)
@@ -121,31 +118,16 @@ void Points::OnDraw()
 		AllocateResources();
 	}
 
-	mPointsMaterialPtr->Bind(GetModel());
-
 	glBindVertexArray(mPointsVAOId);
 	glDrawArrays(GL_POINTS, 0, mVertices.size());
 	glBindVertexArray(0);
-
-	mPointsMaterialPtr->Unbind();
 #else
 	if (mDisplayListId == 0)
 	{
 		AllocateResources();
 	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glMultMatrixf(&GetModel()[0][0]);
-
-	glPushAttrib(GL_ENABLE_BIT);
-
-	glEnable(GL_COLOR_MATERIAL);
-
 	glCallList(mDisplayListId);
-
-	glPopAttrib();
-	glPopMatrix();
 #endif
 }
 

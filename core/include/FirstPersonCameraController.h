@@ -1,28 +1,50 @@
 #ifndef FIRSTPERSONCAMERACONTROLLER_H_
 #define FIRSTPERSONCAMERACONTROLLER_H_
 
-#include <Updateable.h>
+#include <Behaviour.h>
 
 #include <glm/glm.hpp>
 
-class FirstPersonCameraController : public Updateable
+class FirstPersonCameraController : public Behaviour
 {
+	DECLARE_TYPE;
+
 public:
-	FirstPersonCameraController(float walkSpeed = 1.0f, float turnSpeed = 1.0f) :
-		mWalkSpeed(walkSpeed),
-		mTurnSpeed(turnSpeed),
+	FirstPersonCameraController() :
 		mRightMouseButtonPressed(false)
 	{
 	}
 
-	virtual void Update(float time, float deltaTime);
+	inline float GetWalkSpeed() const 
+	{ 
+		return mWalkSpeed; 
+	}
+
+	inline void SetWalkSpeed(float walkSpeed) 
+	{
+		mWalkSpeed = walkSpeed; 
+	}
+
+	inline float GetTurnSpeed() const 
+	{ 
+		return mTurnSpeed; 
+	}
+
+	inline void SetTurnSpeed(float turnSpeed) 
+	{ 
+		mTurnSpeed = turnSpeed; 
+	}
+
+	virtual void OnUpdate(float time, float deltaTime);
 
 private:
 	glm::vec2 mLastMousePosition;
 	bool mRightMouseButtonPressed;
 	float mWalkSpeed;
 	float mTurnSpeed;
-
+	
 };
+
+typedef Pointer<FirstPersonCameraController> FirstPersonCameraControllerPtr;
 
 #endif

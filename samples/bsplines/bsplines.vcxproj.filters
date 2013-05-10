@@ -17,9 +17,15 @@
     <ClCompile Include="src\BSplinesApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\BSplinesEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BSplinesApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BSplinesEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

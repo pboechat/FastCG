@@ -28,8 +28,7 @@ public:
 		mShaderPtr = shaderPtr;
 	}
 
-	void Bind(const glm::mat4& rModel) const;
-	void Unbind() const;
+	void SetUpShaderParameters() const;
 
 	inline void SetFloat(const std::string& rParameterName, float value)
 	{
@@ -154,7 +153,7 @@ public:
 		mTexturePtr = texturePtr;
 	}
 
-	void Bind() const;
+	void SetUpShaderParameters() const;
 
 private:
 	glm::vec4 mAmbientColor;

@@ -1,28 +1,26 @@
 #include "ColorCheckerApplication.h"
+#include "BackgroundController.h"
 
 #include <ColorMatchingFunctions.h>
 #include <FileReader.h>
 #include <StringUtils.h>
+#include <StandardGeometries.h>
+#include <ShaderRegistry.h>
+#include <MeshRenderer.h>
+#include <MeshFilter.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
-#include <MathT.h>
-#include <Camera.h>
-#include <StandardGeometries.h>
-
-#include <GL/freeglut.h>
 
 #include <iostream>
-#include <vector>
 
 const unsigned int ColorCheckerApplication::NUM_COLORS = 24;
-const unsigned int ColorCheckerApplication::H_NUM_PATCHES = 6;
-const unsigned int ColorCheckerApplication::V_NUM_PATCHES = 4;
+const unsigned int ColorCheckerApplication::HORIZONTAL_NUMBER_OF_PATCHES = 6;
+const unsigned int ColorCheckerApplication::VERTICAL_NUMBER_OF_PATCHES = 4;
 const unsigned int ColorCheckerApplication::BORDER = 20;
 
 ColorCheckerApplication::ColorCheckerApplication() :
 	Application("Color Checker", 800, 600)
 {
-	mMainCameraPtr = new Camera(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 }
@@ -136,35 +134,37 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 
 void ColorCheckerApplication::OnStart()
 {
+	mpMainCamera->SetUp(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 	ParseColorCheckerFile();
 	ConvertLightSpectrumsToRGBs();
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mSolidColorShaderPtr = new Shader("SolidColor");
-	mSolidColorShaderPtr->Compile("shaders/SolidColor.vert", ST_VERTEX);
-	mSolidColorShaderPtr->Compile("shaders/SolidColor.frag", ST_FRAGMENT);
-	mSolidColorShaderPtr->Link();
-#endif
-
-	float tileWidth = (GetScreenWidth() - BORDER) / (float) H_NUM_PATCHES;
-	float tileHeight = (GetScreenHeight() - BORDER) / (float) V_NUM_PATCHES;
+	float tileWidth = (GetScreenWidth() - BORDER) / (float) HORIZONTAL_NUMBER_OF_PATCHES;
+	float tileHeight = (GetScreenHeight() - BORDER) / (float) VERTICAL_NUMBER_OF_PATCHES;
 	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
 
-	for (unsigned int y = V_NUM_PATCHES; y > 0; y--)
+	for (unsigned int y = VERTICAL_NUMBER_OF_PATCHES; y > 0; y--)
 	{
-		for (unsigned int x = 0; x < H_NUM_PATCHES; x++)
+		for (unsigned int x = 0; x < HORIZONTAL_NUMBER_OF_PATCHES; x++)
 		{
-			AddColorChecker(x * tileWidth + BORDER, (y - 1) * tileHeight + BORDER, tileWidth - BORDER, tileHeight - BORDER, *colorIterator);
+			AddColorPatch(x * tileWidth + BORDER, (y - 1) * tileHeight + BORDER, tileWidth - BORDER, tileHeight - BORDER, *colorIterator);
 			colorIterator++;
 		}
 	}
+
+	GameObjectPtr gameObjectPtr = new GameObject();
+
+	BackgroundController* pBackgroundController = new BackgroundController();
+	pBackgroundController->SetBaseColors(mBaseColors);
+	pBackgroundController->SetHorizontalNumberOfColorPatches(HORIZONTAL_NUMBER_OF_PATCHES);
+	pBackgroundController->SetVerticalNumberOfColorPatches(VERTICAL_NUMBER_OF_PATCHES);
+
+	gameObjectPtr->AddComponent(pBackgroundController);
 }
 
-void ColorCheckerApplication::AddColorChecker(float x, float y, float width, float height, const sRGBColor& color)
+void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float height, const sRGBColor& color)
 {
 	MaterialPtr solidColorMaterialPtr;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	solidColorMaterialPtr = new Material(mSolidColorShaderPtr);
+	solidColorMaterialPtr = new Material(ShaderRegistry::Find("SolidColor"));
 	solidColorMaterialPtr->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #else
 	solidColorMaterialPtr = new Material();
@@ -172,44 +172,18 @@ void ColorCheckerApplication::AddColorChecker(float x, float y, float width, flo
 	solidColorMaterialPtr->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 	solidColorMaterialPtr->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #endif
-	TriangleMeshPtr colorCheckerPtr = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f), solidColorMaterialPtr);
-	colorCheckerPtr->Translate(glm::vec3(x, y, 0.0f));
-	colorCheckerPtr->SetMaterial(solidColorMaterialPtr);
-	AddDrawable(colorCheckerPtr);
+	GameObjectPtr patchGameObjectPtr = new GameObject();
+
+	MeshRendererPtr meshRendererPtr = new MeshRenderer();
+	meshRendererPtr->SetMesh(StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f)));
+
+	patchGameObjectPtr->AddComponent(meshRendererPtr);
+
+	MeshFilterPtr meshFilterPtr = new MeshFilter();
+	meshFilterPtr->SetMaterial(solidColorMaterialPtr);
+
+	patchGameObjectPtr->AddComponent(meshFilterPtr);
+
+	patchGameObjectPtr->GetTransform()->Translate(glm::vec3(x, y, 0.0f));
 }
 
-int ColorCheckerApplication::GetColorPatchIndex(int x, int y)
-{
-	float patchWidth = GetScreenWidth() / (float) H_NUM_PATCHES;
-	float patchHeight = GetScreenHeight() / (float) V_NUM_PATCHES;
-
-	int patchX = (int)MathF::Floor(x / patchWidth);
-	int patchY = (int)MathF::Floor(y / patchHeight);
-
-	return patchY * H_NUM_PATCHES + patchX;
-}
-
-void ColorCheckerApplication::OnMouseButton(int button, int state, int x, int y)
-{
-	if (button == 0 && state == 0) 
-	{
-		sRGBColor color = mBaseColors[GetColorPatchIndex(x, y)];
-		std::cout << "Patch: (" << color.R() << ", " << color.G() << ", " << color.B() << ")" << std::endl;
-	}
-}
-
-void ColorCheckerApplication::OnMouseWheel(int button, int direction, int x, int y)
-{
-	// zoom in (lighten)
-	if (direction > 0)
-	{
-		mClearColor += glm::vec4(0.01f, 0.01f, 0.01f, 0.0f);
-	}
-	// zoom out (darken)
-	else
-	{
-		mClearColor -= glm::vec4(0.01f, 0.01f, 0.01f, 0.0f);
-	}
-
-	mClearColor = glm::clamp(mClearColor, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-}

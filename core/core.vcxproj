@@ -114,8 +114,13 @@
   <ItemGroup>
     <ClInclude Include="include\Application.h" />
     <ClInclude Include="include\Camera.h" />
+    <ClInclude Include="include\Component.h" />
     <ClInclude Include="include\Directory.h" />
-    <ClInclude Include="include\Drawable.h" />
+    <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\LineRenderer.h" />
+    <ClInclude Include="include\MeshFilter.h" />
+    <ClInclude Include="include\PointsRenderer.h" />
+    <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Exception.h" />
     <ClInclude Include="include\FileReader.h" />
     <ClInclude Include="include\FirstPersonCameraController.h" />
@@ -126,7 +131,8 @@
     <ClInclude Include="include\LineStrip.h" />
     <ClInclude Include="include\MouseButton.h" />
     <ClInclude Include="include\Points.h" />
-    <ClInclude Include="include\TriangleMesh.h" />
+    <ClInclude Include="include\ResourceAllocator.h" />
+    <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\IOExceptions.h" />
     <ClInclude Include="include\Light.h" />
     <ClInclude Include="include\Material.h" />
@@ -140,22 +146,33 @@
     <ClInclude Include="include\StringUtils.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\Timer.h" />
-    <ClInclude Include="include\Transformable.h" />
+    <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\ShaderRegistry.h" />
-    <ClInclude Include="include\Updateable.h" />
+    <ClInclude Include="include\MeshRenderer.h" />
+    <ClInclude Include="include\Type.h" />
+    <ClInclude Include="include\Behaviour.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\Behaviour.cpp" />
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\Directory.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />
+    <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\LineStrip.cpp" />
+    <ClCompile Include="src\LineRenderer.cpp" />
+    <ClCompile Include="src\MeshFilter.cpp" />
     <ClCompile Include="src\Points.cpp" />
-    <ClCompile Include="src\TriangleMesh.cpp" />
+    <ClCompile Include="src\PointsRenderer.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Transform.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Random.cpp" />
     <ClCompile Include="src\Shader.cpp" />
@@ -164,6 +181,8 @@
     <ClCompile Include="src\StandardGeometries.cpp" />
     <ClCompile Include="src\StringUtils.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\MeshRenderer.cpp" />
+    <ClCompile Include="src\Type.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BlinnPhong.frag" />

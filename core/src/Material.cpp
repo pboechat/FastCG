@@ -1,6 +1,7 @@
 #include <Material.h>
 #include <Application.h>
-#include <TriangleMesh.h>
+#include <Mesh.h>
+#include <Transform.h>
 
 #include <GL/gl.h>
 
@@ -19,56 +20,8 @@ Material::~Material()
 {
 }
 
-void Material::Bind(const glm::mat4& rModel) const
+void Material::SetUpShaderParameters() const
 {
-	mShaderPtr->Bind();
-
-	glm::mat4 view = Application::GetInstance()->GetMainCamera()->GetView();
-	glm::mat4 projection = Application::GetInstance()->GetMainCamera()->GetProjection();
-	glm::mat4 modelView = view * rModel;
-
-	mShaderPtr->SetMat4("_Model", rModel);
-	mShaderPtr->SetMat4("_View", view);
-	mShaderPtr->SetMat4("_ModelView", modelView);
-	mShaderPtr->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-	mShaderPtr->SetMat4("_Projection", projection);
-	mShaderPtr->SetMat4("_ModelViewProjection", projection * modelView);
-	mShaderPtr->SetVec4("_GlobalLightAmbientColor", Application::GetInstance()->GetGlobalAmbientLight());
-
-	const std::vector<LightPtr>& rLights = Application::GetInstance()->GetLights();
-	std::vector<LightPtr>::const_iterator lightsCursor = rLights.begin();
-	unsigned int c = 0;
-	while (lightsCursor != rLights.end())
-	{
-		LightPtr lightPtr = (*lightsCursor);
-		glm::vec3 lightPosition = lightPtr->GetPosition();
-		glm::vec4 lightAmbientColor = lightPtr->GetAmbientColor();
-		glm::vec4 lightDiffuseColor = lightPtr->GetDiffuseColor();
-		glm::vec4 lightSpecularColor = lightPtr->GetSpecularColor();
-
-		std::stringstream variableName;
-		variableName << "_Light" << c << "Position";
-		mShaderPtr->SetVec3(variableName.str(), lightPosition);
-
-		variableName.str(std::string());
-		variableName.clear();
-		variableName << "_Light" << c << "AmbientColor";
-		mShaderPtr->SetVec4(variableName.str(), lightAmbientColor);
-
-		variableName.str(std::string());
-		variableName.clear();
-		variableName << "_Light" << c << "DiffuseColor";
-		mShaderPtr->SetVec4(variableName.str(), lightDiffuseColor);
-
-		variableName.str(std::string());
-		variableName.clear();
-		variableName << "_Light" << c << "SpecularColor";
-		mShaderPtr->SetVec4(variableName.str(), lightSpecularColor);
-
-		c++;
-		lightsCursor++;
-	}
-
 	std::map<std::string, float>::const_iterator floatParametersCursor = mFloatParameters.begin();
 
 	while (floatParametersCursor != mFloatParameters.end())
@@ -117,14 +70,6 @@ void Material::Bind(const glm::mat4& rModel) const
 	}
 }
 
-void Material::Unbind() const
-{
-	mShaderPtr->Unbind();
-
-	// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
 #else
 
 Material::Material(const glm::vec4& ambientColor, const glm::vec4& diffuseColor, const glm::vec4& specularColor, float shininess, bool emissive, const glm::vec4& emissiveColor) :
@@ -141,7 +86,7 @@ Material::~Material()
 {
 }
 
-void Material::Bind() const
+void Material::SetUpShaderParameters() const
 {
 	glMaterialfv(GL_FRONT, GL_AMBIENT, &mAmbientColor[0]);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, &mDiffuseColor[0]);

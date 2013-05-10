@@ -1,24 +1,61 @@
 #ifndef LIGHTANIMATOR_H_
 #define LIGHTANIMATOR_H_
 
-#include <Updateable.h>
-#include <Light.h>
+#include <Behaviour.h>
 
 #include <glm/glm.hpp>
 
-class LightAnimator : public Updateable
+class LightAnimator : public Behaviour
 {
-public:
-	LightAnimator(LightPtr lightPtr, float speed, float amplitude, glm::vec3 direction);
+	DECLARE_TYPE;
 
-	virtual void Update(float time, float deltaTime);
+public:
+	LightAnimator() :
+		mSpeed(0),
+		mHalfAmplitude(0),
+		mDirection(glm::vec3(0.0f, 0.0f, 0.0f))
+	{
+	}
+
+	inline float GetSpeed() const
+	{
+		return mSpeed;
+	}
+
+	inline void SetSpeed(float speed)
+	{
+		mSpeed = speed;
+	}
+
+	inline float GetAmplitude() const
+	{
+		return mHalfAmplitude * 2;
+	}
+
+	inline void SetAmplitude(float amplitude)
+	{
+		mHalfAmplitude = amplitude * 0.5f;
+	}
+
+	inline glm::vec3 GetDirection() const
+	{
+		return mDirection;
+	}
+
+	inline void SetDirection(glm::vec3 direction)
+	{
+		mDirection = direction;
+	}
+
+	virtual void OnUpdate(float time, float deltaTime);
 
 private:
-	LightPtr mLightPtr;
 	float mSpeed;
 	float mHalfAmplitude;
 	glm::vec3 mDirection;
 
 };
+
+typedef Pointer<LightAnimator> LightAnimatorPtr;
 
 #endif

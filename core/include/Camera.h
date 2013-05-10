@@ -1,11 +1,13 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
-#include <Transformable.h>
+#include <Component.h>
 #include <Pointer.h>
+#include <Transform.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 
 enum ProjectionMode
 {
@@ -13,39 +15,69 @@ enum ProjectionMode
 	PM_ORTHOGRAPHIC
 };
 
-class Application;
-
-class Camera: public Transformable
+class Camera: public Component
 {
+	DECLARE_TYPE;
+
 public:
-	Camera(float fieldOfView = 45.0f, float near = 0.3f, float far = 1000.0f, float bottom = 0.0f, float top = 0.0f, float left = 0.0f, float right = 0.0f, ProjectionMode projection = PM_PERSPECTIVE) :
-		mFieldOfView(fieldOfView), 
-		mNear(near),
-		mFar(far), 
-		mBottom(bottom), 
-		mTop(top),
-		mLeft(left),
-		mRight(right),
-		mProjection(projection)
+	inline void SetUp(float fieldOfView = 45.0f, float frustumNear = 0.3f, float frustumFar = 1000.0f, float frustumBottom = 0.0f, float frustumTop = 0.0f, float frustumLeft = 0.0f, float frustumRight = 0.0f, ProjectionMode projectionMode = PM_PERSPECTIVE)
 	{
+		mFieldOfView = fieldOfView;
+		mFrustumNear = frustumNear;
+		mFrustumFar = frustumFar;
+		mFrustumBottom = frustumBottom;
+		mFrustumTop = frustumTop;
+		mFrustumLeft = frustumLeft;
+		mFrustumRight = frustumRight;
+		mProjectionMode = projectionMode;
 	}
 
-	virtual ~Camera();
+	inline void SetAspectRatio(float aspectRatio)
+	{
+		mAspectRatio = aspectRatio;
+	}
 
-	glm::mat4 GetProjection() const;
-	glm::mat4 GetView() const;
+	inline glm::mat4 GetProjection() const
+	{
+		if (mProjectionMode == PM_PERSPECTIVE)
+		{
+			return glm::perspective(mFieldOfView, mAspectRatio, mFrustumNear, mFrustumFar);
+		}
 
-	void operator =(const Camera& rOther);
+		else
+		{
+			return glm::ortho(mFrustumLeft, mFrustumRight, mFrustumBottom, mFrustumTop, mFrustumNear, mFrustumFar);
+		}
+	}
+
+	inline glm::mat4 GetView() const
+	{
+		const Transform* pTransform = GetGameObject()->GetTransform();
+		return glm::lookAt(pTransform->GetPosition(), pTransform->GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+
+	inline void operator =(const Camera& rOther)
+	{
+		mFieldOfView = rOther.mFieldOfView;
+		mFrustumNear = rOther.mFrustumNear;
+		mFrustumFar = rOther.mFrustumFar;
+		mFrustumTop = rOther.mFrustumTop;
+		mFrustumBottom = rOther.mFrustumBottom;
+		mFrustumLeft = rOther.mFrustumLeft;
+		mFrustumRight = rOther.mFrustumRight;
+		mProjectionMode = rOther.mProjectionMode;
+	}
 
 private:
 	float mFieldOfView;
-	float mNear;
-	float mFar;
-	float mTop;
-	float mBottom;
-	float mLeft;
-	float mRight;
-	ProjectionMode mProjection;
+	float mFrustumNear;
+	float mFrustumFar;
+	float mFrustumTop;
+	float mFrustumBottom;
+	float mFrustumLeft;
+	float mFrustumRight;
+	float mAspectRatio;
+	ProjectionMode mProjectionMode;
 
 };
 

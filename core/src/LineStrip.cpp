@@ -1,9 +1,7 @@
 #include <LineStrip.h>
+#include <Shader.h>
 #include <Exception.h>
-#include <ShaderRegistry.h>
 #include <OpenGLExceptions.h>
-
-#include <memory>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -48,8 +46,6 @@ LineStrip::~LineStrip()
 void LineStrip::AllocateResources()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mLineStripMaterialPtr = new Material(ShaderRegistry::Find("LineStrip"));
-
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
@@ -105,7 +101,7 @@ void LineStrip::DeallocateResources()
 #endif
 }
 
-void LineStrip::OnDraw()
+void LineStrip::DrawCall()
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	if (mLineStripVAOId == 0)
@@ -113,31 +109,16 @@ void LineStrip::OnDraw()
 		AllocateResources();
 	}
 
-	mLineStripMaterialPtr->Bind(GetModel());
-
 	glBindVertexArray(mLineStripVAOId);
 	glDrawArrays(GL_LINE_STRIP, 0, mVertices.size());
 	glBindVertexArray(0);
-
-	mLineStripMaterialPtr->Unbind();
 #else
 	if (mDisplayListId == 0)
 	{
 		AllocateResources();
 	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glMultMatrixf(&GetModel()[0][0]);
-
-	glPushAttrib(GL_ENABLE_BIT);
-
-	glEnable(GL_COLOR_MATERIAL);
-
 	glCallList(mDisplayListId);
-
-	glPopAttrib();
-	glPopMatrix();
 #endif
 }
 

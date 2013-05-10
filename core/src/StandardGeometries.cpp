@@ -4,7 +4,7 @@
 
 #include <vector>
 
-TriangleMeshPtr StandardGeometries::CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr)
+MeshPtr StandardGeometries::CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -50,10 +50,10 @@ TriangleMeshPtr StandardGeometries::CreateXYPlane(float width, float height, uns
 		}
 	}
 
-	return new TriangleMesh(vertices, indexes, normals, uvs, materialPtr);
+	return new Mesh(vertices, indexes, normals, uvs);
 }
 
-TriangleMeshPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter, const MaterialPtr& materialPtr)
+MeshPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -99,10 +99,10 @@ TriangleMeshPtr StandardGeometries::CreateXZPlane(float width, float depth, unsi
 		}
 	}
 
-	return new TriangleMesh(vertices, indexes, normals, uvs, materialPtr);
+	return new Mesh(vertices, indexes, normals, uvs);
 }
 
-TriangleMeshPtr StandardGeometries::CreateSphere(float radius, unsigned int slices, MaterialPtr materialPtr)
+MeshPtr StandardGeometries::CreateSphere(float radius, unsigned int slices)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -183,8 +183,8 @@ TriangleMeshPtr StandardGeometries::CreateSphere(float radius, unsigned int slic
 	}
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	return new TriangleMesh(vertices, indices, normals, tangents, uvs, materialPtr);
+	return new Mesh(vertices, indices, normals, tangents, uvs);
 #else
-	return new TriangleMesh(vertices, indices, normals, uvs, materialPtr);
+	return new Mesh(vertices, indices, normals, uvs);
 #endif
 }

@@ -106,10 +106,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\BackgroundController.cpp" />
     <ClCompile Include="src\ColorCheckerApplication.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\BackgroundController.h" />
     <ClInclude Include="src\ColorCheckerApplication.h" />
   </ItemGroup>
   <ItemGroup>

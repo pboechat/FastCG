@@ -1,23 +1,21 @@
 #ifndef LIGHT_H_
 #define LIGHT_H_
 
-#include <Transformable.h>
+#include <Component.h>
 #include <Pointer.h>
 
 #include <glm/glm.hpp>
 
-class Light: public Transformable
+class Light : public Component
 {
+	DECLARE_TYPE;
+
 public:
 	Light() :
-			mIntensity(1.0f),
-			mAmbientColor(1.0f, 1.0f, 1.0f, 1.0f),
-			mDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
-			mSpecularColor(1.0f, 1.0f, 1.0f, 1.0f)
-	{
-	}
-
-	virtual ~Light()
+		mIntensity(1.0f),
+		mAmbientColor(1.0f, 1.0f, 1.0f, 1.0f),
+		mDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
+		mSpecularColor(1.0f, 1.0f, 1.0f, 1.0f)
 	{
 	}
 

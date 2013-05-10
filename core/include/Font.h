@@ -4,7 +4,7 @@
 #include <Pointer.h>
 #include <Shader.h>
 #include <Material.h>
-#include <TriangleMesh.h>
+#include <Mesh.h>
 
 #include <glm/glm.hpp>
 
@@ -25,7 +25,7 @@ private:
 	std::string mFileName;
 	unsigned int mSize;
 	ShaderPtr mFontShaderPtr;
-	std::vector<TriangleMeshPtr> mBillboards;
+	std::vector<MeshPtr> mBillboards;
 	std::vector<unsigned int> mCharactersTexturesIds;
 	std::vector<int> mSpacings;
 	std::vector<glm::vec2> mOffsets;
@@ -33,7 +33,7 @@ private:
 	void AllocateResources();
 	void DeallocateResources();
 
-	TriangleMeshPtr CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t);
+	MeshPtr CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t);
 
 };
 

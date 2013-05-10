@@ -6,6 +6,8 @@
 #include <MathT.h>
 #include <Application.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include <freetype/ftglyph.h>
@@ -33,7 +35,7 @@ Font::~Font()
 	DeallocateResources();
 }
 
-TriangleMeshPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t)
+MeshPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t)
 {
 	std::vector<glm::vec3> vertices(4);
 	std::vector<glm::vec3> normals(4);
@@ -62,7 +64,9 @@ TriangleMeshPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int 
 	indexes[4] = 2;
 	indexes[5] = 3;
 
-	return new TriangleMesh(vertices, indexes, normals, uvs, 0);
+	Mesh* pMesh = new Mesh(vertices, indexes, normals, uvs);
+	pMesh->AllocateResources();
+	return pMesh;
 }
 
 void Font::AllocateResources()
@@ -169,7 +173,7 @@ void Font::DrawText(const std::string& rText, unsigned int size, int x, int y, c
 
 		int spacing = (int)(mSpacings[c] * scale);
 
-		TriangleMeshPtr billboardPtr = mBillboards[c];
+		MeshPtr billboardPtr = mBillboards[c];
 
 		glm::mat4 model(1);
 		glm::vec4 screenPosition = glm::vec4(left, y, 0.0f, 1.0f) + offset;
@@ -181,7 +185,8 @@ void Font::DrawText(const std::string& rText, unsigned int size, int x, int y, c
 		mFontShaderPtr->SetMat4("_ModelViewProjection", projection * (view * model));
 		mFontShaderPtr->SetVec4("color", rColor);
 		mFontShaderPtr->SetTexture("font", mCharactersTexturesIds[c], 0);
-		billboardPtr->Draw();
+		// FIXME:
+		billboardPtr->DrawCall();
 		mFontShaderPtr->Unbind();
 
 		left += spacing;

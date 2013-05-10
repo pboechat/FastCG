@@ -110,10 +110,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\BSplinesApplication.cpp" />
+    <ClCompile Include="src\BSplinesEditor.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BSplinesApplication.h" />
+    <ClInclude Include="src\BSplinesEditor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
