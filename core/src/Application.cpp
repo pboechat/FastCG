@@ -342,6 +342,12 @@ void Application::Update()
 	}
 
 	mUpdateTimer.Start();
+
+	Render();
+}
+
+void Application::Render() 
+{
 	mFrameTimer.Start();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -515,6 +521,7 @@ void Application::Update()
 	}
 
 	mFrameTimer.End();
+
 	mElapsedTime += mFrameTimer.GetElapsedTime();
 	mElapsedFrames++;
 
@@ -530,6 +537,7 @@ void Application::Update()
 	}
 
 	DrawAllTexts();
+
 	glutSwapBuffers();
 }
 
@@ -829,11 +837,3 @@ void GLUTSpecialKeysUpCallback(int keyCode, int x, int y)
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, false);
 }
 
-void ExitCallback()
-{
-	// safe destruction
-	if (Application::s_mpInstance != 0)
-	{
-		delete Application::s_mpInstance;
-	}
-}

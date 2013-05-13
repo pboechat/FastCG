@@ -4,6 +4,8 @@
 [Rr]elease_FFP/
 ipch/
 
+memory_leak_report.txt
+
 *.sdf
 *.opensdf
 *.suo

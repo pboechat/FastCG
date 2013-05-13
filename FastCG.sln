@@ -71,6 +71,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "surfaces", "surfaces\surfac
 		{083DF5F2-9F5A-4C1C-9A5F-9A109B1227F4} = {083DF5F2-9F5A-4C1C-9A5F-9A109B1227F4}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "deferredshading", "samples\deferredshading\deferredshading.vcxproj", "{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_FFP|Win32 = Debug_FFP|Win32
@@ -150,6 +152,12 @@ Global
 		{28254470-4EEA-4A53-9793-F828136B0C3F}.Debug|Win32.Build.0 = Debug|Win32
 		{28254470-4EEA-4A53-9793-F828136B0C3F}.Release|Win32.ActiveCfg = Release|Win32
 		{28254470-4EEA-4A53-9793-F828136B0C3F}.Release|Win32.Build.0 = Release|Win32
+		{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}.Debug_FFP|Win32.ActiveCfg = Debug_FFP|Win32
+		{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}.Debug_FFP|Win32.Build.0 = Debug_FFP|Win32
+		{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}.Debug|Win32.Build.0 = Debug|Win32
+		{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}.Release|Win32.ActiveCfg = Release|Win32
+		{9B5EFCA5-C629-480E-A50A-C7CC7F46A40E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

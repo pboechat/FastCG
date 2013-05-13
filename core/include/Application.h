@@ -30,7 +30,6 @@ void GLUTKeyboardCallback(unsigned char key, int x, int y);
 void GLUTKeyboardUpCallback(unsigned char key, int x, int y);
 void GLUTSpecialKeysCallback(int key, int x, int y);
 void GLUTSpecialKeysUpCallback(int key, int x, int y);
-void ExitCallback();
 
 class Input;
 
@@ -188,6 +187,7 @@ private:
 	void SetUpOpenGL();
 	void DrawAllTexts();
 	void Update();
+	void Render();
 	void Resize(int width, int height);
 	void MouseButton(int button, int state, int x, int y);
 	void MouseWheel(int button, int direction, int x, int y);
