@@ -18,7 +18,7 @@
 
 const unsigned int BumpMappingApplication::FLOOR_SIZE = 100;
 const float BumpMappingApplication::SPHERE_RADIUS = (FLOOR_SIZE * 0.025f);
-const unsigned int BumpMappingApplication::NUMBER_OF_SPHERE_SLICES = 10;
+const unsigned int BumpMappingApplication::NUMBER_OF_SPHERE_SLICES = 30;
 const float BumpMappingApplication::WALK_SPEED = 20.0f;
 const float BumpMappingApplication::TURN_SPEED = 100.0f;
 
@@ -99,9 +99,11 @@ void BumpMappingApplication::OnStart()
 	mFloorBumpMapTextures.push_back(LoadPNGAsTexture("textures/FloorBumpMap2.png"));
 
 	mSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
-	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
+	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereBumpMap1.png"));
 	mSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
-	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
+	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereBumpMap2.png"));
+	mSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap3.png"));
+	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereBumpMap3.png"));
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Shader* pShader = ShaderRegistry::Find("BumpedSpecular");

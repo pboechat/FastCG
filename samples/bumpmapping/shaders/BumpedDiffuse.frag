@@ -13,9 +13,9 @@ in vec2 textureCoordinates;
 
 void main()
 {
-	vec4 diffuseColor = texture(colorMap, (textureCoordinates * colorMapTiling));
+	vec4 diffuseColor = texture2D(colorMap, (textureCoordinates * colorMapTiling));
 
-	vec3 normal = normalize(texture(bumpMap, (textureCoordinates * bumpMapTiling)).xyz * 2.0 - 1.0);
+	vec3 normal = normalize(texture2D(bumpMap, (textureCoordinates * bumpMapTiling)).rgb * 2.0 - 1.0);
 
 	vec4 ambientContribution = _GlobalLightAmbientColor;
 

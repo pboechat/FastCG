@@ -64,9 +64,9 @@ void SpheresController::OnUpdate(float time, float deltaTime)
 	}
 #endif
 
-	/*for (unsigned int i = 0; i < mSpheres.size(); i++)
+	for (unsigned int i = 0; i < mSpheres.size(); i++)
 	{
 		GameObject* pSphere = mSpheres[i];
 		pSphere->GetTransform()->Rotate(mRotationSpeed * deltaTime, mRotationAxis);
-	}*/
+	}
 }
