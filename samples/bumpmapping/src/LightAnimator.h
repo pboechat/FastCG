@@ -5,21 +5,13 @@
 
 #include <glm/glm.hpp>
 
-class LightAnimator : public Behaviour
-{
-	DECLARE_TYPE;
-
+COMPONENT(LightAnimator, Behaviour)
 public:
-	LightAnimator() :
-		mSpeed(0),
-		mHalfAmplitude(0),
-		mDirection(glm::vec3(0.0f, 0.0f, 0.0f))
+	virtual void OnInstantiate()
 	{
-	}
-
-	inline float GetSpeed() const
-	{
-		return mSpeed;
+		mSpeed = 0.0f;
+		mHalfAmplitude = 0.0f;
+		mDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 
 	inline void SetSpeed(float speed)
@@ -27,19 +19,9 @@ public:
 		mSpeed = speed;
 	}
 
-	inline float GetAmplitude() const
-	{
-		return mHalfAmplitude * 2;
-	}
-
 	inline void SetAmplitude(float amplitude)
 	{
 		mHalfAmplitude = amplitude * 0.5f;
-	}
-
-	inline glm::vec3 GetDirection() const
-	{
-		return mDirection;
 	}
 
 	inline void SetDirection(glm::vec3 direction)
@@ -55,7 +37,5 @@ private:
 	glm::vec3 mDirection;
 
 };
-
-typedef Pointer<LightAnimator> LightAnimatorPtr;
 
 #endif

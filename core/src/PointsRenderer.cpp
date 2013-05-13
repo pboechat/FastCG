@@ -4,11 +4,11 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-IMPLEMENT_TYPE(PointsRenderer, Renderer);
+COMPONENT_IMPLEMENTATION(PointsRenderer, Renderer);
 
 void PointsRenderer::OnRender()
 {
-	if (mPointsPtr == 0)
+	if (mpPoints == 0)
 	{
 		return;
 	}
@@ -18,7 +18,7 @@ void PointsRenderer::OnRender()
 	glEnable(GL_COLOR_MATERIAL);
 #endif
 
-	mPointsPtr->DrawCall();
+	mpPoints->DrawCall();
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glPopAttrib();

@@ -33,9 +33,15 @@ Font::Font(const std::string& rFileName, unsigned int size) :
 Font::~Font()
 {
 	DeallocateResources();
+
+	for (unsigned int i = 0; i < mBillboards.size(); i++)
+	{
+		delete mBillboards[i];
+	}
+	mBillboards.clear();
 }
 
-MeshPtr Font::CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t)
+Mesh* Font::CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t)
 {
 	std::vector<glm::vec3> vertices(4);
 	std::vector<glm::vec3> normals(4);
@@ -93,7 +99,7 @@ void Font::AllocateResources()
 	// freetype measures font size in terms of 1/64ths of pixels
 	FT_Set_Char_Size(face, mSize << 6, mSize << 6, 96, 96);
 
-	mFontShaderPtr = ShaderRegistry::Find("Font");
+	mpFontShader = ShaderRegistry::Find("Font");
 
 	for (unsigned char c = 0; c < NUM_CHARS; c++)
 	{
@@ -173,7 +179,7 @@ void Font::DrawText(const std::string& rText, unsigned int size, int x, int y, c
 
 		int spacing = (int)(mSpacings[c] * scale);
 
-		MeshPtr billboardPtr = mBillboards[c];
+		Mesh* pBillboard = mBillboards[c];
 
 		glm::mat4 model(1);
 		glm::vec4 screenPosition = glm::vec4(left, y, 0.0f, 1.0f) + offset;
@@ -181,13 +187,13 @@ void Font::DrawText(const std::string& rText, unsigned int size, int x, int y, c
 		model[3] = screenPosition;
 		model = glm::scale(model, glm::vec3(scale, scale, scale));
 
-		mFontShaderPtr->Bind();
-		mFontShaderPtr->SetMat4("_ModelViewProjection", projection * (view * model));
-		mFontShaderPtr->SetVec4("color", rColor);
-		mFontShaderPtr->SetTexture("font", mCharactersTexturesIds[c], 0);
+		mpFontShader->Bind();
+		mpFontShader->SetMat4("_ModelViewProjection", projection * (view * model));
+		mpFontShader->SetVec4("color", rColor);
+		mpFontShader->SetTexture("font", mCharactersTexturesIds[c], 0);
 		// FIXME:
-		billboardPtr->DrawCall();
-		mFontShaderPtr->Unbind();
+		pBillboard->DrawCall();
+		mpFontShader->Unbind();
 
 		left += spacing;
 	}

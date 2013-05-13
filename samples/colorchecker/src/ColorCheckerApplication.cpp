@@ -28,14 +28,24 @@ ColorCheckerApplication::ColorCheckerApplication() :
 ColorCheckerApplication::~ColorCheckerApplication()
 {
 	std::vector<LightSpectrum*>::iterator i = mLightSpectrums.begin();
-
 	while (i != mLightSpectrums.end())
 	{
 		delete *i;
 		i++;
 	}
-
 	mLightSpectrums.clear();
+
+	for (unsigned int i = 0; i < mMaterials.size(); i++)
+	{
+		delete mMaterials[i];
+	}
+	mMaterials.clear();
+
+	for (unsigned int i = 0; i < mMeshes.size(); i++)
+	{
+		delete mMeshes[i];
+	}
+	mMeshes.clear();
 }
 
 bool ColorCheckerApplication::ParseCommandLineArguments(int argc, char** argv)
@@ -137,6 +147,7 @@ void ColorCheckerApplication::OnStart()
 	mpMainCamera->SetUp(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 	ParseColorCheckerFile();
 	ConvertLightSpectrumsToRGBs();
+
 	float tileWidth = (GetScreenWidth() - BORDER) / (float) HORIZONTAL_NUMBER_OF_PATCHES;
 	float tileHeight = (GetScreenHeight() - BORDER) / (float) VERTICAL_NUMBER_OF_PATCHES;
 	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
@@ -150,40 +161,39 @@ void ColorCheckerApplication::OnStart()
 		}
 	}
 
-	GameObjectPtr gameObjectPtr = new GameObject();
+	GameObject* pGameObject = GameObject::Instantiate();
 
-	BackgroundController* pBackgroundController = new BackgroundController();
+	BackgroundController* pBackgroundController = BackgroundController::Instantiate(pGameObject);
 	pBackgroundController->SetBaseColors(mBaseColors);
 	pBackgroundController->SetHorizontalNumberOfColorPatches(HORIZONTAL_NUMBER_OF_PATCHES);
 	pBackgroundController->SetVerticalNumberOfColorPatches(VERTICAL_NUMBER_OF_PATCHES);
-
-	gameObjectPtr->AddComponent(pBackgroundController);
 }
 
 void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float height, const sRGBColor& color)
 {
-	MaterialPtr solidColorMaterialPtr;
+	Material* pSolidColorMaterial;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	solidColorMaterialPtr = new Material(ShaderRegistry::Find("SolidColor"));
-	solidColorMaterialPtr->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial = new Material(ShaderRegistry::Find("SolidColor"));
+	pSolidColorMaterial->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #else
-	solidColorMaterialPtr = new Material();
-	solidColorMaterialPtr->SetAmbientColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
-	solidColorMaterialPtr->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
-	solidColorMaterialPtr->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial = new Material();
+	pSolidColorMaterial->SetAmbientColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #endif
-	GameObjectPtr patchGameObjectPtr = new GameObject();
+	mMaterials.push_back(pSolidColorMaterial);
 
-	MeshRendererPtr meshRendererPtr = new MeshRenderer();
-	meshRendererPtr->SetMesh(StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f)));
+	GameObject* pPatchGameObject = GameObject::Instantiate();
 
-	patchGameObjectPtr->AddComponent(meshRendererPtr);
+	Mesh* pMesh = StandardGeometries::CreateXYPlane(width, height, 1, 1, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
+	mMeshes.push_back(pMesh);
 
-	MeshFilterPtr meshFilterPtr = new MeshFilter();
-	meshFilterPtr->SetMaterial(solidColorMaterialPtr);
+	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pPatchGameObject);
+	pMeshRenderer->SetMesh(pMesh);
 
-	patchGameObjectPtr->AddComponent(meshFilterPtr);
+	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pPatchGameObject);
+	pMeshFilter->SetMaterial(pSolidColorMaterial);
 
-	patchGameObjectPtr->GetTransform()->Translate(glm::vec3(x, y, 0.0f));
+	pPatchGameObject->GetTransform()->Translate(glm::vec3(x, y, 0.0f));
 }
 

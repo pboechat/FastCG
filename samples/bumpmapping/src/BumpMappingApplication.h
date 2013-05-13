@@ -23,7 +23,16 @@ private:
 	static const float WALK_SPEED;
 	static const float TURN_SPEED;
 
-	TexturePtr LoadPNGAsTexture(const std::string& rFileName);
+	Texture* LoadPNGAsTexture(const std::string& rFileName);
+
+	std::vector<Texture*> mpFloorColorMapTextures;
+	std::vector<Texture*> mpFloorBumpMapTextures;
+	std::vector<Texture*> mpSphereColorMapTextures;
+	std::vector<Texture*> mpSphereBumpMapTextures;
+	Material* mpFloorMaterial;
+	Mesh* mpFloorMesh;
+	Material* mpSphereMaterial;
+	Mesh* mpSphereMesh;
 
 };
 

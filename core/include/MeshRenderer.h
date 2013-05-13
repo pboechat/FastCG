@@ -4,29 +4,29 @@
 #include <Renderer.h>
 #include <Mesh.h>
 
-class MeshRenderer : public Renderer
-{
-	DECLARE_TYPE;
-
+COMPONENT(MeshRenderer, Renderer)
 public:
-	inline void SetMesh(const MeshPtr& meshPtr)
+	inline void SetMesh(Mesh* pMesh)
 	{
-		mMeshPtr = meshPtr;
+		mpMesh = pMesh;
 	}
 
-	inline MeshPtr GetMesh() const
+	inline Mesh* GetMesh() const
 	{
-		return mMeshPtr;
+		return mpMesh;
+	}
+
+	virtual void OnInstantiate()
+	{
+		mpMesh = 0;
 	}
 
 protected:
 	virtual void OnRender();
 
 private:
-	MeshPtr mMeshPtr;
+	Mesh* mpMesh;
 
 };
-
-typedef Pointer<MeshRenderer> MeshRendererPtr;
 
 #endif

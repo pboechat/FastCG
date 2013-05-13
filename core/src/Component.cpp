@@ -1,3 +1,3 @@
 #include <Component.h>
 
-const Type Component::TYPE("Component", 0);
+const ComponentType Component::TYPE("Component", 0);

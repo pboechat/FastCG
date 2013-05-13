@@ -12,10 +12,11 @@ public:
 	static const unsigned int STANDARD_FONT_SIZE;
 
 	static void LoadFontsFromDisk(const std::string& rFontsDirectory);
-	static FontPtr Find(const std::string& rFontName);
+	static Font* Find(const std::string& rFontName);
+	static void Unload();
 
 private:
-	static std::map<std::string, FontPtr> mFontsByName;
+	static std::map<std::string, Font*> mFontsByName;
 
 	FontRegistry()
 	{

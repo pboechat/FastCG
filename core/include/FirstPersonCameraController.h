@@ -5,14 +5,11 @@
 
 #include <glm/glm.hpp>
 
-class FirstPersonCameraController : public Behaviour
-{
-	DECLARE_TYPE;
-
+COMPONENT(FirstPersonCameraController, Behaviour)
 public:
-	FirstPersonCameraController() :
-		mRightMouseButtonPressed(false)
+	virtual void OnInitialize()
 	{
+		mRightMouseButtonPressed = false;
 	}
 
 	inline float GetWalkSpeed() const 
@@ -44,7 +41,5 @@ private:
 	float mTurnSpeed;
 	
 };
-
-typedef Pointer<FirstPersonCameraController> FirstPersonCameraControllerPtr;
 
 #endif

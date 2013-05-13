@@ -1,8 +1,6 @@
 #ifndef POINTS_H_
 #define POINTS_H_
 
-#include <Pointer.h>
-
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -37,7 +35,5 @@ private:
 	void DeallocateResources();
 
 };
-
-typedef Pointer<Points> PointsPtr;
 
 #endif

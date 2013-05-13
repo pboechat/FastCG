@@ -17,11 +17,11 @@ void main()
 {
 	vec4 diffuseColor = texture2D(colorMap, (textureCoordinates * colorMapTiling));
 
-	vec3 normal = normalize(texture2D(bumpMap, (textureCoordinates * bumpMapTiling)).xyz * 2.0 - 1.0);
+	vec3 normal = normalize(texture2D(bumpMap, (textureCoordinates * bumpMapTiling)).rgb);
 
 	vec4 ambientContribution = _GlobalLightAmbientColor;
 
-	float diffuseAttenuation = max(dot(normal, lightDirection), 0.0); 
+	float diffuseAttenuation = max(dot(lightDirection, normal), 0.0); 
 	vec4 diffuseContribution = _Light0DiffuseColor * diffuseColor * diffuseAttenuation;
 
 	vec4 specularContribution = vec4(0.0);

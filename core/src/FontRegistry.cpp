@@ -6,7 +6,7 @@
 #include <Exception.h>
 
 const unsigned int FontRegistry::STANDARD_FONT_SIZE = 14;
-std::map<std::string, FontPtr> FontRegistry::mFontsByName;
+std::map<std::string, Font*> FontRegistry::mFontsByName;
 
 bool FontRegistry::ExtractFontInfo(const std::string& rFontFileName, std::string& rFontName)
 {
@@ -35,23 +35,18 @@ void FontRegistry::LoadFontsFromDisk(const std::string& rFontsDirectory)
 			continue;
 		}
 
-		std::map<std::string, FontPtr>::iterator it = mFontsByName.find(fontName);
-		FontPtr fontPtr;
+		std::map<std::string, Font*>::iterator it = mFontsByName.find(fontName);
 		if (it == mFontsByName.end())
 		{
-			fontPtr = new Font(rFontsDirectory + "/" + fontFiles[i], STANDARD_FONT_SIZE);
-			mFontsByName.insert(std::make_pair(fontName, fontPtr));
-		}
-		else 
-		{
-			fontPtr = it->second;
+			Font* newFont = new Font(rFontsDirectory + "/" + fontFiles[i], STANDARD_FONT_SIZE);
+			mFontsByName.insert(std::make_pair(fontName, newFont));
 		}
 	}
 }
 
-FontPtr FontRegistry::Find(const std::string& rFontName)
+Font* FontRegistry::Find(const std::string& rFontName)
 {
-	std::map<std::string, FontPtr>::iterator it = mFontsByName.find(rFontName);
+	std::map<std::string, Font*>::iterator it = mFontsByName.find(rFontName);
 
 	if (it == mFontsByName.end())
 	{
@@ -59,6 +54,18 @@ FontPtr FontRegistry::Find(const std::string& rFontName)
 	}
 
 	return it->second;
+}
+
+void FontRegistry::Unload()
+{
+	std::map<std::string, Font*>::iterator it = mFontsByName.begin();
+	while (it != mFontsByName.end())
+	{
+		delete it->second;
+		it++;
+	}
+
+	mFontsByName.clear();
 }
 
 #endif

@@ -1,13 +1,13 @@
 #include <MeshRenderer.h>
 
-IMPLEMENT_TYPE(MeshRenderer, Renderer);
+COMPONENT_IMPLEMENTATION(MeshRenderer, Renderer);
 
 void MeshRenderer::OnRender()
 {
-	if (mMeshPtr == 0)
+	if (mpMesh == 0)
 	{
 		return;
 	}
 
-	mMeshPtr->DrawCall();
+	mpMesh->DrawCall();
 }

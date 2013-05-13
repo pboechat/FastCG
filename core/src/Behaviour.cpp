@@ -1,3 +1,3 @@
 #include <Behaviour.h>
 
-IMPLEMENT_TYPE(Behaviour, Component);
+COMPONENT_IMPLEMENTATION(Behaviour, Component);

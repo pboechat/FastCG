@@ -1,18 +1,18 @@
 #if (!defined(SHADER_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
 #define SHADER_H_
 
-#include <Pointer.h>
 #include <Texture.h>
 #include <Exception.h>
 
-#include <cstdlib>
-#include <string>
-#include <map>
+#include <glm/glm.hpp>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/freeglut.h>
-#include <glm/glm.hpp>
+
+#include <cstdlib>
+#include <string>
+#include <map>
 
 enum ShaderType
 {
@@ -113,10 +113,10 @@ public:
 		glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
 	}
 
-	inline void SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr, unsigned int textureUnit) const
+	inline void SetTexture(const std::string& rParameterName, const Texture* pTexture, unsigned int textureUnit) const
 	{
 		glActiveTexture(GL_TEXTURE0 + (int)textureUnit);
-		texturePtr->Bind();
+		pTexture->Bind();
 		glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
 		// TODO:
 		//texturePtr->Unbind();
@@ -175,7 +175,5 @@ private:
 	}
 
 };
-
-typedef Pointer<Shader> ShaderPtr;
 
 #endif

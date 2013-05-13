@@ -14,11 +14,11 @@
 #include <Shader.h>
 #include <Timer.h>
 
+#include <glm/glm.hpp>
+
 #include <string>
 #include <vector>
 #include <map>
-
-#include <glm/glm.hpp>
 
 void GLUTIdleCallback();
 void GLUTDisplayCallback();
@@ -30,6 +30,7 @@ void GLUTKeyboardCallback(unsigned char key, int x, int y);
 void GLUTKeyboardUpCallback(unsigned char key, int x, int y);
 void GLUTSpecialKeysCallback(int key, int x, int y);
 void GLUTSpecialKeysUpCallback(int key, int x, int y);
+void GLUTWMCloseFunc();
 void ExitCallback();
 
 class Input;
@@ -45,13 +46,11 @@ public:
 		return s_mpInstance;
 	}
 
-	static bool HasStarted();
-
 	void Run(int argc, char** argv);
-	void Quit();
+	void Exit();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	void DrawText(const std::string& rText, unsigned int size, int x, int y, FontPtr fontPtr, const glm::vec4& rColor);
+	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
 #endif
 
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
@@ -66,7 +65,8 @@ public:
 		return mScreenHeight;
 	}
 
-	inline CameraPtr GetMainCamera() const
+	// TODO: review
+	inline Camera* GetMainCamera()
 	{
 		return mpMainCamera;
 	}
@@ -81,6 +81,9 @@ public:
 		mClearColor = clearColor;
 	}
 
+	void AddToMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial);
+	void RemoveFromMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial);
+
 	friend void GLUTIdleCallback();
 	friend void GLUTDisplayCallback();
 	friend void GLUTReshapeWindowCallback(int, int);
@@ -91,6 +94,7 @@ public:
 	friend void GLUTKeyboardUpCallback(unsigned char, int, int);
 	friend void GLUTSpecialKeysCallback(int, int, int);
 	friend void GLUTSpecialKeysUpCallback(int, int, int);
+	friend void GLUTWMCloseFunc();
 	friend void ExitCallback();
 
 	friend class GameObject;
@@ -101,14 +105,14 @@ protected:
 	glm::vec4 mGlobalAmbientLight;
 	bool mShowFPS;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	FontPtr mStandardFontPtr;
+	Font* mpStandardFont;
 #endif
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
 	virtual void OnResize();
 	virtual void OnStart();
-	virtual void OnFinish();
+	virtual void OnQuit();
 	virtual void OnMouseButton(int button, int state, int x, int y);
 	virtual void OnMouseWheel(int button, int direction, int x, int y);
 	virtual void OnMouseMove(int x, int y);
@@ -124,12 +128,12 @@ private:
 		int x;
 		int y;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		FontPtr fontPtr;
+		Font* pFont;
 #endif
 		glm::vec4 color;
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, FontPtr fontPtr, const glm::vec4& rColor)
+		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
 #else
 		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 #endif
@@ -139,7 +143,7 @@ private:
 			this->x = x;
 			this->y = y;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-			this->fontPtr = fontPtr;
+			this->pFont = pFont;
 #endif
 			color = rColor;
 		}
@@ -152,7 +156,7 @@ private:
 	};
 
 	static Application* s_mpInstance;
-	static bool s_mStarted;
+	static bool s_mRunning;
 
 	unsigned int mScreenWidth;
 	unsigned int mScreenHeight;
@@ -161,25 +165,25 @@ private:
 	float mAspectRatio;
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
-	std::vector<GameObjectPtr> mGameObjects;
+	std::vector<GameObject*> mGameObjects;
 	std::vector<Camera*> mCameras;
 	std::vector<Light*> mLights;
 	std::vector<MeshFilter*> mMeshFilters;
 	std::vector<Behaviour*> mBehaviours;
-	std::vector<Component*> mComponents;
 	std::vector<LineRenderer*> mLineRenderers;
 	std::vector<PointsRenderer*> mPointsRenderers;
-	std::vector<RenderingGroup> mRenderingGroups;
+	std::vector<Component*> mComponents;
+	std::vector<RenderingGroup*> mRenderingGroups;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	ShaderPtr mLineStripShaderPtr;
-	ShaderPtr mPointsShaderPtr;
+	Shader* mpLineStripShader;
+	Shader* mpPointsShader;
 #endif
 	Timer mStartTimer;
 	Timer mFrameTimer;
 	Timer mUpdateTimer;
 	unsigned int mElapsedFrames;
 	double mElapsedTime;
-	std::vector<DrawTextRequest> mDrawTextRequests;
+	std::vector<DrawTextRequest*> mDrawTextRequests;
 	Input* mpInput;
 	GameObject* mpInternalGameObject;
 
@@ -193,13 +197,12 @@ private:
 	void MouseMove(int x, int y);
 	void Keyboard(int key, int x, int y, bool state);
 	void SetMainCamera(Camera* pCamera);
-	void RegisterGameObject(const GameObjectPtr& rGameObjectPtr);
-	void UnregisterGameObject(const GameObjectPtr& rGameObjectPtr);
-	void RegisterComponent(const ComponentPtr& rComponentPtr);
+	void RegisterGameObject(GameObject* pGameObject);
+	void UnregisterGameObject(GameObject* pGameObject);
+	void RegisterComponent(Component* pComponent);
 	void RegisterCamera(Camera* pCamera);
 	void RegisterMeshFilter(MeshFilter* pMeshFilter);
-	void UnregisterComponent(const ComponentPtr& rComponentPtr);
-	void RemoveFromMeshRenderingGroups(MeshFilter* pMeshFilter);
+	void UnregisterComponent(Component* pComponent);
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	void SetUpShaderLights(Shader* pShader);
 #endif

@@ -1,7 +1,6 @@
 #ifndef BSPLINECURVE_H_
 #define BSPLINECURVE_H_
 
-#include <Pointer.h>
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -10,7 +9,7 @@ class BSplineCurve
 {
 public:
 	static const unsigned int MINIMUM_DEGREE;
-	static Pointer<BSplineCurve> CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped);
+	static BSplineCurve* CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped);
 
 	inline const std::vector<float>& GetKnots() const
 	{
@@ -34,7 +33,5 @@ private:
 	float DeBoors(int n, int i, float x) const;
 
 };
-
-typedef Pointer<BSplineCurve> BSplinePtr;
 
 #endif

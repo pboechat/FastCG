@@ -3,36 +3,36 @@
 
 #include <Behaviour.h>
 #include <BSplineCurve.h>
+#include <LineStrip.h>
+#include <Points.h>
 
 #include <glm/glm.hpp>
 
-class BSplinesEditor : public Behaviour
-{
-	DECLARE_TYPE;
-
+COMPONENT(BSplinesEditor, Behaviour)
 public:
-	BSplinesEditor();
+	virtual void OnInstantiate();
+	virtual void OnDestroy();
 
 	virtual void OnUpdate(float time, float deltaTime);
 
-	inline void SetBSplineGameObject(const GameObjectPtr& bSplineGameObjectPtr)
+	inline void SetBSplineGameObject(GameObject* pBSplineGameObject)
 	{
-		mBSplineGameObjectPtr = bSplineGameObjectPtr;
+		mpBSplineGameObject = pBSplineGameObject;
 	}
 
-	inline void SetControlPolygonGameObject(const GameObjectPtr& controlPolygonGameObjectPtr)
+	inline void SetControlPolygonGameObject(GameObject* pControlPolygonGameObject)
 	{
-		mControlPolygonGameObjectPtr = controlPolygonGameObjectPtr;
+		mpControlPolygonGameObject = pControlPolygonGameObject;
 	}
 
-	inline void SetControlPointsGameObject(const GameObjectPtr& controlPointsGameObjectPtr)
+	inline void SetControlPointsGameObject(GameObject* pControlPointsGameObject)
 	{
-		mControlPointsGameObjectPtr = controlPointsGameObjectPtr;
+		mpControlPointsGameObject = pControlPointsGameObject;
 	}
 
-	inline void SetKnotsGameObject(const GameObjectPtr& knotsGameObjectPtr)
+	inline void SetKnotsGameObject(GameObject* pKnotsGameObject)
 	{
-		mKnotsGameObjectPtr = knotsGameObjectPtr;
+		mpKnotsGameObject = pKnotsGameObject;
 	}
 
 private:
@@ -56,17 +56,20 @@ private:
 
 	unsigned int mBSplineDegree;
 	std::vector<glm::vec2> mControlPoints;
-	GameObjectPtr mControlPolygonGameObjectPtr;
-	GameObjectPtr mBSplineGameObjectPtr;
-	GameObjectPtr mControlPointsGameObjectPtr;
-	GameObjectPtr mKnotsGameObjectPtr;
-	BSplinePtr mBSplinePtr;
+	GameObject* mpControlPolygonGameObject;
+	GameObject* mpBSplineGameObject;
+	GameObject* mpControlPointsGameObject;
+	GameObject* mpKnotsGameObject;
+	BSplineCurve* mpBSplineCurve;
 	State mState;
 	int mSelectedControlPointIndex;
 	float mLastKeyPressTime;
 	float mLastRightMouseButtonClickTime;
 	float mLastLeftMouseButtonClickTime;
-
+	LineStrip* mpBSpline;
+	Points* mpKnots;
+	Points* mpControlPoints;
+	LineStrip* mpControlPolygon;
 	void SetState(State state);
 	void RemoveLastControlPoint();
 	void UpdateBSpline();

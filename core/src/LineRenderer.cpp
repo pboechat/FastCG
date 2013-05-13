@@ -4,11 +4,11 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
-IMPLEMENT_TYPE(LineRenderer, Renderer);
+COMPONENT_IMPLEMENTATION(LineRenderer, Renderer);
 
 void LineRenderer::OnRender()
 {
-	if (mLineStripPtr == 0)
+	if (mpLineStrip == 0)
 	{
 		return;
 	}
@@ -18,7 +18,7 @@ void LineRenderer::OnRender()
 	glEnable(GL_COLOR_MATERIAL);
 #endif
 
-	mLineStripPtr->DrawCall();
+	mpLineStrip->DrawCall();
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glPopAttrib();

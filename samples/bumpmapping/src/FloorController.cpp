@@ -6,7 +6,7 @@
 #include <MeshFilter.h>
 #include <ShaderRegistry.h>
 
-IMPLEMENT_TYPE(FloorController, Behaviour);
+COMPONENT_IMPLEMENTATION(FloorController, Behaviour);
 
 void FloorController::OnUpdate(float time, float deltaTime)
 {
@@ -15,13 +15,13 @@ void FloorController::OnUpdate(float time, float deltaTime)
 		mCurrentTextureIndex = (++mCurrentTextureIndex % mColorMapTextures.size());
 		mLastLeftButtonClickTime = time;
 
-		MeshFilterPtr meshFilterPtr = DynamicCast<MeshFilter>(GetGameObject()->GetComponent(MeshFilter::TYPE));
+		MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(GetGameObject()->GetComponent(MeshFilter::TYPE));
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		meshFilterPtr->GetMaterial()->SetTexture("colorMap", mColorMapTextures[mCurrentTextureIndex]);
-		meshFilterPtr->GetMaterial()->SetTexture("bumpMap", mBumpMapTextures[mCurrentTextureIndex]);
+		pMeshFilter->GetMaterial()->SetTexture("colorMap", mColorMapTextures[mCurrentTextureIndex]);
+		pMeshFilter->GetMaterial()->SetTexture("bumpMap", mBumpMapTextures[mCurrentTextureIndex]);
 #else
-		meshFilterPtr->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
+		pMeshFilter->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
 #endif
 	}
 
@@ -30,20 +30,20 @@ void FloorController::OnUpdate(float time, float deltaTime)
 	else if (Input::GetMouseButton(MouseButton::MIDDLE_BUTTON) && time - mLastMiddleButtonClickTime > 0.5f)
 	{
 		
-		MeshFilterPtr meshFilterPtr = DynamicCast<MeshFilter>(GetGameObject()->GetComponent(MeshFilter::TYPE));
+		MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(GetGameObject()->GetComponent(MeshFilter::TYPE));
 
-		ShaderPtr floorShaderPtr;
-		if (meshFilterPtr->GetMaterial()->GetShader()->GetName() == "BumpedSpecular")
+		Shader* pFloorShader;
+		if (pMeshFilter->GetMaterial()->GetShader()->GetName() == "BumpedSpecular")
 		{
-			floorShaderPtr = ShaderRegistry::Find("Specular");
+			pFloorShader = ShaderRegistry::Find("Specular");
 		}
 
 		else
 		{
-			floorShaderPtr = ShaderRegistry::Find("BumpedSpecular");
+			pFloorShader = ShaderRegistry::Find("BumpedSpecular");
 		}
 
-		meshFilterPtr->GetMaterial()->SetShader(floorShaderPtr);
+		pMeshFilter->GetMaterial()->SetShader(pFloorShader);
 
 		mLastMiddleButtonClickTime = time;
 	}
@@ -52,10 +52,10 @@ void FloorController::OnUpdate(float time, float deltaTime)
 	{
 		float mouseWheelDelta = Input::GetMouseWheelDelta() * deltaTime;
 		mTiling += glm::vec2(mouseWheelDelta, mouseWheelDelta);
-		MeshFilterPtr meshFilterPtr = DynamicCast<MeshFilter>(GetGameObject()->GetComponent(MeshFilter::TYPE));
-		MaterialPtr floorMaterialPtr = meshFilterPtr->GetMaterial();
-		floorMaterialPtr->SetTextureTiling("colorMap", mTiling);
-		floorMaterialPtr->SetTextureTiling("bumpMap", mTiling);
+		MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(GetGameObject()->GetComponent(MeshFilter::TYPE));
+		Material* pFloorMaterial = pMeshFilter->GetMaterial();
+		pFloorMaterial->SetTextureTiling("colorMap", mTiling);
+		pFloorMaterial->SetTextureTiling("bumpMap", mTiling);
 	}
 
 #endif

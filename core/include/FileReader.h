@@ -13,8 +13,8 @@ char* GetFileModeString(FileMode mode);
 class FileReader
 {
 public:
-	static char* Read(const std::string& rFileName, FileMode mode);
-	static char* Read(const std::string& rFileName, int& fileSize, FileMode mode);
+	static std::string Read(const std::string& rFileName, FileMode mode);
+	static std::string Read(const std::string& rFileName, int& fileSize, FileMode mode);
 
 private:
 	FileReader();

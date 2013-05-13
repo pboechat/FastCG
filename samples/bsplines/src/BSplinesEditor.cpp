@@ -6,8 +6,6 @@
 #include <KeyCode.h>
 #include <MouseButton.h>
 #include <MathT.h>
-#include <LineStrip.h>
-#include <Points.h>
 #include <LineRenderer.h>
 #include <PointsRenderer.h>
 
@@ -24,23 +22,51 @@ const float BSplinesEditor::CONTROL_POINT_SIZE = 7.5f;
 const float BSplinesEditor::KNOT_SIZE = 3.5f;
 const glm::vec4 BSplinesEditor::CONTROL_POINT_SELECTION_AREA(-10.0f, -10.0f, 10.0f, 10.0f);
 
-IMPLEMENT_TYPE(BSplinesEditor, Behaviour);
+COMPONENT_IMPLEMENTATION(BSplinesEditor, Behaviour);
 
-BSplinesEditor::BSplinesEditor() :
-	mState(BSPLINE_DEFINITION),
-	mSelectedControlPointIndex(-1),
-	mBSplineDegree(BSplineCurve::MINIMUM_DEGREE),
-	mLastKeyPressTime(0),
-	mLastRightMouseButtonClickTime(0),
-	mLastLeftMouseButtonClickTime(0)
+void BSplinesEditor::OnInstantiate()
 {
+	mpBSplineCurve = 0;
+	mpBSpline = 0;
+	mpKnots = 0;
+	mpControlPolygon = 0;
+	mpControlPoints = 0;
+	mState = BSPLINE_DEFINITION;
+	mSelectedControlPointIndex = -1;
+	mBSplineDegree = BSplineCurve::MINIMUM_DEGREE;
+	mLastKeyPressTime = 0;
+	mLastRightMouseButtonClickTime = 0;
+	mLastLeftMouseButtonClickTime = 0;
+}
+
+void BSplinesEditor::OnDestroy()
+{
+	if (mpBSpline != 0)
+	{
+		delete mpBSpline;
+	}
+
+	if (mpKnots != 0)
+	{
+		delete mpKnots;
+	}
+
+	if (mpControlPolygon != 0)
+	{
+		delete mpControlPolygon;
+	}
+
+	if (mpControlPoints != 0)
+	{
+		delete mpControlPoints;
+	}
 }
 
 void BSplinesEditor::OnUpdate( float time, float deltaTime )
 {
 	if (Input::GetKey(KeyCode::ESCAPE))
 	{
-		Application::GetInstance()->Quit();
+		Application::GetInstance()->Exit();
 		return;
 	}
 
@@ -166,41 +192,60 @@ void BSplinesEditor::RemoveLastControlPoint()
 void BSplinesEditor::UpdateBSpline()
 {
 	std::vector<glm::vec3> vertices;
-	mBSplinePtr = BSplineCurve::CreateUniform(mBSplineDegree, mControlPoints, true);
+
+	if (mpBSplineCurve != 0)
+	{
+		delete mpBSplineCurve;
+	}
+	mpBSplineCurve = BSplineCurve::CreateUniform(mBSplineDegree, mControlPoints, true);
+
 	glm::vec2 start = mControlPoints[0];
 	float increment = 1.0f / NUM_BSPLINE_SAMPLES;
 	float u = 0.0f;
 
 	while (u <= 1.0f)
 	{
-		glm::vec2 point = mBSplinePtr->GetValue(u);
+		glm::vec2 point = mpBSplineCurve->GetValue(u);
 		vertices.push_back(glm::vec3(point.x, point.y, 0.0f));
 		u += increment;
 	}
 
-	LineRendererPtr lineRendererPtr = DynamicCast<LineRenderer>(mBSplineGameObjectPtr->GetComponent(LineRenderer::TYPE));
-	lineRendererPtr->SetLineStrip(new LineStrip(vertices, BSPLINE_COLOR));
-	mBSplineGameObjectPtr->SetActive(true);
-	const std::vector<float>& rKnots = mBSplinePtr->GetKnots();
+	if (mpBSpline != 0)
+	{
+		delete mpBSpline;
+	}
+	mpBSpline = new LineStrip(vertices, BSPLINE_COLOR);
+
+	LineRenderer* pLineRenderer = dynamic_cast<LineRenderer*>(mpBSplineGameObject->GetComponent(LineRenderer::TYPE));
+	pLineRenderer->SetLineStrip(mpBSpline);
+	mpBSplineGameObject->SetActive(true);
+
+	const std::vector<float>& rKnots = mpBSplineCurve->GetKnots();
 	vertices.clear();
 
 	for (unsigned int i = 0; i < rKnots.size(); i++)
 	{
 		u = rKnots[i];
-		glm::vec2 point = mBSplinePtr->GetValue(u);
+		glm::vec2 point = mpBSplineCurve->GetValue(u);
 		vertices.push_back(glm::vec3(point.x, point.y, 0.0f));
 	}
 
-	PointsRendererPtr pointsRendererPtr = DynamicCast<PointsRenderer>(mKnotsGameObjectPtr->GetComponent(PointsRenderer::TYPE));
-	pointsRendererPtr->SetPoints(new Points(vertices, KNOT_SIZE, KNOT_COLOR));
-	mKnotsGameObjectPtr->SetActive(true);
+	if (mpKnots != 0)
+	{
+		delete mpKnots;
+	}
+	mpKnots = new Points(vertices, KNOT_SIZE, KNOT_COLOR);
+
+	PointsRenderer* pPointsRenderer = dynamic_cast<PointsRenderer*>(mpKnotsGameObject->GetComponent(PointsRenderer::TYPE));
+	pPointsRenderer->SetPoints(mpKnots);
+	mpKnotsGameObject->SetActive(true);
 }
 
 void BSplinesEditor::RemoveBSpline()
 {
-	mBSplineGameObjectPtr->SetActive(false);
-	mKnotsGameObjectPtr->SetActive(false);
-	mBSplinePtr = 0;
+	mpBSplineGameObject->SetActive(false);
+	mpKnotsGameObject->SetActive(false);
+	mpBSplineCurve = 0;
 }
 
 void BSplinesEditor::UpdateControlPoints()
@@ -224,20 +269,32 @@ void BSplinesEditor::UpdateControlPoints()
 		}
 	}
 
-	LineRendererPtr lineRendererPtr = DynamicCast<LineRenderer>(mControlPolygonGameObjectPtr->GetComponent(LineRenderer::TYPE));
-	lineRendererPtr->SetLineStrip(new LineStrip(vertices, CONTROL_POLYGON_COLOR));
-	mControlPolygonGameObjectPtr->SetActive(true);
+	if (mpControlPolygon != 0)
+	{
+		delete mpControlPolygon;
+	}
+	mpControlPolygon = new LineStrip(vertices, CONTROL_POLYGON_COLOR);
 
-	PointsRendererPtr pointsRendererPtr = DynamicCast<PointsRenderer>(mControlPointsGameObjectPtr->GetComponent(PointsRenderer::TYPE));
-	pointsRendererPtr->SetPoints(new Points(vertices, CONTROL_POINT_SIZE, colors));
-	mControlPointsGameObjectPtr->SetActive(true);
+	LineRenderer* pLineRenderer = dynamic_cast<LineRenderer*>(mpControlPolygonGameObject->GetComponent(LineRenderer::TYPE));
+	pLineRenderer->SetLineStrip(mpControlPolygon);
+	mpControlPolygonGameObject->SetActive(true);
+
+	if (mpControlPoints != 0)
+	{
+		delete mpControlPoints;
+	}
+	mpControlPoints = new Points(vertices, CONTROL_POINT_SIZE, colors);
+
+	PointsRenderer* pPointsRenderer = dynamic_cast<PointsRenderer*>(mpControlPointsGameObject->GetComponent(PointsRenderer::TYPE));
+	pPointsRenderer->SetPoints(mpControlPoints);
+	mpControlPointsGameObject->SetActive(true);
 }
 
 void BSplinesEditor::RemoveControlPoints()
 {
 	mControlPoints.clear();
-	mControlPolygonGameObjectPtr->SetActive(false);
-	mControlPointsGameObjectPtr->SetActive(false);
+	mpControlPolygonGameObject->SetActive(false);
+	mpControlPointsGameObject->SetActive(false);
 }
 
 int BSplinesEditor::GetControlPointIndex(const glm::vec3& rPoint)

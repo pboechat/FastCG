@@ -6,10 +6,7 @@
 
 #include <vector>
 
-class BackgroundController : public Behaviour
-{
-	DECLARE_TYPE;
-
+COMPONENT(BackgroundController, Behaviour)
 public:
 	void SetBaseColors(const std::vector<sRGBColor>& rBaseColors)
 	{

@@ -21,33 +21,23 @@ void BSplinesApplication::OnStart()
 {
 	mpMainCamera->SetUp(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
 
-	GameObjectPtr bSplineGameObjectPtr = new GameObject();
+	GameObject* pBSplineGameObject = GameObject::Instantiate();
+	LineRenderer::Instantiate(pBSplineGameObject);
 
-	LineRendererPtr lineRendererPtr = new LineRenderer();
-	bSplineGameObjectPtr->AddComponent(lineRendererPtr);
+	GameObject* pControlPolygonGameObject = GameObject::Instantiate();
+	LineRenderer::Instantiate(pControlPolygonGameObject);
 
-	GameObjectPtr controlPolygonGameObjectPtr = new GameObject();
+	GameObject* pControlPointsGameObject = GameObject::Instantiate();
+	PointsRenderer::Instantiate(pControlPointsGameObject);
 
-	lineRendererPtr = new LineRenderer();
-	controlPolygonGameObjectPtr->AddComponent(lineRendererPtr);
+	GameObject* pKnotsGameObject = GameObject::Instantiate();
+	PointsRenderer::Instantiate(pKnotsGameObject);
 
-	GameObjectPtr controlPointsGameObjectPtr = new GameObject();
+	GameObject* pBSplinesEditorGameObject = GameObject::Instantiate();
 
-	PointsRendererPtr pointsRendererPtr = new PointsRenderer();
-	controlPointsGameObjectPtr->AddComponent(pointsRendererPtr);
-
-	GameObjectPtr knotsGameObjectPtr = new GameObject();
-
-	pointsRendererPtr = new PointsRenderer();
-	knotsGameObjectPtr->AddComponent(pointsRendererPtr);
-
-	GameObjectPtr bSplinesEditorGameObjectPtr = new GameObject();
-
-	BSplinesEditor* bSplinesEditor = new BSplinesEditor();
-	bSplinesEditor->SetBSplineGameObject(bSplineGameObjectPtr);
-	bSplinesEditor->SetControlPolygonGameObject(controlPolygonGameObjectPtr);
-	bSplinesEditor->SetControlPointsGameObject(controlPointsGameObjectPtr);
-	bSplinesEditor->SetKnotsGameObject(knotsGameObjectPtr);
-
-	bSplinesEditorGameObjectPtr->AddComponent(bSplinesEditor);
+	BSplinesEditor* bSplinesEditor = BSplinesEditor::Instantiate(pBSplinesEditorGameObject);
+	bSplinesEditor->SetBSplineGameObject(pBSplineGameObject);
+	bSplinesEditor->SetControlPolygonGameObject(pControlPolygonGameObject);
+	bSplinesEditor->SetControlPointsGameObject(pControlPointsGameObject);
+	bSplinesEditor->SetKnotsGameObject(pKnotsGameObject);
 }

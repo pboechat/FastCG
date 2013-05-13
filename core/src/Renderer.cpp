@@ -1,3 +1,3 @@
 #include <Renderer.h>
 
-IMPLEMENT_TYPE(Renderer, Component);
+COMPONENT_IMPLEMENTATION(Renderer, Component);

@@ -7,7 +7,7 @@
 
 #include <vector>
 
-std::map<std::string, ShaderPtr> ShaderRegistry::mShadersByName;
+std::map<std::string, Shader*> ShaderRegistry::mShadersByName;
 
 bool ShaderRegistry::ExtractShaderInfo(const std::string& rShaderFileName, std::string& rShaderName, ShaderType& rShaderType)
 {
@@ -44,22 +44,21 @@ void ShaderRegistry::LoadShadersFromDisk(const std::string& rShadersDirectory)
 			continue;
 		}
 
-		std::map<std::string, ShaderPtr>::iterator it = mShadersByName.find(shaderName);
-		ShaderPtr shaderPtr;
+		Shader* pShader;
+		std::map<std::string, Shader*>::iterator it = mShadersByName.find(shaderName);
 		if (it == mShadersByName.end())
 		{
-			shaderPtr = new Shader(shaderName);
-			mShadersByName.insert(std::make_pair(shaderName, shaderPtr));
+			pShader = new Shader(shaderName);
+			mShadersByName.insert(std::make_pair(shaderName, pShader));
 		}
 		else 
 		{
-			shaderPtr = it->second;
+			pShader = it->second;
 		}
-
-		shaderPtr->Compile(rShadersDirectory + "/" + shaderFiles[i], shaderType);
+		pShader->Compile(rShadersDirectory + "/" + shaderFiles[i], shaderType);
 	}
 
-	std::map<std::string, ShaderPtr>::iterator it = mShadersByName.begin();
+	std::map<std::string, Shader*>::iterator it = mShadersByName.begin();
 	while (it != mShadersByName.end())
 	{
 		it->second->Link();
@@ -67,9 +66,9 @@ void ShaderRegistry::LoadShadersFromDisk(const std::string& rShadersDirectory)
 	}
 }
 
-ShaderPtr ShaderRegistry::Find(const std::string& rShaderName)
+Shader* ShaderRegistry::Find(const std::string& rShaderName)
 {
-	std::map<std::string, ShaderPtr>::iterator it = mShadersByName.find(rShaderName);
+	std::map<std::string, Shader*>::iterator it = mShadersByName.find(rShaderName);
 
 	if (it == mShadersByName.end())
 	{
@@ -77,6 +76,18 @@ ShaderPtr ShaderRegistry::Find(const std::string& rShaderName)
 	}
 
 	return it->second;
+}
+
+void ShaderRegistry::Unload()
+{
+	std::map<std::string, Shader*>::iterator it = mShadersByName.begin();
+	while (it != mShadersByName.end())
+	{
+		delete it->second;
+		it++;
+	}
+
+	mShadersByName.clear();
 }
 
 #endif

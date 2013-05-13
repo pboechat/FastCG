@@ -4,7 +4,7 @@
 
 #include <vector>
 
-MeshPtr StandardGeometries::CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter)
+Mesh* StandardGeometries::CreateXYPlane(float width, float height, unsigned int xSegments, unsigned int ySegments, const glm::vec3& rCenter)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -50,10 +50,15 @@ MeshPtr StandardGeometries::CreateXYPlane(float width, float height, unsigned in
 		}
 	}
 
-	return new Mesh(vertices, indexes, normals, uvs);
+	Mesh* pMesh = new Mesh(vertices, indexes, normals, uvs);
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	pMesh->CalculateTangents();
+#endif
+
+	return pMesh;
 }
 
-MeshPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter)
+Mesh* StandardGeometries::CreateXZPlane(float width, float depth, unsigned int xSegments, unsigned int zSegments, const glm::vec3& rCenter)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -99,10 +104,16 @@ MeshPtr StandardGeometries::CreateXZPlane(float width, float depth, unsigned int
 		}
 	}
 
-	return new Mesh(vertices, indexes, normals, uvs);
+	Mesh* pMesh = new Mesh(vertices, indexes, normals, uvs);
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	pMesh->CalculateTangents();
+#endif
+	pMesh->AllocateResources();
+
+	return pMesh;
 }
 
-MeshPtr StandardGeometries::CreateSphere(float radius, unsigned int slices)
+Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -182,9 +193,13 @@ MeshPtr StandardGeometries::CreateSphere(float radius, unsigned int slices)
 		}
 	}
 
+	Mesh* pMesh;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	return new Mesh(vertices, indices, normals, tangents, uvs);
+	pMesh = new Mesh(vertices, indices, normals, tangents, uvs);
 #else
-	return new Mesh(vertices, indices, normals, uvs);
+	pMesh = new Mesh(vertices, indices, normals, uvs);
 #endif
+	pMesh->AllocateResources();
+
+	return pMesh;
 }

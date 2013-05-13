@@ -1,20 +1,19 @@
 #ifndef GAMEOBJECT_H_
 #define GAMEOBJECT_H_
 
-#include <Pointer.h>
-
 #include <vector>
 
-class Type;
+class ComponentType;
 class Component;
 class Transform;
 class Renderer;
+class Application;
 
 class GameObject
 {
 public:
-	GameObject();
-	~GameObject();
+	static GameObject* Instantiate();
+	static void Destroy(GameObject* pGameObject);
 
 	inline Transform* GetTransform()
 	{
@@ -46,8 +45,9 @@ public:
 		mActive = active; 
 	}
 
-	void AddComponent(const Pointer<Component>& rComponentPtr);
-	Pointer<Component> GetComponent(const Type& rComponentType) const;
+	Component* GetComponent(const ComponentType& rComponentType) const;
+
+	friend class Component;
 
 private:
 	Transform* mpTransform;
@@ -55,8 +55,14 @@ private:
 	std::vector<Component*> mComponents;
 	bool mActive;
 	
-};
+	GameObject();
+	~GameObject();
 
-typedef Pointer<GameObject> GameObjectPtr;
+	void AddComponent(Component* pComponent);
+	void RemoveComponent(Component* pComponent);
+
+	void DestroyAllComponents();
+
+};
 
 #endif

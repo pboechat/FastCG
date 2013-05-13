@@ -2,7 +2,6 @@
 #define CAMERA_H_
 
 #include <Component.h>
-#include <Pointer.h>
 #include <Transform.h>
 
 #include <glm/glm.hpp>
@@ -15,10 +14,7 @@ enum ProjectionMode
 	PM_ORTHOGRAPHIC
 };
 
-class Camera: public Component
-{
-	DECLARE_TYPE;
-
+COMPONENT(Camera, Component)
 public:
 	inline void SetUp(float fieldOfView = 45.0f, float frustumNear = 0.3f, float frustumFar = 1000.0f, float frustumBottom = 0.0f, float frustumTop = 0.0f, float frustumLeft = 0.0f, float frustumRight = 0.0f, ProjectionMode projectionMode = PM_PERSPECTIVE)
 	{
@@ -53,7 +49,7 @@ public:
 	inline glm::mat4 GetView() const
 	{
 		const Transform* pTransform = GetGameObject()->GetTransform();
-		return glm::lookAt(pTransform->GetPosition(), pTransform->GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::lookAt(pTransform->GetPosition(), pTransform->GetPosition() + pTransform->GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	inline void operator =(const Camera& rOther)
@@ -80,7 +76,5 @@ private:
 	ProjectionMode mProjectionMode;
 
 };
-
-typedef Pointer<Camera> CameraPtr;
 
 #endif

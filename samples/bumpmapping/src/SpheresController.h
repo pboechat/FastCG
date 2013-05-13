@@ -8,41 +8,26 @@
 
 #include <vector>
 
-class SpheresController : public Behaviour
-{
+COMPONENT(SpheresController, Behaviour)
 public:
-	SpheresController() :
-		mRotationSpeed(0),
-		mRotationAxis(glm::vec3(0.0f, 0.0f, 0.0f)),
-		mLastLeftButtonClickTime(0.0f),
-		mLastKeyPressTime(0.0f),
-		mLastMiddleButtonClickTime(0.0f),
-		mCurrentTextureIndex(0)
+	virtual void OnInstantiate()
 	{
+		mRotationSpeed = 0.0f;
+		mRotationAxis = glm::vec3(0.0f, 0.0f, 0.0f);
+		mLastLeftButtonClickTime = 0.0f;
+		mLastKeyPressTime = 0.0f;
+		mLastMiddleButtonClickTime = 0.0f;
+		mCurrentTextureIndex = 0;
 	}
 
-	inline std::vector<GameObjectPtr> GetSpheres() const
-	{
-		return mSpheres;
-	}
-
-	inline void SetSpheres(std::vector<GameObjectPtr> spheres)
+	inline void SetSpheres(std::vector<GameObject*> spheres)
 	{
 		mSpheres = spheres;
 	}
 
-	inline float GetRotationSpeed() const
-	{
-		return mRotationSpeed;
-	}
 	inline void SetRotationSpeed(float rotationSpeed)
 	{
 		mRotationSpeed = rotationSpeed;
-	}
-
-	inline glm::vec3 GetRotationAxis() const
-	{
-		return mRotationAxis;
 	}
 
 	inline void SetRotationAxis(const glm::vec3& rotationAxis)
@@ -50,22 +35,12 @@ public:
 		mRotationAxis = rotationAxis;
 	}
 
-	inline std::vector<TexturePtr> GetColorMapTextures() const
-	{
-		return mColorMapTextures;
-	}
-
-	inline void SetColorMapTextures(const std::vector<TexturePtr>& rColorMapTextures)
+	inline void SetColorMapTextures(const std::vector<Texture*>& rColorMapTextures)
 	{
 		mColorMapTextures = rColorMapTextures;
 	}
 
-	inline std::vector<TexturePtr> GetBumpMapTextures() const
-	{
-		return mBumpMapTextures;
-	}
-
-	inline void SetBumpMapTextures(const std::vector<TexturePtr>& rBumpMapTextures)
+	inline void SetBumpMapTextures(const std::vector<Texture*>& rBumpMapTextures)
 	{
 		mBumpMapTextures = rBumpMapTextures;
 	}
@@ -73,18 +48,16 @@ public:
 	virtual void OnUpdate(float time, float deltaTime);
 
 private:
-	std::vector<GameObjectPtr> mSpheres;
+	std::vector<GameObject*> mSpheres;
 	float mRotationSpeed;
 	glm::vec3 mRotationAxis;
-	std::vector<TexturePtr> mColorMapTextures;
-	std::vector<TexturePtr> mBumpMapTextures;
+	std::vector<Texture*> mColorMapTextures;
+	std::vector<Texture*> mBumpMapTextures;
 	unsigned int mCurrentTextureIndex;
 	float mLastLeftButtonClickTime;
 	float mLastKeyPressTime;
 	float mLastMiddleButtonClickTime;
 
 };
-
-typedef Pointer<SpheresController> SpheresControllerPtr;
 
 #endif

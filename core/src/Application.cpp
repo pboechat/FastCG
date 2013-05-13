@@ -17,7 +17,7 @@
 #include <sstream>
 
 Application* Application::s_mpInstance = NULL;
-bool Application::s_mStarted = false;
+bool Application::s_mRunning = false;
 
 Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
 	mWindowTitle(rWindowTitle),
@@ -32,40 +32,41 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mShowFPS(false),
 	mElapsedFrames(0),
 	mElapsedTime(0),
-	mpInput(0),
-	mpInternalGameObject(0)
+	mpInput(0)
 {
 	s_mpInstance = this;
 }
 
 Application::~Application()
 {
-	if (HasStarted())
+	if (!s_mRunning)
 	{
-		Quit();
+		return;
 	}
+
+	Exit();
 }
 
-void Application::RegisterGameObject(const GameObjectPtr& rGameObjectPtr)
+void Application::RegisterGameObject(GameObject* pGameObject)
 {
-	if (rGameObjectPtr == 0)
+	if (pGameObject == 0)
 	{
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "rGameObjectPtr == 0");
+		THROW_EXCEPTION(Exception, "pGameObject == 0");
 	}
 
-	mGameObjects.push_back(rGameObjectPtr);
+	mGameObjects.push_back(pGameObject);
 }
 
-void Application::UnregisterGameObject(const GameObjectPtr& rGameObjectPtr)
+void Application::UnregisterGameObject(GameObject* pGameObject)
 {
-	if (rGameObjectPtr == 0)
+	if (pGameObject == 0)
 	{
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "rGameObjectPtr == 0");
+		THROW_EXCEPTION(Exception, "pGameObject == 0");
 	}
 
-	std::vector<GameObjectPtr>::iterator gameObjectsIterator = std::find(mGameObjects.begin(), mGameObjects.end(), rGameObjectPtr);
+	std::vector<GameObject*>::iterator gameObjectsIterator = std::find(mGameObjects.begin(), mGameObjects.end(), pGameObject);
 
 	if (gameObjectsIterator == mGameObjects.end())
 	{
@@ -76,36 +77,32 @@ void Application::UnregisterGameObject(const GameObjectPtr& rGameObjectPtr)
 	mGameObjects.erase(gameObjectsIterator);
 }
 
-#define REGISTER_COMPONENT(className, componentPtr) \
-	if (componentPtr->GetType().IsDerived(className::TYPE)) \
+#define REGISTER_COMPONENT(className, component) \
+	if (component->GetType().IsDerived(className::TYPE)) \
 	{ \
-		m##className##s.push_back(DynamicCast<className>(componentPtr)); \
+		m##className##s.push_back(dynamic_cast<className*>(component)); \
 	} \
  
-void Application::RegisterComponent(const ComponentPtr& rComponentPtr)
+void Application::RegisterComponent(Component* pComponent)
 {
-	if (rComponentPtr == 0)
+	if (pComponent == 0)
 	{
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "rComponentPtr == 0");
+		THROW_EXCEPTION(Exception, "pComponent == 0");
 	}
 
-	REGISTER_COMPONENT(Light, rComponentPtr)
-	REGISTER_COMPONENT(LineRenderer, rComponentPtr);
-	REGISTER_COMPONENT(PointsRenderer, rComponentPtr);
-	REGISTER_COMPONENT(Behaviour, rComponentPtr)
+	REGISTER_COMPONENT(Light, pComponent);
+	REGISTER_COMPONENT(MeshFilter, pComponent);
+	REGISTER_COMPONENT(LineRenderer, pComponent);
+	REGISTER_COMPONENT(PointsRenderer, pComponent);
+	REGISTER_COMPONENT(Behaviour, pComponent)
 
-	if (rComponentPtr->GetType().IsExactly(Camera::TYPE) && rComponentPtr->IsEnabled())
+	if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 	{
-		RegisterCamera(DynamicCast<Camera>(rComponentPtr));
+		RegisterCamera(dynamic_cast<Camera*>(pComponent));
 	}
 
-	else if (rComponentPtr->GetType().IsExactly(MeshFilter::TYPE))
-	{
-		RegisterMeshFilter(DynamicCast<MeshFilter>(rComponentPtr));
-	}
-
-	mComponents.push_back(rComponentPtr);
+	mComponents.push_back(pComponent);
 }
 
 void Application::RegisterCamera(Camera* pCamera)
@@ -114,73 +111,39 @@ void Application::RegisterCamera(Camera* pCamera)
 	SetMainCamera(pCamera);
 }
 
-void Application::RegisterMeshFilter(MeshFilter* pMeshFilter)
-{
-	mMeshFilters.push_back(pMeshFilter);
-	Material* pMaterial = pMeshFilter->GetMaterial();
-	bool added = false;
-
-	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
-	{
-		RenderingGroup& rRenderingGroup = mRenderingGroups[i];
-
-		if (rRenderingGroup.pMaterial == pMaterial)
-		{
-			rRenderingGroup.meshFilters.push_back(pMeshFilter);
-			added = true;
-			break;
-		}
-	}
-
-	if (added)
-	{
-		return;
-	}
-
-	RenderingGroup newRenderingGroup;
-	newRenderingGroup.pMaterial = pMaterial;
-	newRenderingGroup.meshFilters.push_back(pMeshFilter);
-	mRenderingGroups.push_back(newRenderingGroup);
-}
-
-#define UNREGISTER_COMPONENT(className, componentPtr) \
-	if (componentPtr->GetType().IsDerived(className::TYPE)) \
+#define UNREGISTER_COMPONENT(className, component) \
+	if (component->GetType().IsDerived(className::TYPE)) \
 	{ \
-	std::vector<className##*>::iterator it = std::find(m##className##s.begin(), m##className##s.end(), componentPtr); \
-	if (it == m##className##s.end()) \
+		std::vector<className##*>::iterator it = std::find(m##className##s.begin(), m##className##s.end(), component); \
+		if (it == m##className##s.end()) \
 		{ \
-			THROW_EXCEPTION(Exception, ""); \
+			THROW_EXCEPTION(Exception, "Error unregistering: %s", #className); \
 		} \
 		m##className##s.erase(it); \
 	} \
  
-void Application::UnregisterComponent(const ComponentPtr& rComponentPtr)
+void Application::UnregisterComponent(Component* pComponent)
 {
-	if (rComponentPtr == 0)
+	if (pComponent == 0)
 	{
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "rComponentPtr == 0");
+		THROW_EXCEPTION(Exception, "pComponent == 0");
 	}
 
-	UNREGISTER_COMPONENT(Camera, rComponentPtr)
-	UNREGISTER_COMPONENT(Light, rComponentPtr)
-	UNREGISTER_COMPONENT(LineRenderer, rComponentPtr)
-	UNREGISTER_COMPONENT(PointsRenderer, rComponentPtr)
-	UNREGISTER_COMPONENT(MeshFilter, rComponentPtr)
-	UNREGISTER_COMPONENT(Behaviour, rComponentPtr)
-	UNREGISTER_COMPONENT(Component, rComponentPtr)
+	UNREGISTER_COMPONENT(Camera, pComponent)
+	UNREGISTER_COMPONENT(Light, pComponent)
+	UNREGISTER_COMPONENT(LineRenderer, pComponent)
+	UNREGISTER_COMPONENT(PointsRenderer, pComponent)
+	UNREGISTER_COMPONENT(MeshFilter, pComponent)
+	UNREGISTER_COMPONENT(Behaviour, pComponent)
+	UNREGISTER_COMPONENT(Component, pComponent)
 
-	if (rComponentPtr->GetType().IsExactly(Camera::TYPE) && rComponentPtr->IsEnabled())
+	if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 	{
-		if (mCameras.size() < 1)
+		if (mCameras.size() > 1)
 		{
 			SetMainCamera(mCameras[0]);
 		}
-	}
-
-	else if (rComponentPtr->GetType().IsExactly(MeshFilter::TYPE))
-	{
-		RemoveFromMeshRenderingGroups(DynamicCast<MeshFilter>(rComponentPtr));
 	}
 }
 
@@ -210,35 +173,37 @@ void Application::PrintUsage()
 
 void Application::Run(int argc, char** argv)
 {
-	atexit(ExitCallback);
-
 	if (!ParseCommandLineArguments(argc, argv))
 	{
 		PrintUsage();
 		return;
 	}
 
+	atexit(ExitCallback);
+
 	SetUpGLUT(argc, argv);
 	SetUpOpenGL();
 	mpInput = new Input();
+
 	// FIXME:
-	mpInternalGameObject = new GameObject();
-	Camera* pCamera = new Camera();
-	mpInternalGameObject->AddComponent(pCamera);
+	mpInternalGameObject = GameObject::Instantiate();
+	Camera* pCamera = Camera::Instantiate(mpInternalGameObject);
 	pCamera->SetUp();
 
 	try
 	{
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		ShaderRegistry::LoadShadersFromDisk("shaders");
-		mLineStripShaderPtr = ShaderRegistry::Find("LineStrip");
-		mPointsShaderPtr = ShaderRegistry::Find("Points");
+		mpLineStripShader = ShaderRegistry::Find("LineStrip");
+		mpPointsShader = ShaderRegistry::Find("Points");
 
 		FontRegistry::LoadFontsFromDisk("fonts");
-		mStandardFontPtr = FontRegistry::Find("verdana");
+		mpStandardFont = FontRegistry::Find("verdana");
 #endif
 		mStartTimer.Start();
 		OnStart();
+		glFinish();
+		s_mRunning = true;
 		mUpdateTimer.Start();
 		glutMainLoop();
 	}
@@ -247,8 +212,6 @@ void Application::Run(int argc, char** argv)
 	{
 		std::cerr << "Fatal Exception: " << e.GetFullDescription() << std::endl;
 	}
-
-	s_mStarted = true;
 }
 
 bool Application::ParseCommandLineArguments(int argc, char** argv)
@@ -276,6 +239,7 @@ void Application::SetUpGLUT(int argc, char** argv)
 	glutKeyboardUpFunc(GLUTKeyboardUpCallback);
 	glutSpecialFunc(GLUTSpecialKeysCallback);
 	glutSpecialUpFunc(GLUTSpecialKeysUpCallback);
+	glutWMCloseFunc(GLUTWMCloseFunc);
 }
 
 void Application::SetUpOpenGL()
@@ -306,8 +270,8 @@ void Application::Update()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
 
-	glm::mat4 view = mpMainCamera->GetView();
-	glm::mat4 projection = mpMainCamera->GetProjection();
+	glm::mat4& view = mpMainCamera->GetView();
+	glm::mat4& projection = mpMainCamera->GetProjection();
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glMatrixMode(GL_PROJECTION);
@@ -331,13 +295,15 @@ void Application::Update()
 #endif
 	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
 	{
-		RenderingGroup& rRenderingGroup = mRenderingGroups[i];
-		Material* pMaterial = rRenderingGroup.pMaterial;
-		std::vector<MeshFilter*>& rMeshFilters = rRenderingGroup.meshFilters;
+		RenderingGroup* pRenderingGroup = mRenderingGroups[i];
+		Material* pMaterial = pRenderingGroup->pMaterial;
+		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		Shader* pShader = pMaterial->GetShader();
 		pShader->Bind();
 		SetUpShaderLights(pShader);
+		pShader->SetMat4("_View", view);
+		pShader->SetMat4("_Projection", projection);
 #endif
 		pMaterial->SetUpShaderParameters();
 
@@ -361,10 +327,8 @@ void Application::Update()
 #ifdef USE_PROGRAMMABLE_PIPELINE
 			glm::mat4 modelView = view * rModel;
 			pShader->SetMat4("_Model", rModel);
-			pShader->SetMat4("_View", view);
 			pShader->SetMat4("_ModelView", modelView);
 			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-			pShader->SetMat4("_Projection", projection);
 			pShader->SetMat4("_ModelViewProjection", projection * modelView);
 			pShader->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
 #else
@@ -385,87 +349,93 @@ void Application::Update()
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
+	if (mLineRenderers.size() > 0)
+	{
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mLineStripShaderPtr->Bind();
+		mpLineStripShader->Bind();
+		mpLineStripShader->SetMat4("_View", view);
+		mpLineStripShader->SetMat4("_Projection", projection);
 #endif
 
-	for (unsigned int i = 0; i < mLineRenderers.size(); i++)
-	{
-		LineRenderer* pLineRenderer = mLineRenderers[i];
-
-		if (!pLineRenderer->GetGameObject()->IsActive())
+		for (unsigned int i = 0; i < mLineRenderers.size(); i++)
 		{
-			continue;
+			LineRenderer* pLineRenderer = mLineRenderers[i];
+
+			if (!pLineRenderer->GetGameObject()->IsActive())
+			{
+				continue;
+			}
+
+			const glm::mat4& rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
+#ifdef USE_PROGRAMMABLE_PIPELINE
+			glm::mat4 modelView = view * rModel;
+			mpLineStripShader->SetMat4("_Model", rModel);
+			mpLineStripShader->SetMat4("_ModelView", modelView);
+			mpLineStripShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
+			mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
+			mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
+#else
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glMultMatrixf(&rModel[0][0]);
+#endif
+			pLineRenderer->Render();
+#ifndef USE_PROGRAMMABLE_PIPELINE
+			glPopMatrix();
+#endif
 		}
 
-		const glm::mat4& rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		glm::mat4 modelView = view * rModel;
-		mLineStripShaderPtr->SetMat4("_Model", rModel);
-		mLineStripShaderPtr->SetMat4("_View", view);
-		mLineStripShaderPtr->SetMat4("_ModelView", modelView);
-		mLineStripShaderPtr->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-		mLineStripShaderPtr->SetMat4("_Projection", projection);
-		mLineStripShaderPtr->SetMat4("_ModelViewProjection", projection * modelView);
-		mLineStripShaderPtr->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
-#else
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glMultMatrixf(&rModel[0][0]);
-#endif
-		pLineRenderer->Render();
-#ifndef USE_PROGRAMMABLE_PIPELINE
-		glPopMatrix();
+		mpLineStripShader->Unbind();
 #endif
 	}
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mLineStripShaderPtr->Unbind();
-#endif
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mPointsShaderPtr->Bind();
-#endif
-
-	for (unsigned int i = 0; i < mPointsRenderers.size(); i++)
+	if (mPointsRenderers.size() > 0) 
 	{
-		PointsRenderer* pPointsRenderer = mPointsRenderers[i];
-
-		if (!pPointsRenderer->GetGameObject()->IsActive())
-		{
-			continue;
-		}
-
-		const glm::mat4& rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		glm::mat4 modelView = view * rModel;
-		mPointsShaderPtr->SetMat4("_Model", rModel);
-		mPointsShaderPtr->SetMat4("_View", view);
-		mPointsShaderPtr->SetMat4("_ModelView", modelView);
-		mPointsShaderPtr->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-		mPointsShaderPtr->SetMat4("_Projection", projection);
-		mPointsShaderPtr->SetMat4("_ModelViewProjection", projection * modelView);
-		mPointsShaderPtr->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
-
-		Points* pPoints = pPointsRenderer->GetPoints();
-		if (pPoints != 0)
-		{
-			mPointsShaderPtr->SetFloat("size", pPoints->GetSize());
-		}
-#else
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glMultMatrixf(&rModel[0][0]);
+		mpPointsShader->Bind();
+		mpPointsShader->SetMat4("_View", view);
+		mpPointsShader->SetMat4("_Projection", projection);
 #endif
-		pPointsRenderer->Render();
+
+		for (unsigned int i = 0; i < mPointsRenderers.size(); i++)
+		{
+			PointsRenderer* pPointsRenderer = mPointsRenderers[i];
+
+			if (!pPointsRenderer->GetGameObject()->IsActive())
+			{
+				continue;
+			}
+
+			const glm::mat4& rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
+#ifdef USE_PROGRAMMABLE_PIPELINE
+			glm::mat4 modelView = view * rModel;
+			mpPointsShader->SetMat4("_Model", rModel);
+			mpPointsShader->SetMat4("_ModelView", modelView);
+			mpPointsShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
+			mpPointsShader->SetMat4("_ModelViewProjection", projection * modelView);
+			mpPointsShader->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
+
+			Points* pPoints = pPointsRenderer->GetPoints();
+			if (pPoints != 0)
+			{
+				mpPointsShader->SetFloat("size", pPoints->GetSize());
+			}
+#else
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glMultMatrixf(&rModel[0][0]);
+#endif
+			pPointsRenderer->Render();
 #ifndef USE_PROGRAMMABLE_PIPELINE
-		glPopMatrix();
+			glPopMatrix();
+#endif
+		}
+
+#ifdef USE_PROGRAMMABLE_PIPELINE
+		mpPointsShader->Unbind();
 #endif
 	}
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mPointsShaderPtr->Unbind();
-#endif
 
 	mFrameTimer.End();
 	mElapsedTime += mFrameTimer.GetElapsedTime();
@@ -476,7 +446,7 @@ void Application::Update()
 		char text[128];
 		sprintf(text, "FPS: %.3f", mElapsedFrames / mElapsedTime);
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		DrawText(text, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 144, FontRegistry::STANDARD_FONT_SIZE, mStandardFontPtr, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		DrawText(text, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 144, FontRegistry::STANDARD_FONT_SIZE, mpStandardFont, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
 		DrawText(text, 16, mScreenWidth - 144, 16, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #endif
@@ -506,7 +476,7 @@ void Application::OnResize()
 {
 }
 
-void Application::OnFinish()
+void Application::OnQuit()
 {
 }
 
@@ -515,23 +485,98 @@ void Application::SetUpViewport()
 	glViewport(0, 0, mScreenWidth, mScreenHeight);
 }
 
-void Application::Quit()
+void Application::Exit()
 {
+	s_mRunning = false;
+
+	mStartTimer.End();
+
+	OnQuit();
+
 	if (mpInput != 0)
 	{
 		delete mpInput;
 	}
 
-	s_mStarted = false;
-	OnFinish();
-	mStartTimer.End();
-	mGameObjects.clear();
-	glutDestroyWindow(mGLUTWindowHandle);
-}
+	mpMainCamera = 0;
 
-bool Application::HasStarted()
-{
-	return s_mStarted;
+	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
+	{
+		delete mRenderingGroups[i];
+	}
+	mRenderingGroups.clear();
+
+	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
+	{
+		delete mDrawTextRequests[i];
+	}
+	mDrawTextRequests.clear();
+
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	ShaderRegistry::Unload();
+	mpLineStripShader = 0;
+	mpPointsShader = 0;
+
+	FontRegistry::Unload();
+	mpStandardFont = 0;
+#endif
+
+	std::vector<GameObject*> gameObjectsToDestroy = mGameObjects;
+	for (unsigned int i = 0; i < gameObjectsToDestroy.size(); i++)
+	{
+		GameObject::Destroy(gameObjectsToDestroy[i]);
+	}
+	gameObjectsToDestroy.clear();
+
+	if (mGameObjects.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mGameObjects.size() > 0");
+	}
+
+	if (mCameras.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mCameras.size() > 0");
+	}
+
+	if (mLights.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mLights.size() > 0");
+	}
+
+	if (mMeshFilters.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mMeshFilters.size() > 0");
+	}
+
+	if (mBehaviours.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mBehaviours.size() > 0");
+	}
+
+	if (mLineRenderers.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mLineRenderers.size() > 0");
+	}
+
+	if (mPointsRenderers.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mPointsRenderers.size() > 0");
+	}
+
+	if (mComponents.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mComponents.size() > 0");
+	}
+
+	glutDestroyWindow(mGLUTWindowHandle);
 }
 
 void Application::MouseButton(int button, int state, int x, int y)
@@ -611,18 +656,19 @@ void Application::DrawAllTexts()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
 #endif
-
 	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
 	{
-		DrawTextRequest& rDrawTextRequest = mDrawTextRequests[i];
+		DrawTextRequest* pDrawTextRequest = mDrawTextRequests[i];
 #ifndef USE_PROGRAMMABLE_PIPELINE
-		glColor4fv(&rDrawTextRequest.color[0]);
-		glRasterPos2i(rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y));
-		glutBitmapString(GLUT_BITMAP_HELVETICA_12, (const unsigned char*)rDrawTextRequest.text.c_str());
+		glColor4fv(&pDrawTextRequest->color[0]);
+		glRasterPos2i(pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y));
+		glutBitmapString(GLUT_BITMAP_HELVETICA_12, (const unsigned char*)pDrawTextRequest->text.c_str());
 #else
-		rDrawTextRequest.fontPtr->DrawText(rDrawTextRequest.text, rDrawTextRequest.size, rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y), rDrawTextRequest.color);
+		pDrawTextRequest->pFont->DrawText(pDrawTextRequest->text, pDrawTextRequest->size, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);
 #endif
+		delete pDrawTextRequest;
 	}
+	mDrawTextRequests.clear();
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glPushAttrib(GL_TRANSFORM_BIT);
@@ -633,71 +679,90 @@ void Application::DrawAllTexts()
 #endif
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	// remove all draw text requests
-	mDrawTextRequests.clear();
 }
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, FontPtr fontPtr, const glm::vec4& rColor)
+void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
 {
 	// add a new draw text request to be processed at the end of the frame
-	mDrawTextRequests.push_back(DrawTextRequest(rText, size, x, y, fontPtr, rColor));
+	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, pFont, rColor));
 }
 
 void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
 	// add a new draw text request to be processed at the end of the frame
-	mDrawTextRequests.push_back(DrawTextRequest(rText, size, x, y, mStandardFontPtr, rColor));
+	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, mpStandardFont, rColor));
 }
 #else
 void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
 	// add a new draw text request to be processed at the end of the frame
-	mDrawTextRequests.push_back(DrawTextRequest(rText, size, x, y, rColor));
+	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, rColor));
 }
 #endif
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 void Application::SetUpShaderLights(Shader* pShader)
 {
+	static char pLightVariableName[128];
 	for (unsigned int i = 0; i < mLights.size(); i++)
 	{
 		Light* pLight = mLights[i];
-		glm::vec3 lightPosition = pLight->GetGameObject()->GetTransform()->GetPosition();
-		glm::vec4 lightAmbientColor = pLight->GetAmbientColor();
-		glm::vec4 lightDiffuseColor = pLight->GetDiffuseColor();
-		glm::vec4 lightSpecularColor = pLight->GetSpecularColor();
-		std::stringstream variableName;
-		variableName << "_Light" << i << "Position";
-		pShader->SetVec3(variableName.str(), lightPosition);
-		variableName.str(std::string());
-		variableName.clear();
-		variableName << "_Light" << i << "AmbientColor";
-		pShader->SetVec4(variableName.str(), lightAmbientColor);
-		variableName.str(std::string());
-		variableName.clear();
-		variableName << "_Light" << i << "DiffuseColor";
-		pShader->SetVec4(variableName.str(), lightDiffuseColor);
-		variableName.str(std::string());
-		variableName.clear();
-		variableName << "_Light" << i << "SpecularColor";
-		pShader->SetVec4(variableName.str(), lightSpecularColor);
+		glm::vec3& lightPosition = pLight->GetGameObject()->GetTransform()->GetPosition();
+		const glm::vec4& lightAmbientColor = pLight->GetAmbientColor();
+		const glm::vec4& lightDiffuseColor = pLight->GetDiffuseColor();
+		const glm::vec4& lightSpecularColor = pLight->GetSpecularColor();
+		sprintf(pLightVariableName, "_Light%dPosition", i);
+		pShader->SetVec3(pLightVariableName, lightPosition);
+		sprintf(pLightVariableName, "_Light%dAmbientColor", i);
+		pShader->SetVec4(pLightVariableName, lightAmbientColor);
+		sprintf(pLightVariableName, "_Light%dDiffuseColor", i);
+		pShader->SetVec4(pLightVariableName, lightDiffuseColor);
+		sprintf(pLightVariableName, "_Light%dSpecularColor", i);
+		pShader->SetVec4(pLightVariableName, lightSpecularColor);
 	}
 }
 #endif
 
-void Application::RemoveFromMeshRenderingGroups(MeshFilter* pMeshFilter)
+void Application::AddToMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial)
 {
-	Material* pMaterial = pMeshFilter->GetMaterial();
+	bool added = false;
+
+	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
+	{
+		RenderingGroup* pRenderingGroup = mRenderingGroups[i];
+
+		if (pRenderingGroup->pMaterial == pMaterial)
+		{
+			pRenderingGroup->meshFilters.push_back(pMeshFilter);
+			added = true;
+			break;
+		}
+	}
+
+	if (added)
+	{
+		return;
+	}
+
+	RenderingGroup* pNewRenderingGroup = new RenderingGroup();
+	pNewRenderingGroup->pMaterial = pMaterial;
+	pNewRenderingGroup->meshFilters.push_back(pMeshFilter);
+	mRenderingGroups.push_back(pNewRenderingGroup);
+}
+
+void Application::RemoveFromMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial)
+{
+	RenderingGroup* pRenderingGroup;
 	bool removed = false;
 
 	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
 	{
-		RenderingGroup& rRenderingGroup = mRenderingGroups[i];
+		pRenderingGroup = mRenderingGroups[i];
 
-		if (rRenderingGroup.pMaterial == pMaterial)
+		if (pRenderingGroup->pMaterial == pMaterial)
 		{
-			std::vector<MeshFilter*>& rMeshFilters = rRenderingGroup.meshFilters;
+			std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
 			std::vector<MeshFilter*>::iterator it = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
 
 			if (it == rMeshFilters.end())
@@ -716,6 +781,13 @@ void Application::RemoveFromMeshRenderingGroups(MeshFilter* pMeshFilter)
 	{
 		// FIXME: checking invariants
 		THROW_EXCEPTION(Exception, "!removed");
+	}
+
+	if (pRenderingGroup->meshFilters.size() == 0)
+	{
+		std::vector<RenderingGroup*>::iterator it = std::find(mRenderingGroups.begin(), mRenderingGroups.end(), pRenderingGroup);
+		mRenderingGroups.erase(it);
+		delete pRenderingGroup;
 	}
 }
 
@@ -746,33 +818,68 @@ void GLUTMouseWheelCallback(int button, int direction, int x, int y)
 
 void GLUTMouseMoveCallback(int x, int y)
 {
+	if (!Application::s_mRunning)
+	{
+		return;
+	}
+
 	Application::GetInstance()->MouseMove(x, y);
 }
 
 void GLUTKeyboardCallback(unsigned char keyCode, int x, int y)
 {
+	if (!Application::s_mRunning)
+	{
+		return;
+	}
+
 	Application::GetInstance()->Keyboard((int) keyCode, x, y, true);
 }
 
 void GLUTKeyboardUpCallback(unsigned char keyCode, int x, int y)
 {
+	if (!Application::s_mRunning)
+	{
+		return;
+	}
+
 	Application::GetInstance()->Keyboard((int) keyCode, x, y, false);
 }
 
 void GLUTSpecialKeysCallback(int keyCode, int x, int y)
 {
+	if (!Application::s_mRunning)
+	{
+		return;
+	}
+
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, true);
 }
 
 void GLUTSpecialKeysUpCallback(int keyCode, int x, int y)
 {
+	if (!Application::s_mRunning)
+	{
+		return;
+	}
+
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, false);
+}
+
+void GLUTWMCloseFunc()
+{
+	/*if (Application::HasStarted())
+	{
+		Application::GetInstance()->Quit();
+	}*/
 }
 
 void ExitCallback()
 {
-	if (Application::HasStarted())
+	if (!Application::s_mRunning)
 	{
-		Application::GetInstance()->Quit();
+		return;
 	}
+
+	Application::GetInstance()->Exit();
 }

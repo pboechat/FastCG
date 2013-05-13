@@ -4,26 +4,23 @@
 #include <Component.h>
 #include <Material.h>
 
-class MeshFilter : public Component
-{
-	DECLARE_TYPE;
-
+COMPONENT(MeshFilter, Component)
 public:
-	inline MaterialPtr GetMaterial()
+	inline Material* GetMaterial()
 	{
-		return mMaterialPtr;
+		return mpMaterial;
 	}
 
-	inline void SetMaterial(const MaterialPtr& rMaterialPtr)
+	void SetMaterial(Material* pMaterial);
+
+	virtual void OnInstantiate()
 	{
-		mMaterialPtr = rMaterialPtr;
+		mpMaterial = 0;
 	}
 
 private:
-	MaterialPtr mMaterialPtr;
+	Material* mpMaterial;
 
 };
-
-typedef Pointer<MeshFilter> MeshFilterPtr;
 
 #endif

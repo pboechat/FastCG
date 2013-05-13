@@ -1,8 +1,6 @@
 #ifndef TEXTURE_H_
 #define TEXTURE_H_
 
-#include <Pointer.h>
-
 #include <string>
 
 enum WrapMode
@@ -90,7 +88,5 @@ private:
 	void GenerateMipmaps() const;
 
 };
-
-typedef Pointer<Texture> TexturePtr;
 
 #endif

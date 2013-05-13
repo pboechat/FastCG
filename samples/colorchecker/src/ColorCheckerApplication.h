@@ -28,6 +28,8 @@ private:
 	std::string mColorCheckerFilename;
 	std::vector<LightSpectrum*> mLightSpectrums;
 	std::vector<sRGBColor> mBaseColors;
+	std::vector<Material*> mMaterials;
+	std::vector<Mesh*> mMeshes;
 
 	void ParseColorCheckerFile();
 	void ConvertLightSpectrumsToRGBs();

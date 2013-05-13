@@ -6,6 +6,8 @@
 #include <ShaderRegistry.h>
 #include <MeshFilter.h>
 
+COMPONENT_IMPLEMENTATION(SpheresController, Behaviour);
+
 void SpheresController::OnUpdate(float time, float deltaTime)
 {
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.5f)
@@ -27,13 +29,13 @@ void SpheresController::OnUpdate(float time, float deltaTime)
 		{
 			GameObject* pSphere = mSpheres[i];
 
-			MeshFilterPtr meshFilterPtr = DynamicCast<MeshFilter>(pSphere->GetComponent(MeshFilter::TYPE));
+			MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(pSphere->GetComponent(MeshFilter::TYPE));
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-			meshFilterPtr->GetMaterial()->SetTexture("colorMap", mColorMapTextures[mCurrentTextureIndex]);
-			meshFilterPtr->GetMaterial()->SetTexture("bumpMap", mBumpMapTextures[mCurrentTextureIndex]);
+			pMeshFilter->GetMaterial()->SetTexture("colorMap", mColorMapTextures[mCurrentTextureIndex]);
+			pMeshFilter->GetMaterial()->SetTexture("bumpMap", mBumpMapTextures[mCurrentTextureIndex]);
 #else
-			meshFilterPtr->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
+			pMeshFilter->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
 #endif
 		}
 
@@ -42,29 +44,29 @@ void SpheresController::OnUpdate(float time, float deltaTime)
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	else if (Input::GetMouseButton(MouseButton::MIDDLE_BUTTON) && time - mLastMiddleButtonClickTime > 0.5f)
 	{
-		GameObjectPtr spherePtr = mSpheres[0];
-		MeshFilterPtr meshFilter = DynamicCast<MeshFilter>(spherePtr->GetComponent(MeshFilter::TYPE));
+		GameObject* pSphere = mSpheres[0];
+		MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(pSphere->GetComponent(MeshFilter::TYPE));
 
-		ShaderPtr sphereShaderPtr;
-		if (meshFilter->GetMaterial()->GetShader()->GetName() == "BumpedSpecular")
+		Shader* pSphereShader;
+		if (pMeshFilter->GetMaterial()->GetShader()->GetName() == "BumpedSpecular")
 		{
-			sphereShaderPtr = ShaderRegistry::Find("Specular");
+			pSphereShader = ShaderRegistry::Find("Specular");
 		}
 
 		else
 		{
-			sphereShaderPtr = ShaderRegistry::Find("BumpedSpecular");
+			pSphereShader = ShaderRegistry::Find("BumpedSpecular");
 		}
 
-		meshFilter->GetMaterial()->SetShader(sphereShaderPtr);
+		pMeshFilter->GetMaterial()->SetShader(pSphereShader);
 
 		mLastMiddleButtonClickTime = time;
 	}
 #endif
 
-	for (unsigned int i = 0; i < mSpheres.size(); i++)
+	/*for (unsigned int i = 0; i < mSpheres.size(); i++)
 	{
 		GameObject* pSphere = mSpheres[i];
 		pSphere->GetTransform()->Rotate(mRotationSpeed * deltaTime, mRotationAxis);
-	}
+	}*/
 }

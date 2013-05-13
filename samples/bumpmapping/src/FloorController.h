@@ -8,35 +8,22 @@
 
 #include <vector>
 
-class FloorController : public Behaviour
-{
-	DECLARE_TYPE;
-
+COMPONENT(FloorController, Behaviour)
 public:
-	FloorController() :
-		mCurrentTextureIndex(0),
-		mTiling(1, 1),
-		mLastLeftButtonClickTime(0.0f),
-		mLastMiddleButtonClickTime(0.0f)
+	virtual void OnInstantiate() 
 	{
+		mCurrentTextureIndex = 0;
+		mTiling = glm::vec2(1, 1);
+		mLastLeftButtonClickTime = 0.0f,
+		mLastMiddleButtonClickTime = 0.0f;
 	}
 
-	inline std::vector<TexturePtr> GetColorMapTextures() const
-	{
-		return mColorMapTextures;
-	}
-
-	inline void SetColorMapTextures(std::vector<TexturePtr> colorMapTextures)
+	inline void SetColorMapTextures(std::vector<Texture*> colorMapTextures)
 	{
 		mColorMapTextures = colorMapTextures;
 	}
 
-	inline std::vector<TexturePtr> GetBumpMapTextures() const
-	{
-		return mBumpMapTextures;
-	}
-
-	inline void SetBumpMapTextures(std::vector<TexturePtr> bumpMapTextures)
+	inline void SetBumpMapTextures(std::vector<Texture*> bumpMapTextures)
 	{
 		mBumpMapTextures = bumpMapTextures;
 	}
@@ -44,15 +31,13 @@ public:
 	virtual void OnUpdate(float time, float deltaTime);
 
 private:
-	std::vector<TexturePtr> mColorMapTextures;
-	std::vector<TexturePtr> mBumpMapTextures;
+	std::vector<Texture*> mColorMapTextures;
+	std::vector<Texture*> mBumpMapTextures;
 	unsigned int mCurrentTextureIndex;
 	glm::vec2 mTiling;
 	float mLastLeftButtonClickTime;
 	float mLastMiddleButtonClickTime;
 
 };
-
-typedef Pointer<FloorController> FloorControllerPtr;
 
 #endif

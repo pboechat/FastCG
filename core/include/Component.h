@@ -1,26 +1,67 @@
 #ifndef COMPONENT_H_
 #define COMPONENT_H_
 
-#include <Type.h>
 #include <GameObject.h>
-#include <Pointer.h>
 #include <Exception.h>
+
+#include <string>
+
+class ComponentType
+{
+public:
+	ComponentType(const std::string& rName, const ComponentType* pBaseType) :
+	  mName(rName),
+	  mpBaseType(pBaseType)
+	{
+	}
+
+	~ComponentType()
+	{
+	}
+
+	inline const std::string& GetName() const
+	{
+		return mName;
+	}
+
+	inline bool IsExactly(const ComponentType& rType) const
+	{
+		return &rType == this;
+	}
+
+	inline const ComponentType* GetBaseType() const
+	{
+		return mpBaseType;
+	}
+
+	bool IsDerived(const ComponentType& rType) const
+	{
+		const ComponentType* pSearch = this;
+		while (pSearch)
+		{
+			if (pSearch == &rType)
+			{
+				return true;
+			}
+
+			pSearch = pSearch->mpBaseType;
+		}
+
+		return false;
+	}
+
+private:
+	std::string mName;
+	const ComponentType* mpBaseType;
+
+};
 
 class Component
 {
 public:
-	static const Type TYPE;
+	static const ComponentType TYPE;
 
-	Component() :
-		mEnabled(true)
-	{
-	}
-
-	virtual ~Component()
-	{
-	}
-
-	inline virtual const Type& GetType() const
+	inline virtual const ComponentType& GetType() const
 	{
 		return TYPE;
 	}
@@ -45,7 +86,41 @@ public:
 		return mpGameObject;
 	}
 
-	friend class GameObject;
+	static void Destroy(Component* pComponent)
+	{
+		pComponent->OnDestroy();
+		pComponent->RemoveFromParent();
+		delete pComponent;
+	}
+
+protected:
+	static void AddToGameObject(GameObject* pGameObject, Component* pComponent)
+	{
+		pGameObject->AddComponent(pComponent);
+	}
+
+	Component(GameObject* pGameObject) :
+		mpGameObject(pGameObject),
+		mEnabled(true)
+	{
+	}
+
+	virtual ~Component()
+	{
+	}
+
+	inline void RemoveFromParent()
+	{
+		mpGameObject->RemoveComponent(this);
+	}
+
+	virtual void OnInstantiate()
+	{
+	}
+
+	virtual void OnDestroy()
+	{
+	}
 
 private:
 	GameObject* mpGameObject;
@@ -53,35 +128,34 @@ private:
 
 };
 
-template <class T> T* StaticCast(Component* pComponent);
-template <class T> const T* StaticCast(const Component* pComponent);
-template <class T> T* DynamicCast(Component* pComponent);
-template <class T> const T* DynamicCast(const Component* pComponent);
+#define COMPONENT(className, baseClassName) \
+class className : public baseClassName \
+{ \
+public: \
+	static const ComponentType TYPE; \
+	inline virtual const ComponentType& GetType() const { return TYPE; } \
+	static className* Instantiate(GameObject* pGameObject)  \
+	{ \
+		className* pComponent = new className(pGameObject); \
+		Component::AddToGameObject(pGameObject, pComponent); \
+		pComponent->OnInstantiate(); \
+		return pComponent; \
+	} \
+private: \
+	className(GameObject* pGameObject) : baseClassName(pGameObject) {} \
+	~className() {} \
 
-template <class T>
-inline T* StaticCast(Component* pComponent)
-{
-	return static_cast<T*>(pComponent);
-}
+#define ABSTRACT_COMPONENT(className, baseClassName) \
+class className : public baseClassName \
+{ \
+public: \
+	static const ComponentType TYPE; \
+	inline virtual const ComponentType& GetType() const { return TYPE; } \
+protected: \
+	className(GameObject* pGameObject) : baseClassName(pGameObject) {} \
+	~className() {} \
 
-template <class T>
-inline const T* StaticCast(const Component* pComponent)
-{
-	return static_cast<const T*>(pComponent);
-}
-
-template <class T>
-T* DynamicCast(Component* pComponent)
-{
-	return pComponent && pComponent->GetType().IsDerived(T::TYPE) ? static_cast<T*>(pComponent) : 0;
-}
-
-template <class T>
-const T* DynamicCast(const Component* pComponent)
-{
-	return pComponent && pComponent->GetType().IsDerived(T::TYPE) ? static_cast<const T*>(pComponent) : 0;
-}
-
-typedef Pointer<Component> ComponentPtr;
+#define COMPONENT_IMPLEMENTATION(className, baseClassName) \
+	const ComponentType className::TYPE(#className, &baseClassName::TYPE) \
 
 #endif

@@ -85,7 +85,11 @@ Input::InputBuffer::InputBuffer() :
 
 Input::InputBuffer::~InputBuffer()
 {
-	delete[] mpKeys;
+	if (mpKeys != 0)
+	{
+		delete[] mpKeys;
+		mpKeys = 0;
+	}
 }
 
 bool Input::InputBuffer::GetKey(int keyCode) const

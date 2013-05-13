@@ -3,7 +3,7 @@
 
 const unsigned int BSplineCurve::MINIMUM_DEGREE = 2;
 
-Pointer<BSplineCurve> BSplineCurve::CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped)
+BSplineCurve* BSplineCurve::CreateUniform(unsigned int degree, const std::vector<glm::vec2>& rControlPoints, bool clamped)
 {
 	if (degree < MINIMUM_DEGREE)
 	{

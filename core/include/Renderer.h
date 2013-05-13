@@ -3,10 +3,7 @@
 
 #include <Component.h>
 
-class Renderer : public Component
-{
-	DECLARE_TYPE;
-
+ABSTRACT_COMPONENT(Renderer, Component)
 public:
 	inline void Render()
 	{
@@ -20,7 +17,5 @@ protected:
 	virtual void OnRender() = 0;
 
 };
-
-typedef Pointer<Renderer> RendererPtr;
 
 #endif

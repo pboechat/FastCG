@@ -4,29 +4,29 @@
 #include <Renderer.h>
 #include <Points.h>
 
-class PointsRenderer : public Renderer
-{
-	DECLARE_TYPE;
-
+COMPONENT(PointsRenderer, Renderer)
 public:
-	inline void SetPoints(const PointsPtr& pointsPtr)
+	inline void SetPoints(Points* pPoints)
 	{
-		mPointsPtr = pointsPtr;
+		mpPoints = pPoints;
 	}
 
-	inline PointsPtr GetPoints() const
+	inline Points* GetPoints() const
 	{
-		return mPointsPtr;
+		return mpPoints;
+	}
+
+	virtual void OnInstantiate()
+	{
+		mpPoints = 0;
 	}
 
 protected:
 	virtual void OnRender();
 
 private:
-	PointsPtr mPointsPtr;
+	Points* mpPoints;
 
 };
-
-typedef Pointer<PointsRenderer> PointsRendererPtr;
 
 #endif

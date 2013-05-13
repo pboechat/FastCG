@@ -1,7 +1,6 @@
 #if (!defined(FONT_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
 #define FONT_H_
 
-#include <Pointer.h>
 #include <Shader.h>
 #include <Material.h>
 #include <Mesh.h>
@@ -24,8 +23,8 @@ private:
 
 	std::string mFileName;
 	unsigned int mSize;
-	ShaderPtr mFontShaderPtr;
-	std::vector<MeshPtr> mBillboards;
+	Shader* mpFontShader;
+	std::vector<Mesh*> mBillboards;
 	std::vector<unsigned int> mCharactersTexturesIds;
 	std::vector<int> mSpacings;
 	std::vector<glm::vec2> mOffsets;
@@ -33,10 +32,8 @@ private:
 	void AllocateResources();
 	void DeallocateResources();
 
-	MeshPtr CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t);
+	Mesh* CreateCharacterBillboard(unsigned int width, unsigned int height, float s, float t);
 
 };
-
-typedef Pointer<Font> FontPtr;
 
 #endif

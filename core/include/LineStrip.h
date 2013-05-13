@@ -1,8 +1,6 @@
 #ifndef LINESTRIP_H_
 #define LINESTRIP_H_
 
-#include <Pointer.h>
-
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -31,7 +29,5 @@ private:
 	void DeallocateResources();
 
 };
-
-typedef Pointer<LineStrip> LineStripPtr;
 
 #endif

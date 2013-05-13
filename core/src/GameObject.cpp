@@ -1,60 +1,68 @@
 #include <GameObject.h>
 #include <Component.h>
-#include <Type.h>
 #include <Transform.h>
 #include <Renderer.h>
 #include <Application.h>
 #include <Exception.h>
 
+#include <algorithm>
+
 GameObject::GameObject() :
 	mActive(true)
 {
-	mpTransform = new Transform();
-	mpTransform->mpGameObject = this;
-
-	Application::GetInstance()->RegisterGameObject(this);
+	mpTransform = new Transform(this);
 }
 
 GameObject::~GameObject()
 {
-	Application::GetInstance()->UnregisterGameObject(this);
-
-	for (unsigned int i = 0; i < mComponents.size(); i++)
-	{
-		Application::GetInstance()->UnregisterComponent(mComponents[i]);
-	}
+	delete mpTransform;
 }
 
-void GameObject::AddComponent(const ComponentPtr& rComponentPtr)
+void GameObject::AddComponent(Component* pComponent)
 {
-	if (rComponentPtr == 0)
+	if (pComponent == 0)
 	{
 		THROW_EXCEPTION(Exception, "Cannot add null component");
 	}
 
-	if (rComponentPtr->GetType().IsExactly(Transform::TYPE))
-	{
-		THROW_EXCEPTION(Exception, "Cannot add transform");
-	}
-
-	const Type& rComponentType = rComponentPtr->GetType();
+	const ComponentType& rComponentType = pComponent->GetType();
 
 	if (GetComponent(rComponentType) != 0)
 	{
 		THROW_EXCEPTION(Exception, "Cannot add two components of the same type: %s", rComponentType.GetName());
 	}
 
-	if (rComponentPtr->GetType().IsDerived(Renderer::TYPE))
+	if (rComponentType.IsDerived(Renderer::TYPE))
 	{
-		mpRenderer = DynamicCast<Renderer>(rComponentPtr);
+		mpRenderer = dynamic_cast<Renderer*>(pComponent);
 	}
 
-	rComponentPtr->mpGameObject = this;
-	Application::GetInstance()->RegisterComponent(rComponentPtr);
-	mComponents.push_back(rComponentPtr);
+	Application::GetInstance()->RegisterComponent(pComponent);
+
+	mComponents.push_back(pComponent);
 }
 
-ComponentPtr GameObject::GetComponent(const Type& rComponentType) const
+void GameObject::RemoveComponent(Component* pComponent)
+{
+	if (pComponent->GetType().IsDerived(Renderer::TYPE))
+	{
+		mpRenderer = 0;
+	}
+
+	std::vector<Component*>::iterator it = std::find(mComponents.begin(), mComponents.end(), pComponent);
+
+	if (it == mComponents.end())
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "it == mComponents.end()");
+	}
+
+	mComponents.erase(it);
+
+	Application::GetInstance()->UnregisterComponent(pComponent);
+}
+
+Component* GameObject::GetComponent(const ComponentType& rComponentType) const
 {
 	for (unsigned int i = 0; i < mComponents.size(); i++)
 	{
@@ -65,4 +73,34 @@ ComponentPtr GameObject::GetComponent(const Type& rComponentType) const
 	}
 
 	return 0;
+}
+
+void GameObject::DestroyAllComponents()
+{
+	std::vector<Component*> componentsToDestroy = mComponents;
+	for (unsigned int i = 0; i < componentsToDestroy.size(); i++)
+	{
+		Component::Destroy(componentsToDestroy[i]);
+	}
+	componentsToDestroy.clear();
+
+	if (mComponents.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mComponents.size() > 0");
+	}
+}
+
+GameObject* GameObject::Instantiate()
+{
+	GameObject* pGameObject = new GameObject();
+	Application::GetInstance()->RegisterGameObject(pGameObject);
+	return pGameObject;
+}
+
+void GameObject::Destroy(GameObject* pGameObject)
+{
+	pGameObject->DestroyAllComponents();
+	Application::GetInstance()->UnregisterGameObject(pGameObject);
+	delete pGameObject;
 }

@@ -14,15 +14,15 @@ FileReader::~FileReader()
 {
 }
 
-char* FileReader::Read(const std::string& rFileName, FileMode mode)
+std::string FileReader::Read(const std::string& rFileName, FileMode mode)
 {
 	int unusedFileSize;
 	return Read(rFileName, unusedFileSize, mode);
 }
 
-char* FileReader::Read(const std::string& rFileName, int& fileSize, FileMode mode)
+std::string FileReader::Read(const std::string& rFileName, int& fileSize, FileMode mode)
 {
-	char* pContent = NULL;
+	char* pBuffer = NULL;
 	fileSize = 0;
 
 	if (!rFileName.empty())
@@ -41,15 +41,20 @@ char* FileReader::Read(const std::string& rFileName, int& fileSize, FileMode mod
 
 		if (size > 0)
 		{
-			pContent = (char*) malloc(sizeof(char) * (size + 1));
-			size = fread(pContent, sizeof(char), size, file);
-			pContent[size] = '\0';
+			pBuffer = (char*) malloc(sizeof(char) * (size + 1));
+			size = fread(pBuffer, sizeof(char), size, file);
+			pBuffer[size] = '\0';
 		}
 
 		fclose(file);
 	}
 
-	return pContent;
+
+	std::string content(pBuffer);
+
+	free(pBuffer);
+
+	return content;
 }
 
 char* GetFileModeString(FileMode mode)

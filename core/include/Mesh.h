@@ -1,8 +1,6 @@
 #ifndef MESH_H_
 #define MESH_H_
 
-#include <Pointer.h>
-
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -62,7 +60,5 @@ private:
 #endif
 
 };
-
-typedef Pointer<Mesh> MeshPtr;
 
 #endif

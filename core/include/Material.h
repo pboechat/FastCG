@@ -1,7 +1,6 @@
 #ifndef MATERIAL_H_
 #define MATERIAL_H_
 
-#include <Pointer.h>
 #include <Shader.h>
 #include <Texture.h>
 
@@ -15,17 +14,17 @@
 class Material
 {
 public:
-	Material(ShaderPtr shaderPtr);
+	Material(Shader* pShader);
 	~Material();
 
-	inline ShaderPtr GetShader() const
+	inline Shader* GetShader() const
 	{
-		return mShaderPtr;
+		return mpShader;
 	}
 
-	inline void SetShader(ShaderPtr shaderPtr)
+	inline void SetShader(Shader* pShader)
 	{
-		mShaderPtr = shaderPtr;
+		mpShader = pShader;
 	}
 
 	void SetUpShaderParameters() const;
@@ -45,9 +44,9 @@ public:
 		mMat4Parameters[rParameterName] = rMatrix;
 	}
 
-	inline void SetTexture(const std::string& rParameterName, const TexturePtr& texturePtr)
+	inline void SetTexture(const std::string& rParameterName, Texture* pTexture)
 	{
-		mTextureParameters[rParameterName] = texturePtr;
+		mTextureParameters[rParameterName] = pTexture;
 	}
 
 	inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
@@ -61,11 +60,11 @@ public:
 	}
 
 private:
-	ShaderPtr mShaderPtr;
+	Shader* mpShader;
 	std::map<std::string, float> mFloatParameters;
 	std::map<std::string, glm::vec4> mVec4Parameters;
 	std::map<std::string, glm::mat4> mMat4Parameters;
-	std::map<std::string, TexturePtr> mTextureParameters;
+	std::map<std::string, Texture*> mTextureParameters;
 	std::map<std::string, glm::vec2> mTexturesTiling;
 
 };
@@ -115,7 +114,7 @@ public:
 
 	inline TexturePtr GetTexture() const
 	{
-		return mTexturePtr;
+		return mpTexture;
 	}
 
 	inline void SetAmbientColor(const glm::vec4& ambientColor)
@@ -148,9 +147,9 @@ public:
 		mEmissive = emissive;
 	}
 
-	inline void SetTexture(TexturePtr texturePtr)
+	inline void SetTexture(Texture* pTexture)
 	{
-		mTexturePtr = texturePtr;
+		mpTexture = pTexture;
 	}
 
 	void SetUpShaderParameters() const;
@@ -162,12 +161,10 @@ private:
 	glm::vec4 mEmissiveColor;
 	float mShininess;
 	bool mEmissive;
-	TexturePtr mTexturePtr;
+	Texture* mpTexture;
 
 };
 
 #endif
-
-typedef Pointer<Material> MaterialPtr;
 
 #endif

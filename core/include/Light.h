@@ -2,21 +2,17 @@
 #define LIGHT_H_
 
 #include <Component.h>
-#include <Pointer.h>
 
 #include <glm/glm.hpp>
 
-class Light : public Component
-{
-	DECLARE_TYPE;
-
+COMPONENT(Light, Component)
 public:
-	Light() :
-		mIntensity(1.0f),
-		mAmbientColor(1.0f, 1.0f, 1.0f, 1.0f),
-		mDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f),
-		mSpecularColor(1.0f, 1.0f, 1.0f, 1.0f)
+	virtual void OnInstantiate()
 	{
+		mIntensity = 1.0f;
+		mAmbientColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		mDiffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		mSpecularColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
 	inline float GetIntensity() const
@@ -66,7 +62,5 @@ private:
 	glm::vec4 mSpecularColor;
 
 };
-
-typedef Pointer<Light> LightPtr;
 
 #endif

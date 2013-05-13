@@ -11,8 +11,8 @@
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 
-Material::Material(ShaderPtr shaderPtr) :
-	mShaderPtr(shaderPtr)
+Material::Material(Shader* pShader) :
+	mpShader(pShader)
 {
 }
 
@@ -26,7 +26,7 @@ void Material::SetUpShaderParameters() const
 
 	while (floatParametersCursor != mFloatParameters.end())
 	{
-		mShaderPtr->SetFloat(floatParametersCursor->first, floatParametersCursor->second);
+		mpShader->SetFloat(floatParametersCursor->first, floatParametersCursor->second);
 		floatParametersCursor++;
 	}
 
@@ -34,7 +34,7 @@ void Material::SetUpShaderParameters() const
 
 	while (vec4ParametersCursor != mVec4Parameters.end())
 	{
-		mShaderPtr->SetVec4(vec4ParametersCursor->first, vec4ParametersCursor->second);
+		mpShader->SetVec4(vec4ParametersCursor->first, vec4ParametersCursor->second);
 		vec4ParametersCursor++;
 	}
 
@@ -42,16 +42,16 @@ void Material::SetUpShaderParameters() const
 
 	while (mat4ParametersCursor != mMat4Parameters.end())
 	{
-		mShaderPtr->SetMat4(mat4ParametersCursor->first, mat4ParametersCursor->second);
+		mpShader->SetMat4(mat4ParametersCursor->first, mat4ParametersCursor->second);
 		mat4ParametersCursor++;
 	}
 
-	std::map<std::string, TexturePtr>::const_iterator textureParametersCursor = mTextureParameters.begin();
+	std::map<std::string, Texture*>::const_iterator textureParametersCursor = mTextureParameters.begin();
 	unsigned int textureUnit = 0;
 
 	while (textureParametersCursor != mTextureParameters.end())
 	{
-		mShaderPtr->SetTexture(textureParametersCursor->first, textureParametersCursor->second, textureUnit);
+		mpShader->SetTexture(textureParametersCursor->first, textureParametersCursor->second, textureUnit);
 
 		std::stringstream variableName;
 		variableName << textureParametersCursor->first << "Tiling";
@@ -63,7 +63,7 @@ void Material::SetUpShaderParameters() const
 			tiling = textureTilingCursor->second;
 		}
 
-		mShaderPtr->SetVec2(variableName.str(), tiling);
+		mpShader->SetVec2(variableName.str(), tiling);
 
 		textureUnit++;
 		textureParametersCursor++;
@@ -97,9 +97,9 @@ void Material::SetUpShaderParameters() const
 	}
 	glMaterialf(GL_FRONT, GL_SHININESS, mShininess);
 
-	if (mTexturePtr != 0)
+	if (mpTexture != 0)
 	{
-		mTexturePtr->Bind();
+		mpTexture->Bind();
 	}
 }
 

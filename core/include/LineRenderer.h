@@ -6,29 +6,29 @@
 
 class GameObject;
 
-class LineRenderer : public Renderer
-{
-	DECLARE_TYPE;
-
+COMPONENT(LineRenderer, Renderer)
 public:
-	inline void SetLineStrip(const LineStripPtr& lineStripPtr)
+	inline void SetLineStrip(LineStrip* pLineStrip)
 	{
-		mLineStripPtr = lineStripPtr;
+		mpLineStrip = pLineStrip;
 	}
 
-	inline LineStripPtr GetLineStrip() const
+	inline const LineStrip* GetLineStrip()
 	{
-		return mLineStripPtr;
+		return mpLineStrip;
+	}
+
+	virtual void OnInstantiate()
+	{
+		mpLineStrip = 0;
 	}
 
 protected:
 	virtual void OnRender();
 
 private:
-	LineStripPtr mLineStripPtr;
+	LineStrip* mpLineStrip;
 
 };
-
-typedef Pointer<LineRenderer> LineRendererPtr;
 
 #endif

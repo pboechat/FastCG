@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-IMPLEMENT_TYPE(BackgroundController, Behaviour);
+COMPONENT_IMPLEMENTATION(BackgroundController, Behaviour);
 
 void BackgroundController::OnUpdate(float time, float deltaTime)
 {
