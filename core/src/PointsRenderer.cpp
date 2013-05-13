@@ -14,14 +14,14 @@ void PointsRenderer::OnRender()
 	}
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
-	glPushAttrib(GL_ENABLE_BIT);
+	glPushAttrib(GL_ENABLE_BIT | GL_POINT_BIT);
 	glEnable(GL_COLOR_MATERIAL);
+	glPointSize(mpPoints->GetSize());
 #endif
 
 	mpPoints->DrawCall();
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glPopAttrib();
-	glPopMatrix();
 #endif
 }

@@ -27,7 +27,7 @@ public:
 		mpShader = pShader;
 	}
 
-	void SetUpShaderParameters() const;
+	void SetUpParameters() const;
 
 	inline void SetFloat(const std::string& rParameterName, float value)
 	{
@@ -112,7 +112,7 @@ public:
 		return mEmissive;
 	}
 
-	inline TexturePtr GetTexture() const
+	inline Texture* GetTexture() const
 	{
 		return mpTexture;
 	}
@@ -152,7 +152,7 @@ public:
 		mpTexture = pTexture;
 	}
 
-	void SetUpShaderParameters() const;
+	void SetUpParameters() const;
 
 private:
 	glm::vec4 mAmbientColor;

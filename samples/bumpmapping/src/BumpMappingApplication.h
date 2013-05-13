@@ -3,6 +3,8 @@
 
 #include <Application.h>
 #include <Texture.h>
+#include <Material.h>
+#include <Mesh.h>
 
 #include <string>
 #include <vector>
@@ -25,10 +27,10 @@ private:
 
 	Texture* LoadPNGAsTexture(const std::string& rFileName);
 
-	std::vector<Texture*> mpFloorColorMapTextures;
-	std::vector<Texture*> mpFloorBumpMapTextures;
-	std::vector<Texture*> mpSphereColorMapTextures;
-	std::vector<Texture*> mpSphereBumpMapTextures;
+	std::vector<Texture*> mFloorColorMapTextures;
+	std::vector<Texture*> mFloorBumpMapTextures;
+	std::vector<Texture*> mSphereColorMapTextures;
+	std::vector<Texture*> mSphereBumpMapTextures;
 	Material* mpFloorMaterial;
 	Mesh* mpFloorMesh;
 	Material* mpSphereMaterial;

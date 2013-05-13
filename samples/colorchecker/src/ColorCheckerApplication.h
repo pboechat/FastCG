@@ -2,6 +2,8 @@
 #define COLORCHECKERAPPLICATION_H
 
 #include <Application.h>
+#include <Material.h>
+#include <Mesh.h>
 #include <LightSpectrum.h>
 #include <sRGBColor.h>
 

@@ -32,29 +32,29 @@ BumpMappingApplication::BumpMappingApplication() :
 
 BumpMappingApplication::~BumpMappingApplication()
 {
-	for (unsigned int i = 0; i < mpFloorColorMapTextures.size(); i++)
+	for (unsigned int i = 0; i < mFloorColorMapTextures.size(); i++)
 	{
-		delete mpFloorColorMapTextures[i];
+		delete mFloorColorMapTextures[i];
 	}
-	mpFloorColorMapTextures.clear();
+	mFloorColorMapTextures.clear();
 
-	for (unsigned int i = 0; i < mpFloorBumpMapTextures.size(); i++)
+	for (unsigned int i = 0; i < mFloorBumpMapTextures.size(); i++)
 	{
-		delete mpFloorBumpMapTextures[i];
+		delete mFloorBumpMapTextures[i];
 	}
-	mpFloorBumpMapTextures.clear();
+	mFloorBumpMapTextures.clear();
 
-	for (unsigned int i = 0; i < mpSphereColorMapTextures.size(); i++)
+	for (unsigned int i = 0; i < mSphereColorMapTextures.size(); i++)
 	{
-		delete mpSphereColorMapTextures[i];
+		delete mSphereColorMapTextures[i];
 	}
-	mpSphereColorMapTextures.clear();
+	mSphereColorMapTextures.clear();
 
-	for (unsigned int i = 0; i < mpSphereBumpMapTextures.size(); i++)
+	for (unsigned int i = 0; i < mSphereBumpMapTextures.size(); i++)
 	{
-		delete mpSphereBumpMapTextures[i];
+		delete mSphereBumpMapTextures[i];
 	}
-	mpSphereBumpMapTextures.clear();
+	mSphereBumpMapTextures.clear();
 
 	delete mpFloorMaterial;
 	delete mpFloorMesh;
@@ -93,26 +93,26 @@ void BumpMappingApplication::OnStart()
 
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
 
-	mpFloorColorMapTextures.push_back(LoadPNGAsTexture("textures/FloorColorMap1.png"));
-	mpFloorBumpMapTextures.push_back(LoadPNGAsTexture("textures/FloorBumpMap1.png"));
-	mpFloorColorMapTextures.push_back(LoadPNGAsTexture("textures/FloorColorMap2.png"));
-	mpFloorBumpMapTextures.push_back(LoadPNGAsTexture("textures/FloorBumpMap2.png"));
+	mFloorColorMapTextures.push_back(LoadPNGAsTexture("textures/FloorColorMap1.png"));
+	mFloorBumpMapTextures.push_back(LoadPNGAsTexture("textures/FloorBumpMap1.png"));
+	mFloorColorMapTextures.push_back(LoadPNGAsTexture("textures/FloorColorMap2.png"));
+	mFloorBumpMapTextures.push_back(LoadPNGAsTexture("textures/FloorBumpMap2.png"));
 
-	mpSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
-	mpSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
-	mpSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
-	mpSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
+	mSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
+	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap1.png"));
+	mSphereColorMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
+	mSphereBumpMapTextures.push_back(LoadPNGAsTexture("textures/SphereColorMap2.png"));
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Shader* pShader = ShaderRegistry::Find("BumpedSpecular");
 	mpFloorMaterial = new Material(pShader);
-	mpFloorMaterial->SetTexture("colorMap", mpFloorColorMapTextures[0]);
-	mpFloorMaterial->SetTexture("bumpMap", mpFloorBumpMapTextures[0]);
+	mpFloorMaterial->SetTexture("colorMap", mFloorColorMapTextures[0]);
+	mpFloorMaterial->SetTexture("bumpMap", mFloorBumpMapTextures[0]);
 	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpFloorMaterial->SetFloat("shininess", 5.0f);
 #else
 	mpFloorMaterial = new Material();
-	mpFloorMaterial->SetTexture(floorColorMapTextures[0]);
+	mpFloorMaterial->SetTexture(mFloorColorMapTextures[0]);
 	mpFloorMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpFloorMaterial->SetShininess(5.0f);
 #endif
@@ -128,18 +128,18 @@ void BumpMappingApplication::OnStart()
 	pMeshFilter->SetMaterial(mpFloorMaterial);
 
 	FloorController* pFloorController = FloorController::Instantiate(pFloorGameObject);
-	pFloorController->SetColorMapTextures(mpFloorColorMapTextures);
-	pFloorController->SetBumpMapTextures(mpFloorBumpMapTextures);
+	pFloorController->SetColorMapTextures(mFloorColorMapTextures);
+	pFloorController->SetBumpMapTextures(mFloorBumpMapTextures);
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mpSphereMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
-	mpSphereMaterial->SetTexture("colorMap", mpSphereColorMapTextures[0]);
-	mpSphereMaterial->SetTexture("bumpMap", mpSphereBumpMapTextures[0]);
+	mpSphereMaterial->SetTexture("colorMap", mSphereColorMapTextures[0]);
+	mpSphereMaterial->SetTexture("bumpMap", mSphereBumpMapTextures[0]);
 	mpSphereMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpSphereMaterial->SetFloat("shininess", 10.0f);
 #else
 	mpSphereMaterial = new Material();
-	mpSphereMaterial->SetTexture(sphereColorMapTextures[0]);
+	mpSphereMaterial->SetTexture(mSphereColorMapTextures[0]);
 	mpSphereMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpSphereMaterial->SetShininess(10.0f);
 #endif
@@ -171,8 +171,8 @@ void BumpMappingApplication::OnStart()
 	pSpheresController->SetSpheres(spheres);
 	pSpheresController->SetRotationSpeed(50.0f);
 	pSpheresController->SetRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));
-	pSpheresController->SetColorMapTextures(mpSphereColorMapTextures);
-	pSpheresController->SetBumpMapTextures(mpSphereBumpMapTextures);
+	pSpheresController->SetColorMapTextures(mSphereColorMapTextures);
+	pSpheresController->SetBumpMapTextures(mSphereBumpMapTextures);
 
 	GameObject* pPlayerGameObject = GameObject::Instantiate();
 

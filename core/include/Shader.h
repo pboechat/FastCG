@@ -150,7 +150,7 @@ private:
 	void DetachShaders();
 	void DeleteShaders();
 
-	inline unsigned int GetUniformLocation(const std::string& rParameterName) const
+	inline int GetUniformLocation(const std::string& rParameterName) const
 	{
 		return glGetUniformLocation(mProgramId, rParameterName.c_str());
 	}

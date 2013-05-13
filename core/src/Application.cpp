@@ -283,13 +283,13 @@ void Application::Update()
 	for (unsigned int i = 0; i < mLights.size(); i++)
 	{
 		glEnable(GL_LIGHT0 + i);
-		LightPtr lightPtr = mLights[i];
-		glm::vec4 lightPosition = glm::vec4(lightPtr->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
+		Light* pLight = mLights[i];
+		glm::vec4 lightPosition = glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
 		// TODO: GL_LIGHT0 + i might be a dangereous trick!
 		glLightfv(GL_LIGHT0 + i, GL_POSITION, &lightPosition[0]);
-		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &lightPtr->GetAmbientColor()[0]);
-		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &lightPtr->GetDiffuseColor()[0]);
-		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &lightPtr->GetSpecularColor()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &pLight->GetAmbientColor()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &pLight->GetDiffuseColor()[0]);
+		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &pLight->GetSpecularColor()[0]);
 	}
 
 #endif
@@ -305,7 +305,7 @@ void Application::Update()
 		pShader->SetMat4("_View", view);
 		pShader->SetMat4("_Projection", projection);
 #endif
-		pMaterial->SetUpShaderParameters();
+		pMaterial->SetUpParameters();
 
 		for (unsigned int j = 0; j < rMeshFilters.size(); j++)
 		{

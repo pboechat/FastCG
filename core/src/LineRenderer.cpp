@@ -22,6 +22,5 @@ void LineRenderer::OnRender()
 
 #ifndef USE_PROGRAMMABLE_PIPELINE
 	glPopAttrib();
-	glPopMatrix();
 #endif
 }

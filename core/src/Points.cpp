@@ -86,16 +86,9 @@ void Points::AllocateResources()
 
 	CHECK_FOR_OPENGL_ERRORS();
 
-	glPushAttrib(GL_POINT_BIT);
-
 	glNewList(mDisplayListId, GL_COMPILE);
-
-	glPointSize(mSize);
-
 	glDrawArrays(GL_POINTS, 0, mVertices.size());
 	glEndList();
-
-	glPopAttrib();
 #endif
 }
 

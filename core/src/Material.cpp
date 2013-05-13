@@ -20,7 +20,7 @@ Material::~Material()
 {
 }
 
-void Material::SetUpShaderParameters() const
+void Material::SetUpParameters() const
 {
 	std::map<std::string, float>::const_iterator floatParametersCursor = mFloatParameters.begin();
 
@@ -78,7 +78,8 @@ Material::Material(const glm::vec4& ambientColor, const glm::vec4& diffuseColor,
 	mSpecularColor(specularColor),
 	mShininess(shininess),
 	mEmissive(emissive),
-	mEmissiveColor(emissiveColor)
+	mEmissiveColor(emissiveColor),
+	mpTexture(0)
 {
 }
 
@@ -86,7 +87,7 @@ Material::~Material()
 {
 }
 
-void Material::SetUpShaderParameters() const
+void Material::SetUpParameters() const
 {
 	glMaterialfv(GL_FRONT, GL_AMBIENT, &mAmbientColor[0]);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, &mDiffuseColor[0]);
