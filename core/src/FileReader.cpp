@@ -22,14 +22,14 @@ std::string FileReader::Read(const std::string& rFileName, FileMode mode)
 
 std::string FileReader::Read(const std::string& rFileName, int& fileSize, FileMode mode)
 {
-	char* pBuffer = NULL;
+	char* pBuffer = 0;
 	fileSize = 0;
 
 	if (!rFileName.empty())
 	{
 		FILE* file = fopen(rFileName.c_str(), GetFileModeString(mode));
 
-		if (file == NULL)
+		if (file == 0)
 		{
 			THROW_EXCEPTION(FileNotFoundException, "File not found: %s", rFileName.c_str());
 		}
@@ -51,7 +51,6 @@ std::string FileReader::Read(const std::string& rFileName, int& fileSize, FileMo
 
 
 	std::string content(pBuffer);
-
 	free(pBuffer);
 
 	return content;

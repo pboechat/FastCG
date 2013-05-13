@@ -80,7 +80,7 @@ public:
 
 	inline void SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const
 	{
-		glUniform2fv(GetUniformLocation(rParameterName), 2, &rVector[0]);
+		glUniform2fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
 	}
 
 	inline void SetVec3(const std::string& rParameterName, float x, float y, float z) const
@@ -90,7 +90,7 @@ public:
 
 	inline void SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const
 	{
-		glUniform3fv(GetUniformLocation(rParameterName), 3, &rVector[0]);
+		glUniform3fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
 	}
 
 	inline void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
@@ -100,7 +100,7 @@ public:
 
 	inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const
 	{
-		glUniform4fv(GetUniformLocation(rParameterName), 4, &rVector[0]);
+		glUniform4fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
 	}
 
 	inline void SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const
