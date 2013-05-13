@@ -30,7 +30,6 @@ void GLUTKeyboardCallback(unsigned char key, int x, int y);
 void GLUTKeyboardUpCallback(unsigned char key, int x, int y);
 void GLUTSpecialKeysCallback(int key, int x, int y);
 void GLUTSpecialKeysUpCallback(int key, int x, int y);
-void GLUTWMCloseFunc();
 void ExitCallback();
 
 class Input;
@@ -41,7 +40,7 @@ public:
 	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight);
 	virtual ~Application();
 
-	static Application* GetInstance()
+	inline static Application* GetInstance()
 	{
 		return s_mpInstance;
 	}
@@ -94,7 +93,6 @@ public:
 	friend void GLUTKeyboardUpCallback(unsigned char, int, int);
 	friend void GLUTSpecialKeysCallback(int, int, int);
 	friend void GLUTSpecialKeysUpCallback(int, int, int);
-	friend void GLUTWMCloseFunc();
 	friend void ExitCallback();
 
 	friend class GameObject;
@@ -112,7 +110,7 @@ protected:
 	virtual void SetUpViewport();
 	virtual void OnResize();
 	virtual void OnStart();
-	virtual void OnQuit();
+	virtual void OnEnd();
 	virtual void OnMouseButton(int button, int state, int x, int y);
 	virtual void OnMouseWheel(int button, int direction, int x, int y);
 	virtual void OnMouseMove(int x, int y);
@@ -156,7 +154,6 @@ private:
 	};
 
 	static Application* s_mpInstance;
-	static bool s_mRunning;
 
 	unsigned int mScreenWidth;
 	unsigned int mScreenHeight;

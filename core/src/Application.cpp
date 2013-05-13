@@ -17,7 +17,6 @@
 #include <sstream>
 
 Application* Application::s_mpInstance = NULL;
-bool Application::s_mRunning = false;
 
 Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
 	mWindowTitle(rWindowTitle),
@@ -39,12 +38,90 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 
 Application::~Application()
 {
-	if (!s_mRunning)
+	if (mpInput != 0)
 	{
-		return;
+		delete mpInput;
 	}
 
-	Exit();
+	mpMainCamera = 0;
+
+	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
+	{
+		delete mRenderingGroups[i];
+	}
+	mRenderingGroups.clear();
+
+	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
+	{
+		delete mDrawTextRequests[i];
+	}
+	mDrawTextRequests.clear();
+
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	ShaderRegistry::Unload();
+	mpLineStripShader = 0;
+	mpPointsShader = 0;
+
+	FontRegistry::Unload();
+	mpStandardFont = 0;
+#endif
+
+	std::vector<GameObject*> gameObjectsToDestroy = mGameObjects;
+	for (unsigned int i = 0; i < gameObjectsToDestroy.size(); i++)
+	{
+		GameObject::Destroy(gameObjectsToDestroy[i]);
+	}
+	gameObjectsToDestroy.clear();
+
+	if (mGameObjects.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mGameObjects.size() > 0");
+	}
+
+	if (mCameras.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mCameras.size() > 0");
+	}
+
+	if (mLights.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mLights.size() > 0");
+	}
+
+	if (mMeshFilters.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mMeshFilters.size() > 0");
+	}
+
+	if (mBehaviours.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mBehaviours.size() > 0");
+	}
+
+	if (mLineRenderers.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mLineRenderers.size() > 0");
+	}
+
+	if (mPointsRenderers.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mPointsRenderers.size() > 0");
+	}
+
+	if (mComponents.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mComponents.size() > 0");
+	}
+
+	s_mpInstance = 0;
 }
 
 void Application::RegisterGameObject(GameObject* pGameObject)
@@ -179,8 +256,6 @@ void Application::Run(int argc, char** argv)
 		return;
 	}
 
-	atexit(ExitCallback);
-
 	SetUpGLUT(argc, argv);
 	SetUpOpenGL();
 	mpInput = new Input();
@@ -202,10 +277,12 @@ void Application::Run(int argc, char** argv)
 #endif
 		mStartTimer.Start();
 		OnStart();
-		glFinish();
-		s_mRunning = true;
+		//glFinish();
 		mUpdateTimer.Start();
 		glutMainLoop();
+		mStartTimer.End();
+		mUpdateTimer.End();
+		OnEnd();
 	}
 
 	catch (Exception& e)
@@ -222,6 +299,7 @@ bool Application::ParseCommandLineArguments(int argc, char** argv)
 void Application::SetUpGLUT(int argc, char** argv)
 {
 	glutInit(&argc, argv);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(mScreenWidth, mScreenHeight);
 	mGLUTWindowHandle = glutCreateWindow(mWindowTitle.c_str());
@@ -239,7 +317,6 @@ void Application::SetUpGLUT(int argc, char** argv)
 	glutKeyboardUpFunc(GLUTKeyboardUpCallback);
 	glutSpecialFunc(GLUTSpecialKeysCallback);
 	glutSpecialUpFunc(GLUTSpecialKeysUpCallback);
-	glutWMCloseFunc(GLUTWMCloseFunc);
 }
 
 void Application::SetUpOpenGL()
@@ -476,7 +553,7 @@ void Application::OnResize()
 {
 }
 
-void Application::OnQuit()
+void Application::OnEnd()
 {
 }
 
@@ -487,96 +564,7 @@ void Application::SetUpViewport()
 
 void Application::Exit()
 {
-	s_mRunning = false;
-
-	mStartTimer.End();
-
-	OnQuit();
-
-	if (mpInput != 0)
-	{
-		delete mpInput;
-	}
-
-	mpMainCamera = 0;
-
-	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
-	{
-		delete mRenderingGroups[i];
-	}
-	mRenderingGroups.clear();
-
-	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
-	{
-		delete mDrawTextRequests[i];
-	}
-	mDrawTextRequests.clear();
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	ShaderRegistry::Unload();
-	mpLineStripShader = 0;
-	mpPointsShader = 0;
-
-	FontRegistry::Unload();
-	mpStandardFont = 0;
-#endif
-
-	std::vector<GameObject*> gameObjectsToDestroy = mGameObjects;
-	for (unsigned int i = 0; i < gameObjectsToDestroy.size(); i++)
-	{
-		GameObject::Destroy(gameObjectsToDestroy[i]);
-	}
-	gameObjectsToDestroy.clear();
-
-	if (mGameObjects.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mGameObjects.size() > 0");
-	}
-
-	if (mCameras.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mCameras.size() > 0");
-	}
-
-	if (mLights.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mLights.size() > 0");
-	}
-
-	if (mMeshFilters.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mMeshFilters.size() > 0");
-	}
-
-	if (mBehaviours.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mBehaviours.size() > 0");
-	}
-
-	if (mLineRenderers.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mLineRenderers.size() > 0");
-	}
-
-	if (mPointsRenderers.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mPointsRenderers.size() > 0");
-	}
-
-	if (mComponents.size() > 0)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "mComponents.size() > 0");
-	}
-
-	glutDestroyWindow(mGLUTWindowHandle);
+	glutLeaveMainLoop();
 }
 
 void Application::MouseButton(int button, int state, int x, int y)
@@ -818,68 +806,34 @@ void GLUTMouseWheelCallback(int button, int direction, int x, int y)
 
 void GLUTMouseMoveCallback(int x, int y)
 {
-	if (!Application::s_mRunning)
-	{
-		return;
-	}
-
 	Application::GetInstance()->MouseMove(x, y);
 }
 
 void GLUTKeyboardCallback(unsigned char keyCode, int x, int y)
 {
-	if (!Application::s_mRunning)
-	{
-		return;
-	}
-
 	Application::GetInstance()->Keyboard((int) keyCode, x, y, true);
 }
 
 void GLUTKeyboardUpCallback(unsigned char keyCode, int x, int y)
 {
-	if (!Application::s_mRunning)
-	{
-		return;
-	}
-
 	Application::GetInstance()->Keyboard((int) keyCode, x, y, false);
 }
 
 void GLUTSpecialKeysCallback(int keyCode, int x, int y)
 {
-	if (!Application::s_mRunning)
-	{
-		return;
-	}
-
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, true);
 }
 
 void GLUTSpecialKeysUpCallback(int keyCode, int x, int y)
 {
-	if (!Application::s_mRunning)
-	{
-		return;
-	}
-
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, false);
-}
-
-void GLUTWMCloseFunc()
-{
-	/*if (Application::HasStarted())
-	{
-		Application::GetInstance()->Quit();
-	}*/
 }
 
 void ExitCallback()
 {
-	if (!Application::s_mRunning)
+	// safe destruction
+	if (Application::s_mpInstance != 0)
 	{
-		return;
+		delete Application::s_mpInstance;
 	}
-
-	Application::GetInstance()->Exit();
 }

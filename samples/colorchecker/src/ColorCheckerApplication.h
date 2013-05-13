@@ -14,12 +14,12 @@ class ColorCheckerApplication: public Application
 {
 public:
 	ColorCheckerApplication();
-	virtual ~ColorCheckerApplication();
 
 protected:
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void PrintUsage();
 	virtual void OnStart();
+	virtual void OnEnd();
 
 private:
 	static const unsigned int NUM_COLORS;

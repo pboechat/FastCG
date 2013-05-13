@@ -14,8 +14,6 @@
 #include <FirstPersonCameraController.h>
 #include <OpenGLExceptions.h>
 
-#include <vld.h>
-
 const unsigned int BumpMappingApplication::FLOOR_SIZE = 100;
 const float BumpMappingApplication::SPHERE_RADIUS = (FLOOR_SIZE * 0.025f);
 const unsigned int BumpMappingApplication::NUMBER_OF_SPHERE_SLICES = 30;
@@ -30,7 +28,7 @@ BumpMappingApplication::BumpMappingApplication() :
 	mShowFPS = true;
 }
 
-BumpMappingApplication::~BumpMappingApplication()
+void BumpMappingApplication::OnEnd()
 {
 	for (unsigned int i = 0; i < mFloorColorMapTextures.size(); i++)
 	{

@@ -13,10 +13,10 @@ class BumpMappingApplication: public Application
 {
 public:
 	BumpMappingApplication();
-	virtual ~BumpMappingApplication();
 
 protected:
 	virtual void OnStart();
+	virtual void OnEnd();
 
 private:
 	static const unsigned int FLOOR_SIZE;
@@ -24,8 +24,6 @@ private:
 	static const float SPHERE_RADIUS;
 	static const float WALK_SPEED;
 	static const float TURN_SPEED;
-
-	Texture* LoadPNGAsTexture(const std::string& rFileName);
 
 	std::vector<Texture*> mFloorColorMapTextures;
 	std::vector<Texture*> mFloorBumpMapTextures;
@@ -35,6 +33,8 @@ private:
 	Mesh* mpFloorMesh;
 	Material* mpSphereMaterial;
 	Mesh* mpSphereMesh;
+
+	Texture* LoadPNGAsTexture(const std::string& rFileName);
 
 };
 

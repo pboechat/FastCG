@@ -60,9 +60,14 @@ void BSplinesEditor::OnDestroy()
 	{
 		delete mpControlPoints;
 	}
+
+	if (mpBSplineCurve != 0)
+	{
+		delete mpBSplineCurve;
+	}
 }
 
-void BSplinesEditor::OnUpdate( float time, float deltaTime )
+void BSplinesEditor::OnUpdate(float time, float deltaTime)
 {
 	if (Input::GetKey(KeyCode::ESCAPE))
 	{

@@ -13,10 +13,6 @@ BSplinesApplication::BSplinesApplication() :
 	mShowFPS = true;
 }
 
-BSplinesApplication::~BSplinesApplication()
-{
-}
-
 void BSplinesApplication::OnStart()
 {
 	mpMainCamera->SetUp(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);

@@ -7,8 +7,8 @@ class BSplinesApplication : public Application
 {
 public:
 	BSplinesApplication();
-	virtual ~BSplinesApplication();
 
+protected:
 	virtual void OnStart();
 
 };

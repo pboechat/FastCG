@@ -25,29 +25,6 @@ ColorCheckerApplication::ColorCheckerApplication() :
 	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 }
 
-ColorCheckerApplication::~ColorCheckerApplication()
-{
-	std::vector<LightSpectrum*>::iterator i = mLightSpectrums.begin();
-	while (i != mLightSpectrums.end())
-	{
-		delete *i;
-		i++;
-	}
-	mLightSpectrums.clear();
-
-	for (unsigned int i = 0; i < mMaterials.size(); i++)
-	{
-		delete mMaterials[i];
-	}
-	mMaterials.clear();
-
-	for (unsigned int i = 0; i < mMeshes.size(); i++)
-	{
-		delete mMeshes[i];
-	}
-	mMeshes.clear();
-}
-
 bool ColorCheckerApplication::ParseCommandLineArguments(int argc, char** argv)
 {
 	if (argc < 2)
@@ -142,33 +119,6 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 	std::cout << std::endl << "*************************************" << std::endl << std::endl;
 }
 
-void ColorCheckerApplication::OnStart()
-{
-	mpMainCamera->SetUp(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
-	ParseColorCheckerFile();
-	ConvertLightSpectrumsToRGBs();
-
-	float tileWidth = (GetScreenWidth() - BORDER) / (float) HORIZONTAL_NUMBER_OF_PATCHES;
-	float tileHeight = (GetScreenHeight() - BORDER) / (float) VERTICAL_NUMBER_OF_PATCHES;
-	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
-
-	for (unsigned int y = VERTICAL_NUMBER_OF_PATCHES; y > 0; y--)
-	{
-		for (unsigned int x = 0; x < HORIZONTAL_NUMBER_OF_PATCHES; x++)
-		{
-			AddColorPatch(x * tileWidth + BORDER, (y - 1) * tileHeight + BORDER, tileWidth - BORDER, tileHeight - BORDER, *colorIterator);
-			colorIterator++;
-		}
-	}
-
-	GameObject* pGameObject = GameObject::Instantiate();
-
-	BackgroundController* pBackgroundController = BackgroundController::Instantiate(pGameObject);
-	pBackgroundController->SetBaseColors(mBaseColors);
-	pBackgroundController->SetHorizontalNumberOfColorPatches(HORIZONTAL_NUMBER_OF_PATCHES);
-	pBackgroundController->SetVerticalNumberOfColorPatches(VERTICAL_NUMBER_OF_PATCHES);
-}
-
 void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float height, const sRGBColor& color)
 {
 	Material* pSolidColorMaterial;
@@ -197,3 +147,52 @@ void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float
 	pPatchGameObject->GetTransform()->Translate(glm::vec3(x, y, 0.0f));
 }
 
+void ColorCheckerApplication::OnStart()
+{
+	mpMainCamera->SetUp(0.0f, 1.0f, -1.0f, 0.0f, (float) GetScreenHeight(), 0.0f, (float) GetScreenWidth(), PM_ORTHOGRAPHIC);
+	ParseColorCheckerFile();
+	ConvertLightSpectrumsToRGBs();
+
+	float tileWidth = (GetScreenWidth() - BORDER) / (float) HORIZONTAL_NUMBER_OF_PATCHES;
+	float tileHeight = (GetScreenHeight() - BORDER) / (float) VERTICAL_NUMBER_OF_PATCHES;
+	std::vector<sRGBColor>::iterator colorIterator = mBaseColors.begin();
+
+	for (unsigned int y = VERTICAL_NUMBER_OF_PATCHES; y > 0; y--)
+	{
+		for (unsigned int x = 0; x < HORIZONTAL_NUMBER_OF_PATCHES; x++)
+		{
+			AddColorPatch(x * tileWidth + BORDER, (y - 1) * tileHeight + BORDER, tileWidth - BORDER, tileHeight - BORDER, *colorIterator);
+			colorIterator++;
+		}
+	}
+
+	GameObject* pGameObject = GameObject::Instantiate();
+
+	BackgroundController* pBackgroundController = BackgroundController::Instantiate(pGameObject);
+	pBackgroundController->SetBaseColors(mBaseColors);
+	pBackgroundController->SetHorizontalNumberOfColorPatches(HORIZONTAL_NUMBER_OF_PATCHES);
+	pBackgroundController->SetVerticalNumberOfColorPatches(VERTICAL_NUMBER_OF_PATCHES);
+}
+
+void ColorCheckerApplication::OnEnd()
+{
+	std::vector<LightSpectrum*>::iterator i = mLightSpectrums.begin();
+	while (i != mLightSpectrums.end())
+	{
+		delete *i;
+		i++;
+	}
+	mLightSpectrums.clear();
+
+	for (unsigned int i = 0; i < mMaterials.size(); i++)
+	{
+		delete mMaterials[i];
+	}
+	mMaterials.clear();
+
+	for (unsigned int i = 0; i < mMeshes.size(); i++)
+	{
+		delete mMeshes[i];
+	}
+	mMeshes.clear();
+}

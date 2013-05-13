@@ -14,6 +14,11 @@ Texture::Texture(unsigned int width, unsigned int height, TextureFormat format, 
 Texture::~Texture()
 {
 	DeallocateResources();
+
+	if (mpData != 0)
+	{
+		delete[] mpData;
+	}
 }
 
 void Texture::AllocateResources()
