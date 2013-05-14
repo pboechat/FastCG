@@ -2,7 +2,6 @@
 #define DEFERREDSHADINGAPPLICATION_H_
 
 #include <Application.h>
-#include <Material.h>
 #include <Mesh.h>
 
 class DeferredShadingApplication: public Application
@@ -16,7 +15,6 @@ protected:
 
 private:
 	Mesh* mpMesh;
-	Material* mpMaterial;
 
 };
 
