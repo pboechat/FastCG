@@ -47,12 +47,6 @@ public:
 	void Run(int argc, char** argv);
 	void Exit();
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
-#endif
-
-	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
-
 	inline unsigned int GetScreenWidth() const
 	{
 		return mScreenWidth;
@@ -63,7 +57,6 @@ public:
 		return mScreenHeight;
 	}
 
-	// TODO: review
 	inline Camera* GetMainCamera()
 	{
 		return mpMainCamera;
@@ -79,6 +72,10 @@ public:
 		mClearColor = clearColor;
 	}
 
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
+#endif
+	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 	void AddToMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial);
 	void RemoveFromMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial);
 
@@ -93,13 +90,13 @@ public:
 	friend void GLUTSpecialKeysCallback(int, int, int);
 	friend void GLUTSpecialKeysUpCallback(int, int, int);
 	friend void ExitCallback();
-
 	friend class GameObject;
 
 protected:
 	Camera* mpMainCamera;
 	glm::vec4 mClearColor;
 	glm::vec4 mGlobalAmbientLight;
+	bool mForwardShading;
 	bool mShowFPS;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Font* mpStandardFont;
@@ -186,6 +183,7 @@ private:
 	void SetUpGLUT(int argc, char** argv);
 	void SetUpOpenGL();
 	void DrawAllTexts();
+	void ShowFPS();
 	void Update();
 	void Render();
 	void Resize(int width, int height);
@@ -205,5 +203,5 @@ private:
 #endif
 
 };
- 
+
 #endif

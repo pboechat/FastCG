@@ -70,9 +70,7 @@ Mesh* Font::CreateCharacterBillboard(unsigned int width, unsigned int height, fl
 	indexes[4] = 2;
 	indexes[5] = 3;
 
-	Mesh* pMesh = new Mesh(vertices, indexes, normals, uvs);
-	pMesh->AllocateResources();
-	return pMesh;
+	return new Mesh(vertices, indexes, normals, uvs);
 }
 
 void Font::AllocateResources()

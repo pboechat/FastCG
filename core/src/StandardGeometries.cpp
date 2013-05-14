@@ -54,7 +54,6 @@ Mesh* StandardGeometries::CreateXYPlane(float width, float height, unsigned int 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	pMesh->CalculateTangents();
 #endif
-
 	return pMesh;
 }
 
@@ -108,8 +107,6 @@ Mesh* StandardGeometries::CreateXZPlane(float width, float depth, unsigned int x
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	pMesh->CalculateTangents();
 #endif
-	pMesh->AllocateResources();
-
 	return pMesh;
 }
 
@@ -193,13 +190,9 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 		}
 	}
 
-	Mesh* pMesh;
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	pMesh = new Mesh(vertices, indices, normals, tangents, uvs);
+	return new Mesh(vertices, indices, normals, tangents, uvs);
 #else
-	pMesh = new Mesh(vertices, indices, normals, uvs);
+	return new Mesh(vertices, indices, normals, uvs);
 #endif
-	pMesh->AllocateResources();
-
-	return pMesh;
 }
