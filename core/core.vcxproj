@@ -115,10 +115,12 @@
     <ClInclude Include="include\Application.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\Component.h" />
+    <ClInclude Include="include\DeferredRenderingStrategy.h" />
     <ClInclude Include="include\Directory.h" />
     <ClInclude Include="include\FixedFunctionRenderingStrategy.h" />
     <ClInclude Include="include\ForwardRenderingStrategy.h" />
     <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\GBuffer.h" />
     <ClInclude Include="include\LineRenderer.h" />
     <ClInclude Include="include\MeshFilter.h" />
     <ClInclude Include="include\PointsRenderer.h" />
@@ -154,10 +156,12 @@
     <ClInclude Include="include\Behaviour.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\GBuffer.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Behaviour.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Component.cpp" />
+    <ClCompile Include="src\DeferredRenderingStrategy.cpp" />
     <ClCompile Include="src\Directory.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />

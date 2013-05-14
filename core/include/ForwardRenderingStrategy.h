@@ -8,10 +8,10 @@ class ForwardRenderingStrategy : public RenderingStrategy
 {
 public:
 	ForwardRenderingStrategy(std::vector<Light*>& rLights,
-		glm::vec4& rGlobalAmbientLight,
-		std::vector<RenderingGroup*>& rRenderingGroups,
-		std::vector<LineRenderer*>& rLineRenderers,
-		std::vector<PointsRenderer*>& rPointsRenderer);
+							 glm::vec4& rGlobalAmbientLight,
+							 std::vector<RenderingGroup*>& rRenderingGroups,
+							 std::vector<LineRenderer*>& rLineRenderers,
+							 std::vector<PointsRenderer*>& rPointsRenderer);
 
 	virtual void Render(const Camera* pCamera);
 

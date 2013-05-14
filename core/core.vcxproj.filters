@@ -134,6 +134,12 @@
     <ClInclude Include="include\FixedFunctionRenderingStrategy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\DeferredRenderingStrategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -224,6 +230,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\FixedFunctionRenderingStrategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DeferredRenderingStrategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\GBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
