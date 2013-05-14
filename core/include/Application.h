@@ -13,6 +13,7 @@
 #include <Font.h>
 #include <Shader.h>
 #include <Timer.h>
+#include <RenderingGroup.h>
 
 #include <glm/glm.hpp>
 
@@ -91,12 +92,12 @@ public:
 	friend void GLUTSpecialKeysUpCallback(int, int, int);
 	friend void ExitCallback();
 	friend class GameObject;
+	friend class RenderingStrategy;
 
 protected:
 	Camera* mpMainCamera;
 	glm::vec4 mClearColor;
 	glm::vec4 mGlobalAmbientLight;
-	bool mForwardShading;
 	bool mShowFPS;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Font* mpStandardFont;
@@ -143,12 +144,6 @@ private:
 		}
 	};
 
-	struct RenderingGroup
-	{
-		Material* pMaterial;
-		std::vector<MeshFilter*> meshFilters;
-	};
-
 	static Application* s_mpInstance;
 
 	unsigned int mScreenWidth;
@@ -158,6 +153,7 @@ private:
 	float mAspectRatio;
 	std::string mWindowTitle;
 	unsigned int mGLUTWindowHandle;
+	GameObject* mpInternalGameObject;
 	std::vector<GameObject*> mGameObjects;
 	std::vector<Camera*> mCameras;
 	std::vector<Light*> mLights;
@@ -167,10 +163,6 @@ private:
 	std::vector<PointsRenderer*> mPointsRenderers;
 	std::vector<Component*> mComponents;
 	std::vector<RenderingGroup*> mRenderingGroups;
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	Shader* mpLineStripShader;
-	Shader* mpPointsShader;
-#endif
 	Timer mStartTimer;
 	Timer mFrameTimer;
 	Timer mUpdateTimer;
@@ -178,10 +170,17 @@ private:
 	double mElapsedTime;
 	std::vector<DrawTextRequest*> mDrawTextRequests;
 	Input* mpInput;
-	GameObject* mpInternalGameObject;
+	RenderingStrategy* mpRenderingStrategy;
 
 	void SetUpGLUT(int argc, char** argv);
 	void SetUpOpenGL();
+	void SetMainCamera(Camera* pCamera);
+	void RegisterGameObject(GameObject* pGameObject);
+	void UnregisterGameObject(GameObject* pGameObject);
+	void RegisterComponent(Component* pComponent);
+	void RegisterCamera(Camera* pCamera);
+	void RegisterMeshFilter(MeshFilter* pMeshFilter);
+	void UnregisterComponent(Component* pComponent);
 	void DrawAllTexts();
 	void ShowFPS();
 	void Update();
@@ -191,16 +190,6 @@ private:
 	void MouseWheel(int button, int direction, int x, int y);
 	void MouseMove(int x, int y);
 	void Keyboard(int key, int x, int y, bool state);
-	void SetMainCamera(Camera* pCamera);
-	void RegisterGameObject(GameObject* pGameObject);
-	void UnregisterGameObject(GameObject* pGameObject);
-	void RegisterComponent(Component* pComponent);
-	void RegisterCamera(Camera* pCamera);
-	void RegisterMeshFilter(MeshFilter* pMeshFilter);
-	void UnregisterComponent(Component* pComponent);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	void SetUpShaderLights(Shader* pShader);
-#endif
 
 };
 

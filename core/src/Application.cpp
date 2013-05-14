@@ -5,6 +5,9 @@
 #include <Input.h>
 #include <KeyCode.h>
 #include <MouseButton.h>
+#include <RenderingStrategy.h>
+#include <FixedFunctionRenderingStrategy.h>
+#include <ForwardRenderingStrategy.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
@@ -28,17 +31,25 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
 	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
 	mGLUTWindowHandle(0),
-	mForwardShading(true),
 	mShowFPS(false),
 	mElapsedFrames(0),
 	mElapsedTime(0),
-	mpInput(0)
+	mpInput(0),
+	mpRenderingStrategy(0)
 {
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	mpStandardFont = 0;
+#endif
 	s_mpInstance = this;
 }
 
 Application::~Application()
 {
+	if (mpRenderingStrategy != 0)
+	{
+		delete mpRenderingStrategy;
+	}
+
 	if (mpInput != 0)
 	{
 		delete mpInput;
@@ -61,8 +72,6 @@ Application::~Application()
 	mDrawTextRequests.clear();
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	ShaderRegistry::Unload();
-	mpLineStripShader = 0;
-	mpPointsShader = 0;
 	FontRegistry::Unload();
 	mpStandardFont = 0;
 #endif
@@ -265,10 +274,11 @@ void Application::Run(int argc, char** argv)
 	{
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		ShaderRegistry::LoadShadersFromDisk("shaders");
-		mpLineStripShader = ShaderRegistry::Find("LineStrip");
-		mpPointsShader = ShaderRegistry::Find("Points");
 		FontRegistry::LoadFontsFromDisk("fonts");
 		mpStandardFont = FontRegistry::Find("verdana");
+		mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderingGroups, mLineRenderers, mPointsRenderers);
+#else
+		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mGlobalAmbientLight, mRenderingGroups, mLineRenderers, mPointsRenderers);
 #endif
 		mStartTimer.Start();
 		OnStart();
@@ -336,30 +346,6 @@ void Application::Update()
 	mUpdateTimer.Start();
 	Render();
 }
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-void Application::SetUpShaderLights(Shader* pShader)
-{
-	static char pLightVariableName[128];
-
-	for (unsigned int i = 0; i < mLights.size(); i++)
-	{
-		Light* pLight = mLights[i];
-		glm::vec3& lightPosition = pLight->GetGameObject()->GetTransform()->GetPosition();
-		const glm::vec4& lightAmbientColor = pLight->GetAmbientColor();
-		const glm::vec4& lightDiffuseColor = pLight->GetDiffuseColor();
-		const glm::vec4& lightSpecularColor = pLight->GetSpecularColor();
-		sprintf(pLightVariableName, "_Light%dPosition", i);
-		pShader->SetVec3(pLightVariableName, lightPosition);
-		sprintf(pLightVariableName, "_Light%dAmbientColor", i);
-		pShader->SetVec4(pLightVariableName, lightAmbientColor);
-		sprintf(pLightVariableName, "_Light%dDiffuseColor", i);
-		pShader->SetVec4(pLightVariableName, lightDiffuseColor);
-		sprintf(pLightVariableName, "_Light%dSpecularColor", i);
-		pShader->SetVec4(pLightVariableName, lightSpecularColor);
-	}
-}
-#endif
 
 void Application::DrawAllTexts()
 {
@@ -438,172 +424,8 @@ void Application::Render()
 	mFrameTimer.Start();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
-	glm::mat4& view = mpMainCamera->GetView();
-	glm::mat4& projection = mpMainCamera->GetProjection();
-#ifndef USE_PROGRAMMABLE_PIPELINE
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(&projection[0][0]);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(&view[0][0]);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, &mGlobalAmbientLight[0]);
-
-	for (unsigned int i = 0; i < mLights.size(); i++)
-	{
-		glEnable(GL_LIGHT0 + i);
-		Light* pLight = mLights[i];
-		glm::vec4 lightPosition = glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
-		// TODO: GL_LIGHT0 + i might be a dangereous trick!
-		glLightfv(GL_LIGHT0 + i, GL_POSITION, &lightPosition[0]);
-		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &pLight->GetAmbientColor()[0]);
-		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &pLight->GetDiffuseColor()[0]);
-		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &pLight->GetSpecularColor()[0]);
-	}
-#endif
-
-	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
-	{
-		RenderingGroup* pRenderingGroup = mRenderingGroups[i];
-		Material* pMaterial = pRenderingGroup->pMaterial;
-		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		Shader* pShader = pMaterial->GetShader();
-		pShader->Bind();
-		SetUpShaderLights(pShader);
-		pShader->SetMat4("_View", view);
-		pShader->SetMat4("_Projection", projection);
-#endif
-		pMaterial->SetUpParameters();
-
-		for (unsigned int j = 0; j < rMeshFilters.size(); j++)
-		{
-			MeshFilter* pMeshFilter = rMeshFilters[j];
-
-			if (!pMeshFilter->GetGameObject()->IsActive())
-			{
-				continue;
-			}
-
-			Renderer* pRenderer = pMeshFilter->GetGameObject()->GetRenderer();
-
-			if (pRenderer == 0)
-			{
-				continue;
-			}
-
-			const glm::mat4& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			glm::mat4 modelView = view * rModel;
-			pShader->SetMat4("_Model", rModel);
-			pShader->SetMat4("_ModelView", modelView);
-			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-			pShader->SetMat4("_ModelViewProjection", projection * modelView);
-			pShader->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
-#else
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glMultMatrixf(&rModel[0][0]);
-#endif
-			pRenderer->Render();
-#ifndef USE_PROGRAMMABLE_PIPELINE
-			glPopMatrix();
-#endif
-		}
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		pShader->Unbind();
-#endif
-		// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	if (mLineRenderers.size() > 0)
-	{
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		mpLineStripShader->Bind();
-		mpLineStripShader->SetMat4("_View", view);
-		mpLineStripShader->SetMat4("_Projection", projection);
-#endif
-
-		for (unsigned int i = 0; i < mLineRenderers.size(); i++)
-		{
-			LineRenderer* pLineRenderer = mLineRenderers[i];
-
-			if (!pLineRenderer->GetGameObject()->IsActive())
-			{
-				continue;
-			}
-
-			const glm::mat4& rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			glm::mat4 modelView = view * rModel;
-			mpLineStripShader->SetMat4("_Model", rModel);
-			mpLineStripShader->SetMat4("_ModelView", modelView);
-			mpLineStripShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-			mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
-			mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
-#else
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glMultMatrixf(&rModel[0][0]);
-#endif
-			pLineRenderer->Render();
-#ifndef USE_PROGRAMMABLE_PIPELINE
-			glPopMatrix();
-#endif
-		}
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		mpLineStripShader->Unbind();
-#endif
-	}
-
-	if (mPointsRenderers.size() > 0)
-	{
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		mpPointsShader->Bind();
-		mpPointsShader->SetMat4("_View", view);
-		mpPointsShader->SetMat4("_Projection", projection);
-#endif
-
-		for (unsigned int i = 0; i < mPointsRenderers.size(); i++)
-		{
-			PointsRenderer* pPointsRenderer = mPointsRenderers[i];
-
-			if (!pPointsRenderer->GetGameObject()->IsActive())
-			{
-				continue;
-			}
-
-			const glm::mat4& rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			glm::mat4 modelView = view * rModel;
-			mpPointsShader->SetMat4("_Model", rModel);
-			mpPointsShader->SetMat4("_ModelView", modelView);
-			mpPointsShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-			mpPointsShader->SetMat4("_ModelViewProjection", projection * modelView);
-			mpPointsShader->SetVec4("_GlobalLightAmbientColor", mGlobalAmbientLight);
-			Points* pPoints = pPointsRenderer->GetPoints();
-
-			if (pPoints != 0)
-			{
-				mpPointsShader->SetFloat("size", pPoints->GetSize());
-			}
-
-#else
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glMultMatrixf(&rModel[0][0]);
-#endif
-			pPointsRenderer->Render();
-#ifndef USE_PROGRAMMABLE_PIPELINE
-			glPopMatrix();
-#endif
-		}
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		mpPointsShader->Unbind();
-#endif
-	}
+	
+	mpRenderingStrategy->Render(mpMainCamera);
 
 	DrawAllTexts();
 

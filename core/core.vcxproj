@@ -116,6 +116,8 @@
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\Component.h" />
     <ClInclude Include="include\Directory.h" />
+    <ClInclude Include="include\FixedFunctionRenderingStrategy.h" />
+    <ClInclude Include="include\ForwardRenderingStrategy.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\LineRenderer.h" />
     <ClInclude Include="include\MeshFilter.h" />
@@ -138,6 +140,8 @@
     <ClInclude Include="include\MathT.h" />
     <ClInclude Include="include\OpenGLExceptions.h" />
     <ClInclude Include="include\Random.h" />
+    <ClInclude Include="include\RenderingGroup.h" />
+    <ClInclude Include="include\RenderingStrategy.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\ShaderSource.h" />
     <ClInclude Include="include\StandardGeometries.h" />
@@ -157,8 +161,10 @@
     <ClCompile Include="src\Directory.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />
+    <ClCompile Include="src\FixedFunctionRenderingStrategy.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />
+    <ClCompile Include="src\ForwardRenderingStrategy.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Light.cpp" />
