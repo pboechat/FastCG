@@ -5,10 +5,11 @@
 
 ForwardRenderingStrategy::ForwardRenderingStrategy(std::vector<Light*>& rLights,
 												   glm::vec4& rGlobalAmbientLight,
-												   std::vector<RenderingGroup*>& rRenderingGroups,
+												   std::vector<RenderBatch*>& rRenderingGroups,
 												   std::vector<LineRenderer*>& rLineRenderers,
-												   std::vector<PointsRenderer*>& rPointsRenderer) :
-	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer)
+												   std::vector<PointsRenderer*>& rPointsRenderer,
+												   RenderingStatistics& rRenderingStatistics) :
+	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics)
 {
 	mpLineStripShader = ShaderRegistry::Find("LineStrip");
 	mpPointsShader = ShaderRegistry::Find("Points");
@@ -38,12 +39,14 @@ void ForwardRenderingStrategy::SetUpShaderLights(Shader* pShader)
 
 void ForwardRenderingStrategy::Render(const Camera* pCamera)
 {
+	mrRenderingStatistics.drawCalls = 0;
+
 	glm::mat4& view = pCamera->GetView();
 	glm::mat4& projection = pCamera->GetProjection();
 
-	for (unsigned int i = 0; i < mrRenderingGroups.size(); i++)
+	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
-		RenderingGroup* pRenderingGroup = mrRenderingGroups[i];
+		RenderBatch* pRenderingGroup = mrRenderBatches[i];
 		Material* pMaterial = pRenderingGroup->pMaterial;
 		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
 		Shader* pShader = pMaterial->GetShader();
@@ -77,6 +80,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			pShader->SetMat4("_ModelViewProjection", projection * modelView);
 			pShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			pRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 		}
 
 		pShader->Unbind();
@@ -107,6 +111,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
 			mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			pLineRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 		}
 
 		mpLineStripShader->Unbind();
@@ -142,6 +147,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			}
 
 			pPointsRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 		}
 
 		mpPointsShader->Unbind();

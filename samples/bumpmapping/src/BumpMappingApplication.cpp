@@ -26,6 +26,7 @@ BumpMappingApplication::BumpMappingApplication() :
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	mShowFPS = true;
+	mShowRenderingStatistics = true;
 }
 
 void BumpMappingApplication::OnEnd()

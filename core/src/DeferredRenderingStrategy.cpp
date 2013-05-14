@@ -7,12 +7,14 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(unsigned int& rScreenWidth,
 													 unsigned int& rScreenHeight,
 													 std::vector<Light*>& rLights,
 													 glm::vec4& rGlobalAmbientLight,
-													 std::vector<RenderingGroup*>& rRenderingGroups,
+													 std::vector<RenderBatch*>& rRenderingGroups,
 													 std::vector<LineRenderer*>& rLineRenderers,
-													 std::vector<PointsRenderer*>& rPointsRenderer) :
-	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer)
+													 std::vector<PointsRenderer*>& rPointsRenderer,
+													 RenderingStatistics& rRenderingStatistics) :
+	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics)
 {
 	mpGBuffer = new GBuffer(rScreenWidth, rScreenHeight);
+	mpGeometryPassShader = ShaderRegistry::Find("GeometryPass");
 	mpLineStripShader = ShaderRegistry::Find("LineStrip");
 	mpPointsShader = ShaderRegistry::Find("Points");
 }
@@ -24,22 +26,22 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 
 void DeferredRenderingStrategy::Render(const Camera* pCamera)
 {
+	mrRenderingStatistics.drawCalls = 0;
+
 	// geometry pass
 	mpGBuffer->BindForWriting();
 
 	glm::mat4& view = pCamera->GetView();
 	glm::mat4& projection = pCamera->GetProjection();
 
-	for (unsigned int i = 0; i < mrRenderingGroups.size(); i++)
+	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
-		RenderingGroup* pRenderingGroup = mrRenderingGroups[i];
-		Material* pMaterial = pRenderingGroup->pMaterial;
+		RenderBatch* pRenderingGroup = mrRenderBatches[i];
 		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
-		Shader* pShader = pMaterial->GetShader();
+		Shader* pShader = mpGeometryPassShader;
 		pShader->Bind();
 		pShader->SetMat4("_View", view);
 		pShader->SetMat4("_Projection", projection);
-		pMaterial->SetUpParameters();
 
 		for (unsigned int j = 0; j < rMeshFilters.size(); j++)
 		{
@@ -65,6 +67,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			pShader->SetMat4("_ModelViewProjection", projection * modelView);
 			pShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			pRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 		}
 
 		pShader->Unbind();
@@ -72,6 +75,16 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
+	// lighting pass
+	mpGBuffer->BindForReading();
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	RenderUnlitGeometries(view, projection);
+}
+
+void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection)
+{
 	if (mrLineRenderers.size() > 0)
 	{
 		mpLineStripShader->Bind();
@@ -95,6 +108,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
 			mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			pLineRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 		}
 
 		mpLineStripShader->Unbind();
@@ -130,15 +144,11 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			}
 
 			pPointsRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 		}
 
 		mpPointsShader->Unbind();
 	}
-
-	// lighting pass
-	mpGBuffer->BindForReading();
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 #endif

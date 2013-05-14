@@ -8,6 +8,8 @@
 
 void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 {
+	mrRenderingStatistics.drawCalls = 0;
+
 	glm::mat4& view = pCamera->GetView();
 	glm::mat4& projection = pCamera->GetProjection();
 
@@ -29,11 +31,11 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &pLight->GetSpecularColor()[0]);
 	}
 
-	for (unsigned int i = 0; i < mrRenderingGroups.size(); i++)
+	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
-		RenderingGroup* pRenderingGroup = mrRenderingGroups[i];
-		Material* pMaterial = pRenderingGroup->pMaterial;
-		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
+		RenderBatch* pRenderBatch = mrRenderBatches[i];
+		Material* pMaterial = pRenderBatch->pMaterial;
+		std::vector<MeshFilter*>& rMeshFilters = pRenderBatch->meshFilters;
 		pMaterial->SetUpParameters();
 
 		for (unsigned int j = 0; j < rMeshFilters.size(); j++)
@@ -56,6 +58,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glPushMatrix();
 			glMultMatrixf(&rModel[0][0]);
 			pRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 			glPopMatrix();
 		}
 		// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
@@ -77,6 +80,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glPushMatrix();
 			glMultMatrixf(&rModel[0][0]);
 			pLineRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 			glPopMatrix();
 		}
 	}
@@ -96,6 +100,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glPushMatrix();
 			glMultMatrixf(&rModel[0][0]);
 			pPointsRenderer->Render();
+			mrRenderingStatistics.drawCalls++;
 			glPopMatrix();
 		}
 	}

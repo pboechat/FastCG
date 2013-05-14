@@ -137,8 +137,8 @@ public: \
 	static className* Instantiate(GameObject* pGameObject)  \
 	{ \
 		className* pComponent = new className(pGameObject); \
-		Component::AddToGameObject(pGameObject, pComponent); \
 		pComponent->OnInstantiate(); \
+		Component::AddToGameObject(pGameObject, pComponent); \
 		return pComponent; \
 	} \
 private: \

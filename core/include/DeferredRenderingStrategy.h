@@ -12,17 +12,21 @@ public:
 							  unsigned int& rScreenHeight,
 							  std::vector<Light*>& rLights,
 							  glm::vec4& rGlobalAmbientLight,
-							  std::vector<RenderingGroup*>& rRenderingGroups,
+							  std::vector<RenderBatch*>& rRenderingGroups,
 							  std::vector<LineRenderer*>& rLineRenderers,
-							  std::vector<PointsRenderer*>& rPointsRenderer);
+							  std::vector<PointsRenderer*>& rPointsRenderer,
+							  RenderingStatistics& rRenderingStatistics);
 	~DeferredRenderingStrategy();
 
 	virtual void Render(const Camera* pCamera);
 
 private:
 	GBuffer* mpGBuffer;
+	Shader* mpGeometryPassShader;
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
+
+	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
 
 };
 

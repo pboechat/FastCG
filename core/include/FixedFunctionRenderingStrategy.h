@@ -8,10 +8,11 @@ class FixedFunctionRenderingStrategy : public RenderingStrategy
 public:
 	FixedFunctionRenderingStrategy(std::vector<Light*>& rLights,
 		glm::vec4& rGlobalAmbientLight,
-		std::vector<RenderingGroup*>& rRenderingGroups,
+		std::vector<RenderBatch*>& rRenderBatches,
 		std::vector<LineRenderer*>& rLineRenderers,
-		std::vector<PointsRenderer*>& rPointsRenderer) :
-		RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer)
+		std::vector<PointsRenderer*>& rPointsRenderer,
+		RenderingStatistics& rRenderingStatistics) :
+		RenderingStrategy(rLights, rGlobalAmbientLight, rRenderBatches, rLineRenderers, rPointsRenderer, rRenderingStatistics)
 	{
 	}
 

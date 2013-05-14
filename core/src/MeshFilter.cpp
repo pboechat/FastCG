@@ -5,15 +5,7 @@ COMPONENT_IMPLEMENTATION(MeshFilter, Component);
 
 void MeshFilter::SetMaterial(Material* pMaterial)
 {
-	if (mpMaterial != 0)
-	{
-		Application::GetInstance()->RemoveFromMeshRenderingGroup(this, mpMaterial);
-	}
-
+	Application::GetInstance()->BeforeMeshFilterChange(this);
 	mpMaterial = pMaterial;
-
-	if (mpMaterial != 0)
-	{
-		Application::GetInstance()->AddToMeshRenderingGroup(this, mpMaterial);
-	}
+	Application::GetInstance()->AfterMeshFilterChange(this);
 }

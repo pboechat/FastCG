@@ -13,7 +13,9 @@
 #include <Font.h>
 #include <Shader.h>
 #include <Timer.h>
-#include <RenderingGroup.h>
+#include <RenderingStrategy.h>
+#include <RenderBatchingStrategy.h>
+#include <RenderingStatistics.h>
 
 #include <glm/glm.hpp>
 
@@ -77,8 +79,8 @@ public:
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
 #endif
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
-	void AddToMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial);
-	void RemoveFromMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial);
+	void BeforeMeshFilterChange(MeshFilter* pMeshFilter);
+	void AfterMeshFilterChange(MeshFilter* pMeshFilter);
 
 	friend void GLUTIdleCallback();
 	friend void GLUTDisplayCallback();
@@ -92,13 +94,13 @@ public:
 	friend void GLUTSpecialKeysUpCallback(int, int, int);
 	friend void ExitCallback();
 	friend class GameObject;
-	friend class RenderingStrategy;
 
 protected:
 	Camera* mpMainCamera;
 	glm::vec4 mClearColor;
 	glm::vec4 mGlobalAmbientLight;
 	bool mShowFPS;
+	bool mShowRenderingStatistics;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Font* mpStandardFont;
 #endif
@@ -162,7 +164,7 @@ private:
 	std::vector<LineRenderer*> mLineRenderers;
 	std::vector<PointsRenderer*> mPointsRenderers;
 	std::vector<Component*> mComponents;
-	std::vector<RenderingGroup*> mRenderingGroups;
+	std::vector<RenderBatch*> mRenderBatches;
 	Timer mStartTimer;
 	Timer mFrameTimer;
 	Timer mUpdateTimer;
@@ -171,6 +173,8 @@ private:
 	std::vector<DrawTextRequest*> mDrawTextRequests;
 	Input* mpInput;
 	RenderingStrategy* mpRenderingStrategy;
+	RenderBatchingStrategy* mpRenderBatchingStrategy;
+	RenderingStatistics mRenderingStatistics;
 
 	void SetUpGLUT(int argc, char** argv);
 	void SetUpOpenGL();
@@ -179,10 +183,10 @@ private:
 	void UnregisterGameObject(GameObject* pGameObject);
 	void RegisterComponent(Component* pComponent);
 	void RegisterCamera(Camera* pCamera);
-	void RegisterMeshFilter(MeshFilter* pMeshFilter);
 	void UnregisterComponent(Component* pComponent);
 	void DrawAllTexts();
 	void ShowFPS();
+	void ShowRenderingStatistics();
 	void Update();
 	void Render();
 	void Resize(int width, int height);

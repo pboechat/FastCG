@@ -8,6 +8,7 @@
 #include <RenderingStrategy.h>
 #include <FixedFunctionRenderingStrategy.h>
 #include <ForwardRenderingStrategy.h>
+#include <MaterialGroupsBatchingStrategy.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
@@ -32,6 +33,7 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
 	mGLUTWindowHandle(0),
 	mShowFPS(false),
+	mShowRenderingStatistics(false),
 	mElapsedFrames(0),
 	mElapsedTime(0),
 	mpInput(0),
@@ -57,31 +59,23 @@ Application::~Application()
 
 	mpMainCamera = 0;
 
-	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
-	{
-		delete mRenderingGroups[i];
-	}
-
-	mRenderingGroups.clear();
-
 	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
 	{
 		delete mDrawTextRequests[i];
 	}
-
 	mDrawTextRequests.clear();
+
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	ShaderRegistry::Unload();
 	FontRegistry::Unload();
 	mpStandardFont = 0;
 #endif
-	std::vector<GameObject*> gameObjectsToDestroy = mGameObjects;
 
+	std::vector<GameObject*> gameObjectsToDestroy = mGameObjects;
 	for (unsigned int i = 0; i < gameObjectsToDestroy.size(); i++)
 	{
 		GameObject::Destroy(gameObjectsToDestroy[i]);
 	}
-
 	gameObjectsToDestroy.clear();
 
 	if (mGameObjects.size() > 0)
@@ -131,6 +125,17 @@ Application::~Application()
 		// FIXME: checking invariants
 		THROW_EXCEPTION(Exception, "mComponents.size() > 0");
 	}
+
+	if (mpRenderBatchingStrategy != 0)
+	{
+		delete mpRenderBatchingStrategy;
+	}
+
+	for (unsigned int i = 0; i < mRenderBatches.size(); i++)
+	{
+		delete mRenderBatches[i];
+	}
+	mRenderBatches.clear();
 
 	s_mpInstance = 0;
 }
@@ -190,6 +195,11 @@ void Application::RegisterComponent(Component* pComponent)
 		RegisterCamera(dynamic_cast<Camera*>(pComponent));
 	}
 
+	else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
+	{
+		mpRenderBatchingStrategy->AddMeshFilter(dynamic_cast<MeshFilter*>(pComponent));
+	}
+
 	mComponents.push_back(pComponent);
 }
 
@@ -232,6 +242,11 @@ void Application::UnregisterComponent(Component* pComponent)
 		{
 			SetMainCamera(mCameras[0]);
 		}
+	}
+
+	else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
+	{
+		mpRenderBatchingStrategy->RemoveMeshFilter(dynamic_cast<MeshFilter*>(pComponent));
 	}
 }
 
@@ -276,10 +291,11 @@ void Application::Run(int argc, char** argv)
 		ShaderRegistry::LoadShadersFromDisk("shaders");
 		FontRegistry::LoadFontsFromDisk("fonts");
 		mpStandardFont = FontRegistry::Find("verdana");
-		mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderingGroups, mLineRenderers, mPointsRenderers);
+		mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 #else
-		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mGlobalAmbientLight, mRenderingGroups, mLineRenderers, mPointsRenderers);
+		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 #endif
+		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 		mStartTimer.Start();
 		OnStart();
 		mUpdateTimer.Start();
@@ -419,6 +435,37 @@ void Application::ShowFPS()
 	glEnable(GL_DEPTH_TEST);
 }
 
+void Application::ShowRenderingStatistics()
+{
+	static char fpsText[128];
+	sprintf(fpsText, "Draw Calls: %d", mRenderingStatistics.drawCalls);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	mpStandardFont->DrawText(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 164, mScreenHeight - ((FontRegistry::STANDARD_FONT_SIZE + 3) * 2), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+#else
+	glDisable(GL_LIGHTING);
+	glPushAttrib(GL_TRANSFORM_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]);
+	glPopAttrib();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
+	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+	glRasterPos2i(mScreenWidth - 164, (mScreenHeight - 30));
+	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)fpsText);
+	glPushAttrib(GL_TRANSFORM_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+	glEnable(GL_LIGHTING);
+#endif
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+}
+
 void Application::Render()
 {
 	mFrameTimer.Start();
@@ -436,6 +483,11 @@ void Application::Render()
 	if (mShowFPS)
 	{
 		ShowFPS();
+	}
+
+	if (mShowRenderingStatistics)
+	{
+		ShowRenderingStatistics();
 	}
 
 	glutSwapBuffers();
@@ -461,71 +513,14 @@ void Application::DrawText(const std::string& rText, unsigned int size, int x, i
 }
 #endif
 
-void Application::AddToMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial)
+void Application::BeforeMeshFilterChange(MeshFilter* pMeshFilter)
 {
-	bool added = false;
-
-	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
-	{
-		RenderingGroup* pRenderingGroup = mRenderingGroups[i];
-
-		if (pRenderingGroup->pMaterial == pMaterial)
-		{
-			pRenderingGroup->meshFilters.push_back(pMeshFilter);
-			added = true;
-			break;
-		}
-	}
-
-	if (added)
-	{
-		return;
-	}
-
-	RenderingGroup* pNewRenderingGroup = new RenderingGroup();
-	pNewRenderingGroup->pMaterial = pMaterial;
-	pNewRenderingGroup->meshFilters.push_back(pMeshFilter);
-	mRenderingGroups.push_back(pNewRenderingGroup);
+	mpRenderBatchingStrategy->RemoveMeshFilter(pMeshFilter);
 }
 
-void Application::RemoveFromMeshRenderingGroup(MeshFilter* pMeshFilter, Material* pMaterial)
+void Application::AfterMeshFilterChange(MeshFilter* pMeshFilter)
 {
-	RenderingGroup* pRenderingGroup;
-	bool removed = false;
-
-	for (unsigned int i = 0; i < mRenderingGroups.size(); i++)
-	{
-		pRenderingGroup = mRenderingGroups[i];
-
-		if (pRenderingGroup->pMaterial == pMaterial)
-		{
-			std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
-			std::vector<MeshFilter*>::iterator it = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
-
-			if (it == rMeshFilters.end())
-			{
-				// FIXME: checking invariants
-				THROW_EXCEPTION(Exception, "it == rMeshFilters.end()");
-			}
-
-			rMeshFilters.erase(it);
-			removed = true;
-			break;
-		}
-	}
-
-	if (!removed)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "!removed");
-	}
-
-	if (pRenderingGroup->meshFilters.size() == 0)
-	{
-		std::vector<RenderingGroup*>::iterator it = std::find(mRenderingGroups.begin(), mRenderingGroups.end(), pRenderingGroup);
-		mRenderingGroups.erase(it);
-		delete pRenderingGroup;
-	}
+	mpRenderBatchingStrategy->AddMeshFilter(pMeshFilter);
 }
 
 void Application::Resize(int width, int height)

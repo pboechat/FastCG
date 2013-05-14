@@ -1,12 +1,12 @@
-#ifndef RENDERINGGROUP_H_
-#define RENDERINGGROUP_H_
+#ifndef RENDERBATCH_H_
+#define RENDERBATCH_H_
 
 #include <Material.h>
 #include <MeshFilter.h>
 
 #include <vector>
 
-struct RenderingGroup
+struct RenderBatch
 {
 	Material* pMaterial;
 	std::vector<MeshFilter*> meshFilters;

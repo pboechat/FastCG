@@ -121,6 +121,8 @@
     <ClInclude Include="include\ForwardRenderingStrategy.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GBuffer.h" />
+    <ClInclude Include="include\MaterialGroupsBatchingStrategy.h" />
+    <ClInclude Include="include\RenderBatchingStrategy.h" />
     <ClInclude Include="include\LineRenderer.h" />
     <ClInclude Include="include\MeshFilter.h" />
     <ClInclude Include="include\PointsRenderer.h" />
@@ -142,7 +144,8 @@
     <ClInclude Include="include\MathT.h" />
     <ClInclude Include="include\OpenGLExceptions.h" />
     <ClInclude Include="include\Random.h" />
-    <ClInclude Include="include\RenderingGroup.h" />
+    <ClInclude Include="include\RenderBatch.h" />
+    <ClInclude Include="include\RenderingStatistics.h" />
     <ClInclude Include="include\RenderingStrategy.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\ShaderSource.h" />
@@ -174,6 +177,7 @@
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\LineStrip.cpp" />
     <ClCompile Include="src\LineRenderer.cpp" />
+    <ClCompile Include="src\MaterialGroupsBatchingStrategy.cpp" />
     <ClCompile Include="src\MeshFilter.cpp" />
     <ClCompile Include="src\Points.cpp" />
     <ClCompile Include="src\PointsRenderer.cpp" />
