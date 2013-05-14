@@ -29,38 +29,6 @@ BumpMappingApplication::BumpMappingApplication() :
 	mShowRenderingStatistics = true;
 }
 
-void BumpMappingApplication::OnEnd()
-{
-	for (unsigned int i = 0; i < mFloorColorMapTextures.size(); i++)
-	{
-		delete mFloorColorMapTextures[i];
-	}
-	mFloorColorMapTextures.clear();
-
-	for (unsigned int i = 0; i < mFloorBumpMapTextures.size(); i++)
-	{
-		delete mFloorBumpMapTextures[i];
-	}
-	mFloorBumpMapTextures.clear();
-
-	for (unsigned int i = 0; i < mSphereColorMapTextures.size(); i++)
-	{
-		delete mSphereColorMapTextures[i];
-	}
-	mSphereColorMapTextures.clear();
-
-	for (unsigned int i = 0; i < mSphereBumpMapTextures.size(); i++)
-	{
-		delete mSphereBumpMapTextures[i];
-	}
-	mSphereBumpMapTextures.clear();
-
-	delete mpFloorMaterial;
-	delete mpFloorMesh;
-	delete mpSphereMaterial;
-	delete mpSphereMesh;
-}
-
 Texture* BumpMappingApplication::LoadPNGAsTexture(const std::string& rFileName)
 {
 	unsigned int width;
@@ -180,4 +148,36 @@ void BumpMappingApplication::OnStart()
 	FirstPersonCameraController* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pPlayerGameObject);
 	pFirstPersonCameraController->SetWalkSpeed(WALK_SPEED);
 	pFirstPersonCameraController->SetTurnSpeed(TURN_SPEED);
+}
+
+void BumpMappingApplication::OnEnd()
+{
+	for (unsigned int i = 0; i < mFloorColorMapTextures.size(); i++)
+	{
+		delete mFloorColorMapTextures[i];
+	}
+	mFloorColorMapTextures.clear();
+
+	for (unsigned int i = 0; i < mFloorBumpMapTextures.size(); i++)
+	{
+		delete mFloorBumpMapTextures[i];
+	}
+	mFloorBumpMapTextures.clear();
+
+	for (unsigned int i = 0; i < mSphereColorMapTextures.size(); i++)
+	{
+		delete mSphereColorMapTextures[i];
+	}
+	mSphereColorMapTextures.clear();
+
+	for (unsigned int i = 0; i < mSphereBumpMapTextures.size(); i++)
+	{
+		delete mSphereBumpMapTextures[i];
+	}
+	mSphereBumpMapTextures.clear();
+
+	delete mpFloorMaterial;
+	delete mpFloorMesh;
+	delete mpSphereMaterial;
+	delete mpSphereMesh;
 }

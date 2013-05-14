@@ -11,7 +11,9 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(unsigned int& rScreenWidth,
 													 std::vector<LineRenderer*>& rLineRenderers,
 													 std::vector<PointsRenderer*>& rPointsRenderer,
 													 RenderingStatistics& rRenderingStatistics) :
-	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics)
+	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics),
+	mrScreenWidth(rScreenWidth),
+	mrScreenHeight(rScreenHeight)
 {
 	mpGBuffer = new GBuffer(rScreenWidth, rScreenHeight);
 	mpGeometryPassShader = ShaderRegistry::Find("GeometryPass");
@@ -31,17 +33,14 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	// geometry pass
 	mpGBuffer->BindForWriting();
 
-	glm::mat4& view = pCamera->GetView();
-	glm::mat4& projection = pCamera->GetProjection();
+	glm::mat4& rView = pCamera->GetView();
+	glm::mat4& rProjection = pCamera->GetProjection();
 
+	mpGeometryPassShader->Bind();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
 		RenderBatch* pRenderingGroup = mrRenderBatches[i];
 		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
-		Shader* pShader = mpGeometryPassShader;
-		pShader->Bind();
-		pShader->SetMat4("_View", view);
-		pShader->SetMat4("_Projection", projection);
 
 		for (unsigned int j = 0; j < rMeshFilters.size(); j++)
 		{
@@ -60,27 +59,40 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			}
 
 			const glm::mat4& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
-			glm::mat4 modelView = view * rModel;
-			pShader->SetMat4("_Model", rModel);
-			pShader->SetMat4("_ModelView", modelView);
-			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-			pShader->SetMat4("_ModelViewProjection", projection * modelView);
-			pShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
+			glm::mat4 modelView = rView * rModel;
+			mpGeometryPassShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
+			mpGeometryPassShader->SetMat4("_ModelViewProjection", rProjection * modelView);
 			pRenderer->Render();
 			mrRenderingStatistics.drawCalls++;
 		}
-
-		pShader->Unbind();
-		// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
-		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	mpGeometryPassShader->Unbind();
 
 	// lighting pass
-	mpGBuffer->BindForReading();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	RenderUnlitGeometries(view, projection);
+	mpGBuffer->BindForReading();
+
+	// DEBUG:
+
+	unsigned int halfScreenWidth = mrScreenWidth / 2;
+	unsigned int halfScreenHeight = mrScreenHeight / 2;
+
+	mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION); 
+	glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, halfScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE); 
+	glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, halfScreenHeight, halfScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL); 
+	glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, halfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD); 
+	glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, 0, mrScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	RenderUnlitGeometries(rView, rProjection);
 }
 
 void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection)

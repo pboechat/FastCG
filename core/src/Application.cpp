@@ -8,7 +8,9 @@
 #include <RenderingStrategy.h>
 #include <FixedFunctionRenderingStrategy.h>
 #include <ForwardRenderingStrategy.h>
+#include <DeferredRenderingStrategy.h>
 #include <MaterialGroupsBatchingStrategy.h>
+#include <UnorderedSingleGroupBatchingStrategy.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
@@ -32,12 +34,14 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
 	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
 	mGLUTWindowHandle(0),
+	mDeferredRendering(false),
 	mShowFPS(false),
 	mShowRenderingStatistics(false),
 	mElapsedFrames(0),
 	mElapsedTime(0),
 	mpInput(0),
-	mpRenderingStrategy(0)
+	mpRenderingStrategy(0),
+	mpRenderBatchingStrategy(0)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mpStandardFont = 0;
@@ -291,11 +295,20 @@ void Application::Run(int argc, char** argv)
 		ShaderRegistry::LoadShadersFromDisk("shaders");
 		FontRegistry::LoadFontsFromDisk("fonts");
 		mpStandardFont = FontRegistry::Find("verdana");
-		mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+		if (mDeferredRendering)
+		{
+			mpRenderingStrategy = new DeferredRenderingStrategy(mScreenWidth, mScreenHeight, mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+			mpRenderBatchingStrategy = new UnorderedSingleGroupBatchingStrategy(mRenderBatches);
+		}
+		else
+		{
+			mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+			mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
+		}
 #else
 		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
-#endif
 		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
+#endif
 		mStartTimer.Start();
 		OnStart();
 		mUpdateTimer.Start();

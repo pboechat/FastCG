@@ -20,7 +20,16 @@ void MaterialGroupsBatchingStrategy::AddMeshFilter(MeshFilter* pMeshFilter)
 
 		if (pRenderBatch->pMaterial == pMaterial)
 		{
-			pRenderBatch->meshFilters.push_back(pMeshFilter);
+			std::vector<MeshFilter*>& rMeshFilters = pRenderBatch->meshFilters;
+			std::vector<MeshFilter*>::iterator it = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
+
+			if (it != rMeshFilters.end())
+			{
+				// FIXME: checking invariants
+				THROW_EXCEPTION(Exception, "it != rMeshFilters.end()");
+			}
+
+			rMeshFilters.push_back(pMeshFilter);
 			added = true;
 			break;
 		}

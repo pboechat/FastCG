@@ -16,11 +16,13 @@ public:
 							  std::vector<LineRenderer*>& rLineRenderers,
 							  std::vector<PointsRenderer*>& rPointsRenderer,
 							  RenderingStatistics& rRenderingStatistics);
-	~DeferredRenderingStrategy();
+	virtual ~DeferredRenderingStrategy();
 
 	virtual void Render(const Camera* pCamera);
 
 private:
+	unsigned int& mrScreenWidth;
+	unsigned int& mrScreenHeight;
 	GBuffer* mpGBuffer;
 	Shader* mpGeometryPassShader;
 	Shader* mpLineStripShader;

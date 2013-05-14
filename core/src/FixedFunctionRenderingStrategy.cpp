@@ -10,13 +10,13 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 {
 	mrRenderingStatistics.drawCalls = 0;
 
-	glm::mat4& view = pCamera->GetView();
-	glm::mat4& projection = pCamera->GetProjection();
+	glm::mat4& rView = pCamera->GetView();
+	glm::mat4& rProjection = pCamera->GetProjection();
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(&projection[0][0]);
+	glLoadMatrixf(&rProjection[0][0]);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(&view[0][0]);
+	glLoadMatrixf(&rView[0][0]);
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, &mrGlobalAmbientLight[0]);
 
 	for (unsigned int i = 0; i < mrLights.size(); i++)

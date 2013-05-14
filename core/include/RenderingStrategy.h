@@ -30,6 +30,10 @@ public:
 	{
 	}
 
+	virtual ~RenderingStrategy()
+	{
+	}
+
 	virtual void Render(const Camera* pCamera) = 0;
 
 protected:

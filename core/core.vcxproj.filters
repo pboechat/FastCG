@@ -149,6 +149,9 @@
     <ClInclude Include="include\RenderingStatistics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\UnorderedSingleGroupBatchingStrategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -250,6 +253,9 @@
     <ClCompile Include="src\MaterialGroupsBatchingStrategy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\UnorderedSingleGroupBatchingStrategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BlinnPhong.frag">
@@ -277,6 +283,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\Points.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\GeometryPass.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\GeometryPass.frag">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

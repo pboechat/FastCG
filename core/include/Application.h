@@ -103,6 +103,7 @@ protected:
 	bool mShowRenderingStatistics;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Font* mpStandardFont;
+	bool mDeferredRendering;
 #endif
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
