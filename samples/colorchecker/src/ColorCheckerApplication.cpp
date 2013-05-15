@@ -23,6 +23,7 @@ ColorCheckerApplication::ColorCheckerApplication() :
 {
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
+	mShowRenderingStatistics = true;
 }
 
 bool ColorCheckerApplication::ParseCommandLineArguments(int argc, char** argv)
@@ -125,6 +126,7 @@ void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	pSolidColorMaterial = new Material(ShaderRegistry::Find("SolidColor"));
 	pSolidColorMaterial->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial->SetUnlit(true);
 #else
 	pSolidColorMaterial = new Material();
 	pSolidColorMaterial->SetAmbientColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));

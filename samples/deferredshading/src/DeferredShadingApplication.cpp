@@ -25,7 +25,9 @@ DeferredShadingApplication::DeferredShadingApplication() :
 	mpMesh(0)
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	mDeferredRendering = true;
+#endif
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
@@ -59,10 +61,14 @@ void DeferredShadingApplication::OnStart()
 	pGameObject = GameObject::Instantiate();
 
 	mpMesh = StandardGeometries::CreateSphere(1.0f, 30);
-	mpMaterial = new Material(ShaderRegistry::Find("DeferredShadingDiffuse"));
 	mpTexture = TextureUtils::LoadPNGAsTexture("textures/MarsColorMap.png");
-
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	mpMaterial = new Material(ShaderRegistry::Find("DeferredShadingDiffuse"));
 	mpMaterial->SetTexture("colorMap", mpTexture);
+#else
+	mpMaterial = new Material();
+	mpMaterial->SetTexture(mpTexture);
+#endif
 
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
 	pMeshRenderer->SetMesh(mpMesh);

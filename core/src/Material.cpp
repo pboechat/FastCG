@@ -12,7 +12,8 @@
 #ifdef USE_PROGRAMMABLE_PIPELINE
 
 Material::Material(Shader* pShader) :
-	mpShader(pShader)
+	mpShader(pShader),
+	mUnlit(false)
 {
 }
 

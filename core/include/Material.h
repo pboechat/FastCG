@@ -59,6 +59,16 @@ public:
 		mTexturesTiling[rTextureName] = rTextureTiling;
 	}
 
+	inline bool IsUnlit() const
+	{
+		return mUnlit;
+	}
+
+	inline void SetUnlit(bool unlit)
+	{
+		mUnlit = unlit;
+	}
+
 private:
 	Shader* mpShader;
 	std::map<std::string, float> mFloatParameters;
@@ -66,6 +76,7 @@ private:
 	std::map<std::string, glm::mat4> mMat4Parameters;
 	std::map<std::string, Texture*> mTextureParameters;
 	std::map<std::string, glm::vec2> mTexturesTiling;
+	bool mUnlit;
 
 };
 

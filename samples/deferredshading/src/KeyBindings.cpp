@@ -8,6 +8,7 @@ COMPONENT_IMPLEMENTATION(KeyBindings, Behaviour);
 
 void KeyBindings::OnUpdate(float time, float deltaTime)
 {
+#ifdef USE_PROGRAMMABLE_PIPELINE
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
 	{
 		DeferredRenderingStrategy* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
@@ -15,4 +16,5 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 		pDeferredRenderingStrategy->SetDebugEnabled(!debugEnabled);
 		mLastKeyPressTime = time;
 	}
+#endif
 }
