@@ -12,55 +12,55 @@ class Transform
 public:
 	inline glm::vec3 GetPosition() const
 	{
-		return glm::vec3(mModel[3]);
+		return mWorldPosition;
 	}
 
 	inline void SetPosition(const glm::vec3& position)
 	{
-		mModel[3] = glm::vec4(position, 1.0f);
+		mWorldPosition = position;
 	}
 
 	inline glm::mat3 GetRotation() const
 	{
-		return glm::mat3(mModel);
+		return glm::toMat3(mWorldRotation);
 	}
 
-	inline const glm::mat4& GetModel() const
+	inline glm::mat4 GetModel() const
 	{
-		return mModel;
+		glm::mat4 worldTransform = glm::toMat4(mWorldRotation);
+		worldTransform = glm::translate(worldTransform, mWorldPosition);
+		glm::mat4 localTransform = glm::toMat4(mLocalRotation);
+		return worldTransform * localTransform;
 	}
 
 	inline void Translate(const glm::vec3& position)
 	{
-		mModel = glm::translate(mModel, position);
+		mWorldPosition += mLocalRotation * position;
 	}
 
-	inline void Rotate(float angle, const glm::vec3& axis)
+	inline void Rotate(const glm::vec3& rEulerAngles)
 	{
-		mModel = glm::rotate(mModel, angle, axis);
+		mWorldRotation = mWorldRotation * glm::quat(rEulerAngles);
 	}
 
 	inline void RotateAround(float angle, const glm::vec3& axis)
 	{
-		glm::quat rotation = glm::angleAxis(angle, axis);
-		mModel = glm::toMat4(rotation) * mModel;
+		mWorldRotation = glm::rotate(mWorldRotation, angle, axis);
 	}
 
 	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
 	{
-		glm::vec3 center = GetPosition();
-		glm::quat rotation = glm::angleAxis(angle, axis);
-		mModel = glm::translate(glm::toMat4(rotation), center);
+		mLocalRotation = glm::rotate(mLocalRotation, angle, axis);
 	}
 
 	inline glm::vec3 GetForward() const
 	{
-		return glm::normalize(GetRotation() * glm::vec3(0.0f, 0.0f, -1.0f));
+		return glm::normalize(mLocalRotation * glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	inline glm::vec3 GetUp() const
 	{
-		return glm::normalize(GetRotation() * glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::normalize(mLocalRotation * glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	inline GameObject* GetGameObject()
@@ -77,11 +77,13 @@ public:
 
 private:
 	GameObject* mpGameObject;
-	glm::mat4 mModel;
+	glm::vec3 mWorldPosition;
+	glm::quat mWorldRotation;
+	glm::quat mLocalRotation;
 
 	Transform(GameObject* pGameObject) :
 		mpGameObject(pGameObject),
-		mModel(1.0f)
+		mWorldPosition(0.0f, 0.0f, 0.0f)
 	{
 	}
 

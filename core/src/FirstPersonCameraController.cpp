@@ -20,8 +20,8 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 			if (mousePosition != mLastMousePosition)
 			{
 				glm::vec2 direction = glm::normalize(mousePosition - mLastMousePosition);
-				pMainCamera->GetGameObject()->GetTransform()->Rotate(direction.x * mTurnSpeed * deltaTime, glm::vec3(0.0f, -1.0f, 0.0f));
-				pMainCamera->GetGameObject()->GetTransform()->Rotate(direction.y * mTurnSpeed * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+				pMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-direction.x * mTurnSpeed * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+				pMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(direction.y * mTurnSpeed * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
 				mLastMousePosition = mousePosition;
 			}
 		}

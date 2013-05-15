@@ -33,7 +33,7 @@ BumpMappingApplication::BumpMappingApplication() :
 void BumpMappingApplication::OnStart()
 {
 	mpMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
-	mpMainCamera->GetGameObject()->GetTransform()->Rotate(-20.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-20.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
 
