@@ -4,6 +4,7 @@
 #include <RenderingStrategy.h>
 #include <GBuffer.h>
 #include <Shader.h>
+#include <Mesh.h>
 
 class DeferredRenderingStrategy : public RenderingStrategy
 {
@@ -18,15 +19,27 @@ public:
 							  RenderingStatistics& rRenderingStatistics);
 	virtual ~DeferredRenderingStrategy();
 
+	inline bool IsDebugEnabled() const
+	{
+		return mDebugEnabled;
+	}
+
+	inline void SetDebugEnabled(bool debugEnabled)
+	{
+		mDebugEnabled = debugEnabled;
+	}
+
 	virtual void Render(const Camera* pCamera);
 
 private:
 	unsigned int& mrScreenWidth;
 	unsigned int& mrScreenHeight;
 	GBuffer* mpGBuffer;
-	Shader* mpGeometryPassShader;
+	Shader* mpDirectionalLightPassShader;
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
+	Mesh* mpQuadMesh;
+	bool mDebugEnabled;
 
 	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
 

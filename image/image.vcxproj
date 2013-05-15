@@ -99,9 +99,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\PNGLoader.h" />
+    <ClInclude Include="include\TextureUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PNGLoader.cpp" />
+    <ClCompile Include="src\TextureUtils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

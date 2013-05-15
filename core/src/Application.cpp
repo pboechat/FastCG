@@ -10,7 +10,6 @@
 #include <ForwardRenderingStrategy.h>
 #include <DeferredRenderingStrategy.h>
 #include <MaterialGroupsBatchingStrategy.h>
-#include <UnorderedSingleGroupBatchingStrategy.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
@@ -298,17 +297,15 @@ void Application::Run(int argc, char** argv)
 		if (mDeferredRendering)
 		{
 			mpRenderingStrategy = new DeferredRenderingStrategy(mScreenWidth, mScreenHeight, mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
-			mpRenderBatchingStrategy = new UnorderedSingleGroupBatchingStrategy(mRenderBatches);
 		}
 		else
 		{
 			mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
-			mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 		}
 #else
 		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
-		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 #endif
+		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 		mStartTimer.Start();
 		OnStart();
 		mUpdateTimer.Start();
@@ -482,13 +479,9 @@ void Application::ShowRenderingStatistics()
 void Application::Render()
 {
 	mFrameTimer.Start();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
-	
 	mpRenderingStrategy->Render(mpMainCamera);
-
 	DrawAllTexts();
-
 	mFrameTimer.End();
 	mElapsedTime += mFrameTimer.GetElapsedTime();
 	mElapsedFrames++;

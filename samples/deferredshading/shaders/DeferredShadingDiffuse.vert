@@ -1,5 +1,6 @@
 #version 330
 
+uniform mat4 _Model;
 uniform mat3 _ModelViewInverseTranspose;
 uniform mat4 _ModelViewProjection;
 
@@ -13,8 +14,8 @@ out vec4 vertexTextureCoordinates;
 
 void main()
 {
-	vertexPosition = _ModelViewProjection * position;
+	vertexPosition = _Model * position;
 	vertexNormal = vec4(normalize(_ModelViewInverseTranspose * normal), 0.0);
 	vertexTextureCoordinates = vec4(uv, 0.0, 0.0);
-	gl_Position = vertexPosition;
+	gl_Position = _ModelViewProjection * position;
 }

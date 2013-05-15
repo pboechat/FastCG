@@ -191,8 +191,8 @@
     <ClCompile Include="src\ShaderSource.cpp" />
     <ClCompile Include="src\StandardGeometries.cpp" />
     <ClCompile Include="src\StringUtils.cpp" />
-    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\MeshRenderer.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\UnorderedSingleGroupBatchingStrategy.cpp" />
   </ItemGroup>
   <ItemGroup>

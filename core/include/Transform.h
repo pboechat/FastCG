@@ -4,6 +4,7 @@
 #include <Component.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 class Transform
@@ -37,6 +38,19 @@ public:
 	inline void Rotate(float angle, const glm::vec3& axis)
 	{
 		mModel = glm::rotate(mModel, angle, axis);
+	}
+
+	inline void RotateAround(float angle, const glm::vec3& axis)
+	{
+		glm::quat rotation = glm::angleAxis(angle, axis);
+		mModel = glm::toMat4(rotation) * mModel;
+	}
+
+	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
+	{
+		glm::vec3 center = GetPosition();
+		glm::quat rotation = glm::angleAxis(angle, axis);
+		mModel = glm::translate(glm::toMat4(rotation), center);
 	}
 
 	inline glm::vec3 GetForward() const

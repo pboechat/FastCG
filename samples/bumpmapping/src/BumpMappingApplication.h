@@ -34,8 +34,6 @@ private:
 	Material* mpSphereMaterial;
 	Mesh* mpSphereMesh;
 
-	Texture* LoadPNGAsTexture(const std::string& rFileName);
-
 };
 
 #endif

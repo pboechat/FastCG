@@ -113,20 +113,25 @@ public:
 		glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
 	}
 
-	inline void SetTexture(const std::string& rParameterName, const Texture* pTexture, unsigned int textureUnit) const
+	inline void SetTexture(const std::string& rParameterName, const Texture* pTexture, int textureUnit) const
 	{
-		glActiveTexture(GL_TEXTURE0 + (int)textureUnit);
+		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		pTexture->Bind();
-		glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
+		glUniform1i(GetUniformLocation(rParameterName), textureUnit);
 		// TODO:
 		//texturePtr->Unbind();
 	}
 
-	inline void SetTexture(const std::string& rParameterName, unsigned int textureId, unsigned int textureUnit) const
+	inline void SetTexture(const std::string& rParameterName, unsigned int textureId, int textureUnit) const
 	{
-		glActiveTexture(GL_TEXTURE0 + (int)textureUnit);
+		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		glBindTexture(GL_TEXTURE_2D, textureId);
-		glUniform1i(GetUniformLocation(rParameterName), (int)textureUnit);
+		glUniform1i(GetUniformLocation(rParameterName), textureUnit);
+	}
+
+	inline void SetTexture(const std::string& rParameterName, int textureUnit) const
+	{
+		glUniform1i(GetUniformLocation(rParameterName), textureUnit);
 	}
 
 	void Compile(const std::string& rShaderFileName, ShaderType shaderType);

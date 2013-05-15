@@ -36,6 +36,8 @@ void GBuffer::AllocateResources()
 	{
 		glBindTexture(GL_TEXTURE_2D, mTexturesIds[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mTexturesIds[i], 0);
 	}
 
@@ -91,6 +93,12 @@ void GBuffer::BindForWriting()
 void GBuffer::BindForReading()
 {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mFBOId);
+
+	for (unsigned int i = 0 ; i < GBUFFER_NUM_TEXTURES; i++) 
+	{
+		glActiveTexture(GL_TEXTURE0 + i);		
+		glBindTexture(GL_TEXTURE_2D, mTexturesIds[GBUFFER_TEXTURE_TYPE_POSITION + i]);
+	}
 }
 
 void GBuffer::SetReadBuffer(GBUFFER_TEXTURE_TYPE textureType)

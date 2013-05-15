@@ -111,14 +111,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\DeferredShadingApplication.cpp" />
+    <ClCompile Include="src\KeyBindings.cpp" />
+    <ClCompile Include="src\LightsAnimator.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DeferredShadingApplication.h" />
+    <ClInclude Include="src\KeyBindings.h" />
+    <ClInclude Include="src\LightsAnimator.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\GeometryPass.frag" />
-    <None Include="shaders\GeometryPass.vert" />
+    <None Include="shaders\DeferredShadingDiffuse.frag" />
+    <None Include="shaders\DeferredShadingDiffuse.vert" />
+    <None Include="shaders\DirectionalLightPass.frag" />
+    <None Include="shaders\DirectionalLightPass.vert" />
+    <None Include="shaders\Lighting.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

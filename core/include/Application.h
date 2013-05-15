@@ -47,9 +47,6 @@ public:
 		return s_mpInstance;
 	}
 
-	void Run(int argc, char** argv);
-	void Exit();
-
 	inline unsigned int GetScreenWidth() const
 	{
 		return mScreenWidth;
@@ -75,6 +72,13 @@ public:
 		mClearColor = clearColor;
 	}
 
+	inline RenderingStrategy* GetRenderingStrategy()
+	{
+		return mpRenderingStrategy;
+	}
+
+	void Run(int argc, char** argv);
+	void Exit();
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
 #endif

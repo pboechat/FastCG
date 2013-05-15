@@ -39,6 +39,8 @@ void ForwardRenderingStrategy::SetUpShaderLights(Shader* pShader)
 
 void ForwardRenderingStrategy::Render(const Camera* pCamera)
 {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	mrRenderingStatistics.drawCalls = 0;
 
 	glm::mat4& rView = pCamera->GetView();

@@ -2,6 +2,8 @@
 #define DEFERREDSHADINGAPPLICATION_H_
 
 #include <Application.h>
+#include <Texture.h>
+#include <Material.h>
 #include <Mesh.h>
 
 class DeferredShadingApplication: public Application
@@ -14,8 +16,15 @@ protected:
 	virtual void OnEnd();
 
 private:
-	Mesh* mpMesh;
+	static const unsigned int NUMBER_OF_LIGHTS;
+	static const float LIGHT_DISTANCE;
+	static const float WALK_SPEED;
+	static const float TURN_SPEED;
 
+	Texture* mpTexture;
+	Material* mpMaterial;
+	Mesh* mpMesh;
+	
 };
 
 #endif

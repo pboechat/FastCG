@@ -16,7 +16,7 @@ float Random::NextFloat()
 	return rand() / (float) RAND_MAX;
 }
 
-void Random::Seed()
+void Random::SeedWithTime()
 {
 	srand((unsigned int) time(0));
 }

@@ -5,7 +5,7 @@ class Random
 {
 public:
 	static float NextFloat();
-	static void Seed();
+	static void SeedWithTime();
 
 private:
 	Random();
