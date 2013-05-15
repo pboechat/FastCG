@@ -56,8 +56,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>bumpmappingd</TargetName>
-    <IncludePath>C:\Program Files (x86)\Visual Leak Detector\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_FFP|Win32'">
     <TargetName>bumpmappingd</TargetName>
@@ -136,6 +136,7 @@
     <None Include="shaders\FastCG.glsl" />
     <None Include="shaders\Font.frag" />
     <None Include="shaders\Font.vert" />
+    <None Include="shaders\Lighting.glsl" />
     <None Include="shaders\Specular.frag" />
     <None Include="shaders\Specular.vert" />
   </ItemGroup>

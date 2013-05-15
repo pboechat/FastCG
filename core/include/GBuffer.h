@@ -4,7 +4,7 @@
 class GBuffer
 {
 public:
-	enum GBUFFER_TEXTURE_TYPE
+	enum GBufferTextureType
 	{
 		GBUFFER_TEXTURE_TYPE_POSITION,
 		GBUFFER_TEXTURE_TYPE_DIFFUSE,
@@ -18,7 +18,7 @@ public:
 
 	void BindForWriting();
 	void BindForReading();
-	void SetReadBuffer(GBUFFER_TEXTURE_TYPE textureType);
+	void SetReadBuffer(GBufferTextureType textureType);
 
 private:
 	unsigned int& mrScreenWidth;

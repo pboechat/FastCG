@@ -15,37 +15,14 @@ ForwardRenderingStrategy::ForwardRenderingStrategy(std::vector<Light*>& rLights,
 	mpPointsShader = ShaderRegistry::Find("Points");
 }
 
-void ForwardRenderingStrategy::SetUpShaderLights(Shader* pShader)
-{
-	static char pLightVariableName[128];
-
-	for (unsigned int i = 0; i < mrLights.size(); i++)
-	{
-		Light* pLight = mrLights[i];
-		glm::vec3& lightPosition = pLight->GetGameObject()->GetTransform()->GetPosition();
-		const glm::vec4& lightAmbientColor = pLight->GetAmbientColor();
-		const glm::vec4& lightDiffuseColor = pLight->GetDiffuseColor();
-		const glm::vec4& lightSpecularColor = pLight->GetSpecularColor();
-		sprintf(pLightVariableName, "_Light%dPosition", i);
-		pShader->SetVec3(pLightVariableName, lightPosition);
-		sprintf(pLightVariableName, "_Light%dAmbientColor", i);
-		pShader->SetVec4(pLightVariableName, lightAmbientColor);
-		sprintf(pLightVariableName, "_Light%dDiffuseColor", i);
-		pShader->SetVec4(pLightVariableName, lightDiffuseColor);
-		sprintf(pLightVariableName, "_Light%dSpecularColor", i);
-		pShader->SetVec4(pLightVariableName, lightSpecularColor);
-	}
-}
-
 void ForwardRenderingStrategy::Render(const Camera* pCamera)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mrRenderingStatistics.drawCalls = 0;
-
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
 
+	mrRenderingStatistics.drawCalls = 0;
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
 		RenderBatch* pRenderingGroup = mrRenderBatches[i];
@@ -53,7 +30,6 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 		std::vector<MeshFilter*>& rMeshFilters = pRenderingGroup->meshFilters;
 		Shader* pShader = pMaterial->GetShader();
 		pShader->Bind();
-		SetUpShaderLights(pShader);
 		pShader->SetMat4("_View", rView);
 		pShader->SetMat4("_Projection", rProjection);
 		pMaterial->SetUpParameters();
@@ -81,8 +57,40 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 			pShader->SetMat4("_ModelViewProjection", rProjection * modelView);
 			pShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
-			pRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			for (unsigned int k = 0; k < mrLights.size(); k++)
+			{
+				if (k == 1)
+				{
+					glDepthFunc(GL_EQUAL);
+					glEnable(GL_BLEND);
+					glBlendEquation(GL_FUNC_ADD);
+					glBlendFunc(GL_ONE, GL_ONE);
+				}
+				Light* pLight = mrLights[k];
+				pShader->SetFloat("_Light0Type", (float)pLight->GetLightType());
+				pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
+				pShader->SetVec4("_Light0AmbientColor", pLight->GetAmbientColor());
+				pShader->SetVec4("_Light0DiffuseColor", pLight->GetDiffuseColor());
+				pShader->SetVec4("_Light0SpecularColor", pLight->GetSpecularColor());
+				pShader->SetFloat("_Light0Intensity", pLight->GetIntensity());
+				switch (pLight->GetLightType())
+				{
+				case Light::LT_POINT:
+					pShader->SetFloat("_Light0ConstantAttenuation", pLight->GetConstantAttenuation());
+					pShader->SetFloat("_Light0LinearAttenuation", pLight->GetLinearAttenuation());
+					pShader->SetFloat("_Light0QuadraticAttenuation", pLight->GetQuadraticAttenuation());
+					break;
+				case Light::LT_SPOT:
+					pShader->SetVec3("_Light0SpotDirection", pLight->GetSpotDirection());
+					pShader->SetFloat("_Light0SpotCutoff", pLight->GetSpotCutoff());
+					pShader->SetFloat("_Light0SpotExponent", pLight->GetSpotExponent());
+					break;
+				}
+				pRenderer->Render();
+				mrRenderingStatistics.drawCalls++;
+			}
+			glDisable(GL_BLEND);
+			glDepthFunc(GL_LESS);
 		}
 
 		pShader->Unbind();

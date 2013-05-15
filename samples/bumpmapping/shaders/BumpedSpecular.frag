@@ -1,6 +1,7 @@
 #version 330
 
 #include "shaders/FastCG.glsl"
+#include "shaders/Lighting.glsl"
 
 uniform sampler2D colorMap;
 uniform sampler2D bumpMap;
@@ -11,26 +12,20 @@ uniform float shininess;
 
 in vec3 lightDirection;
 in vec3 viewerDirection;
-in vec2 textureCoordinates;
+in vec3 vertexPosition;
+in vec2 vertexUV;
 
 void main()
 {
-	vec4 diffuseColor = texture2D(colorMap, (textureCoordinates * colorMapTiling));
+	vec4 diffuseColor = texture2D(colorMap, (vertexUV * colorMapTiling));
+	vec3 normal = normalize(texture2D(bumpMap, (vertexUV * bumpMapTiling)).rgb * 2.0 - 1.0);
 
-	vec3 normal = normalize(texture2D(bumpMap, (textureCoordinates * bumpMapTiling)).rgb * 2.0 - 1.0);
-
-	vec4 ambientContribution = _GlobalLightAmbientColor;
-
-	float diffuseAttenuation = max(dot(lightDirection, normal), 0.0); 
-	vec4 diffuseContribution = _Light0DiffuseColor * diffuseColor * diffuseAttenuation;
-
-	vec4 specularContribution = vec4(0.0);
-	if (diffuseAttenuation > 0.0) 
-	{
-		vec3 reflection = reflect(-lightDirection, normal);
-		float specularAttenuation = pow(max(dot(reflection, normalize(viewerDirection)), 0.0), shininess);
-		specularContribution = _Light0SpecularColor * specularColor * specularAttenuation;
-	}
-
-	gl_FragColor = ambientContribution + diffuseContribution + specularContribution;
+	gl_FragColor = BlinnPhongLighting(vec4(1.0),
+									  diffuseColor,
+									  specularColor,
+									  shininess,
+									  lightDirection,
+									  viewerDirection,
+									  vertexPosition,
+									  normal);
 }

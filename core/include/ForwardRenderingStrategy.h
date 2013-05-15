@@ -20,8 +20,6 @@ private:
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
 
-	void SetUpShaderLights(Shader* pShader);
-
 };
 
 #endif

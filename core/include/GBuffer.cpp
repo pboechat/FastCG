@@ -101,7 +101,7 @@ void GBuffer::BindForReading()
 	}
 }
 
-void GBuffer::SetReadBuffer(GBUFFER_TEXTURE_TYPE textureType)
+void GBuffer::SetReadBuffer(GBufferTextureType textureType)
 {
 	glReadBuffer(GL_COLOR_ATTACHMENT0 + textureType);
 }

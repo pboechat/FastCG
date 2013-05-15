@@ -11,6 +11,7 @@
     </Filter>
     <Filter Include="Shader Files">
       <UniqueIdentifier>{f3d9e45d-8d00-416a-bc6f-aa764daef6f9}</UniqueIdentifier>
+      <Extensions>glsl;vert;frag</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +77,9 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\Specular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Lighting.glsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

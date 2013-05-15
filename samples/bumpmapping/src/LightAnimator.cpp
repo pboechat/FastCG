@@ -6,18 +6,16 @@ COMPONENT_IMPLEMENTATION(LightAnimator, Behaviour);
 
 void LightAnimator::OnUpdate(float time, float deltaTime)
 {
-	glm::vec3 position = GetGameObject()->GetTransform()->GetPosition() + (mDirection * mSpeed * deltaTime);
+	glm::vec3 move = mDirection * mSpeed * deltaTime;
+	glm::vec3 newPosition = GetGameObject()->GetTransform()->GetPosition() + move;
 
-	if (position.z <= -mHalfAmplitude)
+	float length = glm::length(newPosition);
+	if (length >= mHalfAmplitude)
 	{
-		position.z = -mHalfAmplitude;
-		mDirection.z = 1.0f;
+		mDirection *= -1.0f;
 	} 
-	else if (position.z >= mHalfAmplitude)
+	else
 	{
-		position.z = mHalfAmplitude;
-		mDirection.z = -1.0f;
+		GetGameObject()->GetTransform()->SetPosition(newPosition);
 	}
-
-	GetGameObject()->GetTransform()->SetPosition(position);
 }

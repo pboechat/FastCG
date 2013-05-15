@@ -8,8 +8,8 @@ in vec2 uv;
 in vec4 tangent;
 
 out vec3 lightDirection;
-out vec3 viewerDirection;
-out vec2 textureCoordinates;
+out vec3 vertexPosition;
+out vec2 vertexUV;
 
 void main()
 {
@@ -26,9 +26,8 @@ void main()
 	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
 	lightDirection = tangentSpaceMatrix * normalize(lightPosition - vertexPosition);
 	
-	viewerDirection = tangentSpaceMatrix * normalize(-vertexPosition);
-	
-	textureCoordinates = uv;
+	vertexPosition = vec3(_ModelView * position);
+	vertexUV = uv;
 
 	gl_Position = _ModelViewProjection * position;
 }

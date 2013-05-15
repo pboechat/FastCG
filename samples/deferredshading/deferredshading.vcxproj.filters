@@ -11,6 +11,7 @@
     </Filter>
     <Filter Include="Shader Files">
       <UniqueIdentifier>{ecb23fb7-ffe1-4dd1-8836-b9653c9c1073}</UniqueIdentifier>
+      <Extensions>glsl;vert;frag</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>

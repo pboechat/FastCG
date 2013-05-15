@@ -24,9 +24,9 @@ public:
 		mHalfAmplitude = amplitude * 0.5f;
 	}
 
-	inline void SetDirection(glm::vec3 direction)
+	inline void SetDirection(const glm::vec3& rDirection)
 	{
-		mDirection = direction;
+		mDirection = rDirection;
 	}
 
 	virtual void OnUpdate(float time, float deltaTime);

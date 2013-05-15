@@ -108,7 +108,6 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	{
 		glDepthMask(GL_FALSE);
 		glDisable(GL_DEPTH_TEST);
-
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE);

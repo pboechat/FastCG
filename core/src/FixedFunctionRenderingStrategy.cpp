@@ -25,12 +25,28 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 	{
 		glEnable(GL_LIGHT0 + i);
 		Light* pLight = mrLights[i];
-		glm::vec4 lightPosition = glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
-		// TODO: GL_LIGHT0 + i might be a dangereous trick!
-		glLightfv(GL_LIGHT0 + i, GL_POSITION, &lightPosition[0]);
-		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &pLight->GetAmbientColor()[0]);
-		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &pLight->GetDiffuseColor()[0]);
-		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &pLight->GetSpecularColor()[0]);
+		glm::vec4& rLightPosition = glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
+		float intensity = pLight->GetIntensity();
+		glm::vec4 lightAmbientColor = pLight->GetAmbientColor() * intensity;
+		glm::vec4 lightDiffuseColor = pLight->GetDiffuseColor() * intensity;
+		glm::vec4 lightSpecularColor = pLight->GetSpecularColor() * intensity;
+		glLightfv(GL_LIGHT0 + i, GL_POSITION, &rLightPosition[0]);
+		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &lightAmbientColor[0]);
+		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &lightDiffuseColor[0]);
+		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &lightSpecularColor[0]);
+		switch (pLight->GetLightType())
+		{
+		case Light::LT_POINT:
+			glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, pLight->GetConstantAttenuation());
+			glLightf(GL_LIGHT0 + i, GL_LINEAR_ATTENUATION, pLight->GetLinearAttenuation());
+			glLightf(GL_LIGHT0 + i, GL_QUADRATIC_ATTENUATION, pLight->GetQuadraticAttenuation());
+			break;
+		case Light::LT_SPOT:
+			glLightfv(GL_LIGHT0 + i, GL_SPOT_DIRECTION, &pLight->GetSpotDirection()[0]);
+			glLightf(GL_LIGHT0 + i, GL_SPOT_CUTOFF, pLight->GetSpotCutoff());
+			glLightf(GL_LIGHT0 + i, GL_SPOT_EXPONENT, pLight->GetSpotExponent());
+			break;
+		}
 	}
 
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)

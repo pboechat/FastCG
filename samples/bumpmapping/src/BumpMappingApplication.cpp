@@ -38,9 +38,11 @@ void BumpMappingApplication::OnStart()
 	GameObject* pLightGameObject = GameObject::Instantiate();
 
 	Light* pLight = Light::Instantiate(pLightGameObject);
+	pLight->SetLightType(Light::LT_POINT);
 	pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	pLight->SetDiffuseColor(glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
-	pLight->SetSpecularColor(glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
+	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pLight->SetIntensity(20.0f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
 	pLightAnimator->SetSpeed(40.0f);

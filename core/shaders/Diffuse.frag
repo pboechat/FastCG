@@ -1,25 +1,24 @@
 #version 330
 
 #include "shaders/FastCG.glsl"
-
-in vec4 eyeSpacePosition;
-in vec3 vertexNormal;
-in vec2 textureCoordinates;
+#include "shaders/Lighting.glsl"
 
 uniform sampler2D colorMap;
 uniform vec2 colorMapTiling;
 
+in vec3 vertexPosition;
+in vec3 vertexNormal;
+in vec2 vertexUV;
+
 void main()
 {
-	vec4 diffuseColor = texture(colorMap, (textureCoordinates * colorMapTiling));
+	vec4 diffuseColor = texture(colorMap, (vertexUV * colorMapTiling));
 
 	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
-	vec3 lightDirection = normalize(lightPosition - eyeSpacePosition.xyz);
+	vec3 lightDirection = normalize(lightPosition - vertexPosition);
 	
-	vec4 ambientContribution = _GlobalLightAmbientColor;
-	
-	float diffuseAttenuation = max(dot(lightDirection, vertexNormal), 0.0);
-	vec4 diffuseContribution = _Light0DiffuseColor * diffuseColor * diffuseAttenuation;
-
-	gl_FragColor = ambientContribution + diffuseContribution;
+	gl_FragColor = BlinnPhongLighting(diffuseColor,
+									  lightDirection,
+									  vertexPosition,
+									  vertexNormal);
 }

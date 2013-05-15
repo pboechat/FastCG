@@ -33,7 +33,6 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
 	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
 	mGLUTWindowHandle(0),
-	mDeferredRendering(false),
 	mShowFPS(false),
 	mShowRenderingStatistics(false),
 	mElapsedFrames(0),
@@ -43,6 +42,7 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mpRenderBatchingStrategy(0)
 {
 #ifdef USE_PROGRAMMABLE_PIPELINE
+	mDeferredRendering = false;
 	mpStandardFont = 0;
 #endif
 	s_mpInstance = this;

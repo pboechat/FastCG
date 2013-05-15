@@ -11,6 +11,7 @@
     </Filter>
     <Filter Include="Shader Files">
       <UniqueIdentifier>{080391bc-bb16-4689-9731-870133286e47}</UniqueIdentifier>
+      <Extensions>glsl;vert;frag</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -258,21 +259,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\BlinnPhong.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\BlinnPhong.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\FastCG.glsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Font.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Font.vert">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="shaders\LineStrip.frag">
       <Filter>Shader Files</Filter>
     </None>
@@ -285,10 +271,40 @@
     <None Include="shaders\Points.vert">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\GeometryPass.vert">
+    <None Include="shaders\BumpedDiffuse.frag">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\GeometryPass.frag">
+    <None Include="shaders\Specular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedDiffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedSpecular.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedSpecular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\FastCG.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Font.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Font.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Lighting.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.frag">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
