@@ -4,6 +4,13 @@
 struct RenderingStatistics
 {
 	int drawCalls;
+	int numberOfTriangles;
+
+	void Reset()
+	{
+		drawCalls = 0;
+		numberOfTriangles = 0;
+	}
 };
 
 #endif

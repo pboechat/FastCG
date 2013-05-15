@@ -13,6 +13,11 @@ public:
 		}
 	}
 
+	inline virtual unsigned int GetNumberOfTriangles() const
+	{
+		return 0;
+	}
+
 protected:
 	virtual void OnRender() = 0;
 

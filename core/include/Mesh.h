@@ -38,6 +38,11 @@ public:
 	void CalculateTangents();
 #endif
 
+	inline unsigned int GetNumberOfTriangles() const
+	{
+		return mIndexes.size() / 3;
+	}
+	
 	void DrawCall();
 	void AllocateResources();
 	void DeallocateResources();

@@ -15,7 +15,9 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(unsigned int& rScreenWidth,
 	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics),
 	mrScreenWidth(rScreenWidth),
 	mrScreenHeight(rScreenHeight),
-	mDebugEnabled(false)
+	mDebugEnabled(false),
+	mpGBuffer(0),
+	mpQuadMesh(0)
 {
 	mpGBuffer = new GBuffer(rScreenWidth, rScreenHeight);
 	mpDirectionalLightPassShader = ShaderRegistry::Find("DirectionalLightPass");
@@ -26,13 +28,19 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(unsigned int& rScreenWidth,
 
 DeferredRenderingStrategy::~DeferredRenderingStrategy()
 {
-	delete mpGBuffer;
+	if (mpGBuffer != 0)
+	{
+		delete mpGBuffer;
+	}
+	
+	if (mpQuadMesh != 0)
+	{
+		delete mpQuadMesh;
+	}
 }
 
 void DeferredRenderingStrategy::Render(const Camera* pCamera)
 {
-	mrRenderingStatistics.drawCalls = 0;
-
 	// geometry pass
 	mpGBuffer->BindForWriting();
 
@@ -41,6 +49,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
 
+	mrRenderingStatistics.Reset();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
 		RenderBatch* pRenderBatch = mrRenderBatches[i];
@@ -73,6 +82,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			pShader->SetMat4("_ModelViewProjection", rProjection * modelView);
 			pRenderer->Render();
 			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 		}
 
 		pShader->Unbind();
@@ -127,12 +137,21 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		for (unsigned int i = 0; i < mrLights.size(); i++)
 		{
 			Light* pLight = mrLights[i];
+			mpDirectionalLightPassShader->SetFloat("lightType", (float)pLight->GetLightType());
 			mpDirectionalLightPassShader->SetVec3("lightPosition", pLight->GetGameObject()->GetTransform()->GetPosition());
 			mpDirectionalLightPassShader->SetVec4("lightAmbientColor", pLight->GetAmbientColor());
 			mpDirectionalLightPassShader->SetVec4("lightDiffuseColor", pLight->GetDiffuseColor());
 			mpDirectionalLightPassShader->SetVec4("lightSpecularColor", pLight->GetSpecularColor());
 			mpDirectionalLightPassShader->SetFloat("lightIntensity", pLight->GetIntensity());
-			mpQuadMesh->DrawCall();
+			switch (pLight->GetLightType())
+			{
+			case Light::LT_DIRECTIONAL:
+				mpQuadMesh->DrawCall();
+				break;
+			case Light::LT_POINT:
+				break;
+			}
+			
 			mrRenderingStatistics.drawCalls++;
 		}
 
@@ -142,6 +161,9 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 	}
+
+	// FIXME: find out why glut crashes when READ framebuffer is not set back to 0
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	RenderUnlitGeometries(rView, rProjection);
 }

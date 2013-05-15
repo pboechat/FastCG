@@ -21,6 +21,11 @@ public:
 		mpMesh = 0;
 	}
 
+	inline virtual unsigned int GetNumberOfTriangles() const
+	{
+		return (mpMesh == 0) ? 0 : mpMesh->GetNumberOfTriangles();
+	}
+
 protected:
 	virtual void OnRender();
 

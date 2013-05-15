@@ -422,7 +422,7 @@ void Application::ShowFPS()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mpStandardFont->DrawText(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 144, mScreenHeight - FontRegistry::STANDARD_FONT_SIZE, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	mpStandardFont->DrawText(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 240, mScreenHeight - 17, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);
@@ -433,7 +433,7 @@ void Application::ShowFPS()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
 	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-	glRasterPos2i(mScreenWidth - 144, (mScreenHeight - 12));
+	glRasterPos2i(mScreenWidth - 240, (mScreenHeight - 15));
 	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)fpsText);
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glMatrixMode(GL_PROJECTION);
@@ -447,13 +447,15 @@ void Application::ShowFPS()
 
 void Application::ShowRenderingStatistics()
 {
-	static char fpsText[128];
-	sprintf(fpsText, "Draw Calls: %d", mRenderingStatistics.drawCalls);
+	static char text[128];
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mpStandardFont->DrawText(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 164, mScreenHeight - ((FontRegistry::STANDARD_FONT_SIZE + 3) * 2), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
+	mpStandardFont->DrawText(text, 14, mScreenWidth - 240, mScreenHeight - 34, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
+	mpStandardFont->DrawText(text, 14, mScreenWidth - 240, mScreenHeight - 51, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);
@@ -464,8 +466,12 @@ void Application::ShowRenderingStatistics()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
 	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-	glRasterPos2i(mScreenWidth - 164, (mScreenHeight - 30));
-	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)fpsText);
+	glRasterPos2i(mScreenWidth - 240, (mScreenHeight - 30));
+	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
+	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)text);
+	glRasterPos2i(mScreenWidth - 240, (mScreenHeight - 45));
+	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
+	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)text);
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

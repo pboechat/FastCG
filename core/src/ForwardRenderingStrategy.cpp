@@ -22,7 +22,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
 
-	mrRenderingStatistics.drawCalls = 0;
+	mrRenderingStatistics.Reset();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
 		RenderBatch* pRenderingGroup = mrRenderBatches[i];
@@ -89,6 +89,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 				pRenderer->Render();
 				mrRenderingStatistics.drawCalls++;
 			}
+			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			glDisable(GL_BLEND);
 			glDepthFunc(GL_LESS);
 		}

@@ -10,8 +10,6 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mrRenderingStatistics.drawCalls = 0;
-
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
 
@@ -49,6 +47,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 		}
 	}
 
+	mrRenderingStatistics.Reset();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
 	{
 		RenderBatch* pRenderBatch = mrRenderBatches[i];
@@ -77,6 +76,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glMultMatrixf(&rModel[0][0]);
 			pRenderer->Render();
 			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			glPopMatrix();
 		}
 		// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
