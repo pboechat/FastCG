@@ -7,14 +7,13 @@ class FixedFunctionRenderingStrategy : public RenderingStrategy
 {
 public:
 	FixedFunctionRenderingStrategy(std::vector<Light*>& rLights,
-		glm::vec4& rGlobalAmbientLight,
-		std::vector<RenderBatch*>& rRenderBatches,
-		std::vector<LineRenderer*>& rLineRenderers,
-		std::vector<PointsRenderer*>& rPointsRenderer,
-		RenderingStatistics& rRenderingStatistics) :
-		RenderingStrategy(rLights, rGlobalAmbientLight, rRenderBatches, rLineRenderers, rPointsRenderer, rRenderingStatistics)
-	{
-	}
+								   std::vector<DirectionalLight*>& rDirectionalLights,
+								   std::vector<PointLight*>& rPointLights,
+								   glm::vec4& rGlobalAmbientLight,
+								   std::vector<RenderBatch*>& rRenderBatches,
+								   std::vector<LineRenderer*>& rLineRenderers,
+								   std::vector<PointsRenderer*>& rPointsRenderer,
+								   RenderingStatistics& rRenderingStatistics);
 
 	virtual void Render(const Camera* pCamera);
 

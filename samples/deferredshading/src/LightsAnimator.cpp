@@ -25,7 +25,6 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 	for (unsigned int i = 0; i < mLights.size(); i++)
 	{
 		Light* pLight = mLights[i];
-		Transform* pTransform = pLight->GetGameObject()->GetTransform();
-		pTransform->RotateAroundLocal(MathF::TWO_PI * deltaTime * 20.0f, mRotationAxis[i]);
+		pLight->GetGameObject()->GetTransform()->RotateAround(MathF::TWO_PI * deltaTime * 0.01f, mRotationAxis[i]);
 	}
 }

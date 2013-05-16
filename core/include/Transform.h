@@ -30,6 +30,7 @@ public:
 		glm::mat4 worldTransform = glm::toMat4(mWorldRotation);
 		worldTransform = glm::translate(worldTransform, mWorldPosition);
 		glm::mat4 localTransform = glm::toMat4(mLocalRotation);
+		localTransform = glm::translate(localTransform, mLocalPosition);
 		return worldTransform * localTransform;
 	}
 
@@ -45,7 +46,12 @@ public:
 
 	inline void RotateAround(float angle, const glm::vec3& axis)
 	{
-		mWorldRotation = glm::rotate(mWorldRotation, angle, axis);
+		glm::mat4 worldTransform = glm::toMat4(mWorldRotation);
+		worldTransform = glm::translate(worldTransform, mWorldPosition);
+		worldTransform = glm::rotate(worldTransform, angle, axis);
+		mWorldRotation = glm::toQuat(worldTransform);
+		mWorldRotation = glm::normalize(mWorldRotation);
+		mWorldPosition = glm::vec3(worldTransform[3]);
 	}
 
 	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
@@ -55,12 +61,12 @@ public:
 
 	inline glm::vec3 GetForward() const
 	{
-		return glm::normalize(mLocalRotation * glm::vec3(0.0f, 0.0f, -1.0f));
+		return glm::normalize((mWorldRotation * mLocalRotation) * glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	inline glm::vec3 GetUp() const
 	{
-		return glm::normalize(mLocalRotation * glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::normalize((mWorldRotation * mLocalRotation) * glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	inline GameObject* GetGameObject()
@@ -79,11 +85,13 @@ private:
 	GameObject* mpGameObject;
 	glm::vec3 mWorldPosition;
 	glm::quat mWorldRotation;
+	glm::vec3 mLocalPosition;
 	glm::quat mLocalRotation;
 
 	Transform(GameObject* pGameObject) :
 		mpGameObject(pGameObject),
-		mWorldPosition(0.0f, 0.0f, 0.0f)
+		mWorldPosition(0.0f, 0.0f, 0.0f),
+		mLocalPosition(0.0f, 0.0f, 0.0f)
 	{
 	}
 

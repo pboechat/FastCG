@@ -9,14 +9,16 @@
 class DeferredRenderingStrategy : public RenderingStrategy
 {
 public:
-	DeferredRenderingStrategy(unsigned int& rScreenWidth,
-							  unsigned int& rScreenHeight,
-							  std::vector<Light*>& rLights,
+	DeferredRenderingStrategy(std::vector<Light*>& rLights,
+							  std::vector<DirectionalLight*>& rDirectionalLights,
+							  std::vector<PointLight*>& rPointLights,
 							  glm::vec4& rGlobalAmbientLight,
 							  std::vector<RenderBatch*>& rRenderingGroups,
 							  std::vector<LineRenderer*>& rLineRenderers,
 							  std::vector<PointsRenderer*>& rPointsRenderer,
-							  RenderingStatistics& rRenderingStatistics);
+							  RenderingStatistics& rRenderingStatistics,
+							  unsigned int& rScreenWidth,
+							  unsigned int& rScreenHeight);
 	virtual ~DeferredRenderingStrategy();
 
 	inline bool IsDebugEnabled() const
@@ -35,14 +37,17 @@ private:
 	unsigned int& mrScreenWidth;
 	unsigned int& mrScreenHeight;
 	GBuffer* mpGBuffer;
+	Shader* mpStencilPassShader;
 	Shader* mpDirectionalLightPassShader;
+	Shader* mpPointLightPassShader;
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
 	Mesh* mpQuadMesh;
+	Mesh* mpSphereMesh;
 	bool mDebugEnabled;
 
 	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
-
+	float CalculateLightBoundingBoxScale(Light* pLight);
 };
 
 #endif

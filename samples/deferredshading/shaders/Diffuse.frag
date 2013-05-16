@@ -5,10 +5,7 @@
 
 uniform sampler2D colorMap;
 uniform vec2 colorMapTiling;
-uniform vec4 specularColor;
-uniform float shininess;
 
-in vec3 viewerDirection;
 in vec3 vertexPosition;
 in vec3 vertexNormal;
 in vec2 vertexUV;
@@ -19,13 +16,9 @@ void main()
 
 	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
 	vec3 lightDirection = normalize(lightPosition - vertexPosition);
-
-	gl_FragColor = BlinnPhongLighting(vec4(1.0),
-	                                  diffuseColor,
-									  specularColor,
-									  shininess,
+	
+	gl_FragColor = BlinnPhongLighting(diffuseColor,
 									  lightDirection,
-									  viewerDirection,
 									  vertexPosition,
 									  vertexNormal);
 }

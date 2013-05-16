@@ -4,6 +4,7 @@
 #include "LightAnimator.h"
 
 #include <Material.h>
+#include <PointLight.h>
 #include <MeshRenderer.h>
 #include <MeshFilter.h>
 #include <ShaderRegistry.h>
@@ -37,8 +38,7 @@ void BumpMappingApplication::OnStart()
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
 
-	Light* pLight = Light::Instantiate(pLightGameObject);
-	pLight->SetLightType(Light::LT_POINT);
+	PointLight* pLight = PointLight::Instantiate(pLightGameObject);
 	pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));

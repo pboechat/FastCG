@@ -8,6 +8,8 @@ class ForwardRenderingStrategy : public RenderingStrategy
 {
 public:
 	ForwardRenderingStrategy(std::vector<Light*>& rLights,
+							 std::vector<DirectionalLight*>& rDirectionalLights,
+							 std::vector<PointLight*>& rPointLights,
 							 glm::vec4& rGlobalAmbientLight,
 							 std::vector<RenderBatch*>& rRenderingGroups,
 							 std::vector<LineRenderer*>& rLineRenderers,

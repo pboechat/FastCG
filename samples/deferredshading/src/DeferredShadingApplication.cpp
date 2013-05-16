@@ -4,7 +4,7 @@
 
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
-#include <Light.h>
+#include <PointLight.h>
 #include <MeshRenderer.h>
 #include <MeshFilter.h>
 #include <FirstPersonCameraController.h>
@@ -13,28 +13,30 @@
 
 #include <vector>
 
-const unsigned int DeferredShadingApplication::NUMBER_OF_LIGHTS = 20;
-const float DeferredShadingApplication::LIGHT_DISTANCE = 3.0f;
-const float DeferredShadingApplication::WALK_SPEED = 20.0f;
+const unsigned int DeferredShadingApplication::NUMBER_OF_LIGHTS = 1;
+const float DeferredShadingApplication::LIGHT_DISTANCE = 5.0f;
+const float DeferredShadingApplication::WALK_SPEED = 5.0f;
 const float DeferredShadingApplication::TURN_SPEED = 100.0f;
 
 DeferredShadingApplication::DeferredShadingApplication() :
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	Application("deferredshading", 1024, 768, true),
+#else
 	Application("deferredshading", 1024, 768),
+#endif
 	mpTexture(0),
 	mpMaterial(0),
 	mpMesh(0)
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mDeferredRendering = true;
-#endif
+	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
 
 void DeferredShadingApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, 0.0f, 5.0f));
+	mpMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, 0.0f, 10.0f));
 
 	std::vector<Light*> lights;
 
@@ -42,15 +44,15 @@ void DeferredShadingApplication::OnStart()
 
 	float angleIncrement = MathF::TWO_PI / (float)NUMBER_OF_LIGHTS;
 	float angle = 0;
-	float intensity = 0.4f / NUMBER_OF_LIGHTS;
+	float intensity = 1.0f / NUMBER_OF_LIGHTS;
 	for (unsigned int i = 0; i < NUMBER_OF_LIGHTS; i++, angle += angleIncrement)
 	{
-		glm::vec3 position = glm::vec3(MathF::Cos(angle), 0.0f, MathF::Sin(angle)) * LIGHT_DISTANCE;
+		glm::vec3 position = glm::vec3(MathF::Sin(angle), 0.0f, MathF::Cos(angle)) * LIGHT_DISTANCE;
 
 		pGameObject = GameObject::Instantiate();
 		pGameObject->GetTransform()->Translate(position);
 
-		Light* pLight = Light::Instantiate(pGameObject);
+		PointLight* pLight = PointLight::Instantiate(pGameObject);
 		pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -67,6 +69,8 @@ void DeferredShadingApplication::OnStart()
 	mpMaterial->SetTexture("colorMap", mpTexture);
 #else
 	mpMaterial = new Material();
+	mpMaterial->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpMaterial->SetShininess(5.0);
 	mpMaterial->SetTexture(mpTexture);
 #endif
 

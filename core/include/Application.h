@@ -5,6 +5,8 @@
 #include <Component.h>
 #include <Camera.h>
 #include <Light.h>
+#include <DirectionalLight.h>
+#include <PointLight.h>
 #include <Renderer.h>
 #include <LineRenderer.h>
 #include <PointsRenderer.h>
@@ -21,7 +23,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
 
 void GLUTIdleCallback();
 void GLUTDisplayCallback();
@@ -39,7 +40,12 @@ class Input;
 class Application
 {
 public:
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight, bool deferredRendering = false);
+#else
 	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight);
+#endif
+	
 	virtual ~Application();
 
 	inline static Application* GetInstance()
@@ -164,6 +170,8 @@ private:
 	std::vector<GameObject*> mGameObjects;
 	std::vector<Camera*> mCameras;
 	std::vector<Light*> mLights;
+	std::vector<DirectionalLight*> mDirectionalLights;
+	std::vector<PointLight*> mPointLights;
 	std::vector<MeshFilter*> mMeshFilters;
 	std::vector<Behaviour*> mBehaviours;
 	std::vector<LineRenderer*> mLineRenderers;
@@ -199,7 +207,7 @@ private:
 	void MouseWheel(int button, int direction, int x, int y);
 	void MouseMove(int x, int y);
 	void Keyboard(int key, int x, int y, bool state);
-
+	
 };
 
 #endif

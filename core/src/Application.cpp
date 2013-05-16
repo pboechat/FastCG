@@ -23,8 +23,32 @@
 
 Application* Application::s_mpInstance = NULL;
 
-Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
+#ifdef USE_PROGRAMMABLE_PIPELINE
+Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight, bool deferredRendering) :
 	mWindowTitle(rWindowTitle),
+	mScreenWidth(screenWidth),
+	mScreenHeight(screenHeight),
+	mHalfScreenWidth(screenWidth / 2.0f),
+	mHalfScreenHeight(screenHeight / 2.0f),
+	mAspectRatio(mScreenWidth / (float) mScreenHeight),
+	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
+	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
+	mGLUTWindowHandle(0),
+	mShowFPS(false),
+	mShowRenderingStatistics(false),
+	mElapsedFrames(0),
+	mElapsedTime(0),
+	mpInput(0),
+	mpRenderingStrategy(0),
+	mpRenderBatchingStrategy(0),
+	mDeferredRendering(deferredRendering),
+	mpStandardFont(0)
+{
+	s_mpInstance = this;
+}
+#else
+Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
+mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
 	mHalfScreenWidth(screenWidth / 2.0f),
@@ -41,12 +65,9 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mpRenderingStrategy(0),
 	mpRenderBatchingStrategy(0)
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mDeferredRendering = false;
-	mpStandardFont = 0;
-#endif
 	s_mpInstance = this;
 }
+#endif
 
 Application::~Application()
 {
@@ -97,6 +118,18 @@ Application::~Application()
 	{
 		// FIXME: checking invariants
 		THROW_EXCEPTION(Exception, "mLights.size() > 0");
+	}
+
+	if (mDirectionalLights.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mDirectionalLights.size() > 0");
+	}
+
+	if (mPointLights.size() > 0)
+	{
+		// FIXME: checking invariants
+		THROW_EXCEPTION(Exception, "mPointLights.size() > 0");
 	}
 
 	if (mMeshFilters.size() > 0)
@@ -188,10 +221,12 @@ void Application::RegisterComponent(Component* pComponent)
 	}
 
 	REGISTER_COMPONENT(Light, pComponent);
+	REGISTER_COMPONENT(DirectionalLight, pComponent);
+	REGISTER_COMPONENT(PointLight, pComponent);
 	REGISTER_COMPONENT(MeshFilter, pComponent);
 	REGISTER_COMPONENT(LineRenderer, pComponent);
 	REGISTER_COMPONENT(PointsRenderer, pComponent);
-	REGISTER_COMPONENT(Behaviour, pComponent)
+	REGISTER_COMPONENT(Behaviour, pComponent);
 
 	if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 	{
@@ -231,13 +266,15 @@ void Application::UnregisterComponent(Component* pComponent)
 		THROW_EXCEPTION(Exception, "pComponent == 0");
 	}
 
-	UNREGISTER_COMPONENT(Camera, pComponent)
-	UNREGISTER_COMPONENT(Light, pComponent)
-	UNREGISTER_COMPONENT(LineRenderer, pComponent)
-	UNREGISTER_COMPONENT(PointsRenderer, pComponent)
-	UNREGISTER_COMPONENT(MeshFilter, pComponent)
-	UNREGISTER_COMPONENT(Behaviour, pComponent)
-	UNREGISTER_COMPONENT(Component, pComponent)
+	UNREGISTER_COMPONENT(Camera, pComponent);
+	UNREGISTER_COMPONENT(Light, pComponent);
+	UNREGISTER_COMPONENT(DirectionalLight, pComponent);
+	UNREGISTER_COMPONENT(PointLight, pComponent);
+	UNREGISTER_COMPONENT(LineRenderer, pComponent);
+	UNREGISTER_COMPONENT(PointsRenderer, pComponent);
+	UNREGISTER_COMPONENT(MeshFilter, pComponent);
+	UNREGISTER_COMPONENT(Behaviour, pComponent);
+	UNREGISTER_COMPONENT(Component, pComponent);
 
 	if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 	{
@@ -296,14 +333,14 @@ void Application::Run(int argc, char** argv)
 		mpStandardFont = FontRegistry::Find("verdana");
 		if (mDeferredRendering)
 		{
-			mpRenderingStrategy = new DeferredRenderingStrategy(mScreenWidth, mScreenHeight, mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+			mpRenderingStrategy = new DeferredRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics, mScreenWidth, mScreenHeight);
 		}
 		else
 		{
-			mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+			mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 		}
 #else
-		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 #endif
 		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 		mStartTimer.Start();

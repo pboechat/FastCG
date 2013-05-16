@@ -4,12 +4,14 @@
 #include <ShaderRegistry.h>
 
 ForwardRenderingStrategy::ForwardRenderingStrategy(std::vector<Light*>& rLights,
+												   std::vector<DirectionalLight*>& rDirectionalLights,
+												   std::vector<PointLight*>& rPointLights,
 												   glm::vec4& rGlobalAmbientLight,
 												   std::vector<RenderBatch*>& rRenderingGroups,
 												   std::vector<LineRenderer*>& rLineRenderers,
 												   std::vector<PointsRenderer*>& rPointsRenderer,
 												   RenderingStatistics& rRenderingStatistics) :
-	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics)
+	RenderingStrategy(rLights, rDirectionalLights, rPointLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics)
 {
 	mpLineStripShader = ShaderRegistry::Find("LineStrip");
 	mpPointsShader = ShaderRegistry::Find("Points");
@@ -65,41 +67,54 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			}
 			else
 			{
-				for (unsigned int k = 0; k < mrLights.size(); k++)
+				for (unsigned int i = 0; i < mrLights.size(); i++)
 				{
-					if (k == 1)
+					if (i == 1)
 					{
 						glDepthFunc(GL_EQUAL);
 						glEnable(GL_BLEND);
 						glBlendEquation(GL_FUNC_ADD);
 						glBlendFunc(GL_ONE, GL_ONE);
 					}
-					Light* pLight = mrLights[k];
-					pShader->SetFloat("_Light0Type", (float)pLight->GetLightType());
+
+					Light* pLight = mrLights[i];
 					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
 					pShader->SetVec4("_Light0AmbientColor", pLight->GetAmbientColor());
 					pShader->SetVec4("_Light0DiffuseColor", pLight->GetDiffuseColor());
 					pShader->SetVec4("_Light0SpecularColor", pLight->GetSpecularColor());
 					pShader->SetFloat("_Light0Intensity", pLight->GetIntensity());
-					switch (pLight->GetLightType())
+
+					if (pLight->GetType().IsExactly(DirectionalLight::TYPE))
 					{
-					case Light::LT_POINT:
-						pShader->SetFloat("_Light0ConstantAttenuation", pLight->GetConstantAttenuation());
-						pShader->SetFloat("_Light0LinearAttenuation", pLight->GetLinearAttenuation());
-						pShader->SetFloat("_Light0QuadraticAttenuation", pLight->GetQuadraticAttenuation());
-						break;
-					case Light::LT_SPOT:
+						pShader->SetFloat("_Light0Type", 0.0);
+					}
+					else if (pLight->GetType().IsExactly(PointLight::TYPE))
+					{
+						PointLight* pPointLight = dynamic_cast<PointLight*>(pLight);
+						pShader->SetFloat("_Light0ConstantAttenuation", pPointLight->GetConstantAttenuation());
+						pShader->SetFloat("_Light0LinearAttenuation", pPointLight->GetLinearAttenuation());
+						pShader->SetFloat("_Light0QuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
+						pShader->SetFloat("_Light0Type", 1.0);
+					}
+					/*else if (pLight->GetType().IsExactly(SpotLight::TYPE))
+					{
 						pShader->SetVec3("_Light0SpotDirection", pLight->GetSpotDirection());
 						pShader->SetFloat("_Light0SpotCutoff", pLight->GetSpotCutoff());
 						pShader->SetFloat("_Light0SpotExponent", pLight->GetSpotExponent());
-						break;
+					}*/
+					else 
+					{
+						// FIXME: checking invariants
+						THROW_EXCEPTION(Exception, "Unknown light type: %s", pLight->GetType().GetName().c_str());
 					}
+
 					pRenderer->Render();
 					mrRenderingStatistics.drawCalls++;
 				}
-				mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 				glDisable(GL_BLEND);
 				glDepthFunc(GL_LESS);
+
+				mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			}
 		}
 

@@ -6,6 +6,18 @@
 #include <GL/gl.h>
 #include <GL/freeglut.h>
 
+FixedFunctionRenderingStrategy::FixedFunctionRenderingStrategy(std::vector<Light*>& rLights,
+															   std::vector<DirectionalLight*>& rDirectionalLights,
+															   std::vector<PointLight*>& rPointLights,
+															   glm::vec4& rGlobalAmbientLight,
+															   std::vector<RenderBatch*>& rRenderBatches,
+															   std::vector<LineRenderer*>& rLineRenderers,
+															   std::vector<PointsRenderer*>& rPointsRenderer,
+															   RenderingStatistics& rRenderingStatistics) :
+					RenderingStrategy(rLights, rDirectionalLights, rPointLights, rGlobalAmbientLight, rRenderBatches, rLineRenderers, rPointsRenderer, rRenderingStatistics)
+{
+}
+
 void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -32,18 +44,23 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 		glLightfv(GL_LIGHT0 + i, GL_AMBIENT, &lightAmbientColor[0]);
 		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, &lightDiffuseColor[0]);
 		glLightfv(GL_LIGHT0 + i, GL_SPECULAR, &lightSpecularColor[0]);
-		switch (pLight->GetLightType())
+		if (pLight->GetType().IsExactly(PointLight::TYPE))
 		{
-		case Light::LT_POINT:
-			glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, pLight->GetConstantAttenuation());
-			glLightf(GL_LIGHT0 + i, GL_LINEAR_ATTENUATION, pLight->GetLinearAttenuation());
-			glLightf(GL_LIGHT0 + i, GL_QUADRATIC_ATTENUATION, pLight->GetQuadraticAttenuation());
-			break;
-		case Light::LT_SPOT:
+			PointLight* pPointLight = dynamic_cast<PointLight*>(pLight);
+			glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, pPointLight->GetConstantAttenuation());
+			glLightf(GL_LIGHT0 + i, GL_LINEAR_ATTENUATION, pPointLight->GetLinearAttenuation());
+			glLightf(GL_LIGHT0 + i, GL_QUADRATIC_ATTENUATION, pPointLight->GetQuadraticAttenuation());
+		}
+		/*else if (pLight->GetType().IsExactly(SpotLight::TYPE))
+		{
 			glLightfv(GL_LIGHT0 + i, GL_SPOT_DIRECTION, &pLight->GetSpotDirection()[0]);
 			glLightf(GL_LIGHT0 + i, GL_SPOT_CUTOFF, pLight->GetSpotCutoff());
 			glLightf(GL_LIGHT0 + i, GL_SPOT_EXPONENT, pLight->GetSpotExponent());
-			break;
+		}*/
+		else if (!pLight->GetType().IsExactly(DirectionalLight::TYPE))
+		{
+			// FIXME: checking invariants
+			THROW_EXCEPTION(Exception, "Unknown light type: %s", pLight->GetType().GetName().c_str());
 		}
 	}
 

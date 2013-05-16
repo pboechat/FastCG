@@ -7,9 +7,17 @@ uniform vec4 lightAmbientColor;
 uniform vec4 lightDiffuseColor;
 uniform vec4 lightSpecularColor;
 uniform float lightIntensity;
+uniform float lightConstantAttenuation;
+uniform float lightLinearAttenuation;
+uniform float lightQuadraticAttenuation;
 uniform sampler2D positionMap;
 uniform sampler2D colorMap;
 uniform sampler2D normalMap;
+
+float DistanceAttenuation(float _distance)
+{
+	return 1.0 / min(1.0, (lightConstantAttenuation + lightLinearAttenuation * _distance + lightQuadraticAttenuation * pow(_distance, 2.0)));
+}
 
 vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 						float materialShininess,
@@ -40,8 +48,10 @@ void main()
 	vec4 diffuseColor = texture2D(colorMap, uv);
 	vec3 normal = normalize(texture2D(normalMap, uv).xyz);
 
-	vec3 lightDirection = normalize(lightPosition - position);
+	vec3 lightDirection = position - lightPosition;
+	float _distance = length(lightDirection);
+	lightDirection = normalize(lightDirection);
 	vec3 viewerDirection = normalize(viewerPosition - position);
 
-	gl_FragColor = BlinnPhongLighting(diffuseColor, 5.0, lightDirection, viewerDirection, normal);
+	gl_FragColor = vec4(0.1, 0.1, 0.1, 0.3) + DistanceAttenuation(_distance) * BlinnPhongLighting(diffuseColor, 5.0, lightDirection, viewerDirection, normal);
 }

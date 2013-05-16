@@ -116,12 +116,14 @@
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\Component.h" />
     <ClInclude Include="include\DeferredRenderingStrategy.h" />
+    <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\Directory.h" />
     <ClInclude Include="include\FixedFunctionRenderingStrategy.h" />
     <ClInclude Include="include\ForwardRenderingStrategy.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GBuffer.h" />
     <ClInclude Include="include\MaterialGroupsBatchingStrategy.h" />
+    <ClInclude Include="include\PointLight.h" />
     <ClInclude Include="include\RenderBatchingStrategy.h" />
     <ClInclude Include="include\LineRenderer.h" />
     <ClInclude Include="include\MeshFilter.h" />
@@ -166,6 +168,7 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\DeferredRenderingStrategy.cpp" />
+    <ClCompile Include="src\DirectionalLight.cpp" />
     <ClCompile Include="src\Directory.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />
@@ -180,6 +183,7 @@
     <ClCompile Include="src\LineRenderer.cpp" />
     <ClCompile Include="src\MaterialGroupsBatchingStrategy.cpp" />
     <ClCompile Include="src\MeshFilter.cpp" />
+    <ClCompile Include="src\PointLight.cpp" />
     <ClCompile Include="src\Points.cpp" />
     <ClCompile Include="src\PointsRenderer.cpp" />
     <ClCompile Include="src\Renderer.cpp" />

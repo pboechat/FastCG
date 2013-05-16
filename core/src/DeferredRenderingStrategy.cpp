@@ -3,16 +3,19 @@
 #include <DeferredRenderingStrategy.h>
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
+#include <MathT.h>
 
-DeferredRenderingStrategy::DeferredRenderingStrategy(unsigned int& rScreenWidth,
-													 unsigned int& rScreenHeight,
-													 std::vector<Light*>& rLights,
+DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLights,
+													 std::vector<DirectionalLight*>& rDirectionalLights,
+													 std::vector<PointLight*>& rPointLights,
 													 glm::vec4& rGlobalAmbientLight,
 													 std::vector<RenderBatch*>& rRenderingGroups,
 													 std::vector<LineRenderer*>& rLineRenderers,
 													 std::vector<PointsRenderer*>& rPointsRenderer,
-													 RenderingStatistics& rRenderingStatistics) :
-	RenderingStrategy(rLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics),
+													 RenderingStatistics& rRenderingStatistics,
+													 unsigned int& rScreenWidth,
+													 unsigned int& rScreenHeight) :
+	RenderingStrategy(rLights, rDirectionalLights, rPointLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics),
 	mrScreenWidth(rScreenWidth),
 	mrScreenHeight(rScreenHeight),
 	mDebugEnabled(false),
@@ -20,10 +23,13 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(unsigned int& rScreenWidth,
 	mpQuadMesh(0)
 {
 	mpGBuffer = new GBuffer(rScreenWidth, rScreenHeight);
+	mpStencilPassShader = ShaderRegistry::Find("StencilPass");
 	mpDirectionalLightPassShader = ShaderRegistry::Find("DirectionalLightPass");
+	mpPointLightPassShader = ShaderRegistry::Find("PointLightPass");
 	mpLineStripShader = ShaderRegistry::Find("LineStrip");
 	mpPointsShader = ShaderRegistry::Find("Points");
 	mpQuadMesh = StandardGeometries::CreateXYPlane(2, 2, 1, 1, glm::vec3(0.0f, 0.0f, 0.0f));
+	mpSphereMesh = StandardGeometries::CreateSphere(1.0f, 30);
 }
 
 DeferredRenderingStrategy::~DeferredRenderingStrategy()
@@ -41,9 +47,15 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 
 void DeferredRenderingStrategy::Render(const Camera* pCamera)
 {
-	// geometry pass
-	mpGBuffer->BindForWriting();
+	mpGBuffer->StartFrame();
 
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// geometry pass
+	mpGBuffer->BindForGeometryPass();
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4& rView = pCamera->GetView();
@@ -75,11 +87,10 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				continue;
 			}
 
-			const glm::mat4& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
-			glm::mat4 modelView = rView * rModel;
+			glm::mat4& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
 			pShader->SetMat4("_Model", rModel);
-			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
-			pShader->SetMat4("_ModelViewProjection", rProjection * modelView);
+			glm::mat4 modelViewProjection = rProjection * (rView * rModel);
+			pShader->SetMat4("_ModelViewProjection", modelViewProjection);
 			pRenderer->Render();
 			mrRenderingStatistics.drawCalls++;
 			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
@@ -90,17 +101,14 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	// lighting pass
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDepthMask(GL_FALSE);
 
 	if (mDebugEnabled)
 	{
 		unsigned int halfScreenWidth = mrScreenWidth / 2;
 		unsigned int halfScreenHeight = mrScreenHeight / 2;
 
-		mpGBuffer->BindForReading();
+		mpGBuffer->BindForLightPass();
 
 		mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION); 
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, halfScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
@@ -110,57 +118,102 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 		mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL); 
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, halfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-		mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD); 
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, 0, mrScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 	else
 	{
-		glDepthMask(GL_FALSE);
+		// stencil pass
+		glEnable(GL_STENCIL_TEST);
+
+		for (unsigned int i = 0; i < mrPointLights.size(); i++)
+		{
+			PointLight* pPointLight = mrPointLights[i];
+			glm::mat4& rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
+			float lightBoundingSphereScale = CalculateLightBoundingBoxScale(pPointLight);
+			rModel = glm::scale(rModel, glm::vec3(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale));
+			glm::mat4 modelViewProjection = rProjection * (rView * rModel);
+
+			glClear(GL_STENCIL_BUFFER_BIT);
+
+			glEnable(GL_DEPTH_TEST);
+			glStencilFunc(GL_ALWAYS, 0, 0);
+			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
+			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
+			glDisable(GL_CULL_FACE);
+
+			mpGBuffer->BindForStencilPass();
+			mpStencilPassShader->Bind();
+			mpStencilPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
+			mpSphereMesh->DrawCall();
+			mrRenderingStatistics.drawCalls++;
+			mpStencilPassShader->Unbind();
+
+			glDisable(GL_DEPTH_TEST); 
+			glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+
+			glEnable(GL_BLEND); 
+			glBlendEquation(GL_FUNC_ADD);
+			glBlendFunc(GL_ONE, GL_ONE);
+
+			mpGBuffer->BindForLightPass();
+			mpPointLightPassShader->Bind();
+			mpPointLightPassShader->SetTexture("positionMap", GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
+			mpPointLightPassShader->SetTexture("colorMap", GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
+			mpPointLightPassShader->SetTexture("normalMap", GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+			mpPointLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+			mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
+			mpPointLightPassShader->SetMat4("_View", rView);
+			mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
+			mpPointLightPassShader->SetVec3("lightPosition", pPointLight->GetGameObject()->GetTransform()->GetPosition());
+			mpPointLightPassShader->SetVec4("lightAmbientColor", pPointLight->GetAmbientColor());
+			mpPointLightPassShader->SetVec4("lightDiffuseColor", pPointLight->GetDiffuseColor());
+			mpPointLightPassShader->SetVec4("lightSpecularColor", pPointLight->GetSpecularColor());
+			mpPointLightPassShader->SetFloat("lightIntensity", pPointLight->GetIntensity());
+			mpPointLightPassShader->SetFloat("lightConstantAttenuation", pPointLight->GetConstantAttenuation());
+			mpPointLightPassShader->SetFloat("lightLinearAttenuation", pPointLight->GetLinearAttenuation());
+			mpPointLightPassShader->SetFloat("lightQuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
+			mpSphereMesh->DrawCall();
+			mrRenderingStatistics.drawCalls++;
+			mpPointLightPassShader->Unbind();
+
+			glCullFace(GL_BACK);
+			glDisable(GL_BLEND);
+		}
+
+		glDisable(GL_STENCIL_TEST);
+
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE);
 
-		mpGBuffer->BindForReading();
-		glClear(GL_COLOR_BUFFER_BIT);
-
+		mpGBuffer->BindForLightPass();
 		mpDirectionalLightPassShader->Bind();
-
 		mpDirectionalLightPassShader->SetTexture("positionMap", GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
 		mpDirectionalLightPassShader->SetTexture("colorMap", GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 		mpDirectionalLightPassShader->SetTexture("normalMap", GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
-
 		mpDirectionalLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 		mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
-
-		for (unsigned int i = 0; i < mrLights.size(); i++)
+		mpDirectionalLightPassShader->SetMat4("_View", rView);
+		for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 		{
-			Light* pLight = mrLights[i];
-			mpDirectionalLightPassShader->SetFloat("lightType", (float)pLight->GetLightType());
-			mpDirectionalLightPassShader->SetVec3("lightPosition", pLight->GetGameObject()->GetTransform()->GetPosition());
-			mpDirectionalLightPassShader->SetVec4("lightAmbientColor", pLight->GetAmbientColor());
-			mpDirectionalLightPassShader->SetVec4("lightDiffuseColor", pLight->GetDiffuseColor());
-			mpDirectionalLightPassShader->SetVec4("lightSpecularColor", pLight->GetSpecularColor());
-			mpDirectionalLightPassShader->SetFloat("lightIntensity", pLight->GetIntensity());
-			switch (pLight->GetLightType())
-			{
-			case Light::LT_DIRECTIONAL:
-				mpQuadMesh->DrawCall();
-				break;
-			case Light::LT_POINT:
-				break;
-			}
-			
+			DirectionalLight* pDirectionalLight = mrDirectionalLights[i];
+			mpDirectionalLightPassShader->SetVec3("lightPosition", pDirectionalLight->GetDirection());
+			mpDirectionalLightPassShader->SetVec4("lightAmbientColor", pDirectionalLight->GetAmbientColor());
+			mpDirectionalLightPassShader->SetVec4("lightDiffuseColor", pDirectionalLight->GetDiffuseColor());
+			mpDirectionalLightPassShader->SetVec4("lightSpecularColor", pDirectionalLight->GetSpecularColor());
+			mpDirectionalLightPassShader->SetFloat("lightIntensity", pDirectionalLight->GetIntensity());
+			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
 		}
-
 		mpDirectionalLightPassShader->Unbind();
 
 		glDisable(GL_BLEND);
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
 	}
+
+	mpGBuffer->BindForFinalPass();
+	glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 	// FIXME: find out why glut crashes when READ framebuffer is not set back to 0
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -234,6 +287,13 @@ void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, con
 
 		mpPointsShader->Unbind();
 	}
+}
+
+float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(Light* pLight)
+{
+	glm::vec4 diffuseColor = pLight->GetDiffuseColor() * pLight->GetIntensity();
+	float greatestChannel = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+	return 8.0f * MathF::Sqrt(greatestChannel) + 1.0f;
 }
 
 #endif
