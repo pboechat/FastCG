@@ -1,5 +1,6 @@
 #include <Application.h>
 #include <Behaviour.h>
+#include <ModelImporter.h>
 #include <ShaderRegistry.h>
 #include <FontRegistry.h>
 #include <Input.h>
@@ -39,6 +40,7 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mElapsedFrames(0),
 	mElapsedTime(0),
 	mpInput(0),
+	mpModelImporter(0),
 	mpRenderingStrategy(0),
 	mpRenderBatchingStrategy(0),
 	mDeferredRendering(deferredRendering),
@@ -89,6 +91,7 @@ Application::~Application()
 	}
 	mDrawTextRequests.clear();
 
+	ModelImporter::Dispose();
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	ShaderRegistry::Unload();
 	FontRegistry::Unload();
@@ -327,6 +330,8 @@ void Application::Run(int argc, char** argv)
 
 	try
 	{
+		ModelImporter::Initialize();
+
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		ShaderRegistry::LoadShadersFromDisk("shaders");
 		FontRegistry::LoadFontsFromDisk("fonts");

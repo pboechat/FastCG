@@ -1,5 +1,6 @@
 #version 330
 
+uniform vec4 _GlobalLightAmbientColor;
 uniform vec2 screenSize;
 uniform vec3 viewerPosition;
 uniform vec3 lightPosition;
@@ -17,7 +18,7 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 					    vec3 viewerDirection,
 					    vec3 normal)
 {
-    vec4 ambientContribution = lightAmbientColor * lightIntensity;
+    vec4 ambientContribution = _GlobalLightAmbientColor * lightAmbientColor * lightIntensity;
 
     float diffuseAttenuation = max(dot(normal, -lightDirection), 0.0);
     vec4 diffuseContribution = lightDiffuseColor * lightIntensity * materialDiffuseColor * diffuseAttenuation;

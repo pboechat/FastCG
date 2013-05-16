@@ -13,6 +13,11 @@ public:
 		}
 	}
 
+	inline virtual unsigned int GetNumberOfDrawCalls() const
+	{
+		return 1;
+	}
+
 	inline virtual unsigned int GetNumberOfTriangles() const
 	{
 		return 0;

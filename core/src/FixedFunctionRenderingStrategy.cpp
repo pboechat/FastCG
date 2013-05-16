@@ -92,7 +92,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glPushMatrix();
 			glMultMatrixf(&rModel[0][0]);
 			pRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			glPopMatrix();
 		}
@@ -115,7 +115,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glPushMatrix();
 			glMultMatrixf(&rModel[0][0]);
 			pLineRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 			glPopMatrix();
 		}
 	}
@@ -135,7 +135,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 			glPushMatrix();
 			glMultMatrixf(&rModel[0][0]);
 			pPointsRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
 			glPopMatrix();
 		}
 	}

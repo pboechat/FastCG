@@ -4,33 +4,35 @@
 #include <Renderer.h>
 #include <Mesh.h>
 
+#include <vector>
+#include <algorithm>
+
 COMPONENT(MeshRenderer, Renderer)
 public:
-	inline void SetMesh(Mesh* pMesh)
+	inline void AddMesh(Mesh* pMesh)
 	{
-		mpMesh = pMesh;
+		mMeshes.push_back(pMesh);
 	}
 
-	inline Mesh* GetMesh() const
+	void RemoveMesh(Mesh* pMesh);
+
+	inline std::vector<Mesh*> GetMeshes() const
 	{
-		return mpMesh;
+		return mMeshes;
 	}
 
-	virtual void OnInstantiate()
+	inline virtual unsigned int GetNumberOfDrawCalls() const
 	{
-		mpMesh = 0;
+		return mMeshes.size();
 	}
 
-	inline virtual unsigned int GetNumberOfTriangles() const
-	{
-		return (mpMesh == 0) ? 0 : mpMesh->GetNumberOfTriangles();
-	}
+	virtual unsigned int GetNumberOfTriangles() const;
 
 protected:
 	virtual void OnRender();
 
 private:
-	Mesh* mpMesh;
+	std::vector<Mesh*> mMeshes;
 
 };
 

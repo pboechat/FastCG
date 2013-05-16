@@ -49,7 +49,7 @@ public:
 	inline glm::mat4 GetView() const
 	{
 		const Transform* pTransform = GetGameObject()->GetTransform();
-		return glm::lookAt(pTransform->GetPosition(), pTransform->GetPosition() + pTransform->GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::lookAt(pTransform->GetWorldPosition(), pTransform->GetWorldPosition() + pTransform->GetForward(), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	inline void operator =(const Camera& rOther)

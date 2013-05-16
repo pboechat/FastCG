@@ -43,6 +43,11 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 	{
 		delete mpQuadMesh;
 	}
+
+	if (mpSphereMesh != 0)
+	{
+		delete mpSphereMesh;
+	}
 }
 
 void DeferredRenderingStrategy::Render(const Camera* pCamera)
@@ -92,7 +97,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glm::mat4 modelViewProjection = rProjection * (rView * rModel);
 			pShader->SetMat4("_ModelViewProjection", modelViewProjection);
 			pRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 		}
 
@@ -161,11 +166,12 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpPointLightPassShader->SetTexture("positionMap", GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
 			mpPointLightPassShader->SetTexture("colorMap", GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 			mpPointLightPassShader->SetTexture("normalMap", GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+			mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			mpPointLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-			mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
+			mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetWorldPosition());
 			mpPointLightPassShader->SetMat4("_View", rView);
 			mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
-			mpPointLightPassShader->SetVec3("lightPosition", pPointLight->GetGameObject()->GetTransform()->GetPosition());
+			mpPointLightPassShader->SetVec3("lightPosition", pPointLight->GetGameObject()->GetTransform()->GetWorldPosition());
 			mpPointLightPassShader->SetVec4("lightAmbientColor", pPointLight->GetAmbientColor());
 			mpPointLightPassShader->SetVec4("lightDiffuseColor", pPointLight->GetDiffuseColor());
 			mpPointLightPassShader->SetVec4("lightSpecularColor", pPointLight->GetSpecularColor());
@@ -193,8 +199,9 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		mpDirectionalLightPassShader->SetTexture("positionMap", GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
 		mpDirectionalLightPassShader->SetTexture("colorMap", GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 		mpDirectionalLightPassShader->SetTexture("normalMap", GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+		mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 		mpDirectionalLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-		mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
+		mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetWorldPosition());
 		mpDirectionalLightPassShader->SetMat4("_View", rView);
 		for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 		{
@@ -246,7 +253,7 @@ void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, con
 			mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
 			mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			pLineRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 		}
 
 		mpLineStripShader->Unbind();
@@ -282,7 +289,7 @@ void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, con
 			}
 
 			pPointsRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
 		}
 
 		mpPointsShader->Unbind();

@@ -9,6 +9,27 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Source Files\contrib">
+      <UniqueIdentifier>{e6f031a1-0d2c-4425-bbb2-b37231d3726e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\clipper">
+      <UniqueIdentifier>{ff3efdad-680b-4b84-8378-f339eac5d918}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\ConvertUTF">
+      <UniqueIdentifier>{7f146ce7-0d4f-4568-97f5-50f82942cdef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\irrXML">
+      <UniqueIdentifier>{97074408-943d-4604-86d7-0cfcf2cfc03f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\poly2tri">
+      <UniqueIdentifier>{5a328770-744f-4c06-86f3-fde11dc148a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\unzip">
+      <UniqueIdentifier>{38e0238a-6527-46be-a272-5aead2360ca3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\zlib">
+      <UniqueIdentifier>{abd026c7-16a5-46cf-8a12-e8231cb9b2f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\assimp\ai_assert.h">
@@ -933,6 +954,63 @@
     </ClCompile>
     <ClCompile Include="src\XGLLoader.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\clipper\clipper.cpp">
+      <Filter>Source Files\contrib\clipper</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\ConvertUTF\ConvertUTF.c">
+      <Filter>Source Files\contrib\ConvertUTF</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\irrXML\irrXML.cpp">
+      <Filter>Source Files\contrib\irrXML</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\advancing_front.cc">
+      <Filter>Source Files\contrib\poly2tri</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\cdt.cc">
+      <Filter>Source Files\contrib\poly2tri</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\sweep.cc">
+      <Filter>Source Files\contrib\poly2tri</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\sweep_context.cc">
+      <Filter>Source Files\contrib\poly2tri</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\poly2tri\poly2tri\common\shapes.cc">
+      <Filter>Source Files\contrib\poly2tri</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\unzip\ioapi.c">
+      <Filter>Source Files\contrib\unzip</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\unzip\unzip.c">
+      <Filter>Source Files\contrib\unzip</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\adler32.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\compress.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\crc32.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\deflate.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\inffast.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\inflate.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\inftrees.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\trees.c">
+      <Filter>Source Files\contrib\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\zlib\zutil.c">
+      <Filter>Source Files\contrib\zlib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

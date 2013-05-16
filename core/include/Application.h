@@ -36,6 +36,7 @@ void GLUTSpecialKeysCallback(int key, int x, int y);
 void GLUTSpecialKeysUpCallback(int key, int x, int y);
 
 class Input;
+class ModelImporter;
 
 class Application
 {
@@ -185,6 +186,7 @@ private:
 	double mElapsedTime;
 	std::vector<DrawTextRequest*> mDrawTextRequests;
 	Input* mpInput;
+	ModelImporter* mpModelImporter;
 	RenderingStrategy* mpRenderingStrategy;
 	RenderBatchingStrategy* mpRenderBatchingStrategy;
 	RenderingStatistics mRenderingStatistics;

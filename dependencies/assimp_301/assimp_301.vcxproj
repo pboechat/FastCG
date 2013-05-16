@@ -311,6 +311,25 @@
     <ClInclude Include="src\XGLLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="contrib\clipper\clipper.cpp" />
+    <ClCompile Include="contrib\ConvertUTF\ConvertUTF.c" />
+    <ClCompile Include="contrib\irrXML\irrXML.cpp" />
+    <ClCompile Include="contrib\poly2tri\poly2tri\common\shapes.cc" />
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\advancing_front.cc" />
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\cdt.cc" />
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\sweep.cc" />
+    <ClCompile Include="contrib\poly2tri\poly2tri\sweep\sweep_context.cc" />
+    <ClCompile Include="contrib\unzip\ioapi.c" />
+    <ClCompile Include="contrib\unzip\unzip.c" />
+    <ClCompile Include="contrib\zlib\adler32.c" />
+    <ClCompile Include="contrib\zlib\compress.c" />
+    <ClCompile Include="contrib\zlib\crc32.c" />
+    <ClCompile Include="contrib\zlib\deflate.c" />
+    <ClCompile Include="contrib\zlib\inffast.c" />
+    <ClCompile Include="contrib\zlib\inflate.c" />
+    <ClCompile Include="contrib\zlib\inftrees.c" />
+    <ClCompile Include="contrib\zlib\trees.c" />
+    <ClCompile Include="contrib\zlib\zutil.c" />
     <ClCompile Include="src\3DSConverter.cpp" />
     <ClCompile Include="src\3DSLoader.cpp" />
     <ClCompile Include="src\ACLoader.cpp" />

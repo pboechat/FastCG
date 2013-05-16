@@ -62,7 +62,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			if (pMaterial->IsUnlit())
 			{
 				pRenderer->Render();
-				mrRenderingStatistics.drawCalls++;
+				mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 				mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			}
 			else
@@ -78,7 +78,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 					}
 
 					Light* pLight = mrLights[i];
-					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
+					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetWorldPosition());
 					pShader->SetVec4("_Light0AmbientColor", pLight->GetAmbientColor());
 					pShader->SetVec4("_Light0DiffuseColor", pLight->GetDiffuseColor());
 					pShader->SetVec4("_Light0SpecularColor", pLight->GetSpecularColor());
@@ -109,7 +109,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 					}
 
 					pRenderer->Render();
-					mrRenderingStatistics.drawCalls++;
+					mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 				}
 				glDisable(GL_BLEND);
 				glDepthFunc(GL_LESS);
@@ -146,7 +146,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			mpLineStripShader->SetMat4("_ModelViewProjection", rProjection * modelView);
 			mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			pLineRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 		}
 
 		mpLineStripShader->Unbind();
@@ -182,7 +182,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			}
 
 			pPointsRenderer->Render();
-			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
 		}
 
 		mpPointsShader->Unbind();

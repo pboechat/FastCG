@@ -1,0 +1,24 @@
+Info,  T4188: Load models/spider/spider.obj
+Info,  T4188: Found a matching importer for this file format
+Info,  T4188: Import root directory is 'models/spider\'
+Info,  T4188: Entering post processing pipeline
+Warn,  T4188: Found 14 degenerated primitives
+Skipping one or more lines with the same contents
+Info,  T4188: Points: 4, Lines: 4, Triangles: 19, Polygons: 0 (Meshes, X = removed)
+Error, T4188: FindInvalidDataProcess fails on mesh positions: All vectors are identical
+Error, T4188: Deleting mesh: Unable to continue without vertex positions
+Error, T4188: FindInvalidDataProcess fails on mesh positions: All vectors are identical
+Error, T4188: Deleting mesh: Unable to continue without vertex positions
+Error, T4188: FindInvalidDataProcess fails on mesh positions: All vectors are identical
+Error, T4188: Deleting mesh: Unable to continue without vertex positions
+Error, T4188: FindInvalidDataProcess fails on mesh positions: All vectors are identical
+Error, T4188: Deleting mesh: Unable to continue without vertex positions
+Info,  T4188: FindInvalidDataProcess finished. Found issues ...
+Info,  T4188: Tangents are undefined for line and point meshes
+Skipping one or more lines with the same contents
+Info,  T4188: CalcTangentsProcess finished. Tangents have been calculated
+Info,  T4188: JoinVerticesProcess finished | Verts in: 3992 out: 1261 | ~68.4%
+Error, T4188: This algorithm works on triangle meshes only
+Skipping one or more lines with the same contents
+Info,  T4188: Cache relevant are 19 meshes (1312 faces). Average output ACMR is 1.058689
+Info,  T4188: Leaving post processing pipeline

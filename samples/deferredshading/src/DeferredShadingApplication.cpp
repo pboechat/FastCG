@@ -4,9 +4,11 @@
 
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
+#include <DirectionalLight.h>
 #include <PointLight.h>
 #include <MeshRenderer.h>
 #include <MeshFilter.h>
+#include <ModelImporter.h>
 #include <FirstPersonCameraController.h>
 #include <TextureUtils.h>
 #include <MathT.h>
@@ -29,7 +31,7 @@ DeferredShadingApplication::DeferredShadingApplication() :
 	mpMesh(0)
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
@@ -42,7 +44,7 @@ void DeferredShadingApplication::OnStart()
 
 	GameObject* pGameObject;
 
-	float angleIncrement = MathF::TWO_PI / (float)NUMBER_OF_LIGHTS;
+	/*float angleIncrement = MathF::TWO_PI / (float)NUMBER_OF_LIGHTS;
 	float angle = 0;
 	float intensity = 1.0f / NUMBER_OF_LIGHTS;
 	for (unsigned int i = 0; i < NUMBER_OF_LIGHTS; i++, angle += angleIncrement)
@@ -58,7 +60,26 @@ void DeferredShadingApplication::OnStart()
 		pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		pLight->SetIntensity(intensity);
 		lights.push_back(pLight);
-	}
+	}*/
+
+	pGameObject = GameObject::Instantiate();
+	pGameObject->GetTransform()->Translate(glm::vec3(0.0f, 0.0f, 5.0f));
+
+	PointLight* pPointLight = PointLight::Instantiate(pGameObject);
+	pPointLight->SetAmbientColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	pPointLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pPointLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pPointLight->SetIntensity(1.0f);
+	lights.push_back(pPointLight);
+
+	pGameObject = GameObject::Instantiate();
+	pGameObject->GetTransform()->Translate(glm::vec3(0.0f, -1.0f, 0.0f));
+
+	DirectionalLight* pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
+	pDirectionalLight->SetAmbientColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	pDirectionalLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pDirectionalLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pDirectionalLight->SetIntensity(1.0f);
 
 	pGameObject = GameObject::Instantiate();
 
@@ -75,10 +96,13 @@ void DeferredShadingApplication::OnStart()
 #endif
 
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
-	pMeshRenderer->SetMesh(mpMesh);
+	pMeshRenderer->AddMesh(mpMesh);
 
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGameObject);
 	pMeshFilter->SetMaterial(mpMaterial);
+
+	Model* pModel = ModelImporter::Import("models/mark42/Mark 42.obj");
+	pGameObject = pModel->GetRootGameObject();
 
 	pGameObject = GameObject::Instantiate();
 	KeyBindings::Instantiate(pGameObject);

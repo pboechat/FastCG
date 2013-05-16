@@ -14,6 +14,7 @@
 #include <PNGLoader.h>
 #include <FirstPersonCameraController.h>
 #include <TextureUtils.h>
+#include <ModelImporter.h>
 #include <OpenGLExceptions.h>
 
 const unsigned int BumpMappingApplication::FLOOR_SIZE = 100;
@@ -23,7 +24,11 @@ const float BumpMappingApplication::WALK_SPEED = 20.0f;
 const float BumpMappingApplication::TURN_SPEED = 100.0f;
 
 BumpMappingApplication::BumpMappingApplication() :
-	Application("bumpmapping", 1024, 768)
+	Application("bumpmapping", 1024, 768),
+	mpFloorMaterial(0),
+	mpFloorMesh(0),
+	mpSphereMaterial(0),
+	mpSphereMesh(0)
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -43,13 +48,14 @@ void BumpMappingApplication::OnStart()
 	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pLight->SetIntensity(20.0f);
+	pLight->SetLinearAttenuation(0.1f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
 	pLightAnimator->SetSpeed(40.0f);
 	pLightAnimator->SetAmplitude((float)FLOOR_SIZE);
 	pLightAnimator->SetDirection(glm::vec3(0.0f, 0.0f, 1.0f));
 
-	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
+	pLightGameObject->GetTransform()->SetWorldPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
 
 	mFloorColorMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/FloorColorMap1.png"));
 	mFloorBumpMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/FloorBumpMap1.png"));
@@ -82,7 +88,7 @@ void BumpMappingApplication::OnStart()
 	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 100, 100, glm::vec3(0, 0, 0));
 
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
-	pMeshRenderer->SetMesh(mpFloorMesh);
+	pMeshRenderer->AddMesh(mpFloorMesh);
 
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pFloorGameObject);
 	pMeshFilter->SetMaterial(mpFloorMaterial);
@@ -114,7 +120,7 @@ void BumpMappingApplication::OnStart()
 			GameObject* pSphereGameObject = GameObject::Instantiate();
 
 			pMeshRenderer = MeshRenderer::Instantiate(pSphereGameObject);
-			pMeshRenderer->SetMesh(mpSphereMesh);
+			pMeshRenderer->AddMesh(mpSphereMesh);
 
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
 			pMeshFilter->SetMaterial(mpSphereMaterial);
@@ -167,8 +173,23 @@ void BumpMappingApplication::OnEnd()
 	}
 	mSphereBumpMapTextures.clear();
 
-	delete mpFloorMaterial;
-	delete mpFloorMesh;
-	delete mpSphereMaterial;
-	delete mpSphereMesh;
+	if (mpFloorMaterial != 0)
+	{
+		delete mpFloorMaterial;
+	}
+	
+	if (mpFloorMesh != 0)
+	{
+		delete mpFloorMesh;
+	}
+
+	if (mpSphereMaterial != 0)
+	{
+		delete mpSphereMaterial;
+	}
+
+	if (mpSphereMesh != 0)
+	{
+		delete mpSphereMesh;
+	}
 }
