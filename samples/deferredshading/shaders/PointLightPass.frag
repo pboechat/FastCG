@@ -53,5 +53,5 @@ void main()
 	lightDirection = normalize(lightDirection);
 	vec3 viewerDirection = normalize(viewerPosition - position);
 
-	gl_FragColor = vec4(0.1, 0.1, 0.1, 0.3) + DistanceAttenuation(_distance) * BlinnPhongLighting(diffuseColor, 5.0, lightDirection, viewerDirection, normal);
+	gl_FragColor = /*vec4(0.1, 0.1, 0.1, 0.3) + */DistanceAttenuation(_distance) * BlinnPhongLighting(diffuseColor, 5.0, lightDirection, viewerDirection, normal);
 }
