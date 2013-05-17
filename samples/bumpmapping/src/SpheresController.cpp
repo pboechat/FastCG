@@ -1,4 +1,4 @@
-#include "SpheresController.h"
+#include "SpheresAnimator.h"
 
 #include <Input.h>
 #include <KeyCode.h>
@@ -6,9 +6,9 @@
 #include <ShaderRegistry.h>
 #include <MeshFilter.h>
 
-COMPONENT_IMPLEMENTATION(SpheresController, Behaviour);
+COMPONENT_IMPLEMENTATION(SpheresAnimator, Behaviour);
 
-void SpheresController::OnUpdate(float time, float deltaTime)
+void SpheresAnimator::OnUpdate(float time, float deltaTime)
 {
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.5f)
 	{

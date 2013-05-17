@@ -21,14 +21,24 @@ public:
 							  unsigned int& rScreenHeight);
 	virtual ~DeferredRenderingStrategy();
 
-	inline bool IsDebugEnabled() const
+	inline bool IsDisplayGBufferEnabled() const
 	{
-		return mDebugEnabled;
+		return mDisplayGBufferEnabled;
 	}
 
-	inline void SetDebugEnabled(bool debugEnabled)
+	inline void SetDisplayGBufferEnabled(bool displayGBufferEnabled)
 	{
-		mDebugEnabled = debugEnabled;
+		mDisplayGBufferEnabled = displayGBufferEnabled;
+	}
+
+	inline bool IsShowPointLightsEnabled() const
+	{
+		return mShowPointLightsEnabled;
+	}
+
+	inline void SetShowPointLightsEnabled(bool showPointLightsEnabled)
+	{
+		mShowPointLightsEnabled = showPointLightsEnabled;
 	}
 
 	virtual void Render(const Camera* pCamera);
@@ -44,10 +54,11 @@ private:
 	Shader* mpPointsShader;
 	Mesh* mpQuadMesh;
 	Mesh* mpSphereMesh;
-	bool mDebugEnabled;
+	bool mDisplayGBufferEnabled;
+	bool mShowPointLightsEnabled;
 
 	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
-	float CalculateLightBoundingBoxScale(Light* pLight);
+	float CalculateLightBoundingBoxScale(PointLight* pLight);
 };
 
 #endif

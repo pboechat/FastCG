@@ -43,6 +43,8 @@ public:
 
 	inline static T Clamp(T value, T low, T high);
 
+	inline static T FMod(T a, T b);
+
 private:
 	Math();
 	~Math();
@@ -175,6 +177,12 @@ template<typename T>
 inline T Math<T>::Clamp(T value, T low, T high)
 {
 	return value < low ? low : (value > high ? high : value);
+}
+
+template<typename T>
+inline T Math<T>::FMod(T a, T b)
+{
+	return (T)fmod(a, b);
 }
 
 typedef Math<float> MathF;

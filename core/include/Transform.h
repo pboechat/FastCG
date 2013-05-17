@@ -44,6 +44,11 @@ public:
 		}
 	}
 
+	inline void SetLocalPosition(const glm::vec3& position)
+	{
+		mLocalPosition = position;
+	}
+
 	inline glm::quat GetWorldRotation() const
 	{
 		if (mpParent != 0)
@@ -74,8 +79,13 @@ public:
 	inline void SetWorldTransform(const glm::mat4& rWorldTransform)
 	{
 		mWorldRotation = glm::toQuat(rWorldTransform);
-		mWorldRotation = glm::normalize(mWorldRotation);
 		mWorldPosition = glm::vec3(rWorldTransform[3]);
+	}
+
+	inline void SetLocalTransform(const glm::mat4& rLocalTransform)
+	{
+		mLocalRotation = glm::toQuat(rLocalTransform);
+		mLocalPosition = glm::vec3(rLocalTransform[3]);
 	}
 
 	inline glm::quat GetLocalRotation() const
@@ -120,7 +130,10 @@ public:
 
 	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
 	{
-		mLocalRotation = glm::rotate(mLocalRotation, angle, axis);
+		glm::mat4 localTransform = glm::toMat4(mLocalRotation);
+		localTransform = glm::translate(localTransform, mLocalPosition);
+		localTransform = glm::rotate(localTransform, angle, axis);
+		SetLocalTransform(localTransform);
 	}
 
 	inline glm::vec3 GetForward() const

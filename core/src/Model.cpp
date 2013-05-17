@@ -6,6 +6,7 @@
 #include <Texture.h>
 #include <TextureUtils.h>
 #include <AssimpUtils.h>
+#include <File.h>
 #include <Exception.h>
 
 #include <assimp/cimport.h>
@@ -72,16 +73,18 @@ void Model::DeallocateResources()
 
 void Model::BuildMaterialCatalog()
 {
+	std::string filePath = File::GetPath(mFileName);
+
 	for (unsigned int i = 0; i < mpScene->mNumMaterials; i++)
 	{
 		aiMaterial* pImportedMaterial = mpScene->mMaterials[i];
-		Material* pMaterial = new Material(ShaderRegistry::Find("Diffuse"));
+		Material* pMaterial = new Material(ShaderRegistry::Find("DeferredShadingDiffuse"));
 
 		Texture* pTexture;
 		aiString path;
 		if (pImportedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == aiReturn_SUCCESS)
 		{
-			pTexture = TextureUtils::LoadPNGAsTexture("textures/" + AssimpUtils::Convert(path));
+			pTexture = TextureUtils::LoadPNGAsTexture(filePath + AssimpUtils::Convert(path));
 			pMaterial->SetTexture("colorMap", pTexture);
 			mImportedTextures.push_back(pTexture);
 		}

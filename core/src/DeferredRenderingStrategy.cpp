@@ -18,7 +18,8 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	RenderingStrategy(rLights, rDirectionalLights, rPointLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics),
 	mrScreenWidth(rScreenWidth),
 	mrScreenHeight(rScreenHeight),
-	mDebugEnabled(false),
+	mDisplayGBufferEnabled(false),
+	mShowPointLightsEnabled(false),
 	mpGBuffer(0),
 	mpQuadMesh(0)
 {
@@ -54,14 +55,13 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 {
 	mpGBuffer->StartFrame();
 
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	// geometry pass
 	mpGBuffer->BindForGeometryPass();
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
@@ -108,12 +108,12 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 	glDepthMask(GL_FALSE);
 
-	if (mDebugEnabled)
+	if (mDisplayGBufferEnabled)
 	{
 		unsigned int halfScreenWidth = mrScreenWidth / 2;
 		unsigned int halfScreenHeight = mrScreenHeight / 2;
 
-		mpGBuffer->BindForLightPass();
+		mpGBuffer->BindForDebugging();
 
 		mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION); 
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, halfScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
@@ -179,8 +179,17 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpPointLightPassShader->SetFloat("lightConstantAttenuation", pPointLight->GetConstantAttenuation());
 			mpPointLightPassShader->SetFloat("lightLinearAttenuation", pPointLight->GetLinearAttenuation());
 			mpPointLightPassShader->SetFloat("lightQuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
+			if (mShowPointLightsEnabled)
+			{
+				mpPointLightPassShader->SetFloat("debug", 0.25f);
+			}
+			else
+			{
+				mpPointLightPassShader->SetFloat("debug", 0.0f);
+			}
 			mpSphereMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.numberOfTriangles += mpSphereMesh->GetNumberOfTriangles();
 			mpPointLightPassShader->Unbind();
 
 			glCullFace(GL_BACK);
@@ -213,19 +222,20 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpDirectionalLightPassShader->SetFloat("lightIntensity", pDirectionalLight->GetIntensity());
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
+			mrRenderingStatistics.numberOfTriangles += mpQuadMesh->GetNumberOfTriangles();
 		}
 		mpDirectionalLightPassShader->Unbind();
 
 		glDisable(GL_BLEND);
+
+		mpGBuffer->BindForFinalPass();
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+		// FIXME: find out why glut crashes when READ framebuffer is not set back to 0
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+		RenderUnlitGeometries(rView, rProjection);
 	}
-
-	mpGBuffer->BindForFinalPass();
-	glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-	// FIXME: find out why glut crashes when READ framebuffer is not set back to 0
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
-	RenderUnlitGeometries(rView, rProjection);
 }
 
 void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection)
@@ -296,11 +306,15 @@ void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, con
 	}
 }
 
-float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(Light* pLight)
+float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(PointLight* pPointLight)
 {
-	glm::vec4 diffuseColor = pLight->GetDiffuseColor() * pLight->GetIntensity();
-	float greatestChannel = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
-	return 8.0f * MathF::Sqrt(greatestChannel) + 1.0f;
+	glm::vec4 diffuseColor = pPointLight->GetDiffuseColor() * pPointLight->GetIntensity();
+	float distance = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+	float constantFactor = pPointLight->GetConstantAttenuation();
+	float linearFactor = (pPointLight->GetLinearAttenuation() > 0.0f) ? distance / pPointLight->GetLinearAttenuation() : 0.0f;
+	float quadraticFactor = (pPointLight->GetQuadraticAttenuation() > 0.0f) ? MathF::Sqrt(distance) / pPointLight->GetQuadraticAttenuation() : 0.0f;
+	float factor = MathF::Max(MathF::Max(quadraticFactor, linearFactor), constantFactor);
+	return 8.0f * factor + 1.0f;
 }
 
 #endif

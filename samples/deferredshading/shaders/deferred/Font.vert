@@ -3,15 +3,13 @@
 uniform mat4 _ModelViewProjection;
 
 in vec4 position;
-in vec4 color;
+in vec3 normal;
+in vec2 uv;
 
-uniform float size;
-
-out vec4 vertexColor;
+out vec2 textureCoordinates;
 
 void main()
 {
-	vertexColor = color;
-	gl_PointSize = size;
+	textureCoordinates = uv;
 	gl_Position = _ModelViewProjection * position;
 }

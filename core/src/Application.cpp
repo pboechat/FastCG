@@ -11,6 +11,7 @@
 #include <ForwardRenderingStrategy.h>
 #include <DeferredRenderingStrategy.h>
 #include <MaterialGroupsBatchingStrategy.h>
+#include <Thread.h>
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
@@ -21,6 +22,12 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+
+
+const std::string Application::DEFERRED_RENDERING_SHADERS_FOLDER = "shaders/deferred";
+const std::string Application::SHADERS_FOLDER = "shaders";
+const std::string Application::FONTS_FOLDER = "fonts";
+const std::string Application::DEFAULT_FONT_NAME = "verdana";
 
 Application* Application::s_mpInstance = NULL;
 
@@ -38,7 +45,7 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mShowFPS(false),
 	mShowRenderingStatistics(false),
 	mElapsedFrames(0),
-	mElapsedTime(0),
+	mTotalElapsedTime(0),
 	mpInput(0),
 	mpModelImporter(0),
 	mpRenderingStrategy(0),
@@ -62,7 +69,7 @@ mWindowTitle(rWindowTitle),
 	mShowFPS(false),
 	mShowRenderingStatistics(false),
 	mElapsedFrames(0),
-	mElapsedTime(0),
+	mTotalElapsedTime(0),
 	mpInput(0),
 	mpRenderingStrategy(0),
 	mpRenderBatchingStrategy(0)
@@ -333,9 +340,11 @@ void Application::Run(int argc, char** argv)
 		ModelImporter::Initialize();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		ShaderRegistry::LoadShadersFromDisk("shaders");
-		FontRegistry::LoadFontsFromDisk("fonts");
-		mpStandardFont = FontRegistry::Find("verdana");
+		std::string shadersFolder;
+
+		ShaderRegistry::LoadShadersFromDisk((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : SHADERS_FOLDER);
+		FontRegistry::LoadFontsFromDisk(FONTS_FOLDER);
+		mpStandardFont = FontRegistry::Find(DEFAULT_FONT_NAME);
 		if (mDeferredRendering)
 		{
 			mpRenderingStrategy = new DeferredRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics, mScreenWidth, mScreenHeight);
@@ -350,9 +359,7 @@ void Application::Run(int argc, char** argv)
 		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 		mStartTimer.Start();
 		OnStart();
-		mUpdateTimer.Start();
 		glutMainLoop();
-		mUpdateTimer.End();
 		mStartTimer.End();
 		OnEnd();
 	}
@@ -405,14 +412,43 @@ void Application::SetUpOpenGL()
 
 void Application::Update()
 {
+	static double deltaTime = 0.0;
+
+	mFrameRateTimer.Start();
+
 	mpInput->Swap();
-	mUpdateTimer.End();
+
 	for (unsigned int i = 0; i < mBehaviours.size(); i++)
 	{
-		mBehaviours[i]->Update((float)mStartTimer.GetTime(), (float)mUpdateTimer.GetElapsedTime());
+		mBehaviours[i]->Update((float)mStartTimer.GetTime(), (float)deltaTime);
 	}
-	mUpdateTimer.Start();
+
 	Render();
+
+	mFrameRateTimer.End();
+
+	deltaTime = mFrameRateTimer.GetElapsedTime();
+
+	mTotalElapsedTime += deltaTime;
+	mElapsedFrames++;
+
+	if (mShowFPS)
+	{
+		ShowFPS();
+	}
+
+	if (mShowRenderingStatistics)
+	{
+		ShowRenderingStatistics();
+	}
+
+	glutSwapBuffers();
+
+	double idleTime = 0.0333 - deltaTime; // 30 cycles/second
+	if (idleTime > 0)
+	{
+		Thread::Sleep(idleTime);
+	}
 }
 
 void Application::DrawAllTexts()
@@ -459,7 +495,7 @@ void Application::DrawAllTexts()
 void Application::ShowFPS()
 {
 	static char fpsText[128];
-	sprintf(fpsText, "FPS: %.3f", mElapsedFrames / mElapsedTime);
+	sprintf(fpsText, "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -526,25 +562,9 @@ void Application::ShowRenderingStatistics()
 
 void Application::Render()
 {
-	mFrameTimer.Start();
 	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
 	mpRenderingStrategy->Render(mpMainCamera);
 	DrawAllTexts();
-	mFrameTimer.End();
-	mElapsedTime += mFrameTimer.GetElapsedTime();
-	mElapsedFrames++;
-
-	if (mShowFPS)
-	{
-		ShowFPS();
-	}
-
-	if (mShowRenderingStatistics)
-	{
-		ShowRenderingStatistics();
-	}
-
-	glutSwapBuffers();
 }
 
 #ifdef USE_PROGRAMMABLE_PIPELINE

@@ -96,6 +96,20 @@ void GBuffer::StartFrame()
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFBOId);
 	glDrawBuffer(GL_COLOR_ATTACHMENT4);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void GBuffer::BindForDebugging()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mFBOId);
+	for (unsigned int i = 0 ; i < GBUFFER_NUM_TEXTURES; i++) 
+	{
+		glActiveTexture(GL_TEXTURE0 + i);		
+		glBindTexture(GL_TEXTURE_2D, mTexturesIds[GBUFFER_TEXTURE_TYPE_POSITION + i]);
+	}
 }
 
 void GBuffer::BindForGeometryPass()

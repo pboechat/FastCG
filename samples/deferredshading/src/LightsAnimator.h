@@ -2,7 +2,7 @@
 #define LIGHTSANIMATOR_H_
 
 #include <Behaviour.h>
-#include <Light.h>
+#include <PointLight.h>
 
 #include <glm/glm.hpp>
 
@@ -10,12 +10,14 @@
 
 COMPONENT(LightsAnimator, Behaviour)
 public:
-	void SetLights(const std::vector<Light*>& rLights);
+	void SetLights(const std::vector<PointLight*>& rLights);
 
 	virtual void OnUpdate(float time, float deltaTime);
 
 private:
-	std::vector<Light*> mLights;
+	static const float ONE_HUNDREDTH_OF_TWO_PI;
+
+	std::vector<PointLight*> mLights;
 	std::vector<glm::vec3> mRotationAxis;
 
 };

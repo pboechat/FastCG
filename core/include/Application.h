@@ -41,6 +41,11 @@ class ModelImporter;
 class Application
 {
 public:
+	static const std::string DEFERRED_RENDERING_SHADERS_FOLDER;
+	static const std::string SHADERS_FOLDER;
+	static const std::string FONTS_FOLDER;
+	static const std::string DEFAULT_FONT_NAME;
+
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight, bool deferredRendering = false);
 #else
@@ -180,10 +185,9 @@ private:
 	std::vector<Component*> mComponents;
 	std::vector<RenderBatch*> mRenderBatches;
 	Timer mStartTimer;
-	Timer mFrameTimer;
-	Timer mUpdateTimer;
+	Timer mFrameRateTimer;
 	unsigned int mElapsedFrames;
-	double mElapsedTime;
+	double mTotalElapsedTime;
 	std::vector<DrawTextRequest*> mDrawTextRequests;
 	Input* mpInput;
 	ModelImporter* mpModelImporter;

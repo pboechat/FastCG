@@ -10,6 +10,7 @@ public:
 	virtual void OnInitialize()
 	{
 		mRightMouseButtonPressed = false;
+		mFlying = false;
 	}
 
 	inline float GetWalkSpeed() const 
@@ -32,6 +33,16 @@ public:
 		mTurnSpeed = turnSpeed; 
 	}
 
+	inline bool IsFlying() const
+	{
+		return mFlying;
+	}
+
+	inline void SetFlying(bool flying)
+	{
+		mFlying = flying;
+	}
+
 	virtual void OnUpdate(float time, float deltaTime);
 
 private:
@@ -39,6 +50,7 @@ private:
 	bool mRightMouseButtonPressed;
 	float mWalkSpeed;
 	float mTurnSpeed;
+	bool mFlying;
 	
 };
 

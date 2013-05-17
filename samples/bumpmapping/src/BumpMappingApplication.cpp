@@ -47,8 +47,7 @@ void BumpMappingApplication::OnStart()
 	pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	pLight->SetIntensity(20.0f);
-	pLight->SetLinearAttenuation(0.1f);
+	pLight->SetIntensity(10.0f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
 	pLightAnimator->SetSpeed(40.0f);
@@ -74,7 +73,7 @@ void BumpMappingApplication::OnStart()
 	mpFloorMaterial = new Material(pShader);
 	mpFloorMaterial->SetTexture("colorMap", mFloorColorMapTextures[0]);
 	mpFloorMaterial->SetTexture("bumpMap", mFloorBumpMapTextures[0]);
-	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	mpFloorMaterial->SetFloat("shininess", 5.0f);
 #else
 	mpFloorMaterial = new Material();
@@ -101,7 +100,7 @@ void BumpMappingApplication::OnStart()
 	mpSphereMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
 	mpSphereMaterial->SetTexture("colorMap", mSphereColorMapTextures[0]);
 	mpSphereMaterial->SetTexture("bumpMap", mSphereBumpMapTextures[0]);
-	mpSphereMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	mpSphereMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	mpSphereMaterial->SetFloat("shininess", 10.0f);
 #else
 	mpSphereMaterial = new Material();
@@ -133,7 +132,7 @@ void BumpMappingApplication::OnStart()
 
 	GameObject* pSpheresControllerGameObject = GameObject::Instantiate();
 
-	SpheresController* pSpheresController = SpheresController::Instantiate(pSpheresControllerGameObject);
+	SpheresAnimator* pSpheresController = SpheresAnimator::Instantiate(pSpheresControllerGameObject);
 	pSpheresController->SetSpheres(spheres);
 	pSpheresController->SetRotationSpeed(50.0f);
 	pSpheresController->SetRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -145,6 +144,7 @@ void BumpMappingApplication::OnStart()
 	FirstPersonCameraController* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pPlayerGameObject);
 	pFirstPersonCameraController->SetWalkSpeed(WALK_SPEED);
 	pFirstPersonCameraController->SetTurnSpeed(TURN_SPEED);
+	pFirstPersonCameraController->SetFlying(true);
 }
 
 void BumpMappingApplication::OnEnd()
@@ -176,20 +176,24 @@ void BumpMappingApplication::OnEnd()
 	if (mpFloorMaterial != 0)
 	{
 		delete mpFloorMaterial;
+		mpFloorMaterial = 0;
 	}
 	
 	if (mpFloorMesh != 0)
 	{
 		delete mpFloorMesh;
+		mpFloorMesh = 0;
 	}
 
 	if (mpSphereMaterial != 0)
 	{
 		delete mpSphereMaterial;
+		mpSphereMaterial = 0;
 	}
 
 	if (mpSphereMesh != 0)
 	{
 		delete mpSphereMesh;
+		mpSphereMesh = 0;
 	}
 }

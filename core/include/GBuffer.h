@@ -16,6 +16,7 @@ public:
 	~GBuffer();
 
 	void StartFrame();
+	void BindForDebugging();
 	void BindForGeometryPass();
 	void BindForStencilPass();
 	void BindForLightPass();

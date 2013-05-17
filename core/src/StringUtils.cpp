@@ -55,3 +55,16 @@ void StringUtils::Replace(std::string& rString, const std::string& rFrom, const 
 		rString.replace(startPosition, rFrom.length(), rTo);
 	}
 }
+
+bool StringUtils::StartsWith(const std::string& rString1, const std::string& rString2)
+{
+	unsigned int size = rString2.size();
+	if (rString1.size() < size)
+	{
+		return false;
+	}
+
+	std::string start = rString1.substr(0, size);
+
+	return start == rString2;
+}

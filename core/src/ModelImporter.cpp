@@ -35,7 +35,6 @@ Model* ModelImporter::Import(const std::string& rFileName)
 	}
 
 	Model* pModel = new Model(rFileName);
-	pModel->GetRootGameObject();
 	s_mModelsByName.insert(std::make_pair(rFileName, pModel));
 	return pModel;
 }

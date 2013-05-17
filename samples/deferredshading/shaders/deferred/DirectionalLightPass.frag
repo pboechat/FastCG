@@ -44,5 +44,6 @@ void main()
 	vec3 lightDirection = normalize(lightPosition - position);
 	vec3 viewerDirection = normalize(viewerPosition - position);
 
-	gl_FragColor = BlinnPhongLighting(diffuseColor, 5.0, lightDirection, viewerDirection, normal);
+	// TODO: implement specular color properly
+	gl_FragColor = BlinnPhongLighting(diffuseColor, 3.0, lightDirection, viewerDirection, normal);
 }

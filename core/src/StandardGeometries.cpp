@@ -94,12 +94,12 @@ Mesh* StandardGeometries::CreateXZPlane(float width, float depth, unsigned int x
 			int i1 = ((z - 1) * (xSegments + 1)) + x;
 			int i2 = i1 + 1;
 			int i3 = i0 + 1;
-			indexes[i++] = i1;
 			indexes[i++] = i2;
-			indexes[i++] = i3;
 			indexes[i++] = i1;
-			indexes[i++] = i3;
 			indexes[i++] = i0;
+			indexes[i++] = i2;
+			indexes[i++] = i0;
+			indexes[i++] = i3;
 		}
 	}
 

@@ -99,25 +99,41 @@
     <ClCompile Include="src\KeyBindings.cpp" />
     <ClCompile Include="src\LightsAnimator.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\SpheresAnimator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DeferredShadingApplication.h" />
     <ClInclude Include="src\KeyBindings.h" />
     <ClInclude Include="src\LightsAnimator.h" />
+    <ClInclude Include="src\SpheresAnimator.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\DeferredShadingDiffuse.frag" />
-    <None Include="shaders\DeferredShadingDiffuse.vert" />
-    <None Include="shaders\DirectionalLightPass.frag" />
-    <None Include="shaders\DirectionalLightPass.vert" />
+    <None Include="shaders\deferred\Diffuse.frag" />
+    <None Include="shaders\deferred\Diffuse.vert" />
+    <None Include="shaders\deferred\DirectionalLightPass.frag" />
+    <None Include="shaders\deferred\DirectionalLightPass.vert" />
+    <None Include="shaders\deferred\Font.frag" />
+    <None Include="shaders\deferred\Font.vert" />
+    <None Include="shaders\deferred\LineStrip.frag" />
+    <None Include="shaders\deferred\LineStrip.vert" />
+    <None Include="shaders\deferred\PointLightPass.frag" />
+    <None Include="shaders\deferred\PointLightPass.vert" />
+    <None Include="shaders\deferred\Points.frag" />
+    <None Include="shaders\deferred\Points.vert" />
+    <None Include="shaders\deferred\StencilPass.frag" />
+    <None Include="shaders\deferred\StencilPass.vert" />
+    <None Include="shaders\Diffuse.frag" />
+    <None Include="shaders\Diffuse.vert" />
     <None Include="shaders\FastCG.glsl" />
+    <None Include="shaders\Font.frag" />
+    <None Include="shaders\Font.vert" />
     <None Include="shaders\Lighting.glsl" />
-    <None Include="shaders\PointLightPass.frag" />
-    <None Include="shaders\PointLightPass.vert" />
+    <None Include="shaders\LineStrip.frag" />
+    <None Include="shaders\LineStrip.vert" />
+    <None Include="shaders\Points.frag" />
+    <None Include="shaders\Points.vert" />
     <None Include="shaders\Specular.frag" />
     <None Include="shaders\Specular.vert" />
-    <None Include="shaders\StencilPass.frag" />
-    <None Include="shaders\StencilPass.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

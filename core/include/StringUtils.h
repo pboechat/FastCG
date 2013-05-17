@@ -12,6 +12,7 @@ public:
 	static void RightTrim(std::string& rString);
 	static void Trim(std::string& rString);
 	static void Replace(std::string& rString, const std::string& rFrom, const std::string& rTo);
+	static bool StartsWith(const std::string& rString1, const std::string& rString2);
 
 private:
 	StringUtils();

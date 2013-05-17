@@ -5,6 +5,7 @@
 ipch/
 
 memory_leak_report.txt
+assimpLog.txt
 
 *.sdf
 *.opensdf

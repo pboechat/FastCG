@@ -116,6 +116,7 @@
     <ClInclude Include="include\DeferredRenderingStrategy.h" />
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\Directory.h" />
+    <ClInclude Include="include\File.h" />
     <ClInclude Include="include\FixedFunctionRenderingStrategy.h" />
     <ClInclude Include="include\ForwardRenderingStrategy.h" />
     <ClInclude Include="include\GameObject.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\ShaderSource.h" />
     <ClInclude Include="include\TextureUtils.h" />
+    <ClInclude Include="include\Thread.h" />
     <ClInclude Include="include\UnorderedSingleGroupBatchingStrategy.h" />
     <ClInclude Include="include\StandardGeometries.h" />
     <ClInclude Include="include\StringUtils.h" />
@@ -172,6 +174,7 @@
     <ClCompile Include="src\DeferredRenderingStrategy.cpp" />
     <ClCompile Include="src\DirectionalLight.cpp" />
     <ClCompile Include="src\Directory.cpp" />
+    <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />
     <ClCompile Include="src\FixedFunctionRenderingStrategy.cpp" />

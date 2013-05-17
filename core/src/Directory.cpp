@@ -1,10 +1,13 @@
 #include <Directory.h>
 
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 
 std::vector<std::string> Directory::ListFiles(const std::string& rDirectoryPath)
 {
 	std::vector<std::string> files;
+#ifdef _WIN32
 	HANDLE hFind;
 	WIN32_FIND_DATA data;
 
@@ -15,6 +18,7 @@ std::vector<std::string> Directory::ListFiles(const std::string& rDirectoryPath)
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 	}
+#endif
 
 	return files;
 }
