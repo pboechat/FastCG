@@ -10,15 +10,19 @@
 
 COMPONENT(LightsAnimator, Behaviour)
 public:
+	void OnInstantiate()
+	{
+		mLastDirectionChangeTime = 0;
+	}
+
 	void SetLights(const std::vector<PointLight*>& rLights);
 
 	virtual void OnUpdate(float time, float deltaTime);
 
 private:
-	static const float ONE_HUNDREDTH_OF_TWO_PI;
-
-	std::vector<PointLight*> mLights;
-	std::vector<glm::vec3> mRotationAxis;
+	std::vector<PointLight*> mPointLights;
+	std::vector<glm::vec3> mDirections;
+	float mLastDirectionChangeTime;
 
 };
 

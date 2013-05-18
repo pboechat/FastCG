@@ -78,14 +78,22 @@ void Model::BuildMaterialCatalog()
 	for (unsigned int i = 0; i < mpScene->mNumMaterials; i++)
 	{
 		aiMaterial* pImportedMaterial = mpScene->mMaterials[i];
-		Material* pMaterial = new Material(ShaderRegistry::Find("DeferredShadingDiffuse"));
+#ifdef USE_PROGRAMMABLE_PIPELINE
+		Material* pMaterial = new Material(ShaderRegistry::Find("Diffuse"));
+#else
+		Material* pMaterial = new Material();
+#endif
 
 		Texture* pTexture;
 		aiString path;
 		if (pImportedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == aiReturn_SUCCESS)
 		{
 			pTexture = TextureUtils::LoadPNGAsTexture(filePath + AssimpUtils::Convert(path));
+#ifdef USE_PROGRAMMABLE_PIPELINE
 			pMaterial->SetTexture("colorMap", pTexture);
+#else
+			pMaterial->SetTexture(pTexture);
+#endif
 			mImportedTextures.push_back(pTexture);
 		}
 		

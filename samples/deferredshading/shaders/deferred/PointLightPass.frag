@@ -14,6 +14,7 @@ uniform float lightQuadraticAttenuation;
 uniform sampler2D positionMap;
 uniform sampler2D colorMap;
 uniform sampler2D normalMap;
+uniform sampler2D specularMap;
 uniform float debug;
 
 float DistanceAttenuation(vec3 position, vec3 lightPosition)
@@ -23,6 +24,7 @@ float DistanceAttenuation(vec3 position, vec3 lightPosition)
 }
 
 vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
+						vec4 materialSpecularColor,
 						float materialShininess,
 						vec3 lightDirection,
 					    vec3 viewerDirection,
@@ -38,7 +40,7 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 	{
         vec3 reflectionDirection = normalize(reflect(lightDirection, normal));
         float specularAttenuation = pow(max(dot(reflectionDirection, viewerDirection), 0.0), materialShininess);
-        specularContribution = lightSpecularColor * lightIntensity * specularAttenuation;
+        specularContribution = lightSpecularColor * lightIntensity * materialSpecularColor * specularAttenuation;
     }
 
     return (ambientContribution + diffuseContribution + specularContribution);
@@ -49,14 +51,16 @@ void main()
 	vec2 uv = gl_FragCoord.xy / screenSize;
 	vec3 position = texture2D(positionMap, uv).xyz;
 	vec4 diffuseColor = texture2D(colorMap, uv);
-	vec3 normal = normalize(texture2D(normalMap, uv).xyz);
+	vec4 normalAndShininess = texture2D(normalMap, uv);
+	vec4 specularColor = texture2D(specularMap, uv);
+	vec3 normal = normalize(normalAndShininess.xyz);
+	float shininess = normalAndShininess.w;
 
 	vec3 lightDirection = normalize(position - lightPosition);
 	lightDirection = normalize(lightDirection);
 	vec3 viewerDirection = normalize(viewerPosition - position);
 
-	vec4 lightHull = vec4(debug, debug, debug, debug);
+	vec4 debugColor = vec4(debug, debug, debug, debug);
 
-	// TODO: implement specular color properly
-	gl_FragColor = lightHull + DistanceAttenuation(position, lightPosition) * BlinnPhongLighting(diffuseColor, 3.0, lightDirection, viewerDirection, normal);
+	gl_FragColor = debugColor + DistanceAttenuation(position, lightPosition) * BlinnPhongLighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, normal);
 }

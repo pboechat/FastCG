@@ -127,5 +127,17 @@
     <None Include="shaders\Points.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\deferred\Specular.frag">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\Specular.vert">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\SolidColor.frag">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\SolidColor.vert">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
   </ItemGroup>
 </Project>

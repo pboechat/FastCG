@@ -47,9 +47,9 @@ public:
 	static const std::string DEFAULT_FONT_NAME;
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight, bool deferredRendering = false);
+	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering = false);
 #else
-	Application(const std::string& rWindowTitle, int screenWidth, int screenHeight);
+	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate);
 #endif
 	
 	virtual ~Application();
@@ -119,7 +119,6 @@ protected:
 	bool mShowRenderingStatistics;
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Font* mpStandardFont;
-	bool mDeferredRendering;
 #endif
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
@@ -167,6 +166,11 @@ private:
 
 	unsigned int mScreenWidth;
 	unsigned int mScreenHeight;
+	unsigned int mFrameRate;
+	double mSecondsPerFrame;
+#ifdef USE_PROGRAMMABLE_PIPELINE
+	bool mDeferredRendering;
+#endif
 	float mHalfScreenWidth;
 	float mHalfScreenHeight;
 	float mAspectRatio;

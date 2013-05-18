@@ -1,7 +1,7 @@
 #include "BumpMappingApplication.h"
 #include <cstdlib>
 
-// memory leak checking
+// memory leak detection
 //#include <vld.h>
 
 int main(int argc, char** argv)

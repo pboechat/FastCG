@@ -5,7 +5,7 @@
 #include <PointsRenderer.h>
 
 BSplinesApplication::BSplinesApplication() :
-	Application("bsplines", 800, 600)
+	Application("bsplines", 800, 600, 30)
 {
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);

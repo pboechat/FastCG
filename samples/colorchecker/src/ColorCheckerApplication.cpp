@@ -19,7 +19,7 @@ const unsigned int ColorCheckerApplication::VERTICAL_NUMBER_OF_PATCHES = 4;
 const unsigned int ColorCheckerApplication::BORDER = 20;
 
 ColorCheckerApplication::ColorCheckerApplication() :
-	Application("Color Checker", 800, 600)
+	Application("Color Checker", 800, 600, 30)
 {
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
@@ -141,7 +141,7 @@ void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float
 	mMeshes.push_back(pMesh);
 
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pPatchGameObject);
-	pMeshRenderer->SetMesh(pMesh);
+	pMeshRenderer->AddMesh(pMesh);
 
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pPatchGameObject);
 	pMeshFilter->SetMaterial(pSolidColorMaterial);

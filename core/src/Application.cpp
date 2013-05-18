@@ -32,10 +32,13 @@ const std::string Application::DEFAULT_FONT_NAME = "verdana";
 Application* Application::s_mpInstance = NULL;
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
-Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight, bool deferredRendering) :
+Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering) :
 	mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
+	mFrameRate(frameRate),
+	mSecondsPerFrame(1.0 / (double)mFrameRate),
+	mDeferredRendering(deferredRendering),
 	mHalfScreenWidth(screenWidth / 2.0f),
 	mHalfScreenHeight(screenHeight / 2.0f),
 	mAspectRatio(mScreenWidth / (float) mScreenHeight),
@@ -50,16 +53,17 @@ Application::Application(const std::string& rWindowTitle, int screenWidth, int s
 	mpModelImporter(0),
 	mpRenderingStrategy(0),
 	mpRenderBatchingStrategy(0),
-	mDeferredRendering(deferredRendering),
 	mpStandardFont(0)
 {
 	s_mpInstance = this;
 }
 #else
-Application::Application(const std::string& rWindowTitle, int screenWidth, int screenHeight) :
-mWindowTitle(rWindowTitle),
+Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate) :
+	mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
+	mFrameRate(frameRate),
+	mSecondsPerFrame(1.0 / (double)mFrameRate),
 	mHalfScreenWidth(screenWidth / 2.0f),
 	mHalfScreenHeight(screenHeight / 2.0f),
 	mAspectRatio(mScreenWidth / (float) mScreenHeight),
@@ -444,7 +448,7 @@ void Application::Update()
 
 	glutSwapBuffers();
 
-	double idleTime = 0.0333 - deltaTime; // 30 cycles/second
+	double idleTime = mSecondsPerFrame - deltaTime; // mFrameRate cycles/second
 	if (idleTime > 0)
 	{
 		Thread::Sleep(idleTime);

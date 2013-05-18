@@ -120,6 +120,10 @@
     <None Include="shaders\deferred\PointLightPass.vert" />
     <None Include="shaders\deferred\Points.frag" />
     <None Include="shaders\deferred\Points.vert" />
+    <None Include="shaders\deferred\SolidColor.frag" />
+    <None Include="shaders\deferred\SolidColor.vert" />
+    <None Include="shaders\deferred\Specular.frag" />
+    <None Include="shaders\deferred\Specular.vert" />
     <None Include="shaders\deferred\StencilPass.frag" />
     <None Include="shaders\deferred\StencilPass.vert" />
     <None Include="shaders\Diffuse.frag" />

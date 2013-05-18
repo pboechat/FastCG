@@ -35,7 +35,7 @@ void FixedFunctionRenderingStrategy::Render(const Camera* pCamera)
 	{
 		glEnable(GL_LIGHT0 + i);
 		Light* pLight = mrLights[i];
-		glm::vec4& rLightPosition = glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f);
+		glm::vec4& rLightPosition = glm::vec4(pLight->GetGameObject()->GetTransform()->GetWorldPosition(), 1.0f);
 		float intensity = pLight->GetIntensity();
 		glm::vec4 lightAmbientColor = pLight->GetAmbientColor() * intensity;
 		glm::vec4 lightDiffuseColor = pLight->GetDiffuseColor() * intensity;

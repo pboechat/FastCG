@@ -8,7 +8,7 @@
 
 #include <vector>
 
-COMPONENT(SpheresAnimator, Behaviour)
+COMPONENT(SpheresController, Behaviour)
 public:
 	virtual void OnInstantiate()
 	{

@@ -30,7 +30,7 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mpLineStripShader = ShaderRegistry::Find("LineStrip");
 	mpPointsShader = ShaderRegistry::Find("Points");
 	mpQuadMesh = StandardGeometries::CreateXYPlane(2, 2, 1, 1, glm::vec3(0.0f, 0.0f, 0.0f));
-	mpSphereMesh = StandardGeometries::CreateSphere(1.0f, 30);
+	mpSphereMesh = StandardGeometries::CreateSphere(1.0f, 10);
 }
 
 DeferredRenderingStrategy::~DeferredRenderingStrategy()
@@ -122,6 +122,9 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, halfScreenHeight, halfScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 		mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL); 
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, 0, mrScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+		mpGBuffer->SetReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_SPECULAR); 
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, halfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 	else
@@ -166,6 +169,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpPointLightPassShader->SetTexture("positionMap", GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
 			mpPointLightPassShader->SetTexture("colorMap", GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 			mpPointLightPassShader->SetTexture("normalMap", GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+			mpPointLightPassShader->SetTexture("specularMap", GBuffer::GBUFFER_TEXTURE_TYPE_SPECULAR);
 			mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			mpPointLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetWorldPosition());
@@ -208,6 +212,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		mpDirectionalLightPassShader->SetTexture("positionMap", GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
 		mpDirectionalLightPassShader->SetTexture("colorMap", GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 		mpDirectionalLightPassShader->SetTexture("normalMap", GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+		mpDirectionalLightPassShader->SetTexture("specularMap", GBuffer::GBUFFER_TEXTURE_TYPE_SPECULAR);
 		mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 		mpDirectionalLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 		mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetWorldPosition());
@@ -310,11 +315,12 @@ float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(PointLight* pPoi
 {
 	glm::vec4 diffuseColor = pPointLight->GetDiffuseColor() * pPointLight->GetIntensity();
 	float distance = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
-	float constantFactor = pPointLight->GetConstantAttenuation();
+	/*float constantFactor = pPointLight->GetConstantAttenuation();
 	float linearFactor = (pPointLight->GetLinearAttenuation() > 0.0f) ? distance / pPointLight->GetLinearAttenuation() : 0.0f;
 	float quadraticFactor = (pPointLight->GetQuadraticAttenuation() > 0.0f) ? MathF::Sqrt(distance) / pPointLight->GetQuadraticAttenuation() : 0.0f;
 	float factor = MathF::Max(MathF::Max(quadraticFactor, linearFactor), constantFactor);
-	return 8.0f * factor + 1.0f;
+	return 8.0f * factor + 1.0f;*/
+	return 8.0f * MathF::Sqrt(distance) + 1.0f;
 }
 
 #endif

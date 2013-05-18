@@ -24,7 +24,7 @@ const float BumpMappingApplication::WALK_SPEED = 20.0f;
 const float BumpMappingApplication::TURN_SPEED = 100.0f;
 
 BumpMappingApplication::BumpMappingApplication() :
-	Application("bumpmapping", 1024, 768),
+	Application("bumpmapping", 1024, 768, 60),
 	mpFloorMaterial(0),
 	mpFloorMesh(0),
 	mpSphereMaterial(0),
@@ -47,7 +47,7 @@ void BumpMappingApplication::OnStart()
 	pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	pLight->SetIntensity(10.0f);
+	pLight->SetIntensity(15.0f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
 	pLightAnimator->SetSpeed(40.0f);
@@ -132,7 +132,7 @@ void BumpMappingApplication::OnStart()
 
 	GameObject* pSpheresControllerGameObject = GameObject::Instantiate();
 
-	SpheresAnimator* pSpheresController = SpheresAnimator::Instantiate(pSpheresControllerGameObject);
+	SpheresController* pSpheresController = SpheresController::Instantiate(pSpheresControllerGameObject);
 	pSpheresController->SetSpheres(spheres);
 	pSpheresController->SetRotationSpeed(50.0f);
 	pSpheresController->SetRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));

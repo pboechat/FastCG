@@ -19,15 +19,12 @@ private:
 	static const unsigned int FLOOR_SIZE;
 	static const unsigned int NUMBER_OF_SPHERE_SLICES;
 	static const float SPHERE_RADIUS;
-	static const unsigned int NUMBER_OF_LIGHTS;
-	static const float LIGHT_DISTANCE;
 	static const float WALK_SPEED;
 	static const float TURN_SPEED;
 
 	Texture* mpCheckersColorMapTexture;
 	Material* mpFloorMaterial;
 	Mesh* mpFloorMesh;
-	Texture* mpSphereColorMapTexture;
 	Material* mpSphereMaterial;
 	Mesh* mpSphereMesh;
 	

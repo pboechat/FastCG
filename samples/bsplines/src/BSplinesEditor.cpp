@@ -320,11 +320,11 @@ int BSplinesEditor::GetControlPointIndex(const glm::vec3& rPoint)
 
 void BSplinesEditor::DrawGUI()
 {
-	char buffer[128];
+	static char buffer[128];
 	sprintf(buffer, "Degree: %d", mBSplineDegree);
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	int top = 20;
-	int heightIncrement = FontRegistry::STANDARD_FONT_SIZE + 8;
+	unsigned int top = 20;
+	unsigned int heightIncrement = FontRegistry::STANDARD_FONT_SIZE + 8;
 	Application::GetInstance()->DrawText("Press 'Enter' to plot B-Spline", FontRegistry::STANDARD_FONT_SIZE, 20, top , glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	top += heightIncrement;
 	Application::GetInstance()->DrawText("Press 'Backspace' to reset B-Spline", FontRegistry::STANDARD_FONT_SIZE, 20, top, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));

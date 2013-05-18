@@ -118,7 +118,8 @@ void GBuffer::BindForGeometryPass()
 	unsigned int pDrawBuffers[] = { 
 		GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3
 	};
 	glDrawBuffers(GBUFFER_NUM_TEXTURES, pDrawBuffers);
 }
