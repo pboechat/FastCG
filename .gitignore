@@ -6,6 +6,7 @@ ipch/
 
 memory_leak_report.txt
 assimpLog.txt
+UpgradeLog.XML
 
 *.sdf
 *.opensdf
