@@ -11,9 +11,8 @@
 #include <StandardGeometries.h>
 #include <KeyCode.h>
 #include <MouseButton.h>
-#include <PNGLoader.h>
 #include <FirstPersonCameraController.h>
-#include <TextureUtils.h>
+#include <TextureImporter.h>
 #include <ModelImporter.h>
 #include <OpenGLExceptions.h>
 
@@ -56,17 +55,17 @@ void BumpMappingApplication::OnStart()
 
 	pLightGameObject->GetTransform()->SetWorldPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
 
-	mFloorColorMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/FloorColorMap1.png"));
-	mFloorBumpMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/FloorBumpMap1.png"));
-	mFloorColorMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/FloorColorMap2.png"));
-	mFloorBumpMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/FloorBumpMap2.png"));
+	mFloorColorMapTextures.push_back(TextureImporter::Import("textures/FloorColorMap1.png"));
+	mFloorBumpMapTextures.push_back(TextureImporter::Import("textures/FloorBumpMap1.png"));
+	mFloorColorMapTextures.push_back(TextureImporter::Import("textures/FloorColorMap2.png"));
+	mFloorBumpMapTextures.push_back(TextureImporter::Import("textures/FloorBumpMap2.png"));
 
-	mSphereColorMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/SphereColorMap1.png"));
-	mSphereBumpMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/SphereBumpMap1.png"));
-	mSphereColorMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/SphereColorMap2.png"));
-	mSphereBumpMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/SphereBumpMap2.png"));
-	mSphereColorMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/SphereColorMap3.png"));
-	mSphereBumpMapTextures.push_back(TextureUtils::LoadPNGAsTexture("textures/SphereBumpMap3.png"));
+	mSphereColorMapTextures.push_back(TextureImporter::Import("textures/SphereColorMap1.png"));
+	mSphereBumpMapTextures.push_back(TextureImporter::Import("textures/SphereBumpMap1.png"));
+	mSphereColorMapTextures.push_back(TextureImporter::Import("textures/SphereColorMap2.png"));
+	mSphereBumpMapTextures.push_back(TextureImporter::Import("textures/SphereBumpMap2.png"));
+	mSphereColorMapTextures.push_back(TextureImporter::Import("textures/SphereColorMap3.png"));
+	mSphereBumpMapTextures.push_back(TextureImporter::Import("textures/SphereBumpMap3.png"));
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	Shader* pShader = ShaderRegistry::Find("BumpedSpecular");

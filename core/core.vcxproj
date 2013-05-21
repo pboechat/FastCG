@@ -64,7 +64,6 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>include;../dependencies/freeglut_281/include;../dependencies/glew_190/include;../dependencies/glm_0943/include;../dependencies/freetype_2411/include;../dependencies/libpng_161/include;../dependencies/zlib_127/include;../dependencies/assimp_301/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -81,7 +80,6 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>include;../dependencies/freeglut_281/include;../dependencies/glew_190/include;../dependencies/glm_0943/include;../dependencies/freetype_2411/include;../dependencies/libpng_161/include;../dependencies/zlib_127/include;../dependencies/assimp_301/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -100,7 +98,6 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>include;../dependencies/freeglut_281/include;../dependencies/glew_190/include;../dependencies/glm_0943/include;../dependencies/freetype_2411/include;../dependencies/libpng_161/include;../dependencies/zlib_127/include;../dependencies/assimp_301/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -109,6 +106,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\AABB.h" />
     <ClInclude Include="include\Application.h" />
     <ClInclude Include="include\AssimpUtils.h" />
     <ClInclude Include="include\Camera.h" />
@@ -122,9 +120,7 @@
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GBuffer.h" />
     <ClInclude Include="include\MaterialGroupsBatchingStrategy.h" />
-    <ClInclude Include="include\Model.h" />
     <ClInclude Include="include\ModelImporter.h" />
-    <ClInclude Include="include\PNGLoader.h" />
     <ClInclude Include="include\PointLight.h" />
     <ClInclude Include="include\RenderBatchingStrategy.h" />
     <ClInclude Include="include\LineRenderer.h" />
@@ -153,7 +149,7 @@
     <ClInclude Include="include\RenderingStrategy.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\ShaderSource.h" />
-    <ClInclude Include="include\TextureUtils.h" />
+    <ClInclude Include="include\TextureImporter.h" />
     <ClInclude Include="include\Thread.h" />
     <ClInclude Include="include\UnorderedSingleGroupBatchingStrategy.h" />
     <ClInclude Include="include\StandardGeometries.h" />
@@ -188,9 +184,7 @@
     <ClCompile Include="src\LineRenderer.cpp" />
     <ClCompile Include="src\MaterialGroupsBatchingStrategy.cpp" />
     <ClCompile Include="src\MeshFilter.cpp" />
-    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelImporter.cpp" />
-    <ClCompile Include="src\PNGLoader.cpp" />
     <ClCompile Include="src\PointLight.cpp" />
     <ClCompile Include="src\Points.cpp" />
     <ClCompile Include="src\PointsRenderer.cpp" />
@@ -205,7 +199,7 @@
     <ClCompile Include="src\StringUtils.cpp" />
     <ClCompile Include="src\MeshRenderer.cpp" />
     <ClCompile Include="src\Texture.cpp" />
-    <ClCompile Include="src\TextureUtils.cpp" />
+    <ClCompile Include="src\TextureImporter.cpp" />
     <ClCompile Include="src\UnorderedSingleGroupBatchingStrategy.cpp" />
   </ItemGroup>
   <ItemGroup>

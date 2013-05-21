@@ -11,47 +11,32 @@ enum WrapMode
 
 enum FilterMode
 {
-	FM_POINT, 
-	FM_BILINEAR, 
-	FM_TRILINEAR
+	FM_POINT_FILTER, 
+	FM_LINEAR_FILTER, 
+	FM_MIPMAPS
 };
 
-enum TextureFormat
+enum InternalFormat
 {
-	TF_RGB, 
-	TF_RGBA,
-	TF_LUMINANCE_ALPHA
+	IF_RGB, 
+	IF_RGBA,
+	IF_LUMINANCE_ALPHA
 };
 
 enum DataType
 {
-	DT_FLOAT, 
-	DT_UNSIGNED_CHAR
+	DF_FLOAT, 
+	DF_UNSIGNED_CHAR
 };
 
 class Texture
 {
 public:
-	Texture(unsigned int width, unsigned int height, TextureFormat format = TF_RGB, DataType dataType = DT_FLOAT, FilterMode filter = FM_BILINEAR, WrapMode wrapMode = WM_CLAMP, void* pData = 0);
+	Texture(unsigned int width, unsigned int height, unsigned int bytesPerPixel = 3, InternalFormat internalFormat = IF_RGB, DataType dataType = DF_FLOAT, FilterMode filter = FM_LINEAR_FILTER, WrapMode wrapMode = WM_CLAMP, void* pData = 0);
 	~Texture();
 
 	void Bind() const;
 	void Unbind() const;
-
-	inline FilterMode GetFilter() const
-	{
-		return mFilter;
-	}
-
-	inline TextureFormat GetFormat() const
-	{
-		return mFormat;
-	}
-
-	inline DataType GetDataType() const
-	{
-		return mDataType;
-	}
 
 	inline unsigned int GetHeight() const
 	{
@@ -63,6 +48,26 @@ public:
 		return mWidth;
 	}
 
+	inline unsigned int GetBytesPerPixel() const
+	{
+		return mBytesPerPixel;
+	}
+
+	inline InternalFormat GetInternalFormat() const
+	{
+		return mInternalFormat;
+	}
+
+	inline DataType GetDataType() const
+	{
+		return mDataType;
+	}
+
+	inline FilterMode GetFilterMode() const
+	{
+		return mFilter;
+	}
+
 	inline WrapMode GetWrapMode() const
 	{
 		return mWrapMode;
@@ -71,7 +76,8 @@ public:
 private:
 	unsigned int mWidth;
 	unsigned int mHeight;
-	TextureFormat mFormat;
+	unsigned int mBytesPerPixel;
+	InternalFormat mInternalFormat;
 	DataType mDataType;
 	FilterMode mFilter;
 	WrapMode mWrapMode;
@@ -83,7 +89,6 @@ private:
 	void SetUpFilter() const;
 	void SetUpWrapping() const;
 	unsigned int GetInternalFormatMapping() const;
-	unsigned int GetFormatMapping() const;
 	unsigned int GetDataTypeMapping() const;
 	void GenerateMipmaps() const;
 

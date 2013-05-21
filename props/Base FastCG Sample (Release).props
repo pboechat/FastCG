@@ -8,12 +8,15 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>USE_PROGRAMMABLE_PIPELINE;FREEGLUT_STATIC;GLEW_BUILD=GLEW_STATIC;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;ASSIMP_BUILD_BOOST_WORKAROUND;_HAS_ITERATOR_DEBUGGING=0;_SECURE_SCL=0;ASSIMP_BUILD_SINGLETHREADED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../surfaces/include;../../color/include;../../core/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include;../../dependencies/freetype_2411/include;../../dependencies/assimp_301/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../surfaces/include;../../color/include;../../core/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include;../../dependencies/freetype_2411/include;../../dependencies/assimp_301/include;../../dependencies/devil_178/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../../dependencies/zlib_127/Release;../../dependencies/libpng_161/Release;../../dependencies/freetype_2411/Release;../../dependencies/freeglut_281/Release;../../dependencies/glew_190/Release;../../dependencies/assimp_301/Release;../../core/Release;../../color/Release;../../surfaces/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;zlib.lib;libpng.lib;freetype2411.lib;glew.lib;assimp.lib;core.lib;color.lib;surfaces.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dependencies/zlib_127/Release;../../dependencies/libpng_161/Release;../../dependencies/freetype_2411/Release;../../dependencies/freeglut_281/Release;../../dependencies/glew_190/Release;../../dependencies/assimp_301/Release;../../dependencies/devil_178/Release;../../core/Release;../../color/Release;../../surfaces/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;zlib.lib;libpng.lib;freetype2411.lib;glew.lib;assimp.lib;devil.lib;ilu.lib;ilut.lib;core.lib;color.lib;surfaces.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)dependencies\devil_178\bin\DevIL.dll" "$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

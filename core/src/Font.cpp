@@ -14,8 +14,8 @@
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
 
-#include <gl/glew.h>
-#include <gl/GL.h>
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 const unsigned int Font::NUM_CHARS = 128;
 
@@ -158,7 +158,7 @@ void Font::DeallocateResources()
 	glDeleteTextures(128, &mCharactersTexturesIds[0]);
 }
 
-void Font::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
+void Font::DrawString(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
 	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 projection = glm::ortho(0.0f, (float)Application::GetInstance()->GetScreenWidth(), 0.0f, (float)Application::GetInstance()->GetScreenHeight());

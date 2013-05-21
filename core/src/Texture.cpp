@@ -3,10 +3,9 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/freeglut.h>
 
-Texture::Texture(unsigned int width, unsigned int height, TextureFormat format, DataType dataType, FilterMode filter, WrapMode wrapMode, void* pData) :
-	mWidth(width), mHeight(height), mFormat(format), mDataType(dataType), mFilter(filter), mWrapMode(wrapMode), mpData(pData)
+Texture::Texture(unsigned int width, unsigned int height, unsigned int bytesPerPixel, InternalFormat internalFormat, DataType dataType, FilterMode filter, WrapMode wrapMode, void* pData) :
+	mWidth(width), mHeight(height), mBytesPerPixel(bytesPerPixel), mInternalFormat(internalFormat), mDataType(dataType), mFilter(filter), mWrapMode(wrapMode), mpData(pData)
 {
 	AllocateResources();
 }
@@ -14,11 +13,6 @@ Texture::Texture(unsigned int width, unsigned int height, TextureFormat format, 
 Texture::~Texture()
 {
 	DeallocateResources();
-
-	if (mpData != 0)
-	{
-		delete[] mpData;
-	}
 }
 
 void Texture::AllocateResources()
@@ -28,14 +22,14 @@ void Texture::AllocateResources()
 	SetUpFilter();
 	SetUpWrapping();
 
-	if (mDataType == DT_UNSIGNED_CHAR)
+	if (mDataType == DF_UNSIGNED_CHAR)
 	{
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GetInternalFormatMapping(), mWidth, mHeight, 0, GetFormatMapping(), GetDataTypeMapping(), mpData);
+	glTexImage2D(GL_TEXTURE_2D, 0, mBytesPerPixel, mWidth, mHeight, 0, GetInternalFormatMapping(), GetDataTypeMapping(), mpData);
 
-	if (mFilter == FM_TRILINEAR)
+	if (mFilter == FM_MIPMAPS)
 	{
 		GenerateMipmaps();
 	}
@@ -62,17 +56,17 @@ void Texture::SetUpFilter() const
 {
 	switch (mFilter)
 	{
-	case FM_POINT:
+	case FM_POINT_FILTER:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		break;
 
-	case FM_BILINEAR:
+	case FM_LINEAR_FILTER:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		break;
 
-	case FM_TRILINEAR:
+	case FM_MIPMAPS:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		break;
@@ -105,37 +99,20 @@ void Texture::SetUpWrapping() const
 
 unsigned int Texture::GetInternalFormatMapping() const
 {
-	switch (mFormat)
+	switch (mInternalFormat)
 	{
-	case TF_RGB:
+	case IF_RGB:
 		return GL_RGB;
 
-	case TF_RGBA:
-	case TF_LUMINANCE_ALPHA:
+	case IF_RGBA:
 		return GL_RGBA;
 
-	default:
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat);
-	}
-}
-
-unsigned int Texture::GetFormatMapping() const
-{
-	switch (mFormat)
-	{
-	case TF_RGB:
-		return GL_RGB;
-
-	case TF_RGBA:
-		return GL_RGBA;
-
-	case TF_LUMINANCE_ALPHA:
+	case IF_LUMINANCE_ALPHA:
 		return GL_LUMINANCE_ALPHA;
 
 	default:
 		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "Unknown texture format: %d", mFormat);
+		THROW_EXCEPTION(Exception, "Unknown internal format: %d", mInternalFormat);
 	}
 }
 
@@ -143,10 +120,10 @@ unsigned int Texture::GetDataTypeMapping() const
 {
 	switch (mDataType)
 	{
-	case DT_FLOAT:
+	case DF_FLOAT:
 		return GL_FLOAT;
 
-	case DT_UNSIGNED_CHAR:
+	case DF_UNSIGNED_CHAR:
 		return GL_UNSIGNED_BYTE;
 
 	default:

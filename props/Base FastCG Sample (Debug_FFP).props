@@ -10,12 +10,15 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>DEBUG;FREEGLUT_STATIC;GLEW_BUILD=GLEW_STATIC;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;ASSIMP_BUILD_BOOST_WORKAROUND;_HAS_ITERATOR_DEBUGGING=0;_SECURE_SCL=0;ASSIMP_BUILD_SINGLETHREADED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../surfaces/include;../../color/include;../../core/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include;../../dependencies/freetype_2411/include;../../dependencies/assimp_301/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../surfaces/include;../../color/include;../../core/include;../../dependencies/freeglut_281/include;../../dependencies/glew_190/include;../../dependencies/glm_0943/include;../../dependencies/libpng_161/include;../../dependencies/zlib_127/include;../../dependencies/freetype_2411/include;../../dependencies/assimp_301/include;../../dependencies/devil_178/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../../dependencies/zlib_127/Debug_FFP;../../dependencies/libpng_161/Debug_FFP;../../dependencies/freetype_2411/Debug_FFP;../../dependencies/freeglut_281/Debug_FFP;../../dependencies/glew_190/Debug_FFP;../../dependencies/assimp_301/Debug_FFP;../../core/Debug_FFP;../../color/Debug_FFP;../../surfaces/Debug_FFP;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;zlibd.lib;libpngd.lib;freetype2411d.lib;glewd.lib;assimpd.lib;cored.lib;colord.lib;surfacesd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dependencies/zlib_127/Debug_FFP;../../dependencies/libpng_161/Debug_FFP;../../dependencies/freetype_2411/Debug_FFP;../../dependencies/freeglut_281/Debug_FFP;../../dependencies/glew_190/Debug_FFP;../../dependencies/assimp_301/Debug_FFP;../../dependencies/devil_178/Debug_FFP;../../core/Debug_FFP;../../color/Debug_FFP;../../surfaces/Debug_FFP;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;zlibd.lib;libpngd.lib;freetype2411d.lib;glewd.lib;assimpd.lib;devild.lib;ilud.lib;ilutd.lib;cored.lib;colord.lib;surfacesd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)dependencies\devil_178\bin\DevIL.dll" "$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

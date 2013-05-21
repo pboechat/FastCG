@@ -1,8 +1,9 @@
 #include <Application.h>
 #include <Behaviour.h>
-#include <ModelImporter.h>
 #include <ShaderRegistry.h>
 #include <FontRegistry.h>
+#include <TextureImporter.h>
+#include <ModelImporter.h>
 #include <Input.h>
 #include <KeyCode.h>
 #include <MouseButton.h>
@@ -102,7 +103,6 @@ Application::~Application()
 	}
 	mDrawTextRequests.clear();
 
-	ModelImporter::Dispose();
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	ShaderRegistry::Unload();
 	FontRegistry::Unload();
@@ -186,6 +186,9 @@ Application::~Application()
 		delete mRenderBatches[i];
 	}
 	mRenderBatches.clear();
+
+	ModelImporter::Dispose();
+	TextureImporter::Dispose();
 
 	s_mpInstance = 0;
 }
@@ -341,7 +344,6 @@ void Application::Run(int argc, char** argv)
 
 	try
 	{
-		ModelImporter::Initialize();
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 		std::string shadersFolder;
@@ -361,6 +363,10 @@ void Application::Run(int argc, char** argv)
 		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 #endif
 		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
+
+		TextureImporter::Initialize();
+		ModelImporter::Initialize();
+
 		mStartTimer.Start();
 		OnStart();
 		glutMainLoop();
@@ -475,7 +481,7 @@ void Application::DrawAllTexts()
 	{
 		DrawTextRequest* pDrawTextRequest = mDrawTextRequests[i];
 #ifdef USE_PROGRAMMABLE_PIPELINE
-		pDrawTextRequest->pFont->DrawText(pDrawTextRequest->text, pDrawTextRequest->size, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);		
+		pDrawTextRequest->pFont->DrawString(pDrawTextRequest->text, pDrawTextRequest->size, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);		
 #else
 		glColor4fv(&pDrawTextRequest->color[0]);
 		glRasterPos2i(pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y));
@@ -504,7 +510,7 @@ void Application::ShowFPS()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef USE_PROGRAMMABLE_PIPELINE
-	mpStandardFont->DrawText(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 240, mScreenHeight - 17, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	mpStandardFont->DrawString(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 240, mScreenHeight - 17, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);
@@ -535,9 +541,9 @@ void Application::ShowRenderingStatistics()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
-	mpStandardFont->DrawText(text, 14, mScreenWidth - 240, mScreenHeight - 34, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 34, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
-	mpStandardFont->DrawText(text, 14, mScreenWidth - 240, mScreenHeight - 51, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 51, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);

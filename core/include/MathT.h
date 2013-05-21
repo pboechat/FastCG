@@ -16,33 +16,19 @@ public:
 
 	inline static bool IsPowerOfTwo(unsigned int i);
 	inline static unsigned int UpperPowerOfTwo(unsigned int i);
-
 	inline static T Round(T a);
-
 	inline static T Sqrt(T a);
-
 	inline static T Ceil(T a);
-
 	inline static T Floor(T a);
-
 	inline static T Log2(T a);
-
 	inline static T Pow(T a, int b);
-
 	inline static T Max(T a, T b);
-
 	inline static T Min(T a, T b);
-
 	inline static T Cos(T angleInRadians);
-
 	inline static T Sin(T angleInRadians);
-
 	inline static T Tan(T angleInRadians);
-
 	inline static T Abs(T value);
-
 	inline static T Clamp(T value, T low, T high);
-
 	inline static T FMod(T a, T b);
 
 private:

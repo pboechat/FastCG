@@ -1,11 +1,10 @@
 #include <Mesh.h>
 #include <Shader.h>
 #include <Exception.h>
-#include <OpenGLExceptions.h>
+//#include <OpenGLExceptions.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/freeglut.h>
 
 Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs) :
 	mVertices(vertices), 
@@ -110,7 +109,7 @@ void Mesh::AllocateResources()
 
 	mDisplayListId = glGenLists(1);
 
-	CHECK_FOR_OPENGL_ERRORS();
+	//CHECK_FOR_OPENGL_ERRORS();
 
 	glNewList(mDisplayListId, GL_COMPILE);
 	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);

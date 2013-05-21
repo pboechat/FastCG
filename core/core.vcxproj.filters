@@ -159,25 +159,22 @@
     <ClInclude Include="include\DirectionalLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\ModelImporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\AssimpUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\PNGLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TextureUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\AABB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TextureImporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -293,16 +290,10 @@
     <ClCompile Include="src\ModelImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PNGLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextureUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\File.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

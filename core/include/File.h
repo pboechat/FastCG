@@ -6,7 +6,7 @@
 class File
 {
 public:
-	static std::string GetPath(const std::string& rFilePath);
+	static std::string GetFilePath(const std::string& rFilePath);
 	static std::string GetFileName(const std::string& rFilePath);
 
 private:

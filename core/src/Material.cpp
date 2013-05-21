@@ -1,8 +1,7 @@
 #include <Material.h>
-#include <Application.h>
 #include <Mesh.h>
-#include <Transform.h>
 
+#include <GL/glew.h>
 #include <GL/gl.h>
 
 #include <vector>
@@ -13,7 +12,8 @@
 
 Material::Material(Shader* pShader) :
 	mpShader(pShader),
-	mUnlit(false)
+	mUnlit(false),
+	mTwoSided(false)
 {
 }
 
@@ -80,7 +80,9 @@ Material::Material(const glm::vec4& ambientColor, const glm::vec4& diffuseColor,
 	mShininess(shininess),
 	mEmissive(emissive),
 	mEmissiveColor(emissiveColor),
-	mpTexture(0)
+	mpTexture(0),
+	mUnlit(false),
+	mTwoSided(false)
 {
 }
 

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-std::string File::GetPath(const std::string& rFilePath)
+std::string File::GetFilePath(const std::string& rFilePath)
 {
 	std::vector<std::string> rTokens;
 	StringUtils::Tokenize(rFilePath, "/", rTokens);

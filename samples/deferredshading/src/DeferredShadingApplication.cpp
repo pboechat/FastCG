@@ -12,7 +12,7 @@
 #include <MeshFilter.h>
 #include <ModelImporter.h>
 #include <FirstPersonCameraController.h>
-#include <TextureUtils.h>
+#include <TextureImporter.h>
 #include <MathT.h>
 
 #include <vector>
@@ -70,7 +70,7 @@ void DeferredShadingApplication::OnStart()
 		}
 	}
 
-	mpCheckersColorMapTexture = TextureUtils::LoadPNGAsTexture("textures/CheckersColorMap.png");
+	mpCheckersColorMapTexture = TextureImporter::Import("textures/CheckersColorMap.png");
 
 #ifdef USE_PROGRAMMABLE_PIPELINE
 	mpFloorMaterial = new Material(ShaderRegistry::Find("Diffuse"));

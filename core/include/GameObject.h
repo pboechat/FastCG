@@ -1,6 +1,8 @@
 #ifndef GAMEOBJECT_H_
 #define GAMEOBJECT_H_
 
+#include <AABB.h>
+
 #include <vector>
 
 class ComponentType;
@@ -14,6 +16,16 @@ class GameObject
 public:
 	static GameObject* Instantiate();
 	static void Destroy(GameObject* pGameObject);
+
+	inline const AABB& GetBoundingVolume() const
+	{
+		return mBoundingVolume;
+	}
+
+	inline void SetBoundingVolume(const AABB& boundingVolume)
+	{
+		mBoundingVolume = boundingVolume;
+	}
 
 	inline Transform* GetTransform()
 	{
@@ -50,6 +62,7 @@ public:
 	friend class Component;
 
 private:
+	AABB mBoundingVolume;
 	Transform* mpTransform;
 	Renderer* mpRenderer;
 	std::vector<Component*> mComponents;

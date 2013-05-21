@@ -30,8 +30,8 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 	static unsigned int text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 4 + 9;
 	Application::GetInstance()->DrawText(pText, FontRegistry::STANDARD_FONT_SIZE, 10, text3Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #else
-	static unsigned int text1Height = 15;
-	Application::GetInstance()->DrawText(pText, 12, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	static unsigned int text2Height = 30;
+	Application::GetInstance()->DrawText(pText, 12, 10, text2Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #endif
 
 	if (time - mLastDirectionChangeTime > 5.0f)

@@ -69,6 +69,16 @@ public:
 		mUnlit = unlit;
 	}
 
+	inline bool IsTwoSided() const
+	{
+		return mTwoSided;
+	}
+
+	inline void SetTwoSided(bool twoSided)
+	{
+		mTwoSided = twoSided;
+	}
+
 private:
 	Shader* mpShader;
 	std::map<std::string, float> mFloatParameters;
@@ -77,6 +87,7 @@ private:
 	std::map<std::string, Texture*> mTextureParameters;
 	std::map<std::string, glm::vec2> mTexturesTiling;
 	bool mUnlit;
+	bool mTwoSided;
 
 };
 
@@ -163,6 +174,26 @@ public:
 		mpTexture = pTexture;
 	}
 
+	inline bool IsUnlit() const
+	{
+		return mUnlit;
+	}
+
+	inline void SetUnlit(bool unlit)
+	{
+		mUnlit = unlit;
+	}
+
+	inline bool IsTwoSided() const
+	{
+		return mTwoSided;
+	}
+
+	inline void SetTwoSided(bool twoSided)
+	{
+		mTwoSided = twoSided;
+	}
+
 	void SetUpParameters() const;
 
 private:
@@ -173,6 +204,8 @@ private:
 	float mShininess;
 	bool mEmissive;
 	Texture* mpTexture;
+	bool mUnlit;
+	bool mTwoSided;
 
 };
 

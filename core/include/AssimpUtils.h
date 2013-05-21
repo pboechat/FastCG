@@ -36,6 +36,11 @@ public:
 		return std::string(rString.C_Str());
 	}
 
+	inline static glm::vec4 Convert(const aiColor4D& rColor)
+	{
+		return glm::vec4(rColor.r, rColor.g, rColor.b, rColor.a);
+	}
+
 private:
 	AssimpUtils()
 	{

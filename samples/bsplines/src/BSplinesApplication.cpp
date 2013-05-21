@@ -9,7 +9,6 @@ BSplinesApplication::BSplinesApplication() :
 {
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
 	mShowFPS = true;
 }
 

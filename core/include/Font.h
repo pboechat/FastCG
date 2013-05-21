@@ -16,7 +16,7 @@ public:
 	Font(const std::string& rFileName, unsigned int size);
 	~Font();
 
-	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
+	void DrawString(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 
 private:
 	static const unsigned int NUM_CHARS;
