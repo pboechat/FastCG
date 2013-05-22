@@ -23,7 +23,6 @@ ColorCheckerApplication::ColorCheckerApplication() :
 {
 	mGlobalAmbientLight = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
-	mShowRenderingStatistics = true;
 }
 
 bool ColorCheckerApplication::ParseCommandLineArguments(int argc, char** argv)
