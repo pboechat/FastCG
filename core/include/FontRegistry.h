@@ -1,4 +1,4 @@
-#if (!defined(FONTREGISTRY_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
+#if (!defined(FONTREGISTRY_H_) && !defined(FIXED_FUNCTION_PIPELINE))
 #define FONTREGISTRY_H_
 
 #include <Font.h>

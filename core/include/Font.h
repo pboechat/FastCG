@@ -1,4 +1,4 @@
-#if (!defined(FONT_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
+#if (!defined(FONT_H_) && !defined(FIXED_FUNCTION_PIPELINE))
 #define FONT_H_
 
 #include <Shader.h>

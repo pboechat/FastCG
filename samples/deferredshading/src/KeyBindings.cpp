@@ -10,7 +10,10 @@ COMPONENT_IMPLEMENTATION(KeyBindings, Behaviour);
 
 void KeyBindings::OnUpdate(float time, float deltaTime)
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	static unsigned int text1Height = 15;
+	Application::GetInstance()->DrawText("Use WASD/arrow keys and left mouse button to navigate", 12, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+#else
 	static unsigned int text1Height = FontRegistry::STANDARD_FONT_SIZE + 3;
 	static unsigned int text2Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 2 + 5;
 	static unsigned int text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 3 + 7;
@@ -32,11 +35,7 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 		bool showPointLightsEnabled = pDeferredRenderingStrategy->IsShowPointLightsEnabled();
 		pDeferredRenderingStrategy->SetShowPointLightsEnabled(!showPointLightsEnabled);
 		mLastKeyPressTime = time;
-	}
-	else
-#else
-	static unsigned int text1Height = 15;
-	Application::GetInstance()->DrawText("Use WASD/arrow keys and left mouse button to navigate", 12, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	} else
 #endif
 	if (Input::GetKey(KeyCode::ESCAPE))
 	{

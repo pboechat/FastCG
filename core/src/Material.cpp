@@ -8,7 +8,43 @@
 #include <sstream>
 #include <iostream>
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+
+Material::Material(const glm::vec4& ambientColor, const glm::vec4& diffuseColor, const glm::vec4& specularColor, float shininess, bool emissive, const glm::vec4& emissiveColor) :
+	mAmbientColor(ambientColor),
+	mDiffuseColor(diffuseColor),
+	mSpecularColor(specularColor),
+	mShininess(shininess),
+	mEmissive(emissive),
+	mEmissiveColor(emissiveColor),
+	mpTexture(0),
+	mUnlit(false),
+	mTwoSided(false)
+{
+}
+
+Material::~Material()
+{
+}
+
+void Material::SetUpParameters() const
+{
+	glMaterialfv(GL_FRONT, GL_AMBIENT, &mAmbientColor[0]);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, &mDiffuseColor[0]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, &mSpecularColor[0]);
+	if (mEmissive)
+	{
+		glMaterialfv(GL_FRONT, GL_EMISSION, &mEmissiveColor[0]);
+	}
+	glMaterialf(GL_FRONT, GL_SHININESS, mShininess);
+
+	if (mpTexture != 0)
+	{
+		mpTexture->Bind();
+	}
+}
+
+#else
 
 Material::Material(Shader* pShader) :
 	mpShader(pShader),
@@ -68,42 +104,6 @@ void Material::SetUpParameters() const
 
 		textureUnit++;
 		textureParametersCursor++;
-	}
-}
-
-#else
-
-Material::Material(const glm::vec4& ambientColor, const glm::vec4& diffuseColor, const glm::vec4& specularColor, float shininess, bool emissive, const glm::vec4& emissiveColor) :
-	mAmbientColor(ambientColor),
-	mDiffuseColor(diffuseColor),
-	mSpecularColor(specularColor),
-	mShininess(shininess),
-	mEmissive(emissive),
-	mEmissiveColor(emissiveColor),
-	mpTexture(0),
-	mUnlit(false),
-	mTwoSided(false)
-{
-}
-
-Material::~Material()
-{
-}
-
-void Material::SetUpParameters() const
-{
-	glMaterialfv(GL_FRONT, GL_AMBIENT, &mAmbientColor[0]);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, &mDiffuseColor[0]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, &mSpecularColor[0]);
-	if (mEmissive)
-	{
-		glMaterialfv(GL_FRONT, GL_EMISSION, &mEmissiveColor[0]);
-	}
-	glMaterialf(GL_FRONT, GL_SHININESS, mShininess);
-
-	if (mpTexture != 0)
-	{
-		mpTexture->Bind();
 	}
 }
 

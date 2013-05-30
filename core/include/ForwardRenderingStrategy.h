@@ -1,4 +1,4 @@
-#if (!defined(FORWARDRENDERINGSTRATEGY_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
+#if (!defined(FORWARDRENDERINGSTRATEGY_H_) && !defined(FIXED_FUNCTION_PIPELINE))
 #define FORWARDRENDERINGSTRATEGY_H_
 
 #include <RenderingStrategy.h>

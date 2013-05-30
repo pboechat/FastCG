@@ -9,89 +9,7 @@
 
 #include <glm/glm.hpp>
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-
-class Material
-{
-public:
-	Material(Shader* pShader);
-	~Material();
-
-	inline Shader* GetShader() const
-	{
-		return mpShader;
-	}
-
-	inline void SetShader(Shader* pShader)
-	{
-		mpShader = pShader;
-	}
-
-	void SetUpParameters() const;
-
-	inline void SetFloat(const std::string& rParameterName, float value)
-	{
-		mFloatParameters[rParameterName] = value;
-	}
-
-	inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector)
-	{
-		mVec4Parameters[rParameterName] = rVector;
-	}
-
-	inline void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix)
-	{
-		mMat4Parameters[rParameterName] = rMatrix;
-	}
-
-	inline void SetTexture(const std::string& rParameterName, Texture* pTexture)
-	{
-		mTextureParameters[rParameterName] = pTexture;
-	}
-
-	inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
-	{
-		return mTexturesTiling.find(rTextureName)->second;
-	}
-
-	inline void SetTextureTiling(const std::string& rTextureName, const glm::vec2& rTextureTiling)
-	{
-		mTexturesTiling[rTextureName] = rTextureTiling;
-	}
-
-	inline bool IsUnlit() const
-	{
-		return mUnlit;
-	}
-
-	inline void SetUnlit(bool unlit)
-	{
-		mUnlit = unlit;
-	}
-
-	inline bool IsTwoSided() const
-	{
-		return mTwoSided;
-	}
-
-	inline void SetTwoSided(bool twoSided)
-	{
-		mTwoSided = twoSided;
-	}
-
-private:
-	Shader* mpShader;
-	std::map<std::string, float> mFloatParameters;
-	std::map<std::string, glm::vec4> mVec4Parameters;
-	std::map<std::string, glm::mat4> mMat4Parameters;
-	std::map<std::string, Texture*> mTextureParameters;
-	std::map<std::string, glm::vec2> mTexturesTiling;
-	bool mUnlit;
-	bool mTwoSided;
-
-};
-
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 
 class Material
 {
@@ -204,6 +122,88 @@ private:
 	float mShininess;
 	bool mEmissive;
 	Texture* mpTexture;
+	bool mUnlit;
+	bool mTwoSided;
+
+};
+
+#else
+
+class Material
+{
+public:
+	Material(Shader* pShader);
+	~Material();
+
+	inline Shader* GetShader() const
+	{
+		return mpShader;
+	}
+
+	inline void SetShader(Shader* pShader)
+	{
+		mpShader = pShader;
+	}
+
+	void SetUpParameters() const;
+
+	inline void SetFloat(const std::string& rParameterName, float value)
+	{
+		mFloatParameters[rParameterName] = value;
+	}
+
+	inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector)
+	{
+		mVec4Parameters[rParameterName] = rVector;
+	}
+
+	inline void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix)
+	{
+		mMat4Parameters[rParameterName] = rMatrix;
+	}
+
+	inline void SetTexture(const std::string& rParameterName, Texture* pTexture)
+	{
+		mTextureParameters[rParameterName] = pTexture;
+	}
+
+	inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
+	{
+		return mTexturesTiling.find(rTextureName)->second;
+	}
+
+	inline void SetTextureTiling(const std::string& rTextureName, const glm::vec2& rTextureTiling)
+	{
+		mTexturesTiling[rTextureName] = rTextureTiling;
+	}
+
+	inline bool IsUnlit() const
+	{
+		return mUnlit;
+	}
+
+	inline void SetUnlit(bool unlit)
+	{
+		mUnlit = unlit;
+	}
+
+	inline bool IsTwoSided() const
+	{
+		return mTwoSided;
+	}
+
+	inline void SetTwoSided(bool twoSided)
+	{
+		mTwoSided = twoSided;
+	}
+
+private:
+	Shader* mpShader;
+	std::map<std::string, float> mFloatParameters;
+	std::map<std::string, glm::vec4> mVec4Parameters;
+	std::map<std::string, glm::mat4> mMat4Parameters;
+	std::map<std::string, Texture*> mTextureParameters;
+	std::map<std::string, glm::vec2> mTexturesTiling;
 	bool mUnlit;
 	bool mTwoSided;
 

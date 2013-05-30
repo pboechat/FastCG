@@ -24,10 +24,10 @@ const float DeferredShadingApplication::WALK_SPEED = 20.0f;
 const float DeferredShadingApplication::TURN_SPEED = 100.0f;
 
 DeferredShadingApplication::DeferredShadingApplication() :
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	Application("deferredshading", 1024, 768, 60, true),
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	Application("deferredshading", 1024, 768, 60),
+#else
+	Application("deferredshading", 1024, 768, 60, true),
 #endif
 	mpCheckersColorMapTexture(0),
 	mpFloorMaterial(0),
@@ -72,16 +72,16 @@ void DeferredShadingApplication::OnStart()
 
 	mpCheckersColorMapTexture = TextureImporter::Import("textures/CheckersColorMap.png");
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mpFloorMaterial = new Material(ShaderRegistry::Find("Diffuse"));
-	mpFloorMaterial->SetTexture("colorMap", mpCheckersColorMapTexture);
-	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
-	mpFloorMaterial->SetFloat("shininess", 5.0f);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	mpFloorMaterial = new Material();
 	mpFloorMaterial->SetTexture(mpCheckersColorMapTexture);
 	mpFloorMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpFloorMaterial->SetShininess(5.0f);
+#else
+	mpFloorMaterial = new Material(ShaderRegistry::Find("Diffuse"));
+	mpFloorMaterial->SetTexture("colorMap", mpCheckersColorMapTexture);
+	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	mpFloorMaterial->SetFloat("shininess", 5.0f);
 #endif
 
 	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
@@ -92,16 +92,16 @@ void DeferredShadingApplication::OnStart()
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pFloorGameObject);
 	pMeshFilter->SetMaterial(mpFloorMaterial);
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mpSphereMaterial = new Material(ShaderRegistry::Find("SolidColor"));
-	mpSphereMaterial->SetVec4("solidColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpSphereMaterial->SetVec4("specularColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpSphereMaterial->SetFloat("shininess", 1.0f);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	mpSphereMaterial = new Material();
 	mpSphereMaterial->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpSphereMaterial->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpSphereMaterial->SetShininess(1.0f);
+#else
+	mpSphereMaterial = new Material(ShaderRegistry::Find("SolidColor"));
+	mpSphereMaterial->SetVec4("solidColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpSphereMaterial->SetVec4("specularColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpSphereMaterial->SetFloat("shininess", 1.0f);
 #endif
 
 	mpSphereMesh = StandardGeometries::CreateSphere(SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);

@@ -122,15 +122,15 @@ void ColorCheckerApplication::ConvertLightSpectrumsToRGBs()
 void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float height, const sRGBColor& color)
 {
 	Material* pSolidColorMaterial;
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	pSolidColorMaterial = new Material(ShaderRegistry::Find("SolidColor"));
-	pSolidColorMaterial->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
-	pSolidColorMaterial->SetUnlit(true);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	pSolidColorMaterial = new Material();
 	pSolidColorMaterial->SetAmbientColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 	pSolidColorMaterial->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 	pSolidColorMaterial->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+#else
+	pSolidColorMaterial = new Material(ShaderRegistry::Find("SolidColor"));
+	pSolidColorMaterial->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial->SetUnlit(true);
 #endif
 	mMaterials.push_back(pSolidColorMaterial);
 

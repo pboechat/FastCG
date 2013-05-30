@@ -1,4 +1,4 @@
-#if (!defined(GBUFFER_H_) && defined(USE_PROGRAMMABLE_PIPELINE))
+#if (!defined(GBUFFER_H_) && !defined(FIXED_FUNCTION_PIPELINE))
 #define GBUFFER_H_
 
 class GBuffer

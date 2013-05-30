@@ -31,17 +31,17 @@ void SpheresController::OnUpdate(float time, float deltaTime)
 
 			MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(pSphere->GetComponent(MeshFilter::TYPE));
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+			pMeshFilter->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
+#else
 			pMeshFilter->GetMaterial()->SetTexture("colorMap", mColorMapTextures[mCurrentTextureIndex]);
 			pMeshFilter->GetMaterial()->SetTexture("bumpMap", mBumpMapTextures[mCurrentTextureIndex]);
-#else
-			pMeshFilter->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
 #endif
 		}
 
 		mLastLeftButtonClickTime = time;
 	}
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 	else if (Input::GetMouseButton(MouseButton::MIDDLE_BUTTON) && time - mLastMiddleButtonClickTime > 0.5f)
 	{
 		GameObject* pSphere = mSpheres[0];

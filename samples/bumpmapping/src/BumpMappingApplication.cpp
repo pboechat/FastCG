@@ -67,18 +67,18 @@ void BumpMappingApplication::OnStart()
 	mSphereColorMapTextures.push_back(TextureImporter::Import("textures/SphereColorMap3.png"));
 	mSphereBumpMapTextures.push_back(TextureImporter::Import("textures/SphereBumpMap3.png"));
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	mpFloorMaterial = new Material();
+	mpFloorMaterial->SetTexture(mFloorColorMapTextures[0]);
+	mpFloorMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	mpFloorMaterial->SetShininess(5.0f);
+#else
 	Shader* pShader = ShaderRegistry::Find("BumpedSpecular");
 	mpFloorMaterial = new Material(pShader);
 	mpFloorMaterial->SetTexture("colorMap", mFloorColorMapTextures[0]);
 	mpFloorMaterial->SetTexture("bumpMap", mFloorBumpMapTextures[0]);
 	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	mpFloorMaterial->SetFloat("shininess", 5.0f);
-#else
-	mpFloorMaterial = new Material();
-	mpFloorMaterial->SetTexture(mFloorColorMapTextures[0]);
-	mpFloorMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
-	mpFloorMaterial->SetShininess(5.0f);
 #endif
 
 	GameObject* pFloorGameObject = GameObject::Instantiate();
@@ -95,17 +95,17 @@ void BumpMappingApplication::OnStart()
 	pFloorController->SetColorMapTextures(mFloorColorMapTextures);
 	pFloorController->SetBumpMapTextures(mFloorBumpMapTextures);
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	mpSphereMaterial = new Material();
+	mpSphereMaterial->SetTexture(mSphereColorMapTextures[0]);
+	mpSphereMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	mpSphereMaterial->SetShininess(10.0f);
+#else
 	mpSphereMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
 	mpSphereMaterial->SetTexture("colorMap", mSphereColorMapTextures[0]);
 	mpSphereMaterial->SetTexture("bumpMap", mSphereBumpMapTextures[0]);
 	mpSphereMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	mpSphereMaterial->SetFloat("shininess", 10.0f);
-#else
-	mpSphereMaterial = new Material();
-	mpSphereMaterial->SetTexture(mSphereColorMapTextures[0]);
-	mpSphereMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
-	mpSphereMaterial->SetShininess(10.0f);
 #endif
 
 	mpSphereMesh = StandardGeometries::CreateSphere(SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);

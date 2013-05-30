@@ -17,12 +17,12 @@ public:
 private:
 	std::vector<glm::vec3> mVertices;
 	std::vector<glm::vec4> mColors;
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	unsigned int mDisplayListId;
+#else
 	unsigned int mLineStripVAOId;
 	unsigned int mVerticesVBOId;
 	unsigned int mColorsVBOId;
-#else
-	unsigned int mDisplayListId;
 #endif
 
 	void AllocateResources();

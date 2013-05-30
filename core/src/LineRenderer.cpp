@@ -13,14 +13,14 @@ void LineRenderer::OnRender()
 		return;
 	}
 
-#ifndef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
 	glPushAttrib(GL_ENABLE_BIT);
 	glEnable(GL_COLOR_MATERIAL);
 #endif
 
 	mpLineStrip->DrawCall();
 
-#ifndef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
 	glPopAttrib();
 #endif
 }

@@ -12,15 +12,15 @@ Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned in
 	mNormals(normals), 
 	mUVs(uvs)
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	mDisplayListId = 0;
+#else
 	mTriangleMeshVAOId = 0;
 	mUseTangents = false;
-#else
-	mDisplayListId = 0;
 #endif
 }
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs) :
 	mTriangleMeshVAOId(0),
 	mVertices(vertices), 
@@ -40,7 +40,28 @@ Mesh::~Mesh()
 
 void Mesh::AllocateResources()
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	// create vertex array buffer and attach data
+	glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
+
+	// create normal array buffer and attach data
+	glNormalPointer(GL_FLOAT, 0, &mNormals[0]);
+
+	// create uvs array buffer and attach data
+	glTexCoordPointer(2, GL_FLOAT, 0, &mUVs[0]);
+
+	mDisplayListId = glGenLists(1);
+
+	//CHECK_FOR_OPENGL_ERRORS();
+
+	glNewList(mDisplayListId, GL_COMPILE);
+	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
+	glEndList();
+#else
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
@@ -93,33 +114,14 @@ void Mesh::AllocateResources()
 	}
 
 	// TODO: check for errors!
-#else
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	// create vertex array buffer and attach data
-	glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
-
-	// create normal array buffer and attach data
-	glNormalPointer(GL_FLOAT, 0, &mNormals[0]);
-
-	// create uvs array buffer and attach data
-	glTexCoordPointer(2, GL_FLOAT, 0, &mUVs[0]);
-
-	mDisplayListId = glGenLists(1);
-
-	//CHECK_FOR_OPENGL_ERRORS();
-
-	glNewList(mDisplayListId, GL_COMPILE);
-	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
-	glEndList();
 #endif
 }
 
 void Mesh::DeallocateResources()
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	glDeleteLists(mDisplayListId, 1);
+#else
 	if (mUseTangents)
 	{
 		glDeleteBuffers(1, &mTangentsVBOId);
@@ -129,14 +131,19 @@ void Mesh::DeallocateResources()
 	glDeleteBuffers(1, &mNormalsVBOId);
 	glDeleteBuffers(1, &mVerticesVBOId);
 	glDeleteBuffers(1, &mTriangleMeshVAOId);
-#else
-	glDeleteLists(mDisplayListId, 1);
 #endif
 }
 
 void Mesh::DrawCall()
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	if (mDisplayListId == 0)
+	{
+		AllocateResources();
+	}
+
+	glCallList(mDisplayListId);
+#else
 	if (mTriangleMeshVAOId == 0)
 	{
 		AllocateResources();
@@ -145,18 +152,10 @@ void Mesh::DrawCall()
 	glBindVertexArray(mTriangleMeshVAOId);
 	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
 	glBindVertexArray(0);
-
-#else
-	if (mDisplayListId == 0)
-	{
-		AllocateResources();
-	}
-
-	glCallList(mDisplayListId);
 #endif
 }
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 void Mesh::CalculateTangents()
 {
 	if (mTriangleMeshVAOId != 0) 

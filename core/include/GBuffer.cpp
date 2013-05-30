@@ -1,4 +1,4 @@
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 
 #include <GBuffer.h>
 #include <Exception.h>

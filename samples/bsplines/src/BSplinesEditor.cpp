@@ -322,7 +322,14 @@ void BSplinesEditor::DrawGUI()
 {
 	static char buffer[128];
 	sprintf(buffer, "Degree: %d", mBSplineDegree);
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	Application::GetInstance()->DrawText("Press 'Enter' to plot B-Spline", 12, 20, 20, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Press 'Backspace' to reset B-Spline", 12, 20, 35, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Right mouse-click to add control point", 12, 20, 50, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Left mouse-click to remove control point", 12, 20, 65, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Press '+' and '-' to increase/decrease degree", 12, 20, 90, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText(buffer, 12, 20, 105, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+#else
 	unsigned int top = 20;
 	unsigned int heightIncrement = FontRegistry::STANDARD_FONT_SIZE + 8;
 	Application::GetInstance()->DrawText("Press 'Enter' to plot B-Spline", FontRegistry::STANDARD_FONT_SIZE, 20, top , glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -336,12 +343,5 @@ void BSplinesEditor::DrawGUI()
 	Application::GetInstance()->DrawText("Press '+' and '-' to increase/decrease degree", FontRegistry::STANDARD_FONT_SIZE, 20, top, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	top += heightIncrement;
 	Application::GetInstance()->DrawText(buffer, FontRegistry::STANDARD_FONT_SIZE, 20, top, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-#else
-	Application::GetInstance()->DrawText("Press 'Enter' to plot B-Spline", 12, 20, 20, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	Application::GetInstance()->DrawText("Press 'Backspace' to reset B-Spline", 12, 20, 35, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	Application::GetInstance()->DrawText("Right mouse-click to add control point", 12, 20, 50, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	Application::GetInstance()->DrawText("Left mouse-click to remove control point", 12, 20, 65, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	Application::GetInstance()->DrawText("Press '+' and '-' to increase/decrease degree", 12, 20, 90, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	Application::GetInstance()->DrawText(buffer, 12, 20, 105, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 #endif
 }

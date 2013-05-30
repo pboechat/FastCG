@@ -46,10 +46,10 @@ public:
 	static const std::string FONTS_FOLDER;
 	static const std::string DEFAULT_FONT_NAME;
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering = false);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate);
+#else
+	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering = false);
 #endif
 	
 	virtual ~Application();
@@ -91,7 +91,7 @@ public:
 
 	void Run(int argc, char** argv);
 	void Exit();
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
 #endif
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
@@ -117,7 +117,7 @@ protected:
 	glm::vec4 mGlobalAmbientLight;
 	bool mShowFPS;
 	bool mShowRenderingStatistics;
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 	Font* mpStandardFont;
 #endif
 
@@ -140,22 +140,22 @@ private:
 		unsigned int size;
 		int x;
 		int y;
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 		Font* pFont;
 #endif
 		glm::vec4 color;
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
+#else
+		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
 #endif
 		{
 			text = rText;
 			this->size = size;
 			this->x = x;
 			this->y = y;
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 			this->pFont = pFont;
 #endif
 			color = rColor;
@@ -168,7 +168,7 @@ private:
 	unsigned int mScreenHeight;
 	unsigned int mFrameRate;
 	double mSecondsPerFrame;
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 	bool mDeferredRendering;
 #endif
 	float mHalfScreenWidth;

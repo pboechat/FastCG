@@ -24,7 +24,6 @@
 #include <iostream>
 #include <sstream>
 
-
 const std::string Application::DEFERRED_RENDERING_SHADERS_FOLDER = "shaders/deferred";
 const std::string Application::SHADERS_FOLDER = "shaders";
 const std::string Application::FONTS_FOLDER = "fonts";
@@ -32,9 +31,32 @@ const std::string Application::DEFAULT_FONT_NAME = "verdana";
 
 Application* Application::s_mpInstance = NULL;
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
-Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering) :
+#ifdef FIXED_FUNCTION_PIPELINE
+Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate) :
 	mWindowTitle(rWindowTitle),
+	mScreenWidth(screenWidth),
+	mScreenHeight(screenHeight),
+	mFrameRate(frameRate),
+	mSecondsPerFrame(1.0 / (double)mFrameRate),
+	mHalfScreenWidth(screenWidth / 2.0f),
+	mHalfScreenHeight(screenHeight / 2.0f),
+	mAspectRatio(mScreenWidth / (float) mScreenHeight),
+	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
+	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
+	mGLUTWindowHandle(0),
+	mShowFPS(false),
+	mShowRenderingStatistics(false),
+	mElapsedFrames(0),
+	mTotalElapsedTime(0),
+	mpInput(0),
+	mpRenderingStrategy(0),
+	mpRenderBatchingStrategy(0)
+{
+	s_mpInstance = this;
+}
+#else
+Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering) :
+mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
 	mFrameRate(frameRate),
@@ -55,29 +77,6 @@ Application::Application(const std::string& rWindowTitle, unsigned int screenWid
 	mpRenderingStrategy(0),
 	mpRenderBatchingStrategy(0),
 	mpStandardFont(0)
-{
-	s_mpInstance = this;
-}
-#else
-Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate) :
-	mWindowTitle(rWindowTitle),
-	mScreenWidth(screenWidth),
-	mScreenHeight(screenHeight),
-	mFrameRate(frameRate),
-	mSecondsPerFrame(1.0 / (double)mFrameRate),
-	mHalfScreenWidth(screenWidth / 2.0f),
-	mHalfScreenHeight(screenHeight / 2.0f),
-	mAspectRatio(mScreenWidth / (float) mScreenHeight),
-	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
-	mGlobalAmbientLight(0.3f, 0.3f, 0.3f, 1.0f),
-	mGLUTWindowHandle(0),
-	mShowFPS(false),
-	mShowRenderingStatistics(false),
-	mElapsedFrames(0),
-	mTotalElapsedTime(0),
-	mpInput(0),
-	mpRenderingStrategy(0),
-	mpRenderBatchingStrategy(0)
 {
 	s_mpInstance = this;
 }
@@ -103,7 +102,7 @@ Application::~Application()
 	}
 	mDrawTextRequests.clear();
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifndef FIXED_FUNCTION_PIPELINE
 	ShaderRegistry::Unload();
 	FontRegistry::Unload();
 	mpStandardFont = 0;
@@ -344,8 +343,9 @@ void Application::Run(int argc, char** argv)
 
 	try
 	{
-
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);		
+#else
 		std::string shadersFolder;
 
 		ShaderRegistry::LoadShadersFromDisk((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : SHADERS_FOLDER);
@@ -359,8 +359,6 @@ void Application::Run(int argc, char** argv)
 		{
 			mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 		}
-#else
-		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 #endif
 		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 
@@ -411,12 +409,12 @@ void Application::SetUpGLUT(int argc, char** argv)
 void Application::SetUpOpenGL()
 {
 	glEnable(GL_DEPTH_TEST);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	glEnable(GL_PROGRAM_POINT_SIZE);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);
+#else
+	glEnable(GL_PROGRAM_POINT_SIZE);
 #endif
 }
 
@@ -466,7 +464,7 @@ void Application::DrawAllTexts()
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifndef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glMatrixMode(GL_PROJECTION);
@@ -480,18 +478,18 @@ void Application::DrawAllTexts()
 	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
 	{
 		DrawTextRequest* pDrawTextRequest = mDrawTextRequests[i];
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		pDrawTextRequest->pFont->DrawString(pDrawTextRequest->text, pDrawTextRequest->size, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);		
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 		glColor4fv(&pDrawTextRequest->color[0]);
 		glRasterPos2i(pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y));
 		glutBitmapString(GLUT_BITMAP_HELVETICA_12, (const unsigned char*)pDrawTextRequest->text.c_str());
+#else
+		pDrawTextRequest->pFont->DrawString(pDrawTextRequest->text, pDrawTextRequest->size, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);		
 #endif
 		delete pDrawTextRequest;
 	}
 
 	mDrawTextRequests.clear();
-#ifndef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -509,9 +507,7 @@ void Application::ShowFPS()
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	mpStandardFont->DrawString(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 240, mScreenHeight - 17, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glMatrixMode(GL_PROJECTION);
@@ -528,6 +524,8 @@ void Application::ShowFPS()
 	glPopMatrix();
 	glPopAttrib();
 	glEnable(GL_LIGHTING);
+#else
+	mpStandardFont->DrawString(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 240, mScreenHeight - 17, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #endif
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -539,12 +537,7 @@ void Application::ShowRenderingStatistics()
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
-	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 34, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
-	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 51, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 	glDisable(GL_LIGHTING);
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glMatrixMode(GL_PROJECTION);
@@ -565,6 +558,11 @@ void Application::ShowRenderingStatistics()
 	glPopMatrix();
 	glPopAttrib();
 	glEnable(GL_LIGHTING);
+#else
+	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
+	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 34, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
+	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 51, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 #endif
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -577,23 +575,20 @@ void Application::Render()
 	DrawAllTexts();
 }
 
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
+{
+	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, rColor));
+}
+#else
 void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
 {
-	// add a new draw text request to be processed at the end of the frame
 	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, pFont, rColor));
 }
 
 void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
-	// add a new draw text request to be processed at the end of the frame
 	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, mpStandardFont, rColor));
-}
-#else
-void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
-{
-	// add a new draw text request to be processed at the end of the frame
-	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, rColor));
 }
 #endif
 

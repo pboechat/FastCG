@@ -100,30 +100,30 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 	for (unsigned int i = 0; i < pScene->mNumMaterials; i++)
 	{
 		aiMaterial* pAIMaterial = pScene->mMaterials[i];
-#ifdef USE_PROGRAMMABLE_PIPELINE
-		Material* pManagedMaterial = new Material(ShaderRegistry::Find("Specular"));
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 		Material* pManagedMaterial = new Material();
+#else
+		Material* pManagedMaterial = new Material(ShaderRegistry::Find("Specular"));
 #endif
 
 		aiColor4D aiAmbientColor;
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_AMBIENT, &aiAmbientColor) == AI_SUCCESS)
 		{
 			glm::vec4 ambientColor = AssimpUtils::Convert(aiAmbientColor);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			pManagedMaterial->SetVec4("ambientColor", ambientColor);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 			pManagedMaterial->SetAmbientColor(ambientColor);
+#else
+			pManagedMaterial->SetVec4("ambientColor", ambientColor);
 #endif
 		}
 
 		aiColor4D aiDiffuseColor;
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_DIFFUSE, &aiDiffuseColor) == AI_SUCCESS) {
 			glm::vec4 diffuseColor = AssimpUtils::Convert(aiDiffuseColor);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 			pManagedMaterial->SetDiffuseColor(diffuseColor);
+#else
+			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
 #endif
 		}
 
@@ -131,10 +131,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_SPECULAR, &aiSpecularColor) == AI_SUCCESS)
 		{
 			glm::vec4 specularColor = AssimpUtils::Convert(aiSpecularColor);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			pManagedMaterial->SetVec4("specularColor", specularColor);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 			pManagedMaterial->SetSpecularColor(specularColor);
+#else
+			pManagedMaterial->SetVec4("specularColor", specularColor);
 #endif
 		}
 
@@ -142,10 +142,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_EMISSIVE, &aiEmissiveColor) == AI_SUCCESS)
 		{
 			glm::vec4 emissiveColor = AssimpUtils::Convert(aiEmissiveColor);
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 			pManagedMaterial->SetEmissiveColor(emissiveColor);
+#else
+			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);
 #endif
 		}
 
@@ -155,10 +155,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			aiGetMaterialFloatArray(pAIMaterial, AI_MATKEY_SHININESS_STRENGTH, &strength, &max) == AI_SUCCESS)
 		{
 			shininess *= strength;
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			pManagedMaterial->SetFloat("shininess", shininess);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 			pManagedMaterial->SetShininess(shininess);
+#else
+			pManagedMaterial->SetFloat("shininess", shininess);
 #endif
 		}
 
@@ -167,10 +167,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		if (pAIMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
 		{
 			pImportedTexture = TextureImporter::Import(rBaseDirectory + "/" + AssimpUtils::Convert(texturePath));
-#ifdef USE_PROGRAMMABLE_PIPELINE
-			pManagedMaterial->SetTexture("colorMap", pImportedTexture);
-#else
+#ifdef FIXED_FUNCTION_PIPELINE
 			pManagedMaterial->SetTexture(pImportedTexture);
+#else
+			pManagedMaterial->SetTexture("colorMap", pImportedTexture);
 #endif
 			s_mManagedTextures.push_back(pImportedTexture);
 		}
@@ -196,9 +196,9 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 		std::vector<unsigned int> indices;
-#ifdef USE_PROGRAMMABLE_PIPELINE
+/*#ifndef FIXED_FUNCTION_PIPELINE
 		std::vector<glm::vec4> tangents;
-#endif
+#endif*/
 
 		bool hasUV = pAIMesh->HasTextureCoords(0);
 
@@ -249,7 +249,7 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 			}
 		}
 
-//#ifdef USE_PROGRAMMABLE_PIPELINE
+//#ifndef FIXED_FUNCTION_PIPELINE
 		//Mesh* pMesh = new Mesh(vertices, indices, normals, tangents, uvs);
 //#else
 		Mesh* pManagedMesh = new Mesh(vertices, indices, normals, uvs);

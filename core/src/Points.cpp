@@ -11,12 +11,12 @@ Points::Points(const std::vector<glm::vec3>& rVertices, float size, const glm::v
 	mVertices(rVertices),
 	mSize(size)
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	mDisplayListId = 0;
+#else
 	mPointsVAOId = 0;
 	mVerticesVBOId = 0;
 	mColorsVBOId = 0;
-#else
-	mDisplayListId = 0;
 #endif
 
 	for (unsigned int i = 0; i < mVertices.size(); i++)
@@ -29,12 +29,12 @@ Points::Points(const std::vector<glm::vec3>& rVertices, float size, const std::v
 	mVertices(rVertices), 
 	mSize(size)
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	mDisplayListId = 0;
+#else
 	mPointsVAOId = 0;
 	mVerticesVBOId = 0;
 	mColorsVBOId = 0;
-#else
-	mDisplayListId = 0;
 #endif
 
 	mColors = rColors;
@@ -47,7 +47,24 @@ Points::~Points()
 
 void Points::AllocateResources()
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	// create vertex array buffer and attach data
+	glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
+
+	// create color array buffer and attach data
+	glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
+
+	mDisplayListId = glGenLists(1);
+
+	CHECK_FOR_OPENGL_ERRORS();
+
+	glNewList(mDisplayListId, GL_COMPILE);
+	glDrawArrays(GL_POINTS, 0, mVertices.size());
+	glEndList();
+#else
 	// create vertex buffer object and attach data
 	glGenBuffers(1, &mVerticesVBOId);
 	glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
@@ -72,40 +89,30 @@ void Points::AllocateResources()
 	glVertexAttribPointer(Shader::COLORS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// TODO: check for errors!
-#else
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	// create vertex array buffer and attach data
-	glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
-
-	// create color array buffer and attach data
-	glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
-
-	mDisplayListId = glGenLists(1);
-
-	CHECK_FOR_OPENGL_ERRORS();
-
-	glNewList(mDisplayListId, GL_COMPILE);
-	glDrawArrays(GL_POINTS, 0, mVertices.size());
-	glEndList();
 #endif
 }
 
 void Points::DeallocateResources()
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	glDeleteLists(mDisplayListId, 1);
+#else
 	glDeleteBuffers(1, &mColorsVBOId);
 	glDeleteBuffers(1, &mVerticesVBOId);
 	glDeleteBuffers(1, &mPointsVAOId);
-#else
-	glDeleteLists(mDisplayListId, 1);
 #endif
 }
 
 void Points::DrawCall()
 {
-#ifdef USE_PROGRAMMABLE_PIPELINE
+#ifdef FIXED_FUNCTION_PIPELINE
+	if (mDisplayListId == 0)
+	{
+		AllocateResources();
+	}
+
+	glCallList(mDisplayListId);
+#else
 	if (mPointsVAOId == 0)
 	{
 		AllocateResources();
@@ -114,13 +121,6 @@ void Points::DrawCall()
 	glBindVertexArray(mPointsVAOId);
 	glDrawArrays(GL_POINTS, 0, mVertices.size());
 	glBindVertexArray(0);
-#else
-	if (mDisplayListId == 0)
-	{
-		AllocateResources();
-	}
-
-	glCallList(mDisplayListId);
 #endif
 }
 

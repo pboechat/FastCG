@@ -1,4 +1,4 @@
-#if !(defined(USE_PROGRAMMABLE_PIPELINE))
+#ifdef FIXED_FUNCTION_PIPELINE
 
 #include <FixedFunctionRenderingStrategy.h>
 
