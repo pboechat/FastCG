@@ -279,6 +279,10 @@ void ObjFileMtlImporter::getTexture()
 	else if (!ASSIMP_strincmp(&(*m_DataIt),"map_bump",8) || !ASSIMP_strincmp(&(*m_DataIt),"bump",4))
 		out = & m_pModel->m_pCurrentMaterial->textureBump;
 
+	// Normal texture
+	else if (!ASSIMP_strincmp(&(*m_DataIt),"map_kn",6))
+		out = & m_pModel->m_pCurrentMaterial->textureNormal;
+
 	// Specularity scaling (glossiness)
 	else if (!ASSIMP_strincmp(&(*m_DataIt),"map_ns",6))
 		out = & m_pModel->m_pCurrentMaterial->textureSpecularity;

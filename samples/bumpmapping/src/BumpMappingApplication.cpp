@@ -76,6 +76,8 @@ void BumpMappingApplication::OnStart()
 	mpFloorMaterial = new Material(pShader);
 	mpFloorMaterial->SetTexture("colorMap", mFloorColorMapTextures[0]);
 	mpFloorMaterial->SetTexture("bumpMap", mFloorBumpMapTextures[0]);
+	mpFloorMaterial->SetVec4("ambientColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpFloorMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	mpFloorMaterial->SetFloat("shininess", 5.0f);
 #endif
@@ -103,6 +105,8 @@ void BumpMappingApplication::OnStart()
 	mpSphereMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
 	mpSphereMaterial->SetTexture("colorMap", mSphereColorMapTextures[0]);
 	mpSphereMaterial->SetTexture("bumpMap", mSphereBumpMapTextures[0]);
+	mpSphereMaterial->SetVec4("ambientColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpSphereMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpSphereMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	mpSphereMaterial->SetFloat("shininess", 10.0f);
 #endif

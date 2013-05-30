@@ -1,6 +1,7 @@
 #version 330
 
 uniform sampler2D colorMap;
+uniform vec4 diffuseColor;
 uniform vec4 specularColor;
 uniform float shininess;
 
@@ -11,7 +12,7 @@ in vec4 vertexUV;
 void main()
 {
 	gl_FragData[0] = vertexPosition;
-	gl_FragData[1] = texture2D(colorMap, vertexUV.st);
+	gl_FragData[1] = diffuseColor * texture2D(colorMap, vertexUV.st);
 	gl_FragData[2] = vec4(vertexNormal.xyz, shininess);
 	gl_FragData[3] = specularColor;
 }

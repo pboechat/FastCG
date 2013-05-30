@@ -13,9 +13,28 @@ GameObject::GameObject() :
 	mpTransform = new Transform(this);
 }
 
+GameObject::GameObject(const std::string& rName) :
+	mActive(true),
+	mName(rName)
+{
+	mpTransform = new Transform(this);
+}
+
 GameObject::~GameObject()
 {
 	delete mpTransform;
+}
+
+void GameObject::SetActive(bool active)
+{ 
+	const std::vector<Transform*>& rChildren = mpTransform->GetChildren();
+	for (unsigned int i = 0; i < rChildren.size(); i++)
+	{
+		Transform* pChild = rChildren[i];
+		pChild->GetGameObject()->SetActive(active);
+	}
+
+	mActive = active;
 }
 
 void GameObject::AddComponent(Component* pComponent)
@@ -94,6 +113,13 @@ void GameObject::DestroyAllComponents()
 GameObject* GameObject::Instantiate()
 {
 	GameObject* pGameObject = new GameObject();
+	Application::GetInstance()->RegisterGameObject(pGameObject);
+	return pGameObject;
+}
+
+GameObject* GameObject::Instantiate(const std::string& rName)
+{
+	GameObject* pGameObject = new GameObject(rName);
 	Application::GetInstance()->RegisterGameObject(pGameObject);
 	return pGameObject;
 }

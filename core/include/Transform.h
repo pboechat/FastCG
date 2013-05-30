@@ -7,6 +7,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <vector>
+
 class Transform
 {
 public:
@@ -17,7 +19,17 @@ public:
 
 	inline void SetParent(Transform* pParent)
 	{
+		if (mpParent != pParent)
+		{
+			pParent->AddChild(this);
+		}
+
 		mpParent = pParent;
+	}
+
+	inline const std::vector<Transform*>& GetChildren() const
+	{
+		return mChildren;
 	}
 
 	inline glm::vec3 GetPosition() const
@@ -100,7 +112,7 @@ public:
 
 	inline void RotateAround(float angle, const glm::vec3& axis)
 	{
-		mLocalTransform = glm::rotate(GetModel(), angle, axis);
+		mLocalTransform = glm::rotate(glm::toMat4(GetRotation()), angle, axis);
 	}
 
 	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
@@ -145,6 +157,7 @@ public:
 private:
 	GameObject* mpGameObject;
 	Transform* mpParent;
+	std::vector<Transform*> mChildren;
 	glm::mat4 mLocalTransform;
 
 	Transform(GameObject* pGameObject) :
@@ -155,6 +168,12 @@ private:
 
 	~Transform() 
 	{
+	}
+
+	inline void AddChild(Transform* pChild)
+	{
+		pChild->mpGameObject->SetActive(mpGameObject->IsActive());
+		mChildren.push_back(pChild);
 	}
 
 };

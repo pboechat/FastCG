@@ -84,10 +84,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\KeyBindings.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ModelImportApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\KeyBindings.h" />
     <ClInclude Include="src\ModelImportApplication.h" />
   </ItemGroup>
   <ItemGroup>

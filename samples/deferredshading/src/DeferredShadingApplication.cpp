@@ -42,7 +42,7 @@ DeferredShadingApplication::DeferredShadingApplication() :
 
 void DeferredShadingApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
+	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
 	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-20.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	std::vector<PointLight*> pointLights;
@@ -54,7 +54,7 @@ void DeferredShadingApplication::OnStart()
 		for (float x = 1; x < FLOOR_SIZE; x += 1.42f)
 		{
 			pPointLightGameObject = GameObject::Instantiate();
-			pPointLightGameObject->GetTransform()->Translate(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
+			pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
 
 			pPointLight = PointLight::Instantiate(pPointLightGameObject);
 			pPointLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -80,6 +80,7 @@ void DeferredShadingApplication::OnStart()
 #else
 	mpFloorMaterial = new Material(ShaderRegistry::Find("Diffuse"));
 	mpFloorMaterial->SetTexture("colorMap", mpCheckersColorMapTexture);
+	mpFloorMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpFloorMaterial->SetFloat("shininess", 5.0f);
 #endif
@@ -94,12 +95,10 @@ void DeferredShadingApplication::OnStart()
 
 #ifdef FIXED_FUNCTION_PIPELINE
 	mpSphereMaterial = new Material();
-	mpSphereMaterial->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpSphereMaterial->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpSphereMaterial->SetShininess(1.0f);
 #else
 	mpSphereMaterial = new Material(ShaderRegistry::Find("SolidColor"));
-	mpSphereMaterial->SetVec4("solidColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpSphereMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpSphereMaterial->SetVec4("specularColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mpSphereMaterial->SetFloat("shininess", 1.0f);
 #endif
@@ -116,7 +115,7 @@ void DeferredShadingApplication::OnStart()
 			pMeshRenderer->AddMesh(mpSphereMesh);
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
 			pMeshFilter->SetMaterial(mpSphereMaterial);
-			pSphereGameObject->GetTransform()->Translate(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
+			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
 			spheres.push_back(pSphereGameObject);
 		}
 	}
@@ -153,12 +152,6 @@ void DeferredShadingApplication::OnEnd()
 		delete mpFloorMesh;
 		mpFloorMesh = 0;
 	}
-
-	/*if (mpSphereColorMapTexture != 0)
-	{
-		delete mpSphereColorMapTexture;
-		mpSphereColorMapTexture = 0;
-	}*/
 
 	if (mpSphereMaterial != 0)
 	{

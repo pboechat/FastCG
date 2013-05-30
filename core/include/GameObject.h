@@ -3,6 +3,7 @@
 
 #include <AABB.h>
 
+#include <string>
 #include <vector>
 
 class ComponentType;
@@ -15,7 +16,18 @@ class GameObject
 {
 public:
 	static GameObject* Instantiate();
+	static GameObject* Instantiate(const std::string& rName);
 	static void Destroy(GameObject* pGameObject);
+
+	inline const std::string& GetName() const
+	{
+		return mName;
+	}
+
+	inline void SetName(const std::string& rName)
+	{
+		mName = rName;
+	}
 
 	inline const AABB& GetBoundingVolume() const
 	{
@@ -52,16 +64,14 @@ public:
 		return mActive; 
 	}
 
-	void SetActive(bool active) 
-	{ 
-		mActive = active; 
-	}
+	void SetActive(bool active);
 
 	Component* GetComponent(const ComponentType& rComponentType) const;
 
 	friend class Component;
 
 private:
+	std::string mName;
 	AABB mBoundingVolume;
 	Transform* mpTransform;
 	Renderer* mpRenderer;
@@ -69,6 +79,7 @@ private:
 	bool mActive;
 	
 	GameObject();
+	GameObject(const std::string& rName);
 	~GameObject();
 
 	void AddComponent(Component* pComponent);

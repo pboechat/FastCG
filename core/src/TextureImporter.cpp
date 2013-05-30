@@ -1,7 +1,8 @@
 #include <TextureImporter.h>
 #include <Exception.h>
 
-#include <Windows.h>
+//#include <Windows.h>
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <IL/il.h>
 
@@ -61,8 +62,14 @@ InternalFormat TextureImporter::GetInternalFormat(int format)
 	case GL_RGB:
 		return IF_RGB;
 
+	case GL_BGR:
+		return IF_BGR;
+
 	case GL_RGBA:
 		return IF_RGBA;
+
+	case GL_BGRA:
+		return IF_BGRA;
 
 	case GL_LUMINANCE_ALPHA:
 		return IF_LUMINANCE_ALPHA;

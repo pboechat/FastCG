@@ -520,12 +520,12 @@ void Application::DrawAllTexts()
 void Application::ShowFPS()
 {
 	static char fpsText[128];
-	static glm::vec4 green = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	static glm::vec4 greenColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	BEGIN_DRAW_TEXT();
 
 	sprintf(fpsText, "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
-	DRAW_TEXT(fpsText, mScreenWidth - 240, (mScreenHeight - 17), green);
+	DRAW_TEXT(fpsText, mScreenWidth - 240, (mScreenHeight - 17), greenColor);
 
 	END_DRAW_TEXT();
 }
@@ -533,15 +533,15 @@ void Application::ShowFPS()
 void Application::ShowRenderingStatistics()
 {
 	static char text[128];
-	static glm::vec4 green = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	static glm::vec4 greenColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	BEGIN_DRAW_TEXT();
 
 	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
-	DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 34), green);
+	DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 34), greenColor);
 
 	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
-	DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 51), green);
+	DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 51), greenColor);
 
 	END_DRAW_TEXT();
 }

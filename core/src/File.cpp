@@ -21,3 +21,17 @@ std::string File::GetFileName(const std::string& rFilePath)
 	StringUtils::Tokenize(rFilePath, "/", rTokens);
 	return rTokens.back();
 }
+
+std::string File::GetFileNameWithoutExtension(const std::string& rFilePath)
+{
+	std::string fileName = GetFileName(rFilePath);
+	int position;
+	if ((position = fileName.find(".")) != std::string::npos)
+	{
+		return fileName.substr(0, position);
+	}
+	else
+	{
+		return fileName;
+	}
+}

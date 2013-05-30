@@ -49,8 +49,8 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 			PointLight* pPointLight = mPointLights[i];
 
 			glm::vec3 move = mDirections[i] * deltaTime;
-			glm::vec3 newPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition() + move;
-			pPointLight->GetGameObject()->GetTransform()->SetWorldPosition(newPosition);
+			glm::vec3 position = pPointLight->GetGameObject()->GetTransform()->GetPosition();
+			pPointLight->GetGameObject()->GetTransform()->SetPosition(position + move);
 		}
 	}
 }

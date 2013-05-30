@@ -107,6 +107,12 @@ unsigned int Texture::GetInternalFormatMapping() const
 	case IF_RGBA:
 		return GL_RGBA;
 
+	case IF_BGR:
+		return GL_BGR;
+
+	case IF_BGRA:
+		return GL_BGRA;
+
 	case IF_LUMINANCE_ALPHA:
 		return GL_LUMINANCE_ALPHA;
 

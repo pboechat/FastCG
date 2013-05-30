@@ -4,7 +4,8 @@ float DistanceAttenuation(vec3 position)
 	return 1 / min(_Light0ConstantAttenuation + _Light0LinearAttenuation * d + _Light0QuadraticAttenuation * pow(d, 2.0), 1);
 }
 
-vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
+vec4 BlinnPhongLighting(vec4 materialAmbientColor,
+						vec4 materialDiffuseColor,
 						vec3 lightDirection,
 						vec3 position,
 						vec3 normal)

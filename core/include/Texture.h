@@ -20,6 +20,8 @@ enum InternalFormat
 {
 	IF_RGB, 
 	IF_RGBA,
+	IF_BGR,
+	IF_BGRA,
 	IF_LUMINANCE_ALPHA
 };
 

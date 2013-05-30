@@ -20,9 +20,15 @@
     <ClCompile Include="src\ModelImportApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\KeyBindings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ModelImportApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\KeyBindings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

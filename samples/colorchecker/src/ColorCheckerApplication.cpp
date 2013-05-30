@@ -124,12 +124,11 @@ void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float
 	Material* pSolidColorMaterial;
 #ifdef FIXED_FUNCTION_PIPELINE
 	pSolidColorMaterial = new Material();
-	pSolidColorMaterial->SetAmbientColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 	pSolidColorMaterial->SetDiffuseColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
-	pSolidColorMaterial->SetSpecularColor(glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 #else
 	pSolidColorMaterial = new Material(ShaderRegistry::Find("SolidColor"));
-	pSolidColorMaterial->SetVec4("solidColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
+	pSolidColorMaterial->SetVec4("ambientColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pSolidColorMaterial->SetVec4("diffuseColor", glm::vec4(color.R(), color.G(), color.B(), 1.0f));
 	pSolidColorMaterial->SetUnlit(true);
 #endif
 	mMaterials.push_back(pSolidColorMaterial);
@@ -145,7 +144,7 @@ void ColorCheckerApplication::AddColorPatch(float x, float y, float width, float
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pPatchGameObject);
 	pMeshFilter->SetMaterial(pSolidColorMaterial);
 
-	pPatchGameObject->GetTransform()->Translate(glm::vec3(x, y, 0.0f));
+	pPatchGameObject->GetTransform()->SetPosition(glm::vec3(x, y, 0.0f));
 }
 
 void ColorCheckerApplication::OnStart()

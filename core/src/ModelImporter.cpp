@@ -10,15 +10,18 @@
 #include <MathT.h>
 #include <Exception.h>
 
-#include <assimp/postprocess.h>
+#include <assimp/PostProcess.h>
 
 #include <map>
+
+const std::string ModelImporter::DEFAULT_LOG_FILE = "assimp.log";
 
 bool ModelImporter::s_mInitialized = false;
 std::vector<Texture*> ModelImporter::s_mManagedTextures;
 std::vector<Material*> ModelImporter::s_mManagedMaterials;
 std::vector<Mesh*> ModelImporter::s_mManagedMeshes;
 std::vector<const aiScene*> ModelImporter::s_mImportedScenes;
+Assimp::Logger* ModelImporter::s_mpCurrentLogger = 0;
 
 void ModelImporter::Initialize()
 {
@@ -29,6 +32,30 @@ void ModelImporter::Initialize()
 	}
 
 	s_mInitialized = true;
+}
+
+void ModelImporter::LogToConsole()
+{
+	if (s_mpCurrentLogger != 0)
+	{
+		delete s_mpCurrentLogger;
+		s_mpCurrentLogger = 0;
+	}
+
+	Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
+	s_mpCurrentLogger = Assimp::DefaultLogger::create("", severity, aiDefaultLogStream_STDOUT);
+}
+
+void ModelImporter::LogToFile()
+{
+	if (s_mpCurrentLogger != 0)
+	{
+		delete s_mpCurrentLogger;
+		s_mpCurrentLogger = 0;
+	}
+
+	Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
+	s_mpCurrentLogger = Assimp::DefaultLogger::create(DEFAULT_LOG_FILE.c_str(), severity, aiDefaultLogStream_FILE);
 }
 
 void ModelImporter::Dispose()
@@ -60,9 +87,29 @@ void ModelImporter::Dispose()
 	s_mInitialized = false;
 }
 
-GameObject* ModelImporter::Import(const std::string& rFileName)
+unsigned int ModelImporter::GetAssimpImportSettings(unsigned int importSettings)
 {
-	const aiScene* pScene = aiImportFile(rFileName.c_str(), aiProcessPreset_TargetRealtime_Quality);
+	if (importSettings & IS_QUALITY_POOR)
+	{
+		return aiProcessPreset_TargetRealtime_Fast;
+	}
+	else if (importSettings & IS_QUALITY_GOOD)
+	{
+		return aiProcessPreset_TargetRealtime_Quality;
+	}
+	else if (importSettings & IS_QUALITY_BEST)
+	{
+		return aiProcessPreset_TargetRealtime_MaxQuality;
+	}
+	else
+	{
+		THROW_EXCEPTION(Exception, "Invalid import settings");
+	}
+}
+
+GameObject* ModelImporter::Import(const std::string& rFileName, unsigned int importSettings)
+{
+	const aiScene* pScene = aiImportFile(rFileName.c_str(), GetAssimpImportSettings(importSettings));
 
 	if (pScene == 0)
 	{
@@ -77,9 +124,11 @@ GameObject* ModelImporter::Import(const std::string& rFileName)
 	std::map<unsigned int, Mesh*> meshCatalog;
 
 	BuildMaterialCatalog(pScene, baseDirectory, materialCatalog);
-	BuildMeshCatalog(pScene, meshCatalog);
+	BuildMeshCatalog(pScene, meshCatalog, importSettings);
 
-	GameObject* pGameObject = BuildGameObject(pScene, materialCatalog, meshCatalog);
+	std::string modelName = File::GetFileNameWithoutExtension(rFileName);
+
+	GameObject* pGameObject = BuildGameObject(modelName, pScene, materialCatalog, meshCatalog);
 	pGameObject->SetBoundingVolume(CalculateBoundingVolume(pScene));
 
 	return pGameObject;
@@ -87,6 +136,8 @@ GameObject* ModelImporter::Import(const std::string& rFileName)
 
 void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::string& rBaseDirectory, std::map<unsigned int, Material*>& rMaterialCatalog)
 {
+	static glm::vec4 whiteColor(1.0f, 1.0f, 1.0f, 1.0f);
+
 	if (pScene->HasTextures())
 	{
 		THROW_EXCEPTION(Exception, "Meshes with embedded textures are not supported yet");
@@ -96,7 +147,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 	for (unsigned int i = 0; i < pScene->mNumMaterials; i++)
 	{
 		aiMaterial* pAIMaterial = pScene->mMaterials[i];
-		unsigned char materialAttributesMask;
+		unsigned int materialAttributesMask = 0;
 
 		aiColor4D aiAmbientColor;
 		glm::vec4 ambientColor;
@@ -139,13 +190,22 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			materialAttributesMask |= MA_HAS_SHININESS;
 		}
 
-		Texture* pImportedTexture;
 		aiString texturePath;
+		Texture* pColorMapTexture = 0;
 		if (pAIMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
 		{
-			pImportedTexture = TextureImporter::Import(rBaseDirectory + "/" + AssimpUtils::Convert(texturePath));
+			pColorMapTexture = TextureImporter::Import(rBaseDirectory + "/" + AssimpUtils::Convert(texturePath));
 			materialAttributesMask |= MA_HAS_COLOR_MAP;
-			s_mManagedTextures.push_back(pImportedTexture);
+			s_mManagedTextures.push_back(pColorMapTexture);
+		}
+
+		Texture* pBumpMapTexture = 0;
+		if (pAIMaterial->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == aiReturn_SUCCESS ||
+			pAIMaterial->GetTexture(aiTextureType_HEIGHT, 0, &texturePath) == aiReturn_SUCCESS)
+		{
+			pBumpMapTexture = TextureImporter::Import(rBaseDirectory + "/" + AssimpUtils::Convert(texturePath));
+			materialAttributesMask |= MA_HAS_BUMP_MAP;
+			s_mManagedTextures.push_back(pBumpMapTexture);
 		}
 
 		int twoSided;
@@ -159,13 +219,31 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 #else
 		Shader* pShader;
 
-		if (materialAttributesMask & MA_HAS_SPECULAR_COLOR)
+		if (materialAttributesMask & MA_HAS_BUMP_MAP)
 		{
-			pShader = ShaderRegistry::Find("Specular");
+			if (materialAttributesMask & MA_HAS_SHININESS)
+			{
+				pShader = ShaderRegistry::Find("BumpedSpecular");
+			}
+			else
+			{
+				pShader = ShaderRegistry::Find("BumpedDiffuse");
+			}
+		}
+		else if (materialAttributesMask & MA_HAS_COLOR_MAP)
+		{
+			if (materialAttributesMask & MA_HAS_SHININESS)
+			{
+				pShader = ShaderRegistry::Find("Specular");
+			}
+			else
+			{
+				pShader = ShaderRegistry::Find("Diffuse");
+			}
 		}
 		else
 		{
-			pShader = ShaderRegistry::Find("Diffuse");
+			pShader = ShaderRegistry::Find("SolidColor");
 		}
 
 		Material* pManagedMaterial = new Material(pShader);
@@ -179,6 +257,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			pManagedMaterial->SetVec4("ambientColor", ambientColor);
 #endif
 		}
+		else
+		{
+			pManagedMaterial->SetVec4("ambientColor", whiteColor);
+		}
 
 		if (materialAttributesMask & MA_HAS_DIFFUSE_COLOR)
 		{
@@ -188,6 +270,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
 #endif
 		}
+		else
+		{
+			pManagedMaterial->SetVec4("diffuseColor", whiteColor);
+		}
 
 		if (materialAttributesMask & MA_HAS_SPECULAR_COLOR)
 		{
@@ -196,6 +282,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 #else
 			pManagedMaterial->SetVec4("specularColor", specularColor);
 #endif
+		}
+		else
+		{
+			pManagedMaterial->SetVec4("specularColor", whiteColor);
 		}
 
 		if (materialAttributesMask & MA_IS_EMISSIVE)
@@ -219,9 +309,18 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		if (materialAttributesMask & MA_HAS_COLOR_MAP)
 		{
 #ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetTexture(pImportedTexture);
+			pManagedMaterial->SetTexture(pColorMapTexture);
 #else
-			pManagedMaterial->SetTexture("colorMap", pImportedTexture);
+			pManagedMaterial->SetTexture("colorMap", pColorMapTexture);
+#endif
+		}
+
+		if (materialAttributesMask & MA_HAS_BUMP_MAP)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetTexture(pBumpMapTexture);
+#else
+			pManagedMaterial->SetTexture("bumpMap", pBumpMapTexture);
 #endif
 		}
 
@@ -232,7 +331,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 	}
 }
 
-void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned int, Mesh*>& rMeshCatalog)
+void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned int, Mesh*>& rMeshCatalog, unsigned int importSettings)
 {
 	for (unsigned int i = 0; i < pScene->mNumMeshes; i++)
 	{
@@ -244,8 +343,11 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 		std::vector<unsigned int> indices;
 
 		bool hasUV = pAIMesh->HasTextureCoords(0);
+		bool invertV = ((importSettings & IS_INVERT_TEXTURE_COORDINATE_V) != 0);
 
-		// TODO: read tangents from file
+		unsigned int materialIndex = pAIMesh->mMaterialIndex;
+		aiMaterial* pAIMaterial = pScene->mMaterials[materialIndex];
+
 		std::map<unsigned int, unsigned int> localIndexMap;
 		int nextLocalIndex = 0;
 		for (unsigned int j = 0; j < pAIMesh->mNumFaces; j++)
@@ -275,7 +377,7 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 					{
 						// TODO: implement multi texturing support
 						aiVector3D& rUV = pAIMesh->mTextureCoords[0][globalIndex];
-						uvs.push_back(glm::vec2(rUV[0], 1 - rUV[1]));
+						uvs.push_back(glm::vec2(rUV[0], (invertV) ? 1 - rUV[1] : rUV[1]));
 					}
 
 					indices.push_back(nextLocalIndex);
@@ -289,6 +391,9 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 		}
 
 		Mesh* pManagedMesh = new Mesh(vertices, indices, normals, uvs);
+#ifndef FIXED_FUNCTION_PIPELINE
+		pManagedMesh->CalculateTangents();
+#endif
 
 		rMeshCatalog.insert(std::make_pair(i, pManagedMesh));
 		s_mManagedMeshes.push_back(pManagedMesh);
@@ -339,9 +444,9 @@ void ModelImporter::CalculateBoundingVolumeRecursively(const aiScene* pScene, ai
 	}
 }
 
-GameObject* ModelImporter::BuildGameObject(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog)
+GameObject* ModelImporter::BuildGameObject(const std::string& rModelName, const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog)
 {
-	GameObject* pGameObject = GameObject::Instantiate();
+	GameObject* pGameObject = GameObject::Instantiate(rModelName);
 	BuildGameObjectRecursively(pScene, rMaterialCatalog, rMeshCatalog, pScene->mRootNode, pGameObject);
 	return pGameObject;
 }

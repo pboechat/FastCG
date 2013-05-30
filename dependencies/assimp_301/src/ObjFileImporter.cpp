@@ -556,6 +556,9 @@ void ObjFileImporter::createMaterials(const ObjFile::Model* pModel, aiScene* pSc
 		if ( 0 != pCurrentMaterial->textureBump.length )
 			mat->AddProperty( &pCurrentMaterial->textureBump, AI_MATKEY_TEXTURE_HEIGHT(0));
 
+		if ( 0 != pCurrentMaterial->textureNormal.length )
+			mat->AddProperty( &pCurrentMaterial->textureNormal, AI_MATKEY_TEXTURE_NORMALS(0));
+
 		if ( 0 != pCurrentMaterial->textureOpacity.length )
 			mat->AddProperty( &pCurrentMaterial->textureOpacity, AI_MATKEY_TEXTURE_OPACITY(0));
 

@@ -1,4 +1,3 @@
-# Blender MTL File: ''
 # Material Count: 10
 newmtl texture000_texture000.png
 Ns 96.078431
@@ -8,7 +7,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture1.png
+map_Kd OogieBoogie/texture1.png
 
 
 newmtl texture001_texture001.png
@@ -19,7 +18,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture2.png
+map_Kd OogieBoogie/texture2.png
 
 
 newmtl texture002_texture002.png
@@ -30,7 +29,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture3.png
+map_Kd OogieBoogie/texture3.png
 
 
 newmtl texture003_texture003.png
@@ -41,7 +40,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture4.png
+map_Kd OogieBoogie/texture4.png
 
 
 newmtl texture004_texture004.png
@@ -52,7 +51,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture5.png
+map_Kd OogieBoogie/texture5.png
 
 
 newmtl texture005_texture005.png
@@ -63,7 +62,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture6.png
+map_Kd OogieBoogie/texture6.png
 
 
 newmtl texture006_texture006.png
@@ -74,7 +73,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture7.png
+map_Kd OogieBoogie/texture7.png
 
 
 newmtl texture007_texture007.png
@@ -85,7 +84,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture8.png
+map_Kd OogieBoogie/texture8.png
 
 
 newmtl texture008_texture008.png
@@ -96,7 +95,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture9.png
+map_Kd OogieBoogie/texture9.png
 
 
 newmtl texture009_texture009.png
@@ -107,6 +106,6 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd texture10.png
+map_Kd OogieBoogie/texture10.png
 
 
