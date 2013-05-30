@@ -340,7 +340,6 @@ void Application::Run(int argc, char** argv)
 	mpInput = new Input();
 	mpInternalGameObject = GameObject::Instantiate();
 	Camera* pCamera = Camera::Instantiate(mpInternalGameObject);
-	pCamera->SetUp();
 
 	try
 	{

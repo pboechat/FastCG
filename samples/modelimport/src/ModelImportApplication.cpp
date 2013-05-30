@@ -23,7 +23,7 @@ void ModelImportApplication::OnStart()
 	pGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, 0.0f, 1.0f));
 	pDirectionalLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	pDirectionalLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	pDirectionalLight->SetSpecularColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	pDirectionalLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pDirectionalLight->SetIntensity(1.0f);
 
 	ModelImporter::LogToConsole();

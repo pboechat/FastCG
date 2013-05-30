@@ -103,5 +103,11 @@
     <None Include="shaders\deferred\SolidColor.vert">
       <Filter>Shader Files\Deferred</Filter>
     </None>
+    <None Include="shaders\deferred\SSAOHighFrequencyPass.vert">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\SSAOHighFrequencyPass.frag">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
   </ItemGroup>
 </Project>

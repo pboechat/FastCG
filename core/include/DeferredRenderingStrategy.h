@@ -31,6 +31,16 @@ public:
 		mDisplayGBufferEnabled = displayGBufferEnabled;
 	}
 
+	inline bool IsDisplaySSAOTextureEnabled() const
+	{
+		return mDisplaySSAOTextureEnabled;
+	}
+
+	inline void SetDisplaySSAOTextureEnabled(bool displaySSAOTextureEnabled)
+	{
+		mDisplaySSAOTextureEnabled = displaySSAOTextureEnabled;
+	}
+
 	inline bool IsShowPointLightsEnabled() const
 	{
 		return mShowPointLightsEnabled;
@@ -50,11 +60,13 @@ private:
 	Shader* mpStencilPassShader;
 	Shader* mpDirectionalLightPassShader;
 	Shader* mpPointLightPassShader;
+	Shader* mpSSAOHighFrequencyPassShader;
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
 	Mesh* mpQuadMesh;
 	Mesh* mpSphereMesh;
 	bool mDisplayGBufferEnabled;
+	bool mDisplaySSAOTextureEnabled;
 	bool mShowPointLightsEnabled;
 
 	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
