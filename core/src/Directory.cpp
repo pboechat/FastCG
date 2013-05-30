@@ -1,4 +1,5 @@
 #include <Directory.h>
+#include <Exception.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -6,8 +7,8 @@
 
 std::vector<std::string> Directory::ListFiles(const std::string& rDirectoryPath)
 {
-	std::vector<std::string> files;
 #ifdef _WIN32
+	std::vector<std::string> files;
 	HANDLE hFind;
 	WIN32_FIND_DATA data;
 
@@ -18,7 +19,8 @@ std::vector<std::string> Directory::ListFiles(const std::string& rDirectoryPath)
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 	}
-#endif
-
 	return files;
+#else
+	THROW_EXCEPTION(Exception, "Directory::ListFile() is not implemented in this platform");
+#endif
 }

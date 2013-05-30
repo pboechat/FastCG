@@ -177,6 +177,9 @@
     <ClInclude Include="include\TextureImporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Colors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -294,6 +297,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\TextureImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Colors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

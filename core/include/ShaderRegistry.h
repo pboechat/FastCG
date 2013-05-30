@@ -9,6 +9,9 @@
 class ShaderRegistry
 {
 public:
+	static const std::string VERTEX_SHADER_FILE_EXTENSION;
+	static const std::string FRAGMENT_SHADER_FILE_EXTENSION;
+
 	static void LoadShadersFromDisk(const std::string& rShadersDirectory);
 	static Shader* Find(const std::string& rShaderName);
 	static void Unload();

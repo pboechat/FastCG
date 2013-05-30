@@ -7,21 +7,24 @@
 
 #include <vector>
 
+const std::string ShaderRegistry::VERTEX_SHADER_FILE_EXTENSION = ".vert";
+const std::string ShaderRegistry::FRAGMENT_SHADER_FILE_EXTENSION = ".frag";
+
 std::map<std::string, Shader*> ShaderRegistry::mShadersByName;
 
 bool ShaderRegistry::ExtractShaderInfo(const std::string& rShaderFileName, std::string& rShaderName, ShaderType& rShaderType)
 {
 	rShaderName = rShaderFileName;
-	if (rShaderFileName.find(".vert") != std::string::npos)
+	if (rShaderFileName.find(VERTEX_SHADER_FILE_EXTENSION) != std::string::npos)
 	{
 		rShaderType = ST_VERTEX;
-		StringUtils::Replace(rShaderName, ".vert", "");
+		StringUtils::Replace(rShaderName, VERTEX_SHADER_FILE_EXTENSION, "");
 		return true;
 	} 
-	else if (rShaderFileName.find(".frag") != std::string::npos)
+	else if (rShaderFileName.find(FRAGMENT_SHADER_FILE_EXTENSION) != std::string::npos)
 	{
 		rShaderType = ST_FRAGMENT;
-		StringUtils::Replace(rShaderName, ".frag", "");
+		StringUtils::Replace(rShaderName, FRAGMENT_SHADER_FILE_EXTENSION, "");
 		return true;
 	}
 	else
