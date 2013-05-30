@@ -12,6 +12,8 @@
 
 #include <assimp/postprocess.h>
 
+#include <map>
+
 bool ModelImporter::s_mInitialized = false;
 std::vector<Texture*> ModelImporter::s_mManagedTextures;
 std::vector<Material*> ModelImporter::s_mManagedMaterials;
@@ -31,12 +33,6 @@ void ModelImporter::Initialize()
 
 void ModelImporter::Dispose()
 {
-	/*if (!s_mInitialized)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "!s_mInitialized");
-	}*/
-
 	for (unsigned int i = 0; i < s_mManagedMaterials.size(); i++)
 	{
 		delete s_mManagedMaterials[i];
@@ -100,53 +96,38 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 	for (unsigned int i = 0; i < pScene->mNumMaterials; i++)
 	{
 		aiMaterial* pAIMaterial = pScene->mMaterials[i];
-#ifdef FIXED_FUNCTION_PIPELINE
-		Material* pManagedMaterial = new Material();
-#else
-		Material* pManagedMaterial = new Material(ShaderRegistry::Find("Specular"));
-#endif
+		unsigned char materialAttributesMask;
 
 		aiColor4D aiAmbientColor;
+		glm::vec4 ambientColor;
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_AMBIENT, &aiAmbientColor) == AI_SUCCESS)
 		{
-			glm::vec4 ambientColor = AssimpUtils::Convert(aiAmbientColor);
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetAmbientColor(ambientColor);
-#else
-			pManagedMaterial->SetVec4("ambientColor", ambientColor);
-#endif
+			ambientColor = AssimpUtils::Convert(aiAmbientColor);
+			materialAttributesMask |= MA_HAS_AMBIENT_COLOR;
 		}
 
 		aiColor4D aiDiffuseColor;
-		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_DIFFUSE, &aiDiffuseColor) == AI_SUCCESS) {
-			glm::vec4 diffuseColor = AssimpUtils::Convert(aiDiffuseColor);
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetDiffuseColor(diffuseColor);
-#else
-			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
-#endif
+		glm::vec4 diffuseColor;
+		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_DIFFUSE, &aiDiffuseColor) == AI_SUCCESS) 
+		{
+			diffuseColor = AssimpUtils::Convert(aiDiffuseColor);
+			materialAttributesMask |= MA_HAS_DIFFUSE_COLOR;
 		}
 
 		aiColor4D aiSpecularColor;
+		glm::vec4 specularColor;
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_SPECULAR, &aiSpecularColor) == AI_SUCCESS)
 		{
-			glm::vec4 specularColor = AssimpUtils::Convert(aiSpecularColor);
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetSpecularColor(specularColor);
-#else
-			pManagedMaterial->SetVec4("specularColor", specularColor);
-#endif
+			specularColor = AssimpUtils::Convert(aiSpecularColor);
+			materialAttributesMask |= MA_HAS_SPECULAR_COLOR;
 		}
 
 		aiColor4D aiEmissiveColor;
+		glm::vec4 emissiveColor;
 		if (aiGetMaterialColor(pAIMaterial, AI_MATKEY_COLOR_EMISSIVE, &aiEmissiveColor) == AI_SUCCESS)
 		{
-			glm::vec4 emissiveColor = AssimpUtils::Convert(aiEmissiveColor);
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetEmissiveColor(emissiveColor);
-#else
-			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);
-#endif
+			emissiveColor = AssimpUtils::Convert(aiEmissiveColor);
+			materialAttributesMask |= MA_IS_EMISSIVE;
 		}
 
 		float shininess = 0;
@@ -155,11 +136,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			aiGetMaterialFloatArray(pAIMaterial, AI_MATKEY_SHININESS_STRENGTH, &strength, &max) == AI_SUCCESS)
 		{
 			shininess *= strength;
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetShininess(shininess);
-#else
-			pManagedMaterial->SetFloat("shininess", shininess);
-#endif
+			materialAttributesMask |= MA_HAS_SHININESS;
 		}
 
 		Texture* pImportedTexture;
@@ -167,19 +144,88 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		if (pAIMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
 		{
 			pImportedTexture = TextureImporter::Import(rBaseDirectory + "/" + AssimpUtils::Convert(texturePath));
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetTexture(pImportedTexture);
-#else
-			pManagedMaterial->SetTexture("colorMap", pImportedTexture);
-#endif
+			materialAttributesMask |= MA_HAS_COLOR_MAP;
 			s_mManagedTextures.push_back(pImportedTexture);
 		}
 
 		int twoSided;
 		if (aiGetMaterialIntegerArray(pAIMaterial, AI_MATKEY_TWOSIDED, &twoSided, &max) == AI_SUCCESS)
 		{
-			pManagedMaterial->SetTwoSided(twoSided != 0);
+			materialAttributesMask |= MA_IS_TWO_SIDED;
 		}
+
+#ifdef FIXED_FUNCTION_PIPELINE
+		Material* pManagedMaterial = new Material();
+#else
+		Shader* pShader;
+
+		if (materialAttributesMask & MA_HAS_SPECULAR_COLOR)
+		{
+			pShader = ShaderRegistry::Find("Specular");
+		}
+		else
+		{
+			pShader = ShaderRegistry::Find("Diffuse");
+		}
+
+		Material* pManagedMaterial = new Material(pShader);
+#endif
+
+		if (materialAttributesMask & MA_HAS_AMBIENT_COLOR)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetAmbientColor(ambientColor);
+#else
+			pManagedMaterial->SetVec4("ambientColor", ambientColor);
+#endif
+		}
+
+		if (materialAttributesMask & MA_HAS_DIFFUSE_COLOR)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetDiffuseColor(diffuseColor);
+#else
+			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
+#endif
+		}
+
+		if (materialAttributesMask & MA_HAS_SPECULAR_COLOR)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetSpecularColor(specularColor);
+#else
+			pManagedMaterial->SetVec4("specularColor", specularColor);
+#endif
+		}
+
+		if (materialAttributesMask & MA_IS_EMISSIVE)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetEmissiveColor(emissiveColor);
+#else
+			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);
+#endif
+		}
+
+		if (materialAttributesMask & MA_HAS_SHININESS)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetShininess(shininess);
+#else
+			pManagedMaterial->SetFloat("shininess", shininess);
+#endif
+		}
+
+		if (materialAttributesMask & MA_HAS_COLOR_MAP)
+		{
+#ifdef FIXED_FUNCTION_PIPELINE
+			pManagedMaterial->SetTexture(pImportedTexture);
+#else
+			pManagedMaterial->SetTexture("colorMap", pImportedTexture);
+#endif
+		}
+
+		pManagedMaterial->SetTwoSided(twoSided != 0);
 
 		rMaterialCatalog.insert(std::make_pair(i, pManagedMaterial));
 		s_mManagedMaterials.push_back(pManagedMaterial);
@@ -200,8 +246,8 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 		bool hasUV = pAIMesh->HasTextureCoords(0);
 
 		// TODO: read tangents from file
-		// TODO: improve vertex index usage
-		int c = 0;
+		std::map<unsigned int, unsigned int> localIndexMap;
+		int nextLocalIndex = 0;
 		for (unsigned int j = 0; j < pAIMesh->mNumFaces; j++)
 		{
 			const aiFace* pFace = &pAIMesh->mFaces[j];
@@ -216,34 +262,29 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 				THROW_EXCEPTION(Exception, "rFace.mNumIndices > 3");
 			}
 
-			int i0 = pFace->mIndices[0];
-			int i1 = pFace->mIndices[1];
-			int i2 = pFace->mIndices[2];
-
-			indices.push_back(c++);
-			indices.push_back(c++);
-			indices.push_back(c++);
-
-			vertices.push_back(AssimpUtils::Convert(pAIMesh->mVertices[i0]));
-			vertices.push_back(AssimpUtils::Convert(pAIMesh->mVertices[i1]));
-			vertices.push_back(AssimpUtils::Convert(pAIMesh->mVertices[i2]));
-
-			normals.push_back(AssimpUtils::Convert(pAIMesh->mNormals[i0]));
-			normals.push_back(AssimpUtils::Convert(pAIMesh->mNormals[i1]));
-			normals.push_back(AssimpUtils::Convert(pAIMesh->mNormals[i2]));
-
-			if (hasUV)
+			for (unsigned int k = 0; k < pFace->mNumIndices; k++)
 			{
-				// TODO: implement multi texturing support
+				int globalIndex = pFace->mIndices[k];
+				std::map<unsigned int, unsigned int>::iterator it = localIndexMap.find(globalIndex);
+				if (it == localIndexMap.end())
+				{
+					vertices.push_back(AssimpUtils::Convert(pAIMesh->mVertices[globalIndex]));
+					normals.push_back(AssimpUtils::Convert(pAIMesh->mNormals[globalIndex]));
 
-				aiVector3D& rUV1 = pAIMesh->mTextureCoords[0][i0];
-				uvs.push_back(glm::vec2(rUV1[0], 1 - rUV1[1]));
+					if (hasUV)
+					{
+						// TODO: implement multi texturing support
+						aiVector3D& rUV = pAIMesh->mTextureCoords[0][globalIndex];
+						uvs.push_back(glm::vec2(rUV[0], 1 - rUV[1]));
+					}
 
-				aiVector3D& rUV2 = pAIMesh->mTextureCoords[0][i1];
-				uvs.push_back(glm::vec2(rUV2[0], 1 - rUV2[1]));
-
-				aiVector3D& rUV3 = pAIMesh->mTextureCoords[0][i2];
-				uvs.push_back(glm::vec2(rUV3[0], 1 - rUV3[1]));
+					indices.push_back(nextLocalIndex);
+					localIndexMap.insert(std::make_pair(globalIndex, nextLocalIndex++));
+				}
+				else
+				{
+					indices.push_back(localIndexMap[globalIndex]);
+				}
 			}
 		}
 

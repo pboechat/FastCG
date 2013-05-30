@@ -21,12 +21,6 @@ void TextureImporter::Initialize()
 
 void TextureImporter::Dispose()
 {
-	/*if (!s_mInitialized)
-	{
-		// FIXME: checking invariants
-		THROW_EXCEPTION(Exception, "!s_mInitialized");
-	}*/
-
 	s_mInitialized = false;
 }
 

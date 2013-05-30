@@ -12,7 +12,7 @@
 #include <glm/glm.hpp>
 
 #include <string>
-#include <map>
+#include <vector>
 
 class ModelImporter
 {
@@ -22,6 +22,17 @@ public:
 	static void Dispose();
 
 private:
+	enum MaterialAttribute
+	{
+		MA_HAS_AMBIENT_COLOR = 0,
+		MA_HAS_DIFFUSE_COLOR = 2,
+		MA_HAS_SPECULAR_COLOR = 4,
+		MA_IS_EMISSIVE = 8,
+		MA_HAS_SHININESS = 16,
+		MA_HAS_COLOR_MAP = 32,
+		MA_IS_TWO_SIDED = 64
+	};
+
 	static bool s_mInitialized;
 	static std::vector<Texture*> s_mManagedTextures;
 	static std::vector<Material*> s_mManagedMaterials;
