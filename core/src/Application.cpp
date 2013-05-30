@@ -459,113 +459,91 @@ void Application::Update()
 	}
 }
 
+#ifdef FIXED_FUNCTION_PIPELINE
+#define BEGIN_DRAW_TEXT() \
+	glDisable(GL_DEPTH_TEST); \
+	glEnable(GL_BLEND); \
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); \
+	glDisable(GL_LIGHTING); \
+	glPushAttrib(GL_TRANSFORM_BIT); \
+	glMatrixMode(GL_PROJECTION); \
+	glPushMatrix(); \
+	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]); \
+	glPopAttrib(); \
+	glMatrixMode(GL_MODELVIEW); \
+	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]); \
+
+#define DRAW_TEXT(text, x, y, color) \
+	glColor4fv(&color[0]); \
+	glRasterPos2i(x, y); \
+	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)text)
+
+#define END_DRAW_TEXT() \
+	glPushAttrib(GL_TRANSFORM_BIT); \
+	glMatrixMode(GL_PROJECTION); \
+	glPopMatrix(); \
+	glPopAttrib(); \
+	glEnable(GL_LIGHTING); \
+	glDisable(GL_BLEND); \
+	glEnable(GL_DEPTH_TEST)
+#else
+#define BEGIN_DRAW_TEXT() \
+	glDisable(GL_DEPTH_TEST); \
+	glEnable(GL_BLEND); \
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+#define DRAW_TEXT(text, x, y, color) \
+	mpStandardFont->DrawString(text, FontRegistry::STANDARD_FONT_SIZE, x, y, color)
+
+#define END_DRAW_TEXT() \
+	glEnable(GL_LIGHTING); \
+	glDisable(GL_BLEND); \
+	glEnable(GL_DEPTH_TEST)
+#endif
+
 void Application::DrawAllTexts()
 {
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifdef FIXED_FUNCTION_PIPELINE
-	glDisable(GL_LIGHTING);
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]);
-	glPopAttrib();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
-#endif
+	BEGIN_DRAW_TEXT();
 
 	for (unsigned int i = 0; i < mDrawTextRequests.size(); i++)
 	{
 		DrawTextRequest* pDrawTextRequest = mDrawTextRequests[i];
-#ifdef FIXED_FUNCTION_PIPELINE
-		glColor4fv(&pDrawTextRequest->color[0]);
-		glRasterPos2i(pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y));
-		glutBitmapString(GLUT_BITMAP_HELVETICA_12, (const unsigned char*)pDrawTextRequest->text.c_str());
-#else
-		pDrawTextRequest->pFont->DrawString(pDrawTextRequest->text, pDrawTextRequest->size, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);		
-#endif
+		DRAW_TEXT(pDrawTextRequest->text, pDrawTextRequest->x, (mScreenHeight - pDrawTextRequest->y), pDrawTextRequest->color);
 		delete pDrawTextRequest;
 	}
 
 	mDrawTextRequests.clear();
-#ifdef FIXED_FUNCTION_PIPELINE
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glPopAttrib();
-	glEnable(GL_LIGHTING);
-#endif
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
+
+	END_DRAW_TEXT();
 }
 
 void Application::ShowFPS()
 {
 	static char fpsText[128];
+	static glm::vec4 green = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+	BEGIN_DRAW_TEXT();
+
 	sprintf(fpsText, "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifdef FIXED_FUNCTION_PIPELINE
-	glDisable(GL_LIGHTING);
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]);
-	glPopAttrib();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
-	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-	glRasterPos2i(mScreenWidth - 240, (mScreenHeight - 15));
-	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)fpsText);
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glPopAttrib();
-	glEnable(GL_LIGHTING);
-#else
-	mpStandardFont->DrawString(fpsText, FontRegistry::STANDARD_FONT_SIZE, mScreenWidth - 240, mScreenHeight - 17, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-#endif
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
+	DRAW_TEXT(fpsText, mScreenWidth - 240, (mScreenHeight - 17), green);
+
+	END_DRAW_TEXT();
 }
 
 void Application::ShowRenderingStatistics()
 {
 	static char text[128];
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifdef FIXED_FUNCTION_PIPELINE
-	glDisable(GL_LIGHTING);
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]);
-	glPopAttrib();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]);
-	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-	glRasterPos2i(mScreenWidth - 240, (mScreenHeight - 30));
+	static glm::vec4 green = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+	BEGIN_DRAW_TEXT();
+
 	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
-	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)text);
-	glRasterPos2i(mScreenWidth - 240, (mScreenHeight - 45));
+	DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 34), green);
+
 	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
-	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)text);
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glPopAttrib();
-	glEnable(GL_LIGHTING);
-#else
-	sprintf(text, "Draw Calls: %d", mRenderingStatistics.drawCalls);
-	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 34, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	sprintf(text, "No. Triangles: %d", mRenderingStatistics.numberOfTriangles);
-	mpStandardFont->DrawString(text, 14, mScreenWidth - 240, mScreenHeight - 51, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-#endif
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
+	DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 51), green);
+
+	END_DRAW_TEXT();
 }
 
 void Application::Render()
