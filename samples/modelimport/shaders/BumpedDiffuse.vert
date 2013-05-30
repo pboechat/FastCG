@@ -23,8 +23,15 @@ void main()
 
 	vec3 vertexPosition = vec3(_ModelView * position);
 
-	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
-	lightDirection = tangentSpaceMatrix * normalize(lightPosition - vertexPosition);
+	if (_Light0Type == 0.0) // directional
+	{
+		lightDirection = tangentSpaceMatrix * _Light0Position;
+	}
+	else
+	{
+		vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
+		lightDirection = tangentSpaceMatrix * normalize(lightPosition - vertexPosition);
+	}
 	
 	vertexPosition = vec3(_ModelView * position);
 	vertexUV = uv;

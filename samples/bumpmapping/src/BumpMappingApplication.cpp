@@ -37,23 +37,22 @@ BumpMappingApplication::BumpMappingApplication() :
 
 void BumpMappingApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
+	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
 	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-20.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
+	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
 
 	PointLight* pLight = PointLight::Instantiate(pLightGameObject);
 	pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	pLight->SetIntensity(15.0f);
+	pLight->SetIntensity(0.4f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
 	pLightAnimator->SetSpeed(40.0f);
 	pLightAnimator->SetAmplitude((float)FLOOR_SIZE);
 	pLightAnimator->SetDirection(glm::vec3(0.0f, 0.0f, 1.0f));
-
-	pLightGameObject->GetTransform()->SetWorldPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
 
 	mFloorColorMapTextures.push_back(TextureImporter::Import("textures/FloorColorMap1.png"));
 	mFloorBumpMapTextures.push_back(TextureImporter::Import("textures/FloorBumpMap1.png"));
@@ -123,7 +122,7 @@ void BumpMappingApplication::OnStart()
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
 			pMeshFilter->SetMaterial(mpSphereMaterial);
 
-			pSphereGameObject->GetTransform()->Translate(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
+			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 
 			spheres.push_back(pSphereGameObject);
 		}

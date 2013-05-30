@@ -17,8 +17,16 @@ void main()
 {
 	vec4 diffuseColor = texture(colorMap, (vertexUV * colorMapTiling));
 
-	vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
-	vec3 lightDirection = normalize(lightPosition - vertexPosition);
+	vec3 lightDirection;
+	if (_Light0Type == 0.0) // directional
+	{
+		lightDirection = normalize(_Light0Position);
+	}
+	else
+	{
+		vec3 lightPosition = vec3(_View * vec4(_Light0Position, 1.0));
+		lightDirection = normalize(lightPosition - vertexPosition);
+	}
 
 	gl_FragColor = BlinnPhongLighting(vec4(1.0),
 	                                  diffuseColor,

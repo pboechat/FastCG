@@ -10,8 +10,8 @@ public:
 		Light::OnInstantiate();
 
 		mConstantAttenuation = 0.0f;
-		mLinearAttenuation = 1.0f;
-		mQuadraticAttenuation = 0.0f;
+		mLinearAttenuation = 0.0f;
+		mQuadraticAttenuation = 1.0f;
 	}
 
 	inline float GetConstantAttenuation() const
@@ -19,9 +19,9 @@ public:
 		return mConstantAttenuation;
 	}
 
-	inline void SetConstantAttenuation(float val)
+	inline void SetConstantAttenuation(float constantAttenuation)
 	{
-		mConstantAttenuation = val;
+		mConstantAttenuation = constantAttenuation;
 	}
 
 	inline float GetLinearAttenuation() const
@@ -29,9 +29,9 @@ public:
 		return mLinearAttenuation;
 	}
 
-	inline void SetLinearAttenuation(float val)
+	inline void SetLinearAttenuation(float linearAttenuation)
 	{
-		mLinearAttenuation = val;
+		mLinearAttenuation = linearAttenuation;
 	}
 
 	inline float GetQuadraticAttenuation() const
@@ -39,9 +39,9 @@ public:
 		return mQuadraticAttenuation;
 	}
 
-	inline void SetQuadraticAttenuation(float val)
+	inline void SetQuadraticAttenuation(float quadraticAttenuation)
 	{
-		mQuadraticAttenuation = val;
+		mQuadraticAttenuation = quadraticAttenuation;
 	}
 
 private:

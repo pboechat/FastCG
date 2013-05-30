@@ -172,10 +172,10 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpPointLightPassShader->SetTexture("specularMap", GBuffer::GBUFFER_TEXTURE_TYPE_SPECULAR);
 			mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 			mpPointLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-			mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetWorldPosition());
+			mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
 			mpPointLightPassShader->SetMat4("_View", rView);
 			mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
-			mpPointLightPassShader->SetVec3("lightPosition", pPointLight->GetGameObject()->GetTransform()->GetWorldPosition());
+			mpPointLightPassShader->SetVec3("lightPosition", pPointLight->GetGameObject()->GetTransform()->GetPosition());
 			mpPointLightPassShader->SetVec4("lightAmbientColor", pPointLight->GetAmbientColor());
 			mpPointLightPassShader->SetVec4("lightDiffuseColor", pPointLight->GetDiffuseColor());
 			mpPointLightPassShader->SetVec4("lightSpecularColor", pPointLight->GetSpecularColor());
@@ -215,7 +215,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		mpDirectionalLightPassShader->SetTexture("specularMap", GBuffer::GBUFFER_TEXTURE_TYPE_SPECULAR);
 		mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 		mpDirectionalLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-		mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetWorldPosition());
+		mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
 		mpDirectionalLightPassShader->SetMat4("_View", rView);
 		for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 		{

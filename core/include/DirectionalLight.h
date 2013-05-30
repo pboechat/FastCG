@@ -8,7 +8,7 @@ COMPONENT(DirectionalLight, Light)
 public:
 	inline glm::vec3 GetDirection() const
 	{
-		return GetGameObject()->GetTransform()->GetWorldPosition();
+		return GetGameObject()->GetTransform()->GetPosition();
 	}
 
 };

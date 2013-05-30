@@ -38,16 +38,16 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 		mRightMouseButtonPressed = false;
 	}
 
-	glm::vec3 position = pMainCamera->GetGameObject()->GetTransform()->GetWorldPosition();
+	glm::vec3 position = pMainCamera->GetGameObject()->GetTransform()->GetPosition();
 	if (Input::GetKey(KeyCode::LEFT_ARROW) || Input::GetKey(KeyCode::LETTER_A))
 	{
 		if (mFlying)
 		{
-			pMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(-1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(-1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
 		}
 		else
 		{
-			pMainCamera->GetGameObject()->GetTransform()->SetWorldPosition(position + glm::vec3(-1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(-1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
 		}
 	}
 
@@ -55,11 +55,11 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 	{
 		if (mFlying)
 		{
-			pMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
 		}
 		else 
 		{
-			pMainCamera->GetGameObject()->GetTransform()->SetWorldPosition(position + glm::vec3(1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(1.0f, 0.0f, 0.0f) * mWalkSpeed * deltaTime);
 		}
 	}
 
@@ -67,11 +67,11 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 	{
 		if (mFlying)
 		{
-			pMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, 0.0f, -1.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(0.0f, 0.0f, -1.0f) * mWalkSpeed * deltaTime);
 		}
 		else
 		{
-			pMainCamera->GetGameObject()->GetTransform()->SetWorldPosition(position + glm::vec3(0.0f, 0.0f, -1.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(0.0f, 0.0f, -1.0f) * mWalkSpeed * deltaTime);
 		}
 	}
 
@@ -79,22 +79,22 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 	{
 		if (mFlying)
 		{
-			pMainCamera->GetGameObject()->GetTransform()->Translate(glm::vec3(0.0f, 0.0f, 1.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(0.0f, 0.0f, 1.0f) * mWalkSpeed * deltaTime);
 		}
 		else
 		{
-			pMainCamera->GetGameObject()->GetTransform()->SetWorldPosition(position + glm::vec3(0.0f, 0.0f, 1.0f) * mWalkSpeed * deltaTime);
+			pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(0.0f, 0.0f, 1.0f) * mWalkSpeed * deltaTime);
 		}
 	}
 
 	else if (Input::GetKey(KeyCode::PAGE_UP) || Input::GetKey(KeyCode::LETTER_Q))
 	{
-		pMainCamera->GetGameObject()->GetTransform()->SetWorldPosition(position + glm::vec3(0.0f, 1.0f, 0.0f) * mWalkSpeed * deltaTime);
+		pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(0.0f, 1.0f, 0.0f) * mWalkSpeed * deltaTime);
 	}
 
 	else if (Input::GetKey(KeyCode::PAGE_DOWN) || Input::GetKey(KeyCode::LETTER_E))
 	{
-		pMainCamera->GetGameObject()->GetTransform()->SetWorldPosition(position + glm::vec3(0.0f, -1.0f, 0.0f) * mWalkSpeed * deltaTime);
+		pMainCamera->GetGameObject()->GetTransform()->SetPosition(position + glm::vec3(0.0f, -1.0f, 0.0f) * mWalkSpeed * deltaTime);
 	}
 }
 

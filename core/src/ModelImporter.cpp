@@ -31,11 +31,11 @@ void ModelImporter::Initialize()
 
 void ModelImporter::Dispose()
 {
-	if (!s_mInitialized)
+	/*if (!s_mInitialized)
 	{
 		// FIXME: checking invariants
 		THROW_EXCEPTION(Exception, "!s_mInitialized");
-	}
+	}*/
 
 	for (unsigned int i = 0; i < s_mManagedMaterials.size(); i++)
 	{
@@ -196,13 +196,11 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 		std::vector<unsigned int> indices;
-/*#ifndef FIXED_FUNCTION_PIPELINE
-		std::vector<glm::vec4> tangents;
-#endif*/
 
 		bool hasUV = pAIMesh->HasTextureCoords(0);
 
-		// TODO: improve vertex index usage!
+		// TODO: read tangents from file
+		// TODO: improve vertex index usage
 		int c = 0;
 		for (unsigned int j = 0; j < pAIMesh->mNumFaces; j++)
 		{
@@ -249,11 +247,7 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 			}
 		}
 
-//#ifndef FIXED_FUNCTION_PIPELINE
-		//Mesh* pMesh = new Mesh(vertices, indices, normals, tangents, uvs);
-//#else
 		Mesh* pManagedMesh = new Mesh(vertices, indices, normals, uvs);
-//#endif
 
 		rMeshCatalog.insert(std::make_pair(i, pManagedMesh));
 		s_mManagedMeshes.push_back(pManagedMesh);
@@ -304,41 +298,6 @@ void ModelImporter::CalculateBoundingVolumeRecursively(const aiScene* pScene, ai
 	}
 }
 
-// DEBUG:
-/*GameObject* ModelImporter::BuildGameObject(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog)
-{
-	GameObject* pGameObject = new GameObject();
-	BuildGameObjectRecursively(pScene, rMaterialCatalog, rMeshCatalog, pScene->mRootNode, pGameObject);
-	return pGameObject;
-}*/
-
-// DEBUG:
-/*void ModelImporter::BuildGameObjectRecursively(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog, aiNode* pNode, GameObject* pRenderNode)
-{
-	pRenderNode->transform = AssimpUtils::Convert(pNode->mTransformation.Transpose());
-
-	for (unsigned int i = 0; i < pNode->mNumMeshes; i++)
-	{
-		unsigned int meshIndex = pNode->mMeshes[i];
-		const aiMesh* pImportedMesh = pScene->mMeshes[meshIndex];
-		unsigned int materialIndex = pImportedMesh->mMaterialIndex;
-
-		Mesh* pMesh = rMeshCatalog[meshIndex];
-		Material* pMaterial = rMaterialCatalog[materialIndex];
-
-		pRenderNode->meshes.push_back(pMesh);
-		pRenderNode->materials.insert(std::make_pair(pMesh, pMaterial));
-	}
-
-	for (unsigned int i = 0; i < pNode->mNumChildren; i++)
-	{
-		aiNode* pChildNode = pNode->mChildren[i];
-		GameObject* pChild = new GameObject();
-		BuildGameObjectRecursively(pScene, rMaterialCatalog, rMeshCatalog, pChildNode, pChild);
-		pRenderNode->children.push_back(pChild);
-	}
-}*/
-
 GameObject* ModelImporter::BuildGameObject(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog)
 {
 	GameObject* pGameObject = GameObject::Instantiate();
@@ -349,28 +308,33 @@ GameObject* ModelImporter::BuildGameObject(const aiScene* pScene, std::map<unsig
 void ModelImporter::BuildGameObjectRecursively(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog, aiNode* pNode, GameObject* pGameObject)
 {
 	Transform* pTransform = pGameObject->GetTransform();
-	pTransform->SetWorldTransform(AssimpUtils::Convert(pNode->mTransformation.Transpose()));
+	glm::mat4& rModel = AssimpUtils::Convert(pNode->mTransformation.Transpose());
+	pTransform->SetPosition(glm::vec3(rModel[3]));
+	pTransform->SetRotation(glm::toQuat(rModel));
 
-	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
-	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGameObject);
-
-	// TODO: multiple materials support
-	bool hasAddedMaterial = false;
-	for (unsigned int i = 0; i < pNode->mNumMeshes; i++)
+	if (pNode->mNumMeshes > 0)
 	{
-		unsigned int meshIndex = pNode->mMeshes[i];
-		aiMesh* pAIMesh = pScene->mMeshes[meshIndex];
-		unsigned int materialIndex = pAIMesh->mMaterialIndex;
+		MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
+		MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGameObject);
 
-		Mesh* pMesh = rMeshCatalog[meshIndex];
-		Material* pMaterial = rMaterialCatalog[materialIndex];
-
-		pMeshRenderer->AddMesh(pMesh);
-
-		if (!hasAddedMaterial)
+		// TODO: multiple materials support
+		bool hasAddedMaterial = false;
+		for (unsigned int i = 0; i < pNode->mNumMeshes; i++)
 		{
-			pMeshFilter->SetMaterial(pMaterial);
-			hasAddedMaterial = true;
+			unsigned int meshIndex = pNode->mMeshes[i];
+			aiMesh* pAIMesh = pScene->mMeshes[meshIndex];
+			unsigned int materialIndex = pAIMesh->mMaterialIndex;
+
+			Mesh* pMesh = rMeshCatalog[meshIndex];
+			Material* pMaterial = rMaterialCatalog[materialIndex];
+
+			pMeshRenderer->AddMesh(pMesh);
+
+			if (!hasAddedMaterial)
+			{
+				pMeshFilter->SetMaterial(pMaterial);
+				hasAddedMaterial = true;
+			}
 		}
 	}
 

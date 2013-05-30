@@ -59,7 +59,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 			pShader->SetMat4("_ModelViewProjection", rProjection * modelView);
 			pShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
-			if (pMaterial->IsUnlit())
+			if (pMaterial->IsUnlit() || mrLights.size() == 0)
 			{
 				pRenderer->Render();
 				mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
@@ -78,7 +78,7 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 					}
 
 					Light* pLight = mrLights[i];
-					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetWorldPosition());
+					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
 					pShader->SetVec4("_Light0AmbientColor", pLight->GetAmbientColor());
 					pShader->SetVec4("_Light0DiffuseColor", pLight->GetDiffuseColor());
 					pShader->SetVec4("_Light0SpecularColor", pLight->GetSpecularColor());
@@ -113,9 +113,8 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 				}
 				glDisable(GL_BLEND);
 				glDepthFunc(GL_LESS);
-
-				mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			}
+			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 		}
 
 		pShader->Unbind();

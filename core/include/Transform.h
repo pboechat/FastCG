@@ -20,130 +20,114 @@ public:
 		mpParent = pParent;
 	}
 
-	inline glm::vec3 GetWorldPosition() const
+	inline glm::vec3 GetPosition() const
+	{
+		return glm::vec3(GetModel()[3]);
+	}
+
+	inline void SetPosition(const glm::vec3& position)
 	{
 		if (mpParent != 0)
 		{
-			return mpParent->GetWorldPosition() + mWorldPosition;
+			SetLocalPosition(position - mpParent->GetPosition());
 		}
 		else
 		{
-			return mWorldPosition;
+			SetLocalPosition(position);
 		}
 	}
 
-	inline void SetWorldPosition(const glm::vec3& position)
+	inline glm::vec3 GetLocalPosition() const
 	{
-		if (mpParent != 0)
-		{
-			mWorldPosition = position - mpParent->GetWorldPosition();
-		}
-		else
-		{
-			mWorldPosition = position;
-		}
+		return glm::vec3(mLocalTransform[3]);
 	}
 
 	inline void SetLocalPosition(const glm::vec3& position)
 	{
-		mLocalPosition = position;
+		mLocalTransform[3] = glm::vec4(position, 1.0f);
 	}
 
-	inline glm::quat GetWorldRotation() const
+	inline glm::quat GetRotation() const
+	{
+		return glm::toQuat(GetModel());
+	}
+
+	inline void SetRotation(const glm::quat& rRotation)
 	{
 		if (mpParent != 0)
 		{
-			return GetWorldRotation() * mWorldRotation;
+			SetLocalRotation(glm::inverse(GetRotation()) * rRotation);
 		}
 		else
 		{
-			return mWorldRotation;
+			SetLocalRotation(rRotation);
 		}
-	}
-
-	inline glm::mat4 GetWorldTransform() const
-	{
-		glm::mat4 worldTransform = glm::toMat4(mWorldRotation);
-		worldTransform = glm::translate(worldTransform, mWorldPosition);
-
-		if (mpParent != 0)
-		{
-			return mpParent->GetWorldTransform() * worldTransform;
-		}
-		else 
-		{
-			return worldTransform;
-		}
-	}
-
-	inline void SetWorldTransform(const glm::mat4& rWorldTransform)
-	{
-		mWorldRotation = glm::toQuat(rWorldTransform);
-		mWorldPosition = glm::vec3(rWorldTransform[3]);
-	}
-
-	inline void SetLocalTransform(const glm::mat4& rLocalTransform)
-	{
-		mLocalRotation = glm::toQuat(rLocalTransform);
-		mLocalPosition = glm::vec3(rLocalTransform[3]);
 	}
 
 	inline glm::quat GetLocalRotation() const
 	{
-		return mLocalRotation;
+		return glm::toQuat(mLocalTransform);
 	}
 
-	inline const glm::vec3& GetScale() const
+	inline void SetLocalRotation(const glm::quat& rLocalRotation)
 	{
-		return mScale;
+		glm::mat4 transform = glm::toMat4(rLocalRotation);
+		transform = glm::translate(transform, GetLocalPosition());
+		transform = glm::scale(transform, GetLocalScale());
+		mLocalTransform = transform;
 	}
 
-	inline void SetScale(const glm::vec3& rScale)
+	inline glm::vec3 GetScale() const
 	{
-		mScale = rScale;
+		glm::mat4& rModel = GetModel();
+		return glm::vec3(rModel[0][0], rModel[1][1], rModel[2][2]);
 	}
 
-	inline glm::mat4 GetModel() const
+	inline glm::vec3 GetLocalScale() const
 	{
-		glm::mat4 localTransform = glm::toMat4(mLocalRotation);
-		localTransform = glm::translate(localTransform, mLocalPosition);
-		return GetWorldTransform() * localTransform;
-	}
-
-	inline void Translate(const glm::vec3& position)
-	{
-		mWorldPosition += mLocalRotation * position;
+		return glm::vec3(mLocalTransform[0][0], mLocalTransform[1][1], mLocalTransform[2][2]);
 	}
 
 	inline void Rotate(const glm::vec3& rEulerAngles)
 	{
-		mWorldRotation = mWorldRotation * glm::quat(rEulerAngles);
+		mLocalTransform = mLocalTransform * glm::toMat4(glm::quat(rEulerAngles));
+	}
+
+	inline void ScaleLocal(const glm::vec3& rScale)
+	{
+		mLocalTransform = glm::scale(mLocalTransform, rScale);
 	}
 
 	inline void RotateAround(float angle, const glm::vec3& axis)
 	{
-		glm::mat4 worldTransform = glm::toMat4(mWorldRotation);
-		worldTransform = glm::translate(worldTransform, mWorldPosition);
-		worldTransform = glm::rotate(worldTransform, angle, axis);
-		SetWorldTransform(worldTransform);
+		mLocalTransform = glm::rotate(GetModel(), angle, axis);
 	}
 
 	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
 	{
-		glm::mat4 localTransform = glm::toMat4(mLocalRotation);
-		localTransform = glm::translate(localTransform, mLocalPosition);
-		localTransform = glm::rotate(localTransform, angle, axis);
-		SetLocalTransform(localTransform);
+		mLocalTransform = glm::rotate(mLocalTransform, angle, axis);
 	}
 
 	inline glm::vec3 GetForward() const
 	{
-		return glm::normalize(GetWorldRotation() * mLocalRotation * glm::vec3(0.0f, 0.0f, -1.0f));
+		return glm::normalize(GetRotation() * glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	inline glm::vec3 GetUp() const
 	{
-		return glm::normalize(GetWorldRotation() * mLocalRotation * glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::normalize(GetRotation() * glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+
+	inline glm::mat4 GetModel() const
+	{
+		if (mpParent != 0)
+		{
+			return mpParent->GetModel() * mLocalTransform;
+		}
+		else
+		{
+			return mLocalTransform;
+		}
 	}
 
 	inline GameObject* GetGameObject()
@@ -161,18 +145,11 @@ public:
 private:
 	GameObject* mpGameObject;
 	Transform* mpParent;
-	glm::vec3 mWorldPosition;
-	glm::quat mWorldRotation;
-	glm::vec3 mLocalPosition;
-	glm::quat mLocalRotation;
-	glm::vec3 mScale;
+	glm::mat4 mLocalTransform;
 
 	Transform(GameObject* pGameObject) :
 		mpGameObject(pGameObject),
-		mpParent(0),
-		mWorldPosition(0.0f, 0.0f, 0.0f),
-		mLocalPosition(0.0f, 0.0f, 0.0f),
-		mScale(1.0f, 1.0f, 1.0f)
+		mpParent(0)
 	{
 	}
 
