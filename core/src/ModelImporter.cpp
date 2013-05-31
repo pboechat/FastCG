@@ -208,7 +208,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			s_mManagedTextures.push_back(pBumpMapTexture);
 		}
 
-		int twoSided;
+		int twoSided = 0;
 		if (aiGetMaterialIntegerArray(pAIMaterial, AI_MATKEY_TWOSIDED, &twoSided, &max) == AI_SUCCESS)
 		{
 			materialAttributesMask |= MA_IS_TWO_SIDED;

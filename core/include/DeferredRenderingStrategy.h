@@ -61,6 +61,7 @@ public:
 
 private:
 	const static unsigned int NUMBER_OF_RANDOM_SAMPLES;
+	const static float RAY_LENGTH; 
 	const static unsigned int LIGHT_MESH_DETAIL;
 
 	unsigned int& mrScreenWidth;

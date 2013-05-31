@@ -154,6 +154,9 @@ void GBuffer::BindForLightPass()
 		glActiveTexture(GL_TEXTURE0 + i);		
 		glBindTexture(GL_TEXTURE_2D, mTexturesIds[i]);
 	}
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
 }
 
 void GBuffer::BindForSSAOHighFrequencyPass()

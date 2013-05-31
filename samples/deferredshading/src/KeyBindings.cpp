@@ -34,13 +34,6 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 		bool showPointLightsEnabled = pDeferredRenderingStrategy->IsShowPointLightsEnabled();
 		pDeferredRenderingStrategy->SetShowPointLightsEnabled(!showPointLightsEnabled);
 		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::F3) && time - mLastKeyPressTime > 0.333f)
-	{
-		DeferredRenderingStrategy* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
-		bool displaySSAOTextureEnabled = pDeferredRenderingStrategy->IsDisplaySSAOTextureEnabled();
-		pDeferredRenderingStrategy->SetDisplaySSAOTextureEnabled(!displaySSAOTextureEnabled);
-		mLastKeyPressTime = time;
 	} else
 #endif
 	if (Input::GetKey(KeyCode::ESCAPE))

@@ -4,7 +4,6 @@
 #include <FontRegistry.h>
 #include <Input.h>
 #include <KeyCode.h>
-#include <DeferredRenderingStrategy.h>
 
 COMPONENT_IMPLEMENTATION(KeyBindings, Behaviour);
 

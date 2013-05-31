@@ -8,7 +8,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-const unsigned int DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 10;
+const unsigned int DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
+const float DeferredRenderingStrategy::RAY_LENGTH = 40.0f;
 const unsigned int DeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
 
 DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLights,
@@ -166,7 +167,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpSSAOHighFrequencyPassShader->SetTexture("_NormalMap", 0);
 			mpSSAOHighFrequencyPassShader->SetTexture("_DepthMap", 1);
 			mpSSAOHighFrequencyPassShader->SetTexture("_NoiseMap", mpNoiseTexture, 2);
-			mpSSAOHighFrequencyPassShader->SetFloat("_RayLength", 40.0f);
+			mpSSAOHighFrequencyPassShader->SetFloat("_RayLength", RAY_LENGTH);
 			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamplesInAHemisphere", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamplesInAHemisphere[0]);
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
@@ -226,6 +227,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				mpPointLightPassShader->SetTexture("_ColorMap", GBuffer::GTT_COLOR_TEXTURE);
 				mpPointLightPassShader->SetTexture("_NormalMap", GBuffer::GTT_NORMAL_TEXTURE);
 				mpPointLightPassShader->SetTexture("_SpecularMap", GBuffer::GTT_SPECULAR_TEXTURE);
+				mpPointLightPassShader->SetTexture("_AmbientMap", GBuffer::GTT_SSAO_TEXTURE);
 				mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 				mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
 				mpPointLightPassShader->SetVec4("_Light0AmbientColor", pPointLight->GetAmbientColor());
@@ -253,23 +255,26 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 			glDisable(GL_STENCIL_TEST);
 
-			glDisable(GL_DEPTH_TEST);
-			glEnable(GL_BLEND);
+			glDisable(GL_DEPTH_TEST); 
+
+			glEnable(GL_BLEND); 
 			glBlendEquation(GL_FUNC_ADD);
 			glBlendFunc(GL_ONE, GL_ONE);
 
 			mpGBuffer->BindForLightPass();
 			mpDirectionalLightPassShader->Bind();
+			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpDirectionalLightPassShader->SetTexture("_PositionMap", GBuffer::GTT_POSITION_TEXTURE);
 			mpDirectionalLightPassShader->SetTexture("_ColorMap", GBuffer::GTT_COLOR_TEXTURE);
 			mpDirectionalLightPassShader->SetTexture("_NormalMap", GBuffer::GTT_NORMAL_TEXTURE);
 			mpDirectionalLightPassShader->SetTexture("_SpecularMap", GBuffer::GTT_SPECULAR_TEXTURE);
+			mpDirectionalLightPassShader->SetTexture("_AmbientMap", GBuffer::GTT_SSAO_TEXTURE);
 			mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
-			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 			{
 				DirectionalLight* pDirectionalLight = mrDirectionalLights[i];
-				mpDirectionalLightPassShader->SetVec3("_Light0Direction", pDirectionalLight->GetDirection());
+
+				mpDirectionalLightPassShader->SetVec3("_Light0Position", pDirectionalLight->GetDirection());
 				mpDirectionalLightPassShader->SetVec4("_Light0AmbientColor", pDirectionalLight->GetAmbientColor());
 				mpDirectionalLightPassShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 				mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
