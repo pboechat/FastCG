@@ -9,11 +9,11 @@ public:
 	enum GBufferTextureType
 	{
 		GTT_POSITION_TEXTURE,
-		GTT_DIFFUSE_TEXTURE,
+		GTT_COLOR_TEXTURE,
 		GTT_NORMAL_TEXTURE,
 		GTT_SPECULAR_TEXTURE,
 		GTT_SSAO_TEXTURE,
-		GTT_FINAL_TEXTURE
+		GTT_FINAL_OUTPUT_TEXTURE
 	};
 
 	GBuffer(unsigned int& rScreenWidth, unsigned int& rScreenHeight);
@@ -35,7 +35,7 @@ private:
 	unsigned int mTexturesIds[NUMBER_OF_TEXTURES];
 	unsigned int mDepthTextureId;
 	unsigned int mSSAOTextureId;
-	unsigned int mFinalTextureId;
+	unsigned int mFinalOutputTextureId;
 
 	void AllocateResources();
 	void DeallocateResources();

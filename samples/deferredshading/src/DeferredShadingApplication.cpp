@@ -13,6 +13,7 @@
 #include <ModelImporter.h>
 #include <FirstPersonCameraController.h>
 #include <TextureImporter.h>
+#include <Colors.h>
 #include <MathT.h>
 
 #include <vector>
@@ -58,11 +59,11 @@ void DeferredShadingApplication::OnStart()
 			pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
 
 			pPointLight = PointLight::Instantiate(pPointLightGameObject);
-			pPointLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			pPointLight->SetAmbientColor(Colors::BLACK);
 			glm::vec4 color = Random::NextColor();
 			pPointLight->SetDiffuseColor(color);
 			pPointLight->SetSpecularColor(color);
-			pPointLight->SetIntensity(0.1f);
+			pPointLight->SetIntensity(0.05f);
 			pPointLight->SetConstantAttenuation(0.0f);
 			pPointLight->SetLinearAttenuation(0.0f);
 			pPointLight->SetQuadraticAttenuation(1.0f);
@@ -81,9 +82,7 @@ void DeferredShadingApplication::OnStart()
 #else
 	mpFloorMaterial = new Material(ShaderRegistry::Find("Diffuse"));
 	mpFloorMaterial->SetTexture("colorMap", mpCheckersColorMapTexture);
-	mpFloorMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
-	mpFloorMaterial->SetFloat("shininess", 5.0f);
+	mpFloorMaterial->SetVec4("diffuseColor", Colors::WHITE);
 #endif
 
 	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
@@ -99,8 +98,8 @@ void DeferredShadingApplication::OnStart()
 	mpSphereMaterial->SetShininess(1.0f);
 #else
 	mpSphereMaterial = new Material(ShaderRegistry::Find("SolidColor"));
-	mpSphereMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpSphereMaterial->SetVec4("specularColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mpSphereMaterial->SetVec4("diffuseColor", Colors::WHITE);
+	mpSphereMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpSphereMaterial->SetFloat("shininess", 1.0f);
 #endif
 

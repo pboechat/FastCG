@@ -3,7 +3,13 @@
 #include <DeferredRenderingStrategy.h>
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
+#include <Random.h>
 #include <MathT.h>
+
+#include <glm/gtc/matrix_transform.hpp>
+
+const unsigned int DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 10;
+const unsigned int DeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
 
 DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLights,
 													 std::vector<DirectionalLight*>& rDirectionalLights,
@@ -22,17 +28,21 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mDisplaySSAOTextureEnabled(false),
 	mShowPointLightsEnabled(false),
 	mpGBuffer(0),
-	mpQuadMesh(0)
+	mpStencilPassShader(0),
+	mpDirectionalLightPassShader(0),
+	mpPointLightPassShader(0),
+	mpLineStripShader(0),
+	mpPointsShader(0),
+	mpNoiseTexture(0),
+	mpQuadMesh(0),
+	mpSphereMesh(0)
 {
 	mpGBuffer = new GBuffer(rScreenWidth, rScreenHeight);
-	mpStencilPassShader = ShaderRegistry::Find("StencilPass");
-	mpDirectionalLightPassShader = ShaderRegistry::Find("DirectionalLightPass");
-	mpPointLightPassShader = ShaderRegistry::Find("PointLightPass");
-	mpSSAOHighFrequencyPassShader = ShaderRegistry::Find("SSAOHighFrequencyPass");
-	mpLineStripShader = ShaderRegistry::Find("LineStrip");
-	mpPointsShader = ShaderRegistry::Find("Points");
-	mpQuadMesh = StandardGeometries::CreateXYPlane(2, 2, 1, 1, glm::vec3(0.0f, 0.0f, 0.0f));
-	mpSphereMesh = StandardGeometries::CreateSphere(1.0f, 10);
+
+	FindShaders();
+	BuildAuxiliaryMeshes();
+	GenerateNoiseTexture();
+	GenerateRandomSamplesInAHemisphere();
 }
 
 DeferredRenderingStrategy::~DeferredRenderingStrategy()
@@ -51,6 +61,11 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 	{
 		delete mpSphereMesh;
 	}
+
+	if (mpNoiseTexture != 0)
+	{
+		delete mpNoiseTexture;
+	}
 }
 
 void DeferredRenderingStrategy::Render(const Camera* pCamera)
@@ -67,6 +82,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
+	glm::mat4 inverseProjection = glm::inverse(rProjection);
 
 	mrRenderingStatistics.Reset();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
@@ -95,8 +111,10 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			}
 
 			glm::mat4& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
-			pShader->SetMat4("_Model", rModel);
-			glm::mat4 modelViewProjection = rProjection * (rView * rModel);
+			glm::mat4 modelView = rView * rModel;
+			glm::mat4 modelViewProjection = rProjection * modelView;
+			pShader->SetMat4("_ModelView", modelView);
+			pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 			pShader->SetMat4("_ModelViewProjection", modelViewProjection);
 			pRenderer->Render();
 			mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
@@ -117,17 +135,21 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 		mpGBuffer->BindForDebugging();
 
+		// top left
+		mpGBuffer->SetReadBuffer(GBuffer::GTT_COLOR_TEXTURE); 
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, halfScreenHeight, halfScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+		// top right
+		mpGBuffer->SetReadBuffer(GBuffer::GTT_SPECULAR_TEXTURE); 
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, halfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+		// bottom left
 		mpGBuffer->SetReadBuffer(GBuffer::GTT_POSITION_TEXTURE); 
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, halfScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-		mpGBuffer->SetReadBuffer(GBuffer::GTT_DIFFUSE_TEXTURE); 
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, halfScreenHeight, halfScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
+		// bottom right
 		mpGBuffer->SetReadBuffer(GBuffer::GTT_NORMAL_TEXTURE); 
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, 0, mrScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-		mpGBuffer->SetReadBuffer(GBuffer::GTT_SPECULAR_TEXTURE); 
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, halfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 	else
 	{
@@ -138,12 +160,16 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 			mpGBuffer->BindForSSAOHighFrequencyPass();
 			mpSSAOHighFrequencyPassShader->Bind();
-			mpSSAOHighFrequencyPassShader->SetTexture("normalMap", 0);
-			mpSSAOHighFrequencyPassShader->SetTexture("depthMap", 1);
-			mpSSAOHighFrequencyPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+			mpSSAOHighFrequencyPassShader->SetMat4("_Projection", rProjection);
+			mpSSAOHighFrequencyPassShader->SetMat4("_InverseProjection", inverseProjection);
+			mpSSAOHighFrequencyPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+			mpSSAOHighFrequencyPassShader->SetTexture("_NormalMap", 0);
+			mpSSAOHighFrequencyPassShader->SetTexture("_DepthMap", 1);
+			mpSSAOHighFrequencyPassShader->SetTexture("_NoiseMap", mpNoiseTexture, 2);
+			mpSSAOHighFrequencyPassShader->SetFloat("_RayLength", 40.0f);
+			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamplesInAHemisphere", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamplesInAHemisphere[0]);
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
-			mrRenderingStatistics.numberOfTriangles += mpQuadMesh->GetNumberOfTriangles();
 			mpSSAOHighFrequencyPassShader->Unbind();
 		}
 
@@ -163,8 +189,8 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				PointLight* pPointLight = mrPointLights[i];
 				glm::mat4& rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
 				float lightBoundingSphereScale = CalculateLightBoundingBoxScale(pPointLight);
-				rModel = glm::scale(rModel, glm::vec3(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale));
-				glm::mat4 modelViewProjection = rProjection * (rView * rModel);
+				glm::vec3 scaleVector(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale);
+				glm::mat4 modelViewProjection = rProjection * (rView * glm::scale(rModel, scaleVector));
 
 				glClear(GL_STENCIL_BUFFER_BIT);
 
@@ -190,25 +216,25 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				glBlendEquation(GL_FUNC_ADD);
 				glBlendFunc(GL_ONE, GL_ONE);
 
+				glm::vec3 lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f));
+
 				mpGBuffer->BindForLightPass();
 				mpPointLightPassShader->Bind();
-				mpPointLightPassShader->SetTexture("positionMap", GBuffer::GTT_POSITION_TEXTURE);
-				mpPointLightPassShader->SetTexture("colorMap", GBuffer::GTT_DIFFUSE_TEXTURE);
-				mpPointLightPassShader->SetTexture("normalMap", GBuffer::GTT_NORMAL_TEXTURE);
-				mpPointLightPassShader->SetTexture("specularMap", GBuffer::GTT_SPECULAR_TEXTURE);
-				mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
-				mpPointLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-				mpPointLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
-				mpPointLightPassShader->SetMat4("_View", rView);
 				mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
-				mpPointLightPassShader->SetVec3("lightPosition", pPointLight->GetGameObject()->GetTransform()->GetPosition());
-				mpPointLightPassShader->SetVec4("lightAmbientColor", pPointLight->GetAmbientColor());
-				mpPointLightPassShader->SetVec4("lightDiffuseColor", pPointLight->GetDiffuseColor());
-				mpPointLightPassShader->SetVec4("lightSpecularColor", pPointLight->GetSpecularColor());
-				mpPointLightPassShader->SetFloat("lightIntensity", pPointLight->GetIntensity());
-				mpPointLightPassShader->SetFloat("lightConstantAttenuation", pPointLight->GetConstantAttenuation());
-				mpPointLightPassShader->SetFloat("lightLinearAttenuation", pPointLight->GetLinearAttenuation());
-				mpPointLightPassShader->SetFloat("lightQuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
+				mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+				mpPointLightPassShader->SetTexture("_PositionMap", GBuffer::GTT_POSITION_TEXTURE);
+				mpPointLightPassShader->SetTexture("_ColorMap", GBuffer::GTT_COLOR_TEXTURE);
+				mpPointLightPassShader->SetTexture("_NormalMap", GBuffer::GTT_NORMAL_TEXTURE);
+				mpPointLightPassShader->SetTexture("_SpecularMap", GBuffer::GTT_SPECULAR_TEXTURE);
+				mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
+				mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
+				mpPointLightPassShader->SetVec4("_Light0AmbientColor", pPointLight->GetAmbientColor());
+				mpPointLightPassShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
+				mpPointLightPassShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
+				mpPointLightPassShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
+				mpPointLightPassShader->SetFloat("_Light0ConstantAttenuation", pPointLight->GetConstantAttenuation());
+				mpPointLightPassShader->SetFloat("_Light0LinearAttenuation", pPointLight->GetLinearAttenuation());
+				mpPointLightPassShader->SetFloat("_Light0QuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
 				if (mShowPointLightsEnabled)
 				{
 					mpPointLightPassShader->SetFloat("debug", 0.25f);
@@ -219,7 +245,6 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				}
 				mpSphereMesh->DrawCall();
 				mrRenderingStatistics.drawCalls++;
-				mrRenderingStatistics.numberOfTriangles += mpSphereMesh->GetNumberOfTriangles();
 				mpPointLightPassShader->Unbind();
 
 				glCullFace(GL_BACK);
@@ -235,32 +260,29 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 			mpGBuffer->BindForLightPass();
 			mpDirectionalLightPassShader->Bind();
-			mpDirectionalLightPassShader->SetTexture("positionMap", GBuffer::GTT_POSITION_TEXTURE);
-			mpDirectionalLightPassShader->SetTexture("colorMap", GBuffer::GTT_DIFFUSE_TEXTURE);
-			mpDirectionalLightPassShader->SetTexture("normalMap", GBuffer::GTT_NORMAL_TEXTURE);
-			mpDirectionalLightPassShader->SetTexture("specularMap", GBuffer::GTT_SPECULAR_TEXTURE);
+			mpDirectionalLightPassShader->SetTexture("_PositionMap", GBuffer::GTT_POSITION_TEXTURE);
+			mpDirectionalLightPassShader->SetTexture("_ColorMap", GBuffer::GTT_COLOR_TEXTURE);
+			mpDirectionalLightPassShader->SetTexture("_NormalMap", GBuffer::GTT_NORMAL_TEXTURE);
+			mpDirectionalLightPassShader->SetTexture("_SpecularMap", GBuffer::GTT_SPECULAR_TEXTURE);
 			mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
-			mpDirectionalLightPassShader->SetVec2("screenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-			mpDirectionalLightPassShader->SetVec3("viewerPosition", pCamera->GetGameObject()->GetTransform()->GetPosition());
-			mpDirectionalLightPassShader->SetMat4("_View", rView);
+			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 			{
 				DirectionalLight* pDirectionalLight = mrDirectionalLights[i];
-				mpDirectionalLightPassShader->SetVec3("lightPosition", pDirectionalLight->GetDirection());
-				mpDirectionalLightPassShader->SetVec4("lightAmbientColor", pDirectionalLight->GetAmbientColor());
-				mpDirectionalLightPassShader->SetVec4("lightDiffuseColor", pDirectionalLight->GetDiffuseColor());
-				mpDirectionalLightPassShader->SetVec4("lightSpecularColor", pDirectionalLight->GetSpecularColor());
-				mpDirectionalLightPassShader->SetFloat("lightIntensity", pDirectionalLight->GetIntensity());
+				mpDirectionalLightPassShader->SetVec3("_Light0Direction", pDirectionalLight->GetDirection());
+				mpDirectionalLightPassShader->SetVec4("_Light0AmbientColor", pDirectionalLight->GetAmbientColor());
+				mpDirectionalLightPassShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
+				mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
+				mpDirectionalLightPassShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
 				mpQuadMesh->DrawCall();
 				mrRenderingStatistics.drawCalls++;
-				mrRenderingStatistics.numberOfTriangles += mpQuadMesh->GetNumberOfTriangles();
 			}
 			mpDirectionalLightPassShader->Unbind();
 
 			glDisable(GL_BLEND);
 
 			mpGBuffer->BindForFinalPass();
-			mpGBuffer->SetReadBuffer(GBuffer::GTT_FINAL_TEXTURE);
+			mpGBuffer->SetReadBuffer(GBuffer::GTT_FINAL_OUTPUT_TEXTURE);
 			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 			RenderUnlitGeometries(rView, rProjection);
@@ -341,9 +363,53 @@ void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, con
 
 float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(PointLight* pPointLight)
 {
-	glm::vec4 diffuseColor = pPointLight->GetDiffuseColor() * pPointLight->GetIntensity();
-	float distance = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
-	return 8.0f * MathF::Sqrt(distance) + 1.0f;
+	glm::vec4 diffuseColor = pPointLight->GetDiffuseColor();
+	float maxChannel = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+	float c = maxChannel * pPointLight->GetIntensity();
+	return (8.0f * MathF::Sqrt(c) + 1.0f);
+}
+
+void DeferredRenderingStrategy::FindShaders()
+{
+	mpStencilPassShader = ShaderRegistry::Find("StencilPass");
+	mpDirectionalLightPassShader = ShaderRegistry::Find("DirectionalLightPass");
+	mpPointLightPassShader = ShaderRegistry::Find("PointLightPass");
+	mpSSAOHighFrequencyPassShader = ShaderRegistry::Find("SSAOHighFrequencyPass");
+	mpLineStripShader = ShaderRegistry::Find("LineStrip");
+	mpPointsShader = ShaderRegistry::Find("Points");
+}
+
+void DeferredRenderingStrategy::BuildAuxiliaryMeshes()
+{
+	mpQuadMesh = StandardGeometries::CreateXYPlane(2, 2, 1, 1, glm::vec3(0.0f, 0.0f, 0.0f));
+	mpSphereMesh = StandardGeometries::CreateSphere(1.0f, LIGHT_MESH_DETAIL);
+}
+
+void DeferredRenderingStrategy::GenerateNoiseTexture()
+{
+	Random::SeedWithTime();
+	glm::vec3* pNoises = new glm::vec3[16];
+	for (unsigned int i = 0; i < 16; i++)
+	{
+		glm::vec3 noise(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, 0.0f);
+		pNoises[i] = glm::normalize(noise);
+	}
+
+	mpNoiseTexture = new Texture(4, 4, 3, IF_RGB, DF_FLOAT, FM_LINEAR_FILTER, WM_REPEAT, &pNoises[0][0]);
+}
+
+void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
+{
+	Random::SeedWithTime();
+	for (unsigned int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
+	{
+		glm::vec3 randomSampleInAHemisphere(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat());
+		randomSampleInAHemisphere = glm::normalize(randomSampleInAHemisphere);
+		float scale = i / (float)NUMBER_OF_RANDOM_SAMPLES;
+		scale = MathF::Lerp(0.1f, 1.0f, scale * scale);
+		randomSampleInAHemisphere *= scale;
+		mRandomSamplesInAHemisphere.push_back(randomSampleInAHemisphere);
+	}
 }
 
 #endif

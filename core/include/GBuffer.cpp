@@ -16,7 +16,7 @@ GBuffer::GBuffer(unsigned int& rScreenWidth, unsigned int& rScreenHeight) :
 	mFBOId(0),
 	mDepthTextureId(0),
 	mSSAOTextureId(0),
-	mFinalTextureId(0)
+	mFinalOutputTextureId(0)
 {
 }
 
@@ -35,7 +35,7 @@ void GBuffer::AllocateResources()
 	glGenTextures(NUMBER_OF_TEXTURES, mTexturesIds);
 	glGenTextures(1, &mDepthTextureId);
 	glGenTextures(1, &mSSAOTextureId);
-	glGenTextures(1, &mFinalTextureId);
+	glGenTextures(1, &mFinalOutputTextureId);
 
 	for (unsigned int i = 0 ; i < NUMBER_OF_TEXTURES; i++)
 	{
@@ -60,9 +60,9 @@ void GBuffer::AllocateResources()
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mSSAOTextureId, 0);
 
 	// create final texture
-	glBindTexture(GL_TEXTURE_2D, mFinalTextureId);
+	glBindTexture(GL_TEXTURE_2D, mFinalOutputTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, mFinalTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
 
 	unsigned int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -97,9 +97,9 @@ void GBuffer::DeallocateResources()
 		glDeleteTextures(1, &mSSAOTextureId);
 	}
 
-	if (mFinalTextureId != 0)
+	if (mFinalOutputTextureId != 0)
 	{
-		glDeleteTextures(1, &mFinalTextureId);
+		glDeleteTextures(1, &mFinalOutputTextureId);
 	}
 }
 
@@ -179,7 +179,7 @@ void GBuffer::SetReadBuffer(GBufferTextureType textureType)
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		break;
 
-	case GTT_DIFFUSE_TEXTURE:
+	case GTT_COLOR_TEXTURE:
 		glReadBuffer(GL_COLOR_ATTACHMENT1);
 		break;
 
@@ -195,7 +195,7 @@ void GBuffer::SetReadBuffer(GBufferTextureType textureType)
 		glReadBuffer(GL_COLOR_ATTACHMENT4);
 		break;
 
-	case GTT_FINAL_TEXTURE:
+	case GTT_FINAL_OUTPUT_TEXTURE:
 		glReadBuffer(GL_COLOR_ATTACHMENT5);
 		break;
 

@@ -3,8 +3,13 @@
 
 #include <RenderingStrategy.h>
 #include <GBuffer.h>
+#include <Texture.h>
 #include <Shader.h>
 #include <Mesh.h>
+
+#include <glm/glm.hpp>
+
+#include <vector>
 
 class DeferredRenderingStrategy : public RenderingStrategy
 {
@@ -19,6 +24,7 @@ public:
 							  RenderingStatistics& rRenderingStatistics,
 							  unsigned int& rScreenWidth,
 							  unsigned int& rScreenHeight);
+
 	virtual ~DeferredRenderingStrategy();
 
 	inline bool IsDisplayGBufferEnabled() const
@@ -54,6 +60,9 @@ public:
 	virtual void Render(const Camera* pCamera);
 
 private:
+	const static unsigned int NUMBER_OF_RANDOM_SAMPLES;
+	const static unsigned int LIGHT_MESH_DETAIL;
+
 	unsigned int& mrScreenWidth;
 	unsigned int& mrScreenHeight;
 	GBuffer* mpGBuffer;
@@ -63,14 +72,21 @@ private:
 	Shader* mpSSAOHighFrequencyPassShader;
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
+	Texture* mpNoiseTexture;
 	Mesh* mpQuadMesh;
 	Mesh* mpSphereMesh;
 	bool mDisplayGBufferEnabled;
 	bool mDisplaySSAOTextureEnabled;
 	bool mShowPointLightsEnabled;
+	std::vector<glm::vec3> mRandomSamplesInAHemisphere;
 
 	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
 	float CalculateLightBoundingBoxScale(PointLight* pLight);
+	void BuildAuxiliaryMeshes();
+	void FindShaders();
+	void GenerateNoiseTexture();
+	void GenerateRandomSamplesInAHemisphere();
+
 };
 
 #endif

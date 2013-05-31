@@ -112,6 +112,7 @@
     <None Include="shaders\deferred\Diffuse.vert" />
     <None Include="shaders\deferred\DirectionalLightPass.frag" />
     <None Include="shaders\deferred\DirectionalLightPass.vert" />
+    <None Include="shaders\deferred\FastCG.glsl" />
     <None Include="shaders\deferred\Font.frag" />
     <None Include="shaders\deferred\Font.vert" />
     <None Include="shaders\deferred\LineStrip.frag" />

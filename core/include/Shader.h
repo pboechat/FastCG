@@ -92,6 +92,11 @@ public:
 		glUniform3fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
 	}
 
+	inline void SetVec3Array(const std::string& rParameterName, unsigned int arraySize, const glm::vec3* pVectorArray) const
+	{
+		glUniform3fv(GetUniformLocation(rParameterName), arraySize, &pVectorArray[0][0]);
+	}
+
 	inline void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
 	{
 		glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);

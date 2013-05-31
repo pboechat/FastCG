@@ -13,13 +13,13 @@ out vec2 vertexUV;
 
 void main()
 {
-	vec3 normalAxis = normalize(_ModelViewInverseTranspose * normal);
-	vec3 tangentAxis = normalize(_ModelViewInverseTranspose * tangent.xyz);
-	vec3 binormalAxis = normalize(cross(normalAxis, tangentAxis)) * tangent.w;
+	vec3 vertexNormal = normalize(_ModelViewInverseTranspose * normal);
+	vec3 vertexTangent = normalize(_ModelViewInverseTranspose * tangent.xyz);
+	vec3 vertexBinormal = normalize(cross(vertexNormal, vertexTangent)) * tangent.w;
 
-	mat3 tangentSpaceMatrix = mat3(tangentAxis.x, binormalAxis.x, normalAxis.x,
-								   tangentAxis.y, binormalAxis.y, normalAxis.y,
-								   tangentAxis.z, binormalAxis.z, normalAxis.z);
+	mat3 tangentSpaceMatrix = mat3(vertexTangent.x, vertexBinormal.x, vertexNormal.x,
+								   vertexTangent.y, vertexBinormal.y, vertexNormal.y,
+								   vertexTangent.z, vertexBinormal.z, vertexNormal.z);
 
 	vec3 vertexPosition = vec3(_ModelView * position);
 

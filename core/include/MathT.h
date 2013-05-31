@@ -30,6 +30,7 @@ public:
 	inline static T Abs(T value);
 	inline static T Clamp(T value, T low, T high);
 	inline static T FMod(T a, T b);
+	inline static T Lerp(T a, T b, T c);
 
 private:
 	Math();
@@ -169,6 +170,12 @@ template<typename T>
 inline T Math<T>::FMod(T a, T b)
 {
 	return (T)fmod(a, b);
+}
+
+template<typename T>
+inline T Math<T>::Lerp(T a, T b, T c)
+{
+	return a + (b - a) * c;
 }
 
 typedef Math<float> MathF;

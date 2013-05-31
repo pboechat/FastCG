@@ -41,7 +41,7 @@ vec4 BlinnPhongLighting(vec4 materialAmbientColor,
 	vec4 specularContribution = vec4(0.0);
 	if (diffuseAttenuation > 0.0)
 	{
-		vec3 reflectionDirection = normalize(reflect(lightDirection, normal));
+		vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
 		float specularAttenuation = pow(max(dot(reflectionDirection, viewerDirection), 0.0), materialShininess);
 		specularContribution = _Light0SpecularColor * _Light0Intensity * materialSpecularColor * specularAttenuation;
 	}
