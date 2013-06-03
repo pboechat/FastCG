@@ -118,6 +118,8 @@
     <None Include="shaders\deferred\SolidColor.vert" />
     <None Include="shaders\deferred\Specular.frag" />
     <None Include="shaders\deferred\Specular.vert" />
+    <None Include="shaders\deferred\SSAOBlurPass.frag" />
+    <None Include="shaders\deferred\SSAOBlurPass.vert" />
     <None Include="shaders\deferred\SSAOHighFrequencyPass.frag" />
     <None Include="shaders\deferred\SSAOHighFrequencyPass.vert" />
     <None Include="shaders\deferred\StencilPass.frag" />

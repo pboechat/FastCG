@@ -21,6 +21,9 @@
 const unsigned int DeferredShadingApplication::FLOOR_SIZE = 10;
 const float DeferredShadingApplication::SPHERE_RADIUS = (FLOOR_SIZE * 0.025f);
 const unsigned int DeferredShadingApplication::NUMBER_OF_SPHERE_SLICES = 30;
+const unsigned int DeferredShadingApplication::LIGHT_GRID_WIDTH = 7;
+const unsigned int DeferredShadingApplication::LIGHT_GRID_DEPTH = 7;
+const unsigned int DeferredShadingApplication::LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
 const float DeferredShadingApplication::WALK_SPEED = 20.0f;
 const float DeferredShadingApplication::TURN_SPEED = 100.0f;
 
@@ -50,22 +53,22 @@ void DeferredShadingApplication::OnStart()
 	GameObject* pPointLightGameObject;
 	PointLight* pPointLight;
 
-	for (float z = 1; z < FLOOR_SIZE; z += 1.42f)
+	float depthIncrement = FLOOR_SIZE / (float)LIGHT_GRID_DEPTH;
+	float horizontalIncrement = FLOOR_SIZE / (float)LIGHT_GRID_WIDTH;
+	float intensity = 0.2f;
+
+	for (float z = 1; z < FLOOR_SIZE; z += depthIncrement)
 	{
-		for (float x = 1; x < FLOOR_SIZE; x += 1.42f)
+		for (float x = 1; x < FLOOR_SIZE; x += horizontalIncrement)
 		{
 			pPointLightGameObject = GameObject::Instantiate();
 			pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
 
 			pPointLight = PointLight::Instantiate(pPointLightGameObject);
-			pPointLight->SetAmbientColor(Colors::BLACK);
 			glm::vec4 color = Random::NextColor();
 			pPointLight->SetDiffuseColor(color);
 			pPointLight->SetSpecularColor(color);
-			pPointLight->SetIntensity(0.05f);
-			pPointLight->SetConstantAttenuation(0.0f);
-			pPointLight->SetLinearAttenuation(0.0f);
-			pPointLight->SetQuadraticAttenuation(1.0f);
+			pPointLight->SetIntensity(intensity);
 
 			pointLights.push_back(pPointLight);
 		}

@@ -7,7 +7,7 @@
 
 COMPONENT(FirstPersonCameraController, Behaviour)
 public:
-	virtual void OnInitialize()
+	virtual void OnInstantiate()
 	{
 		mRightMouseButtonPressed = false;
 		mFlying = false;

@@ -163,6 +163,12 @@ void Mesh::CalculateTangents()
 		THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mTriangleMeshVAOId);
 	}
 
+	// if there's no UV, exit.
+	if (mUVs.size() == 0)
+	{
+		return;
+	}
+
 	mTangents = std::vector<glm::vec4>(mVertices.size());
 	std::vector<glm::vec3> tangents1(mVertices.size());
 	std::vector<glm::vec3> tangents2(mVertices.size());

@@ -10,7 +10,7 @@
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Shader Files">
-      <UniqueIdentifier>{211cf87e-ef17-42d9-9563-8b05820bc171}</UniqueIdentifier>
+      <UniqueIdentifier>{6523ad9f-e8e3-4dcb-96b0-7d5c782d32ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -82,6 +82,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\deferred\Specular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\deferred\SSAOBlurPass.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\deferred\SSAOBlurPass.vert">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\deferred\SSAOHighFrequencyPass.frag">

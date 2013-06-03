@@ -2,15 +2,14 @@
 
 #include "shaders/deferred/FastCG.glsl"
 
-vec4 BlinnPhongLighting(vec4 ambientColor,
-					    vec4 materialDiffuseColor,
+vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 						vec4 materialSpecularColor,
 						float materialShininess,
 						vec3 lightDirection,
 					    vec3 viewerDirection,
 					    vec3 normal)
 {
-    vec4 ambientContribution = ambientColor * _Light0AmbientColor * _Light0Intensity;
+    vec4 ambientContribution = _GlobalLightAmbientColor * _Light0AmbientColor * _Light0Intensity;
 
     float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
@@ -32,13 +31,15 @@ void main()
 
 	vec3 position = texture2D(_PositionMap, uv).xyz;
 	vec4 diffuseColor = texture2D(_ColorMap, uv);
-	vec4 ambientColor = texture2D(_AmbientMap, uv);
 	vec4 normalAndShininess = texture2D(_NormalMap, uv);
 	vec4 specularColor = texture2D(_SpecularMap, uv);
 	vec3 normal = normalAndShininess.xyz;
 	float shininess = normalAndShininess.w;
+	float ambientOcclusion = texture2D(_AmbientOcclusionMap, uv).x;
+	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 
+	vec3 lightDirection = normalize(-_Light0Position);
 	vec3 viewerDirection = normalize(-position);
 
-	gl_FragColor = BlinnPhongLighting(ambientColor, diffuseColor, specularColor, shininess, _Light0Position, viewerDirection, normal);
+	gl_FragColor = BlinnPhongLighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, normal) * ambientOcclusion;
 }

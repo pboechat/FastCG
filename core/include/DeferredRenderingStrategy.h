@@ -61,16 +61,28 @@ public:
 
 private:
 	const static unsigned int NUMBER_OF_RANDOM_SAMPLES;
-	const static float RAY_LENGTH; 
 	const static unsigned int LIGHT_MESH_DETAIL;
+	const static float RAY_LENGTH; 
+	const static float OCCLUSION_EXPONENTIAL; 
+	const static unsigned int NOISE_TEXTURE_WIDTH;
+	const static unsigned int NOISE_TEXTURE_HEIGHT;
+	const static unsigned int NOISE_TEXTURE_SIZE;
 
 	unsigned int& mrScreenWidth;
 	unsigned int& mrScreenHeight;
-	GBuffer* mpGBuffer;
+	unsigned int mGBufferFBOId;
+	unsigned int mSSAOFBOId;
+	unsigned int mSSAOBlurFBOId;
+	unsigned int mTexturesIds[NUMBER_OF_GBUFFER_COLOR_ATTACHMENTS];
+	unsigned int mDepthTextureId;
+	unsigned int mAmbientTextureId;
+	unsigned int mBlurredAmbientTextureId;
+	unsigned int mFinalOutputTextureId;
 	Shader* mpStencilPassShader;
 	Shader* mpDirectionalLightPassShader;
 	Shader* mpPointLightPassShader;
 	Shader* mpSSAOHighFrequencyPassShader;
+	Shader* mpSSAOBlurPassShader;
 	Shader* mpLineStripShader;
 	Shader* mpPointsShader;
 	Texture* mpNoiseTexture;
@@ -81,12 +93,13 @@ private:
 	bool mShowPointLightsEnabled;
 	std::vector<glm::vec3> mRandomSamplesInAHemisphere;
 
-	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
-	float CalculateLightBoundingBoxScale(PointLight* pLight);
 	void BuildAuxiliaryMeshes();
 	void FindShaders();
 	void GenerateNoiseTexture();
 	void GenerateRandomSamplesInAHemisphere();
+	void AllocateTexturesAndFBOs();
+	void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
+	float CalculateLightBoundingBoxScale(PointLight* pLight);
 
 };
 

@@ -135,9 +135,6 @@
     <ClInclude Include="include\DeferredRenderingStrategy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\GBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\RenderBatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -270,9 +267,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DeferredRenderingStrategy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\GBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\MaterialGroupsBatchingStrategy.cpp">

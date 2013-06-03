@@ -18,6 +18,9 @@ protected:
 private:
 	static const unsigned int FLOOR_SIZE;
 	static const unsigned int NUMBER_OF_SPHERE_SLICES;
+	static const unsigned int LIGHT_GRID_WIDTH;
+	static const unsigned int LIGHT_GRID_DEPTH;
+	static const unsigned int LIGHT_GRID_SIZE;
 	static const float SPHERE_RADIUS;
 	static const float WALK_SPEED;
 	static const float TURN_SPEED;

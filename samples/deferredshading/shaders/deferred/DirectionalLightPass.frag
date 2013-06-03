@@ -35,8 +35,11 @@ void main()
 	vec4 specularColor = texture2D(_SpecularMap, uv);
 	vec3 normal = normalAndShininess.xyz;
 	float shininess = normalAndShininess.w;
+	float ambientOcclusion = texture2D(_AmbientOcclusionMap, uv).x;
+	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 
+	vec3 lightDirection = normalize(-_Light0Position);
 	vec3 viewerDirection = normalize(-position);
 
-	gl_FragColor = BlinnPhongLighting(diffuseColor, specularColor, shininess, _Light0Position, viewerDirection, normal);
+	gl_FragColor = BlinnPhongLighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, normal) * ambientOcclusion;
 }

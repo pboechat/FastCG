@@ -1,6 +1,5 @@
 #version 330
 
-//uniform mat4 _Model;
 uniform mat4 _ModelView;
 uniform mat3 _ModelViewInverseTranspose;
 uniform mat4 _ModelViewProjection;

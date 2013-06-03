@@ -6,8 +6,8 @@ uniform float _Debug;
 
 float DistanceAttenuation(vec3 position)
 {
-	float d = distance(_Light0Position, position);
-	return min(_Light0ConstantAttenuation + _Light0LinearAttenuation * d + _Light0QuadraticAttenuation * d * d, 1.0);
+	float _distance = distance(_Light0Position, position);
+	return 1.0 / max(_Light0ConstantAttenuation + _Light0LinearAttenuation * _distance + _Light0QuadraticAttenuation * pow(_distance, 2), 1.0);
 }
 
 vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
@@ -31,7 +31,7 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
         specularContribution = _Light0SpecularColor * _Light0Intensity * materialSpecularColor * specularAttenuation;
     }
 
-    return (ambientContribution + diffuseContribution + specularContribution) / DistanceAttenuation(position);
+    return (ambientContribution + diffuseContribution + specularContribution) * DistanceAttenuation(position);
 }
 
 void main()
@@ -44,9 +44,11 @@ void main()
 	vec4 specularColor = texture2D(_SpecularMap, uv);
 	vec3 normal = normalAndShininess.xyz;
 	float shininess = normalAndShininess.w;
+	float ambientOcclusion = texture2D(_AmbientOcclusionMap, uv).x;
+	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 
 	vec3 lightDirection = normalize(_Light0Position - position);
 	vec3 viewerDirection = normalize(-position);
 
-	gl_FragColor = vec4(_Debug) + BlinnPhongLighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, position, normal);
+	gl_FragColor = vec4(_Debug) + (BlinnPhongLighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, position, normal) * ambientOcclusion);
 }
