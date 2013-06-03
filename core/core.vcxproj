@@ -202,24 +202,6 @@
     <ClCompile Include="src\TextureImporter.cpp" />
     <ClCompile Include="src\UnorderedSingleGroupBatchingStrategy.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="shaders\BumpedDiffuse.frag" />
-    <None Include="shaders\BumpedDiffuse.vert" />
-    <None Include="shaders\BumpedSpecular.frag" />
-    <None Include="shaders\BumpedSpecular.vert" />
-    <None Include="shaders\Diffuse.frag" />
-    <None Include="shaders\Diffuse.vert" />
-    <None Include="shaders\FastCG.glsl" />
-    <None Include="shaders\Font.frag" />
-    <None Include="shaders\Font.vert" />
-    <None Include="shaders\Lighting.glsl" />
-    <None Include="shaders\LineStrip.frag" />
-    <None Include="shaders\LineStrip.vert" />
-    <None Include="shaders\Points.frag" />
-    <None Include="shaders\Points.vert" />
-    <None Include="shaders\Specular.frag" />
-    <None Include="shaders\Specular.vert" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

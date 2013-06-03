@@ -1,5 +1,7 @@
 #version 330
 
+#define NUMBER_OF_RANDOM_SAMPLES 30
+
 uniform mat4 _Projection;
 uniform mat4 _InverseProjection;
 uniform vec2 _ScreenSize;
@@ -7,7 +9,12 @@ uniform sampler2D _NormalMap;
 uniform sampler2D _DepthMap;
 uniform sampler2D _NoiseMap;
 uniform float _RayLength;
-uniform vec3 _RandomSamplesInAHemisphere[10];
+uniform vec3 _RandomSamplesInAHemisphere[NUMBER_OF_RANDOM_SAMPLES];
+
+float LinearizeDepth(float depth) 
+{
+	return (2.0 * depth - gl_DepthRange.near - gl_DepthRange.far) / (gl_DepthRange.far - gl_DepthRange.near);
+}
 
 void main()
 {
@@ -21,23 +28,19 @@ void main()
 
 	vec3 origin = position.xyz / position.w;
 
-	vec3 normal = texture2D(_NormalMap, uv).xyz * 2.0 - 1.0;
+	vec3 normal = texture2D(_NormalMap, uv).xyz; // * 2.0 - 1.0;
 	normal = normalize(normal);
 
 	vec2 noiseScale = _ScreenSize / 4;
-	vec3 randomOrientation = texture2D(_NoiseMap, uv * noiseScale).xyz * 2.0 - 1.0;
+	vec3 randomOrientation = texture2D(_NoiseMap, uv * noiseScale).xyz; // * 2.0 - 1.0;
 
 	vec3 tangent = normalize(randomOrientation - normal * dot(randomOrientation, normal));
 	vec3 binormal = cross(normal, tangent);
 
-	/*mat3 tangentSpaceMatrix = mat3(tangent.x, binormal.x, normal.x,
-								   tangent.y, binormal.y, normal.y,
-								   tangent.z, binormal.z, normal.z);*/
-
 	mat3 tangentSpaceMatrix = mat3(tangent, binormal, normal);
 
 	float occlusion = 0.0;
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
 		vec3 randomSampleInAHemisphere = tangentSpaceMatrix * _RandomSamplesInAHemisphere[i];
 		randomSampleInAHemisphere = randomSampleInAHemisphere * _RayLength + origin;
@@ -47,12 +50,12 @@ void main()
 		offset.xy /= offset.w;
 		offset.xy = offset.xy * 0.5 + 0.5;
 
-		float sampleDepth = texture2D(_DepthMap, offset.st).x;
-		float rangeCheck = abs(origin.z - sampleDepth) < _RayLength ? 1.0 : 0.0;
-		occlusion += ((sampleDepth <= randomSampleInAHemisphere.z) ? 1.0 : 0.0) * rangeCheck;
+		float sampleDepth = LinearizeDepth(texture2D(_DepthMap, offset.st).x);
+		float rangeCheck = smoothstep(0.0, 1.0, _RayLength / abs(origin.z - sampleDepth));
+		occlusion += rangeCheck * step(sampleDepth, randomSampleInAHemisphere.z);
 	}
 
-	occlusion = 1.0 - (occlusion / 10);
+	occlusion = 1.0 - (occlusion / NUMBER_OF_RANDOM_SAMPLES);
 
-	gl_FragColor = vec4(vec3(occlusion), 1.0);
+	gl_FragColor = vec4(occlusion);
 }

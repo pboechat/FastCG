@@ -12,7 +12,7 @@
 const unsigned int DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
 const unsigned int DeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
 const float DeferredRenderingStrategy::RAY_LENGTH = 40.0f;
-const float DeferredRenderingStrategy::OCCLUSION_EXPONENTIAL = 1.0f;
+const float DeferredRenderingStrategy::OCCLUSION_EXPONENT = 1.0f;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_WIDTH = 4;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_HEIGHT = 4;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
@@ -44,6 +44,10 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mGBufferFBOId(0),
 	mSSAOFBOId(0),
 	mSSAOBlurFBOId(0),
+	mPositionTextureId(0),
+	mDiffuseTextureId(0),
+	mNormalTextureId(0),
+	mSpecularTextureId(0),
 	mFinalOutputTextureId(0),
 	mDepthTextureId(0),
 	mAmbientTextureId(0),
@@ -75,9 +79,29 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 		glDeleteFramebuffers(1, &mSSAOBlurFBOId);
 	}
 
-	if (mTexturesIds[0] != 0)
+	if (mPositionTextureId != 0)
 	{
-		glDeleteTextures(NUMBER_OF_GBUFFER_COLOR_ATTACHMENTS, mTexturesIds);
+		glDeleteTextures(1, &mPositionTextureId);
+	}
+
+	if (mDiffuseTextureId != 0)
+	{
+		glDeleteTextures(1, &mPositionTextureId);
+	}
+
+	if (mNormalTextureId != 0)
+	{
+		glDeleteTextures(1, &mNormalTextureId);
+	}
+
+	if (mSpecularTextureId != 0)
+	{
+		glDeleteTextures(1, &mSpecularTextureId);
+	}
+
+	if (mFinalOutputTextureId != 0)
+	{
+		glDeleteTextures(1, &mFinalOutputTextureId);
 	}
 
 	if (mDepthTextureId != 0)
@@ -93,11 +117,6 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 	if (mBlurredAmbientTextureId != 0)
 	{
 		glDeleteTextures(1, &mBlurredAmbientTextureId);
-	}
-
-	if (mFinalOutputTextureId != 0)
-	{
-		glDeleteTextures(1, &mFinalOutputTextureId);
 	}
 	
 	if (mpQuadMesh != 0)
@@ -115,7 +134,6 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 		delete mpNoiseTexture;
 	}
 }
-
 
 void DeferredRenderingStrategy::FindShaders()
 {
@@ -155,12 +173,12 @@ void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
 	Random::SeedWithTime();
 	for (unsigned int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
-		glm::vec3 randomSampleInAHemisphere(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat());
-		randomSampleInAHemisphere = glm::normalize(randomSampleInAHemisphere);
+		glm::vec3 sample(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat());
+		sample = glm::normalize(sample);
 		float scale = (float)i / (float)NUMBER_OF_RANDOM_SAMPLES;
 		scale = MathF::Lerp(0.1f, 1.0f, MathF::Pow(scale, 2));
-		randomSampleInAHemisphere *= scale;
-		mRandomSamplesInAHemisphere.push_back(randomSampleInAHemisphere);
+		sample *= scale;
+		mRandomSamples.push_back(sample);
 	}
 }
 
@@ -170,26 +188,43 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glGenFramebuffers(1, &mGBufferFBOId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 
-	glGenTextures(4, mTexturesIds);
+	glGenTextures(1, &mPositionTextureId);
+	glGenTextures(1, &mDiffuseTextureId);
+	glGenTextures(1, &mNormalTextureId);
+	glGenTextures(1, &mSpecularTextureId);
 	glGenTextures(1, &mDepthTextureId);
 	glGenTextures(1, &mFinalOutputTextureId);
 
-	// create g-buffer textures
-	for (unsigned int i = 0 ; i < 4; i++)
-	{
-		glBindTexture(GL_TEXTURE_2D, mTexturesIds[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mTexturesIds[i], 0);
-	}
+	glBindTexture(GL_TEXTURE_2D, mPositionTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPositionTextureId, 0);
 
-	// create final output texture
+	glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mDiffuseTextureId, 0);
+
+	glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mNormalTextureId, 0);
+
+	glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSpecularTextureId, 0);
+
 	glBindTexture(GL_TEXTURE_2D, mFinalOutputTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
 
-	// create depth texture
 	glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mrScreenWidth, mrScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -203,9 +238,10 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 
 	glGenTextures(1, &mAmbientTextureId);
 
-	// create ambient texture
 	glBindTexture(GL_TEXTURE_2D, mAmbientTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mAmbientTextureId, 0);
 
 	// create ssao blur fbo
@@ -214,9 +250,10 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 
 	glGenTextures(1, &mBlurredAmbientTextureId);
 
-	// create blurred ambient texture
 	glBindTexture(GL_TEXTURE_2D, mBlurredAmbientTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredAmbientTextureId, 0);
 
 	unsigned int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -232,7 +269,7 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 
 void DeferredRenderingStrategy::Render(const Camera* pCamera)
 {
-	static unsigned int pDrawBuffers[] = { 
+	static unsigned int pGeometryPassDrawBuffers[] = { 
 		GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1,
 		GL_COLOR_ATTACHMENT2,
@@ -245,12 +282,12 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	// geometry pass
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
-	glDrawBuffers(4, pDrawBuffers);
+	glDrawBuffers(4, pGeometryPassDrawBuffers);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
-	glm::mat4 inverseProjection = glm::inverse(rProjection);
+	glm::mat4& rInverseProjection = glm::inverse(rProjection);
 
 	mrRenderingStatistics.Reset();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
@@ -290,6 +327,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		}
 
 		pShader->Unbind();
+
 		// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -337,21 +375,21 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mTexturesIds[2]);
+			glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
 
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
 
 			mpSSAOHighFrequencyPassShader->Bind();
 			mpSSAOHighFrequencyPassShader->SetMat4("_Projection", rProjection);
-			mpSSAOHighFrequencyPassShader->SetMat4("_InverseProjection", inverseProjection);
+			mpSSAOHighFrequencyPassShader->SetMat4("_InverseProjection", rInverseProjection);
 			mpSSAOHighFrequencyPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpSSAOHighFrequencyPassShader->SetTexture("_NormalMap", 0);
 			mpSSAOHighFrequencyPassShader->SetTexture("_DepthMap", 1);
 			mpSSAOHighFrequencyPassShader->SetTexture("_NoiseMap", mpNoiseTexture, 2);
 			mpSSAOHighFrequencyPassShader->SetFloat("_RayLength", RAY_LENGTH);
-			mpSSAOHighFrequencyPassShader->SetFloat("_OcclusionExponential", OCCLUSION_EXPONENTIAL);
-			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamplesInAHemisphere", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamplesInAHemisphere[0]);
+			mpSSAOHighFrequencyPassShader->SetFloat("_OcclusionExponent", OCCLUSION_EXPONENT);
+			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamplesInAHemisphere", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamples[0]);
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
 			mpSSAOHighFrequencyPassShader->Unbind();
@@ -391,11 +429,17 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glDrawBuffer(GL_COLOR_ATTACHMENT4);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			for (unsigned int i = 0 ; i < 4; i++) 
-			{
-				glActiveTexture(GL_TEXTURE0 + i);		
-				glBindTexture(GL_TEXTURE_2D, mTexturesIds[i]);
-			}
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, mPositionTextureId);
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
+
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
 
 			glActiveTexture(GL_TEXTURE4);
 			glBindTexture(GL_TEXTURE_2D, mBlurredAmbientTextureId);
@@ -409,6 +453,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				glm::mat4 modelViewProjection = rProjection * (rView * glm::scale(rModel, scaleVector));
 
 				glEnable(GL_DEPTH_TEST);
+
 				glStencilFunc(GL_ALWAYS, 0, 0);
 				glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
 				glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
@@ -441,7 +486,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
 				mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 				mpPointLightPassShader->SetTexture("_PositionMap", 0);
-				mpPointLightPassShader->SetTexture("_ColorMap", 1);
+				mpPointLightPassShader->SetTexture("_DiffuseMap", 1);
 				mpPointLightPassShader->SetTexture("_NormalMap", 2);
 				mpPointLightPassShader->SetTexture("_SpecularMap", 3);
 				mpPointLightPassShader->SetTexture("_AmbientOcclusionMap", 4);
@@ -483,7 +528,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpDirectionalLightPassShader->Bind();
 			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpDirectionalLightPassShader->SetTexture("_PositionMap", 0);
-			mpDirectionalLightPassShader->SetTexture("_ColorMap", 1);
+			mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 1);
 			mpDirectionalLightPassShader->SetTexture("_NormalMap", 2);
 			mpDirectionalLightPassShader->SetTexture("_SpecularMap", 3);
 			mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 4);
@@ -519,7 +564,6 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			RenderUnlitGeometries(rView, rProjection);
 		}
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	}
 }

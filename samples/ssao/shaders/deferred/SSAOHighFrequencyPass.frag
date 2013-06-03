@@ -9,7 +9,7 @@ uniform sampler2D _NormalMap;
 uniform sampler2D _DepthMap;
 uniform sampler2D _NoiseMap;
 uniform float _RayLength;
-uniform float _OcclusionExponential;
+uniform float _OcclusionExponent;
 uniform vec3 _RandomSamplesInAHemisphere[NUMBER_OF_RANDOM_SAMPLES];
 
 float LinearizeDepth(float depth) 
@@ -56,5 +56,5 @@ void main()
 
 	occlusion /= NUMBER_OF_RANDOM_SAMPLES;
 
-	gl_FragColor = vec4(pow(occlusion, _OcclusionExponential));
+	gl_FragColor = vec4(pow(occlusion, _OcclusionExponent));
 }

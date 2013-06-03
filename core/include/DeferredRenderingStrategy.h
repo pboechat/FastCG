@@ -2,7 +2,6 @@
 #define DEFERREDRENDERINGSTRATEGY_H_
 
 #include <RenderingStrategy.h>
-#include <GBuffer.h>
 #include <Texture.h>
 #include <Shader.h>
 #include <Mesh.h>
@@ -63,7 +62,7 @@ private:
 	const static unsigned int NUMBER_OF_RANDOM_SAMPLES;
 	const static unsigned int LIGHT_MESH_DETAIL;
 	const static float RAY_LENGTH; 
-	const static float OCCLUSION_EXPONENTIAL; 
+	const static float OCCLUSION_EXPONENT; 
 	const static unsigned int NOISE_TEXTURE_WIDTH;
 	const static unsigned int NOISE_TEXTURE_HEIGHT;
 	const static unsigned int NOISE_TEXTURE_SIZE;
@@ -73,7 +72,10 @@ private:
 	unsigned int mGBufferFBOId;
 	unsigned int mSSAOFBOId;
 	unsigned int mSSAOBlurFBOId;
-	unsigned int mTexturesIds[NUMBER_OF_GBUFFER_COLOR_ATTACHMENTS];
+	unsigned int mPositionTextureId;
+	unsigned int mNormalTextureId;
+	unsigned int mDiffuseTextureId;
+	unsigned int mSpecularTextureId;
 	unsigned int mDepthTextureId;
 	unsigned int mAmbientTextureId;
 	unsigned int mBlurredAmbientTextureId;
@@ -91,7 +93,7 @@ private:
 	bool mDisplayGBufferEnabled;
 	bool mDisplaySSAOTextureEnabled;
 	bool mShowPointLightsEnabled;
-	std::vector<glm::vec3> mRandomSamplesInAHemisphere;
+	std::vector<glm::vec3> mRandomSamples;
 
 	void BuildAuxiliaryMeshes();
 	void FindShaders();

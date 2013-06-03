@@ -30,7 +30,7 @@ void main()
 	vec2 uv = gl_FragCoord.xy / _ScreenSize;
 
 	vec3 position = texture2D(_PositionMap, uv).xyz;
-	vec4 diffuseColor = texture2D(_ColorMap, uv);
+	vec4 diffuseColor = texture2D(_DiffuseMap, uv);
 	vec4 normalAndShininess = texture2D(_NormalMap, uv);
 	vec4 specularColor = texture2D(_SpecularMap, uv);
 	vec3 normal = normalAndShininess.xyz;
