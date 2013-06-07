@@ -5,11 +5,14 @@
 #include <Input.h>
 #include <KeyCode.h>
 #include <DeferredRenderingStrategy.h>
+#include <MathT.h>
 
 COMPONENT_IMPLEMENTATION(KeyBindings, Behaviour);
 
 void KeyBindings::OnUpdate(float time, float deltaTime)
 {
+	static char pText[128];
+
 #ifdef FIXED_FUNCTION_PIPELINE
 	static unsigned int text1Height = 15;
 	Application::GetInstance()->DrawText("Use WASD/arrow keys and left mouse button to navigate", 12, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -19,10 +22,27 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 	static unsigned int text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 3 + 7;
 	static unsigned int text4Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 4 + 9;
 	static unsigned int text5Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 5 + 11;
+	static unsigned int text6Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 6 + 13;
+	static unsigned int text7Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 7 + 15;
+	static unsigned int text8Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 8 + 17;
+
 	Application::GetInstance()->DrawText("Use WASD/arrow keys and left mouse button to navigate", FontRegistry::STANDARD_FONT_SIZE, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	Application::GetInstance()->DrawText("Press 'F1' to toggle SSAO", FontRegistry::STANDARD_FONT_SIZE, 10, text2Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	Application::GetInstance()->DrawText("Press 'F2' to display SSAO texture", FontRegistry::STANDARD_FONT_SIZE, 10, text3Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	Application::GetInstance()->DrawText("Press 0 to 4 change the position from scene lights", FontRegistry::STANDARD_FONT_SIZE, 10, text4Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Press +/- to change SSAO ray length", FontRegistry::STANDARD_FONT_SIZE, 10, text4Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Press Home/End to change SSAO exponent", FontRegistry::STANDARD_FONT_SIZE, 10, text5Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	Application::GetInstance()->DrawText("Press 0 to 4 change the position from scene lights", FontRegistry::STANDARD_FONT_SIZE, 10, text6Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+	DeferredRenderingStrategy* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
+	float ssaoRayLength = pDeferredRenderingStrategy->GetSSAORayLength();
+	unsigned int ssaoExponent = pDeferredRenderingStrategy->GetSSAOExponent();
+
+	sprintf(pText, "SSAO Ray Length: %.3f", ssaoRayLength);
+	Application::GetInstance()->DrawText(pText, FontRegistry::STANDARD_FONT_SIZE, 10, text7Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+	sprintf(pText, "SSAO Exponent: %d", ssaoExponent);
+	Application::GetInstance()->DrawText(pText, FontRegistry::STANDARD_FONT_SIZE, 10, text8Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
 #endif
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
 	{
@@ -33,7 +53,6 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 	}
 	else if (Input::GetKey(KeyCode::F2) && time - mLastKeyPressTime > 0.333f)
 	{
-		DeferredRenderingStrategy* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
 		bool displaySSAOTextureEnabled = pDeferredRenderingStrategy->IsDisplaySSAOTextureEnabled();
 		pDeferredRenderingStrategy->SetDisplaySSAOTextureEnabled(!displaySSAOTextureEnabled);
 		mLastKeyPressTime = time;
@@ -58,17 +77,21 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 		mpSceneLights->GetTransform()->SetPosition(glm::vec3(-mLightDistance, -1.0f, 0.0f));
 		mLastKeyPressTime = time;
 	}
-	else if (Input::GetKey(KeyCode::NUMBER_5) && time - mLastKeyPressTime > 0.333f)
+	else if (Input::GetKey(KeyCode::PLUS) && time - mLastKeyPressTime > 0.333f)
 	{
-		glm::vec3 position = mpSceneModel->GetTransform()->GetPosition();
-		position += glm::vec3(0.0f, 0.1f, 0.0f) * deltaTime;
-		mpSceneModel->GetTransform()->SetPosition(position);
+		pDeferredRenderingStrategy->SetSSAORayLength(MathF::Max(ssaoRayLength + 3.0f * deltaTime, 1.0f));
 	}
-	else if (Input::GetKey(KeyCode::NUMBER_6) && time - mLastKeyPressTime > 0.333f)
+	else if (Input::GetKey(KeyCode::MINUS) && time - mLastKeyPressTime > 0.333f)
 	{
-		glm::vec3 position = mpSceneModel->GetTransform()->GetPosition();
-		position -= glm::vec3(0.0f, 0.1f, 0.0f) * deltaTime;
-		mpSceneModel->GetTransform()->SetPosition(position);
+		pDeferredRenderingStrategy->SetSSAORayLength(MathF::Max(ssaoRayLength - 3.0f * deltaTime, 1.0f));
+	}
+	else if (Input::GetKey(KeyCode::HOME) && time - mLastKeyPressTime > 0.333f)
+	{
+		pDeferredRenderingStrategy->SetSSAOExponent(MathUI::Max(ssaoExponent + 1, 1));
+	}
+	else if (Input::GetKey(KeyCode::END) && time - mLastKeyPressTime > 0.333f)
+	{
+		pDeferredRenderingStrategy->SetSSAOExponent(MathUI::Max(ssaoExponent - 1, 1));
 	}
 	else if (Input::GetKey(KeyCode::ESCAPE))
 	{

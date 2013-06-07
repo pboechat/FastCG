@@ -56,13 +56,33 @@ public:
 		mShowPointLightsEnabled = showPointLightsEnabled;
 	}
 
+	inline void SetSSAORayLength(float ssaoRayLength)
+	{
+		mSSAORayLength = ssaoRayLength;
+	}
+
+	inline float GetSSAORayLength() const
+	{
+		return mSSAORayLength;
+	}
+
+	inline void SetSSAOExponent(unsigned int ssaoExponent)
+	{
+		mSSAOExponent = ssaoExponent;
+	}
+
+	inline unsigned int GetSSAOExponent() const
+	{
+		return mSSAOExponent;
+	}
+	
 	virtual void Render(const Camera* pCamera);
 
 private:
 	const static unsigned int NUMBER_OF_RANDOM_SAMPLES;
 	const static unsigned int LIGHT_MESH_DETAIL;
-	const static float RAY_LENGTH; 
-	const static float OCCLUSION_EXPONENT; 
+	const static float DEFAULT_SSAO_RAY_LENGTH; 
+	const static unsigned int DEFAULT_SSAO_EXPONENT; 
 	const static unsigned int NOISE_TEXTURE_WIDTH;
 	const static unsigned int NOISE_TEXTURE_HEIGHT;
 	const static unsigned int NOISE_TEXTURE_SIZE;
@@ -93,6 +113,8 @@ private:
 	bool mDisplayGBufferEnabled;
 	bool mDisplaySSAOTextureEnabled;
 	bool mShowPointLightsEnabled;
+	float mSSAORayLength;
+	unsigned int mSSAOExponent;
 	std::vector<glm::vec3> mRandomSamples;
 
 	void BuildAuxiliaryMeshes();

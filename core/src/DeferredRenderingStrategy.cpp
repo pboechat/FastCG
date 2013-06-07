@@ -11,8 +11,8 @@
 
 const unsigned int DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
 const unsigned int DeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
-const float DeferredRenderingStrategy::RAY_LENGTH = 40.0f;
-const float DeferredRenderingStrategy::OCCLUSION_EXPONENT = 1.0f;
+const float DeferredRenderingStrategy::DEFAULT_SSAO_RAY_LENGTH = 40.0f;
+const unsigned int DeferredRenderingStrategy::DEFAULT_SSAO_EXPONENT = 1;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_WIDTH = 4;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_HEIGHT = 4;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
@@ -52,6 +52,8 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mDepthTextureId(0),
 	mAmbientTextureId(0),
 	mBlurredAmbientTextureId(0),
+	mSSAORayLength(DEFAULT_SSAO_RAY_LENGTH),
+	mSSAOExponent(DEFAULT_SSAO_EXPONENT),
 	mpQuadMesh(0),
 	mpSphereMesh(0)
 {
@@ -161,7 +163,7 @@ void DeferredRenderingStrategy::GenerateNoiseTexture()
 		for (unsigned int j = 0; j < NOISE_TEXTURE_WIDTH; j++)
 		{
 			glm::vec3 noise(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, 0.0f);
-			pNoises[i * NOISE_TEXTURE_HEIGHT + j] = glm::normalize(noise);
+			pNoises[i * NOISE_TEXTURE_WIDTH + j] = glm::normalize(noise);
 		}
 	}
 
@@ -173,12 +175,12 @@ void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
 	Random::SeedWithTime();
 	for (unsigned int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
-		glm::vec3 sample(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat());
-		sample = glm::normalize(sample);
+		glm::vec3 randomSample(Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat() * 2.0f - 1.0f, Random::NextFloat());
+		randomSample = glm::normalize(randomSample);
 		float scale = (float)i / (float)NUMBER_OF_RANDOM_SAMPLES;
 		scale = MathF::Lerp(0.1f, 1.0f, MathF::Pow(scale, 2));
-		sample *= scale;
-		mRandomSamples.push_back(sample);
+		randomSample *= scale;
+		mRandomSamples.push_back(randomSample);
 	}
 }
 
@@ -387,9 +389,9 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpSSAOHighFrequencyPassShader->SetTexture("_NormalMap", 0);
 			mpSSAOHighFrequencyPassShader->SetTexture("_DepthMap", 1);
 			mpSSAOHighFrequencyPassShader->SetTexture("_NoiseMap", mpNoiseTexture, 2);
-			mpSSAOHighFrequencyPassShader->SetFloat("_RayLength", RAY_LENGTH);
-			mpSSAOHighFrequencyPassShader->SetFloat("_OcclusionExponent", OCCLUSION_EXPONENT);
-			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamplesInAHemisphere", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamples[0]);
+			mpSSAOHighFrequencyPassShader->SetFloat("_RayLength", mSSAORayLength);
+			mpSSAOHighFrequencyPassShader->SetFloat("_OcclusionExponent", (float)mSSAOExponent);
+			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamples", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamples[0]);
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
 			mpSSAOHighFrequencyPassShader->Unbind();

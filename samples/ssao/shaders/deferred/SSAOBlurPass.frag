@@ -1,6 +1,6 @@
 #define NOISE_TEXTURE_WIDTH 4
 #define NOISE_TEXTURE_HEIGHT 4
-#define NOISE_TEXTURE_SIZE 16.0
+#define NOISE_TEXTURE_SIZE 16
 
 uniform vec2 _ScreenSize;
 uniform vec2 _TexelSize;

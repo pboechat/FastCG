@@ -2,7 +2,7 @@
 #include "KeyBindings.h"
 
 #include <DirectionalLight.h>
-//#include <PointLight.h>
+#include <PointLight.h>
 #include <ShaderRegistry.h>
 #include <MeshRenderer.h>
 #include <MeshFilter.h>
@@ -18,7 +18,7 @@ SSAOApplication::SSAOApplication() :
 	mpGroundMesh(0),
 	mpGroundMaterial(0)
 {
-	mGlobalAmbientLight = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
+	mGlobalAmbientLight = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -50,18 +50,19 @@ void SSAOApplication::OnStart()
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, -1.0f, -1.0f));
 
 	DirectionalLight* pDirectionalLight = DirectionalLight::Instantiate(pLightGameObject);
-	pDirectionalLight->SetIntensity(1.0f);
+	pDirectionalLight->SetIntensity(0.4f);
 
-	/*GameObject* pLightGameObject = GameObject::Instantiate();
+	pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, 1.0f, 1.0f));
 
 	PointLight* pPointLight = PointLight::Instantiate(pLightGameObject);
-	pPointLight->SetIntensity(1.0f);*/
+	pPointLight->SetDiffuseColor(glm::vec4(0.3f, 1.0f, 1.0f, 1.0f));
+	pPointLight->SetIntensity(0.6f);
 
 	ModelImporter::LogToConsole();
 
-	GameObject* pModel = ModelImporter::Import("models/Bane.obj");
+	GameObject* pModel = ModelImporter::Import("models/Joker.obj");
 
 	const AABB& boundingVolume = pModel->GetBoundingVolume();
 	Transform* pTransform = pModel->GetTransform();
@@ -74,7 +75,7 @@ void SSAOApplication::OnStart()
 	pTransform->ScaleLocal(glm::vec3(scale, scale, scale));
 	pTransform->SetPosition(-boundingVolume.center * scale);
 
-	GameObject* pGround = GameObject::Instantiate();
+	/*GameObject* pGround = GameObject::Instantiate();
 	pGround->GetTransform()->SetPosition(glm::vec3(0.0f, -0.5f, 0.0f));
 
 	mpGroundMesh = StandardGeometries::CreateXZPlane(5.0f, 5.0f);
@@ -85,13 +86,12 @@ void SSAOApplication::OnStart()
 	mpGroundMaterial->SetVec4("diffuseColor", Colors::WHITE);
 
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGround);
-	pMeshFilter->SetMaterial(mpGroundMaterial);
+	pMeshFilter->SetMaterial(mpGroundMaterial);*/
 
 	GameObject* pGameObject = GameObject::Instantiate();
 
 	KeyBindings* pKeyBindings = KeyBindings::Instantiate(pGameObject);
 	pKeyBindings->SetSceneLights(pSceneLights);
-	pKeyBindings->SetSceneModel(pGround);
 	pKeyBindings->SetLightDistance(1.0f);
 
 	FirstPersonCameraController* pController = FirstPersonCameraController::Instantiate(pGameObject);

@@ -11,11 +11,6 @@ public:
 		mpSceneLights = pSceneLights;
 	}
 
-	inline void SetSceneModel(GameObject* pSceneModel)
-	{
-		mpSceneModel = pSceneModel;
-	}
-
 	inline void SetLightDistance(float lightDistance)
 	{
 		mLightDistance = lightDistance;
@@ -27,7 +22,6 @@ protected:
 	virtual void OnInstantiate()
 	{
 		mLastKeyPressTime = 0;
-		mpSceneModel = 0;
 		mpSceneLights = 0;
 		mLightDistance = 1.0f;
 	}
@@ -35,7 +29,6 @@ protected:
 private:
 	float mLastKeyPressTime;
 	GameObject* mpSceneLights;
-	GameObject* mpSceneModel;
 	float mLightDistance;
 
 };
