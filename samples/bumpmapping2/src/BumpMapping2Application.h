@@ -1,5 +1,5 @@
-#ifndef SSAOAPPLICATION_H_
-#define SSAOAPPLICATION_H_
+#ifndef BUMPMAPPING2APPLICATION_H_
+#define BUMPMAPPING2APPLICATION_H_
 
 #include <Application.h>
 #include <GameObject.h>

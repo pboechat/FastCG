@@ -67,13 +67,18 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 			}
 			else
 			{
-				glDepthFunc(GL_EQUAL);
-				glEnable(GL_BLEND);
-				glBlendEquation(GL_FUNC_ADD);
-				glBlendFunc(GL_ONE, GL_ONE);
+				glDepthFunc(GL_LEQUAL);
 
 				for (unsigned int i = 0; i < mrLights.size(); i++)
 				{
+					if (i == 1)
+					{
+						glDepthFunc(GL_EQUAL);
+						glEnable(GL_BLEND);
+						glBlendEquation(GL_FUNC_ADD);
+						glBlendFunc(GL_ONE, GL_ONE);
+					}
+
 					Light* pLight = mrLights[i];
 					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
 					pShader->SetVec4("_Light0AmbientColor", pLight->GetAmbientColor());
@@ -108,11 +113,11 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 					pRenderer->Render();
 					mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 				}
+
+				glDisable(GL_BLEND);
+				glDepthFunc(GL_LESS);
 			}
 			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
-
-			glDisable(GL_BLEND);
-			glDepthFunc(GL_LESS);
 		}
 
 		pShader->Unbind();

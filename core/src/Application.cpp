@@ -452,7 +452,7 @@ void Application::Update()
 
 	glutSwapBuffers();
 
-	double idleTime = mSecondsPerFrame - deltaTime; // mFrameRate cycles/second
+	double idleTime = mSecondsPerFrame - deltaTime - 0.015f; // mFrameRate cycles/second
 	if (idleTime > 0)
 	{
 		Thread::Sleep(idleTime);

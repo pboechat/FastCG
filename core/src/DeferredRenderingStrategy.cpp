@@ -564,9 +564,9 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 			RenderUnlitGeometries(rView, rProjection);
 		}
-
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	}
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
 void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection)
