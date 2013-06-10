@@ -101,6 +101,10 @@
     <ClInclude Include="src\SSAOApplication.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\deferred\BumpedDiffuse.frag" />
+    <None Include="shaders\deferred\BumpedDiffuse.vert" />
+    <None Include="shaders\deferred\BumpedSpecular.frag" />
+    <None Include="shaders\deferred\BumpedSpecular.vert" />
     <None Include="shaders\deferred\Diffuse.frag" />
     <None Include="shaders\deferred\Diffuse.vert" />
     <None Include="shaders\deferred\DirectionalLightPass.frag" />

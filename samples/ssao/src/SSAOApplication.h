@@ -4,6 +4,7 @@
 #include <Application.h>
 #include <Mesh.h>
 #include <Material.h>
+#include <Texture.h>
 
 class SSAOApplication : public Application
 {
@@ -17,6 +18,8 @@ protected:
 private:
 	Mesh* mpGroundMesh;
 	Material* mpGroundMaterial;
+	Texture* mpGroundColorMapTexture;
+	Texture* mpGroundBumpMapTexture;
 
 };
 

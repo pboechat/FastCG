@@ -6,6 +6,9 @@
 #include <MathT.h>
 #include <FontRegistry.h>
 
+#include <Input.h>
+#include <MouseButton.h>
+
 COMPONENT_IMPLEMENTATION(LightsAnimator, Behaviour);
 
 void LightsAnimator::SetLights(const std::vector<PointLight*>& rLights)
@@ -52,5 +55,17 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 			glm::vec3 position = pPointLight->GetGameObject()->GetTransform()->GetPosition();
 			pPointLight->GetGameObject()->GetTransform()->SetPosition(position + move);
 		}
+	}
+
+	if (Input::GetMouseButton(MouseButton::MIDDLE_BUTTON) && time - mLastMouseButtonPressTime > 0.333f)
+	{
+		for (unsigned int i = 0; i < mPointLights.size(); i++)
+		{
+			PointLight* pPointLight = mPointLights[i];
+			glm::vec4 color = Random::NextColor();
+			pPointLight->SetDiffuseColor(color);
+			pPointLight->SetSpecularColor(color);
+		}
+		mLastMouseButtonPressTime = time;
 	}
 }

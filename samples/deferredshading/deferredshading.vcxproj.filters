@@ -112,5 +112,17 @@
     <None Include="shaders\deferred\FastCG.glsl">
       <Filter>Shader Files\Deferred</Filter>
     </None>
+    <None Include="shaders\deferred\BumpedDiffuse.frag">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\BumpedDiffuse.vert">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\BumpedSpecular.frag">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
+    <None Include="shaders\deferred\BumpedSpecular.vert">
+      <Filter>Shader Files\Deferred</Filter>
+    </None>
   </ItemGroup>
 </Project>

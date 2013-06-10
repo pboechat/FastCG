@@ -40,10 +40,11 @@ void main()
 
 	vec3 position = texture2D(_PositionMap, uv).xyz;
 	vec4 diffuseColor = texture2D(_DiffuseMap, uv);
-	vec4 normalAndShininess = texture2D(_NormalMap, uv);
+	vec3 normal = texture2D(_NormalMap, uv).xyz * 2.0 - 1.0;
 	vec4 specularColor = texture2D(_SpecularMap, uv);
-	vec3 normal = normalAndShininess.xyz;
-	float shininess = normalAndShininess.w;
+	float shininess = specularColor.w;
+	specularColor = vec4(specularColor.xyz, 1.0);
+
 	float ambientOcclusion = texture2D(_AmbientOcclusionMap, uv).x;
 	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 

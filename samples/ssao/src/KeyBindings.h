@@ -2,13 +2,14 @@
 #define KEYBINDINGS_H_
 
 #include <Behaviour.h>
-#include <DirectionalLight.h>
+
+#include <vector>
 
 COMPONENT(KeyBindings, Behaviour)
 public:
-	inline void SetSceneLights(GameObject* pSceneLights)
+	inline void SetSceneLights(std::vector<GameObject*>& rSceneLights)
 	{
-		mpSceneLights = pSceneLights;
+		mSceneLights = rSceneLights;
 	}
 
 	inline void SetLightDistance(float lightDistance)
@@ -22,13 +23,12 @@ protected:
 	virtual void OnInstantiate()
 	{
 		mLastKeyPressTime = 0;
-		mpSceneLights = 0;
 		mLightDistance = 1.0f;
 	}
 
 private:
 	float mLastKeyPressTime;
-	GameObject* mpSceneLights;
+	std::vector<GameObject*> mSceneLights;
 	float mLightDistance;
 
 };

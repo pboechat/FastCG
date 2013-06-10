@@ -1,6 +1,7 @@
 #version 330
 
 uniform sampler2D colorMap;
+uniform vec2 colorMapTiling;
 uniform vec4 diffuseColor;
 
 in vec4 vertexPosition;
@@ -10,7 +11,7 @@ in vec2 vertexUV;
 void main()
 {
 	gl_FragData[0] = vertexPosition;
-	gl_FragData[1] = diffuseColor * texture2D(colorMap, vertexUV);
+	gl_FragData[1] = diffuseColor * texture2D(colorMap, vertexUV * colorMapTiling);
 	gl_FragData[2] = vec4(vertexNormal, 0.0);
 	gl_FragData[3] = vec4(0.0);
 }

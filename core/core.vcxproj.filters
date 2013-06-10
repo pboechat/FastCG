@@ -297,4 +297,60 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\BumpedDiffuse.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedDiffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedSpecular.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedSpecular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\FastCG.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Font.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Font.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Lighting.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\LineStrip.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\LineStrip.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Points.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Points.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\SolidColor.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\SolidColor.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

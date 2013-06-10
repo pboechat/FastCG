@@ -112,7 +112,8 @@ public:
 
 	inline void RotateAround(float angle, const glm::vec3& axis)
 	{
-		mLocalTransform = glm::rotate(glm::toMat4(GetRotation()), angle, axis);
+		glm::vec3 localPosition(mLocalTransform[3][0], mLocalTransform[3][1], mLocalTransform[3][2]);
+		mLocalTransform = glm::translate(glm::rotate(glm::mat4(1.0f), angle, axis), localPosition);
 	}
 
 	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
@@ -159,6 +160,7 @@ private:
 	Transform* mpParent;
 	std::vector<Transform*> mChildren;
 	glm::mat4 mLocalTransform;
+	glm::mat4 mTempTransform;
 
 	Transform(GameObject* pGameObject) :
 		mpGameObject(pGameObject),

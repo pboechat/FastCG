@@ -3,10 +3,14 @@
 #include <cstdlib>
 #include <ctime>
 
-
 float Random::NextFloat()
 {
 	return rand() / (float) RAND_MAX;
+}
+
+int Random::Range(int min, int max)
+{
+	return min + (int)(NextFloat() * (max - min));
 }
 
 glm::vec4 Random::NextColor()

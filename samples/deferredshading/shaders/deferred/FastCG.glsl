@@ -1,6 +1,6 @@
 uniform vec2 _ScreenSize;
 uniform sampler2D _PositionMap;
-uniform sampler2D _ColorMap;
+uniform sampler2D _DiffuseMap;
 uniform sampler2D _NormalMap;
 uniform sampler2D _SpecularMap;
 uniform sampler2D _AmbientOcclusionMap;

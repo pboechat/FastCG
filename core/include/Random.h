@@ -7,6 +7,7 @@ class Random
 {
 public:
 	static float NextFloat();
+	static int Range(int min, int max);
 	static glm::vec4 NextColor();
 	static void SeedWithTime();
 

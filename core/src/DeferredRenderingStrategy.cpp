@@ -204,7 +204,7 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPositionTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mDiffuseTextureId, 0);
@@ -216,13 +216,13 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mNormalTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSpecularTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mFinalOutputTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
@@ -461,9 +461,8 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
 				glDisable(GL_CULL_FACE);
 
-				glClear(GL_STENCIL_BUFFER_BIT);
-
 				glDrawBuffer(0);
+				glClear(GL_STENCIL_BUFFER_BIT);
 
 				mpStencilPassShader->Bind();
 				mpStencilPassShader->SetMat4("_ModelViewProjection", modelViewProjection);

@@ -13,6 +13,8 @@ public:
 	void OnInstantiate()
 	{
 		mLastDirectionChangeTime = 0;
+
+		mLastMouseButtonPressTime = 0;
 	}
 
 	void SetLights(const std::vector<PointLight*>& rLights);
@@ -23,6 +25,8 @@ private:
 	std::vector<PointLight*> mPointLights;
 	std::vector<glm::vec3> mDirections;
 	float mLastDirectionChangeTime;
+
+	float mLastMouseButtonPressTime;
 
 };
 

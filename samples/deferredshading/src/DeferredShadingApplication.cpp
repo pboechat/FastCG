@@ -65,7 +65,7 @@ void DeferredShadingApplication::OnStart()
 			pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2.0f * SPHERE_RADIUS)) + z));
 
 			pPointLight = PointLight::Instantiate(pPointLightGameObject);
-			glm::vec4 color = Random::NextColor();
+			glm::vec4 color = Colors::COMMON_LIGHT_COLORS[Random::Range(0, Colors::NUMBER_OF_COMMON_LIGHT_COLORS)];
 			pPointLight->SetDiffuseColor(color);
 			pPointLight->SetSpecularColor(color);
 			pPointLight->SetIntensity(intensity);
@@ -82,9 +82,11 @@ void DeferredShadingApplication::OnStart()
 	mpFloorMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
 	mpFloorMaterial->SetShininess(5.0f);
 #else
-	mpFloorMaterial = new Material(ShaderRegistry::Find("Diffuse"));
+	mpFloorMaterial = new Material(ShaderRegistry::Find("Specular"));
 	mpFloorMaterial->SetTexture("colorMap", mpCheckersColorMapTexture);
 	mpFloorMaterial->SetVec4("diffuseColor", Colors::WHITE);
+	mpFloorMaterial->SetVec4("specularColor", Colors::WHITE);
+	mpFloorMaterial->SetFloat("shininess", 5.0f);
 #endif
 
 	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
@@ -102,7 +104,7 @@ void DeferredShadingApplication::OnStart()
 	mpSphereMaterial = new Material(ShaderRegistry::Find("SolidColor"));
 	mpSphereMaterial->SetVec4("diffuseColor", Colors::WHITE);
 	mpSphereMaterial->SetVec4("specularColor", Colors::WHITE);
-	mpSphereMaterial->SetFloat("shininess", 1.0f);
+	mpSphereMaterial->SetFloat("shininess", 30.0f);
 #endif
 
 	mpSphereMesh = StandardGeometries::CreateSphere(SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
