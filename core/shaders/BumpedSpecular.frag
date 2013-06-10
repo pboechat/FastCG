@@ -21,7 +21,7 @@ void main()
 {
 	vec4 texelColor = texture2D(colorMap, (vertexUV * colorMapTiling));
 	vec4 finalDiffuseColor = diffuseColor * texelColor;
-	vec3 normal = normalize(texture2D(bumpMap, (vertexUV * bumpMapTiling)).rgb * 2.0 - 1.0);
+	vec3 normal = texture2D(bumpMap, (vertexUV * bumpMapTiling)).rgb * 2.0 - 1.0;
 
 	gl_FragColor = BlinnPhongLighting(ambientColor,
 									  finalDiffuseColor,
@@ -30,5 +30,5 @@ void main()
 									  lightDirection,
 									  viewerDirection,
 									  vertexPosition,
-									  normal);
+									  normal) * step(0.0, lightDirection.z);
 }

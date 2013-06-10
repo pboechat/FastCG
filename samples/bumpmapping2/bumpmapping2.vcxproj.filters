@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Shader Files">
+      <UniqueIdentifier>{6523ad9f-e8e3-4dcb-96b0-7d5c782d32ed}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\KeyBindings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BumpMapping2Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\KeyBindings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BumpMapping2Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\BumpedDiffuse.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedDiffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedSpecular.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\BumpedSpecular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Diffuse.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\FastCG.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Font.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Font.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Lighting.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\LineStrip.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\LineStrip.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Points.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Points.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\SolidColor.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\SolidColor.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\Specular.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

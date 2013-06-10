@@ -17,9 +17,7 @@ void main()
 	vec3 vertexTangent = normalize(_ModelViewInverseTranspose * tangent.xyz);
 	vec3 vertexBinormal = normalize(cross(vertexNormal, vertexTangent)) * tangent.w;
 
-	mat3 tangentSpaceMatrix = mat3(vertexTangent.x, vertexBinormal.x, vertexNormal.x,
-								   vertexTangent.y, vertexBinormal.y, vertexNormal.y,
-								   vertexTangent.z, vertexBinormal.z, vertexNormal.z);
+	mat3 tangentSpaceMatrix = transpose(mat3(vertexTangent, vertexBinormal, vertexNormal));
 
 	vec3 vertexPosition = vec3(_ModelView * position);
 

@@ -1,9 +1,7 @@
 float DistanceAttenuation(vec3 position)
 {
-	float _distance = distance(_Light0Position, position);
-	float attenuation = 1.0 / max(_Light0ConstantAttenuation + _Light0LinearAttenuation * _distance + _Light0QuadraticAttenuation * pow(_distance, 2.0), 1.0);
-	// returns 1.0 if 'directional' and attenuation if 'point'
-	return min(1.0 - _Light0Type + attenuation, 1.0);
+	float d = distance(_Light0Position, position);
+	return 1 / min(_Light0ConstantAttenuation + _Light0LinearAttenuation * d + _Light0QuadraticAttenuation * pow(d, 2.0), 1);
 }
 
 vec4 BlinnPhongLighting(vec4 materialAmbientColor,
@@ -17,7 +15,13 @@ vec4 BlinnPhongLighting(vec4 materialAmbientColor,
     float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
 
-    return (ambientContribution + diffuseContribution) * DistanceAttenuation(position);
+	float distanceAttenuation = 1.0f;
+	if (_Light0Type == 1.0) // point
+	{
+		distanceAttenuation = DistanceAttenuation(position);
+	}
+
+    return distanceAttenuation * (ambientContribution + diffuseContribution);
 }
 
 vec4 BlinnPhongLighting(vec4 materialAmbientColor,
@@ -42,5 +46,11 @@ vec4 BlinnPhongLighting(vec4 materialAmbientColor,
 		specularContribution = _Light0SpecularColor * _Light0Intensity * materialSpecularColor * specularAttenuation;
 	}
 
-    return (ambientContribution + diffuseContribution + specularContribution) * DistanceAttenuation(position);
+	float distanceAttenuation = 1.0f;
+	if (_Light0Type == 1.0) // point
+	{
+		distanceAttenuation = DistanceAttenuation(position);
+	}
+
+    return distanceAttenuation * (ambientContribution + diffuseContribution + specularContribution);
 }
