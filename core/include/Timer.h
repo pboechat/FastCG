@@ -34,7 +34,7 @@ public:
 
 		if (QueryPerformanceCounter(&time))
 		{
-			return time.QuadPart * mSeconds;
+			return (double)time.QuadPart * mSeconds;
 		}
 
 		else

@@ -44,14 +44,13 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mGBufferFBOId(0),
 	mSSAOFBOId(0),
 	mSSAOBlurFBOId(0),
-	mPositionTextureId(0),
 	mDiffuseTextureId(0),
 	mNormalTextureId(0),
 	mSpecularTextureId(0),
 	mFinalOutputTextureId(0),
 	mDepthTextureId(0),
-	mAmbientTextureId(0),
-	mBlurredAmbientTextureId(0),
+	mAmbientOcclusionTextureId(0),
+	mBlurredAmbientOcclusionTextureId(0),
 	mSSAORayLength(DEFAULT_SSAO_RAY_LENGTH),
 	mSSAOExponent(DEFAULT_SSAO_EXPONENT),
 	mpQuadMesh(0),
@@ -81,14 +80,9 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 		glDeleteFramebuffers(1, &mSSAOBlurFBOId);
 	}
 
-	if (mPositionTextureId != 0)
-	{
-		glDeleteTextures(1, &mPositionTextureId);
-	}
-
 	if (mDiffuseTextureId != 0)
 	{
-		glDeleteTextures(1, &mPositionTextureId);
+		glDeleteTextures(1, &mDiffuseTextureId);
 	}
 
 	if (mNormalTextureId != 0)
@@ -111,14 +105,14 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 		glDeleteTextures(1, &mDepthTextureId);
 	}
 
-	if (mAmbientTextureId != 0)
+	if (mAmbientOcclusionTextureId != 0)
 	{
-		glDeleteTextures(1, &mAmbientTextureId);
+		glDeleteTextures(1, &mAmbientOcclusionTextureId);
 	}
 
-	if (mBlurredAmbientTextureId != 0)
+	if (mBlurredAmbientOcclusionTextureId != 0)
 	{
-		glDeleteTextures(1, &mBlurredAmbientTextureId);
+		glDeleteTextures(1, &mBlurredAmbientOcclusionTextureId);
 	}
 	
 	if (mpQuadMesh != 0)
@@ -190,42 +184,35 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glGenFramebuffers(1, &mGBufferFBOId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 
-	glGenTextures(1, &mPositionTextureId);
 	glGenTextures(1, &mDiffuseTextureId);
 	glGenTextures(1, &mNormalTextureId);
 	glGenTextures(1, &mSpecularTextureId);
-	glGenTextures(1, &mDepthTextureId);
 	glGenTextures(1, &mFinalOutputTextureId);
-
-	glBindTexture(GL_TEXTURE_2D, mPositionTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPositionTextureId, 0);
+	glGenTextures(1, &mDepthTextureId);
 
 	glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mDiffuseTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mNormalTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSpecularTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mFinalOutputTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mrScreenWidth, mrScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -238,25 +225,25 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glGenFramebuffers(1, &mSSAOFBOId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOFBOId);
 
-	glGenTextures(1, &mAmbientTextureId);
+	glGenTextures(1, &mAmbientOcclusionTextureId);
 
-	glBindTexture(GL_TEXTURE_2D, mAmbientTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glBindTexture(GL_TEXTURE_2D, mAmbientOcclusionTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mAmbientTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mAmbientOcclusionTextureId, 0);
 
 	// create ssao blur fbo
 	glGenFramebuffers(1, &mSSAOBlurFBOId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
 
-	glGenTextures(1, &mBlurredAmbientTextureId);
+	glGenTextures(1, &mBlurredAmbientOcclusionTextureId);
 
-	glBindTexture(GL_TEXTURE_2D, mBlurredAmbientTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mrScreenWidth, mrScreenHeight, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredAmbientTextureId, 0);
+	glBindTexture(GL_TEXTURE_2D, mBlurredAmbientOcclusionTextureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredAmbientOcclusionTextureId, 0);
 
 	unsigned int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -274,8 +261,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	static unsigned int pGeometryPassDrawBuffers[] = { 
 		GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2,
-		GL_COLOR_ATTACHMENT3
+		GL_COLOR_ATTACHMENT2
 	};
 
 	glEnable(GL_DEPTH_TEST);
@@ -284,7 +270,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	// geometry pass
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
-	glDrawBuffers(4, pGeometryPassDrawBuffers);
+	glDrawBuffers(3, pGeometryPassDrawBuffers);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4& rView = pCamera->GetView();
@@ -359,7 +345,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, halfScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 		// bottom right
-		glReadBuffer(GL_COLOR_ATTACHMENT3);
+		glReadBuffer(GL_DEPTH_ATTACHMENT);
 		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, 0, mrScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 	else
@@ -401,7 +387,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mAmbientTextureId);
+			glBindTexture(GL_TEXTURE_2D, mAmbientOcclusionTextureId);
 			
 			mpSSAOBlurPassShader->Bind();
 			mpSSAOBlurPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
@@ -428,23 +414,23 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glEnable(GL_STENCIL_TEST);
 
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
-			glDrawBuffer(GL_COLOR_ATTACHMENT4);
+			glDrawBuffer(GL_COLOR_ATTACHMENT3);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mPositionTextureId);
-
-			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
 
-			glActiveTexture(GL_TEXTURE2);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
 
-			glActiveTexture(GL_TEXTURE3);
+			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
 
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
+
 			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, mBlurredAmbientTextureId);
+			glBindTexture(GL_TEXTURE_2D, mBlurredAmbientOcclusionTextureId);
 
 			for (unsigned int i = 0; i < mrPointLights.size(); i++)
 			{
@@ -471,7 +457,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				mpStencilPassShader->Unbind();
 
 				glDisable(GL_DEPTH_TEST); 
-				glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
 				glEnable(GL_CULL_FACE);
 				glCullFace(GL_FRONT);
 
@@ -479,21 +465,21 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 				glBlendEquation(GL_FUNC_ADD);
 				glBlendFunc(GL_ONE, GL_ONE);
 
-				glm::vec3 lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f));
-
-				glDrawBuffer(GL_COLOR_ATTACHMENT4);
+				glDrawBuffer(GL_COLOR_ATTACHMENT3);
 
 				mpPointLightPassShader->Bind();
+				mpPointLightPassShader->SetMat4("_Projection", rProjection);
+				mpPointLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
 				mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
 				mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-				mpPointLightPassShader->SetTexture("_PositionMap", 0);
-				mpPointLightPassShader->SetTexture("_DiffuseMap", 1);
-				mpPointLightPassShader->SetTexture("_NormalMap", 2);
-				mpPointLightPassShader->SetTexture("_SpecularMap", 3);
+				mpPointLightPassShader->SetTexture("_DiffuseMap", 0);
+				mpPointLightPassShader->SetTexture("_NormalMap", 1);
+				mpPointLightPassShader->SetTexture("_SpecularMap", 2);
+				mpPointLightPassShader->SetTexture("_DepthMap", 3);
 				mpPointLightPassShader->SetTexture("_AmbientOcclusionMap", 4);
 				mpPointLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
 				mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
-				mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
+				mpPointLightPassShader->SetVec3("_Light0Position", glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f)));
 				mpPointLightPassShader->SetVec4("_Light0AmbientColor", pPointLight->GetAmbientColor());
 				mpPointLightPassShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
 				mpPointLightPassShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
@@ -524,14 +510,16 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glBlendEquation(GL_FUNC_ADD);
 			glBlendFunc(GL_ONE, GL_ONE);
 
-			glDrawBuffer(GL_COLOR_ATTACHMENT4);
+			glDrawBuffer(GL_COLOR_ATTACHMENT3);
 
 			mpDirectionalLightPassShader->Bind();
 			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-			mpDirectionalLightPassShader->SetTexture("_PositionMap", 0);
-			mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 1);
-			mpDirectionalLightPassShader->SetTexture("_NormalMap", 2);
-			mpDirectionalLightPassShader->SetTexture("_SpecularMap", 3);
+			mpDirectionalLightPassShader->SetMat4("_Projection", rProjection);
+			mpDirectionalLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
+			mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 0);
+			mpDirectionalLightPassShader->SetTexture("_NormalMap", 1);
+			mpDirectionalLightPassShader->SetTexture("_SpecularMap", 2);
+			mpDirectionalLightPassShader->SetTexture("_DepthMap", 3);
 			mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 4);
 			mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
 			mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
@@ -540,8 +528,6 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 			{
 				DirectionalLight* pDirectionalLight = mrDirectionalLights[i];
-
-				glm::vec3 lightDirection = glm::vec3(viewRotation * glm::vec4(pDirectionalLight->GetDirection(), 1.0f));
 
 				mpDirectionalLightPassShader->SetVec3("_Light0Position", pDirectionalLight->GetDirection());
 				mpDirectionalLightPassShader->SetVec4("_Light0AmbientColor", pDirectionalLight->GetAmbientColor());
@@ -558,7 +544,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBufferFBOId);
-			glReadBuffer(GL_COLOR_ATTACHMENT4);
+			glReadBuffer(GL_COLOR_ATTACHMENT3);
 
 			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 

@@ -93,41 +93,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\KeyBindings.cpp" />
+    <ClCompile Include="src\LightsAnimator.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\SSAOApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\KeyBindings.h" />
+    <ClInclude Include="src\LightsAnimator.h" />
     <ClInclude Include="src\SSAOApplication.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shaders\deferred\BumpedDiffuse.frag" />
-    <None Include="shaders\deferred\BumpedDiffuse.vert" />
-    <None Include="shaders\deferred\BumpedSpecular.frag" />
-    <None Include="shaders\deferred\BumpedSpecular.vert" />
-    <None Include="shaders\deferred\Diffuse.frag" />
-    <None Include="shaders\deferred\Diffuse.vert" />
-    <None Include="shaders\deferred\DirectionalLightPass.frag" />
-    <None Include="shaders\deferred\DirectionalLightPass.vert" />
-    <None Include="shaders\deferred\FastCG.glsl" />
-    <None Include="shaders\deferred\Font.frag" />
-    <None Include="shaders\deferred\Font.vert" />
-    <None Include="shaders\deferred\LineStrip.frag" />
-    <None Include="shaders\deferred\LineStrip.vert" />
-    <None Include="shaders\deferred\PointLightPass.frag" />
-    <None Include="shaders\deferred\PointLightPass.vert" />
-    <None Include="shaders\deferred\Points.frag" />
-    <None Include="shaders\deferred\Points.vert" />
-    <None Include="shaders\deferred\SolidColor.frag" />
-    <None Include="shaders\deferred\SolidColor.vert" />
-    <None Include="shaders\deferred\Specular.frag" />
-    <None Include="shaders\deferred\Specular.vert" />
-    <None Include="shaders\deferred\SSAOBlurPass.frag" />
-    <None Include="shaders\deferred\SSAOBlurPass.vert" />
-    <None Include="shaders\deferred\SSAOHighFrequencyPass.frag" />
-    <None Include="shaders\deferred\SSAOHighFrequencyPass.vert" />
-    <None Include="shaders\deferred\StencilPass.frag" />
-    <None Include="shaders\deferred\StencilPass.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

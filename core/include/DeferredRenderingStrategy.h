@@ -92,13 +92,12 @@ private:
 	unsigned int mGBufferFBOId;
 	unsigned int mSSAOFBOId;
 	unsigned int mSSAOBlurFBOId;
-	unsigned int mPositionTextureId;
 	unsigned int mNormalTextureId;
 	unsigned int mDiffuseTextureId;
 	unsigned int mSpecularTextureId;
 	unsigned int mDepthTextureId;
-	unsigned int mAmbientTextureId;
-	unsigned int mBlurredAmbientTextureId;
+	unsigned int mAmbientOcclusionTextureId;
+	unsigned int mBlurredAmbientOcclusionTextureId;
 	unsigned int mFinalOutputTextureId;
 	Shader* mpStencilPassShader;
 	Shader* mpDirectionalLightPassShader;

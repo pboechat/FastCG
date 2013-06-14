@@ -15,14 +15,12 @@
 #include <MathT.h>
 
 BumpMapping2Application::BumpMapping2Application() :
-	Application("bumpmapping2", 1024, 768, 30),
+	Application("bumpmapping2", 1024, 768, 60, false, "../../core/"),
 	mpGroundMesh(0),
 	mpGroundMaterial(0),
 	mpGroundColorMapTexture(0),
 	mpGroundBumpMapTexture(0)
 {
-	mGlobalAmbientLight = Colors::BLACK;
-	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
@@ -100,23 +98,23 @@ void BumpMapping2Application::CreateSceneLights(std::vector<GameObject*>& rScene
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
-	pLightGameObject->GetTransform()->SetPosition(glm::vec3(1.0f, 1.0f, 0.0f));
+	pLightGameObject->GetTransform()->SetPosition(glm::vec3(2.0f, 2.0f, 0.0f));
 	rSceneLights.push_back(pLightGameObject);
 
 	PointLight* pPointLight = PointLight::Instantiate(pLightGameObject);
 	pPointLight->SetDiffuseColor(LIGHT1_COLOR);
 	pPointLight->SetSpecularColor(LIGHT1_COLOR);
-	pPointLight->SetIntensity(0.8f);
+	pPointLight->SetIntensity(0.4f);
 
 	pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
-	pLightGameObject->GetTransform()->SetPosition(glm::vec3(-1.0f, 1.0f, 0.0f));
+	pLightGameObject->GetTransform()->SetPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
 	rSceneLights.push_back(pLightGameObject);
 
 	pPointLight = PointLight::Instantiate(pLightGameObject);
 	pPointLight->SetDiffuseColor(LIGHT2_COLOR);
 	pPointLight->SetSpecularColor(LIGHT2_COLOR);
-	pPointLight->SetIntensity(0.8f);
+	pPointLight->SetIntensity(0.4f);
 }
 
 void BumpMapping2Application::LoadModel(std::vector<Material*>& rModelMaterials) const
@@ -157,7 +155,7 @@ void BumpMapping2Application::CreateGround()
 	mpGroundMaterial->SetTexture("bumpMap", mpGroundBumpMapTexture);
 	mpGroundMaterial->SetTextureTiling("bumpMap", glm::vec2(4.0f, 4.0f));
 	mpGroundMaterial->SetVec4("diffuseColor", Colors::WHITE);
-	mpGroundMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+	mpGroundMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpGroundMaterial->SetFloat("shininess", 5.0f);
 
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGround);

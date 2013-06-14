@@ -33,11 +33,12 @@ const std::string Application::DEFAULT_FONT_NAME = "verdana";
 Application* Application::s_mpInstance = NULL;
 
 #ifdef FIXED_FUNCTION_PIPELINE
-Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate) :
+Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, const std::string& rGlobalResourcePath) :
 	mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
 	mFrameRate(frameRate),
+	mGlobalResourcePath(rGlobalResourcePath),
 	mSecondsPerFrame(1.0 / (double)mFrameRate),
 	mHalfScreenWidth(screenWidth / 2.0f),
 	mHalfScreenHeight(screenHeight / 2.0f),
@@ -56,13 +57,14 @@ Application::Application(const std::string& rWindowTitle, unsigned int screenWid
 	s_mpInstance = this;
 }
 #else
-Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering) :
-mWindowTitle(rWindowTitle),
+Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering, const std::string& rGlobalResourcePath) :
+	mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
 	mScreenHeight(screenHeight),
 	mFrameRate(frameRate),
-	mSecondsPerFrame(1.0 / (double)mFrameRate),
 	mDeferredRendering(deferredRendering),
+	mGlobalResourcePath(rGlobalResourcePath),
+	mSecondsPerFrame(1.0 / (double)mFrameRate),
 	mHalfScreenWidth(screenWidth / 2.0f),
 	mHalfScreenHeight(screenHeight / 2.0f),
 	mAspectRatio(mScreenWidth / (float) mScreenHeight),
@@ -348,8 +350,8 @@ void Application::Run(int argc, char** argv)
 #else
 		std::string shadersFolder;
 
-		ShaderRegistry::LoadShadersFromDisk((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : SHADERS_FOLDER);
-		FontRegistry::LoadFontsFromDisk(FONTS_FOLDER);
+		ShaderRegistry::LoadShadersFromDisk(mGlobalResourcePath + ((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : SHADERS_FOLDER));
+		FontRegistry::LoadFontsFromDisk(mGlobalResourcePath + FONTS_FOLDER);
 		mpStandardFont = FontRegistry::Find(DEFAULT_FONT_NAME);
 		if (mDeferredRendering)
 		{
@@ -422,7 +424,7 @@ void Application::Update()
 {
 	static double deltaTime = 0.0;
 
-	mFrameRateTimer.Start();
+	double start = mStartTimer.GetTime();
 
 	mpInput->Swap();
 
@@ -433,9 +435,9 @@ void Application::Update()
 
 	Render();
 
-	mFrameRateTimer.End();
+	double end = mStartTimer.GetTime();
 
-	deltaTime = mFrameRateTimer.GetElapsedTime();
+	deltaTime = end - start;
 
 	mTotalElapsedTime += deltaTime;
 	mElapsedFrames++;
@@ -452,10 +454,11 @@ void Application::Update()
 
 	glutSwapBuffers();
 
-	double idleTime = mSecondsPerFrame - deltaTime - 0.015f; // mFrameRate cycles/second
+	double idleTime = mSecondsPerFrame - deltaTime; // frame rate cycles/second
 	if (idleTime > 0)
 	{
 		Thread::Sleep(idleTime);
+		deltaTime += idleTime;
 	}
 }
 

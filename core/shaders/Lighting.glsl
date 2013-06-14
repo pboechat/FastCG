@@ -1,7 +1,9 @@
 float DistanceAttenuation(vec3 position)
 {
-	float d = distance(_Light0Position, position);
-	return 1 / min(_Light0ConstantAttenuation + _Light0LinearAttenuation * d + _Light0QuadraticAttenuation * pow(d, 2.0), 1);
+	float _distance = distance(_Light0Position, position);
+	float attenuation = min(_Light0ConstantAttenuation + _Light0LinearAttenuation * _distance + _Light0QuadraticAttenuation * pow(_distance, 2.0), 1.0);
+	attenuation = max(_Light0Type * attenuation, abs(_Light0Type));
+	return 1.0 / attenuation;
 }
 
 vec4 BlinnPhongLighting(vec4 materialAmbientColor,
@@ -10,18 +12,12 @@ vec4 BlinnPhongLighting(vec4 materialAmbientColor,
 						vec3 position,
 						vec3 normal)
 {
-    vec4 ambientContribution = _GlobalLightAmbientColor * _Light0AmbientColor * _Light0Intensity;
+    vec4 ambientContribution = _GlobalLightAmbientColor + _Light0AmbientColor * _Light0Intensity * materialAmbientColor;
 
     float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
 
-	float distanceAttenuation = 1.0f;
-	if (_Light0Type == 1.0) // point
-	{
-		distanceAttenuation = DistanceAttenuation(position);
-	}
-
-    return distanceAttenuation * (ambientContribution + diffuseContribution);
+    return DistanceAttenuation(position) * (ambientContribution + diffuseContribution);
 }
 
 vec4 BlinnPhongLighting(vec4 materialAmbientColor,
@@ -33,24 +29,14 @@ vec4 BlinnPhongLighting(vec4 materialAmbientColor,
 						vec3 position,
 						vec3 normal)
 {
-    vec4 ambientContribution = _GlobalLightAmbientColor * _Light0AmbientColor * _Light0Intensity * materialAmbientColor;
+    vec4 ambientContribution = _GlobalLightAmbientColor + _Light0AmbientColor * _Light0Intensity * materialAmbientColor;
 
     float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
 
-	vec4 specularContribution = vec4(0.0);
-	if (diffuseAttenuation > 0.0)
-	{
-		vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
-		float specularAttenuation = pow(max(dot(reflectionDirection, viewerDirection), 0.0), materialShininess);
-		specularContribution = _Light0SpecularColor * _Light0Intensity * materialSpecularColor * specularAttenuation;
-	}
+	vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
+	float specularAttenuation = pow(max(dot(reflectionDirection, viewerDirection), 0.0), materialShininess);
+	vec4 specularContribution = _Light0SpecularColor * _Light0Intensity * materialSpecularColor * specularAttenuation * step(0.0, diffuseAttenuation);
 
-	float distanceAttenuation = 1.0f;
-	if (_Light0Type == 1.0) // point
-	{
-		distanceAttenuation = DistanceAttenuation(position);
-	}
-
-    return distanceAttenuation * (ambientContribution + diffuseContribution + specularContribution);
+    return DistanceAttenuation(position) * (ambientContribution + diffuseContribution + specularContribution);
 }

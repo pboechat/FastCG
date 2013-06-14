@@ -9,9 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Shader Files">
-      <UniqueIdentifier>{6523ad9f-e8e3-4dcb-96b0-7d5c782d32ed}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -23,6 +20,9 @@
     <ClCompile Include="src\KeyBindings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\LightsAnimator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SSAOApplication.h">
@@ -31,88 +31,8 @@
     <ClInclude Include="src\KeyBindings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shaders\deferred\Diffuse.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Diffuse.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\DirectionalLightPass.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\DirectionalLightPass.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\FastCG.glsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Font.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Font.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\LineStrip.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\LineStrip.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\PointLightPass.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\PointLightPass.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Points.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Points.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\SolidColor.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\SolidColor.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Specular.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\Specular.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\SSAOBlurPass.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\SSAOBlurPass.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\SSAOHighFrequencyPass.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\SSAOHighFrequencyPass.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\StencilPass.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\StencilPass.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\BumpedDiffuse.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\BumpedDiffuse.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\BumpedSpecular.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\deferred\BumpedSpecular.vert">
-      <Filter>Shader Files</Filter>
-    </None>
+    <ClInclude Include="src\LightsAnimator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

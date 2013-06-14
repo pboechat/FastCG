@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Shader Files">
-      <UniqueIdentifier>{f3d9e45d-8d00-416a-bc6f-aa764daef6f9}</UniqueIdentifier>
-      <Extensions>glsl;vert;frag</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BumpMappingApplication.h">
@@ -44,43 +40,5 @@
     <ClCompile Include="src\SpheresController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shaders\BumpedDiffuse.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\BumpedDiffuse.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\FastCG.glsl">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\BumpedSpecular.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\BumpedSpecular.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Font.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Font.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Diffuse.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Diffuse.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Specular.frag">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Specular.vert">
-      <Filter>Shader Files</Filter>
-    </None>
-    <None Include="shaders\Lighting.glsl">
-      <Filter>Shader Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

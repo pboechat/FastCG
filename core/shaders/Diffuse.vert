@@ -1,6 +1,6 @@
 #version 330
 
-#include "shaders/FastCG.glsl"
+#include "FastCG.glsl"
 
 in vec4 position;
 in vec3 normal;

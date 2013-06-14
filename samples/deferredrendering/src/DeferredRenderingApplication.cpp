@@ -29,9 +29,9 @@ const float DeferredRenderingApplication::TURN_SPEED = 100.0f;
 
 DeferredRenderingApplication::DeferredRenderingApplication() :
 #ifdef FIXED_FUNCTION_PIPELINE
-	Application("deferredrendering", 1024, 768, 30),
+	Application("deferredrendering", 1024, 768, 60, "../../core/"),
 #else
-	Application("deferredrendering", 1024, 768, 30, true),
+	Application("deferredrendering", 1024, 768, 60, true, "../../core/"),
 #endif
 	mpCheckersColorMapTexture(0),
 	mpFloorMaterial(0),

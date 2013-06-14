@@ -47,9 +47,9 @@ public:
 	static const std::string DEFAULT_FONT_NAME;
 
 #ifdef FIXED_FUNCTION_PIPELINE
-	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate);
+	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, const std::string& rGlobalResourcePath = "");
 #else
-	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering = false);
+	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering = false, const std::string& rGlobalResourcePath = "");
 #endif
 	
 	virtual ~Application();
@@ -171,6 +171,7 @@ private:
 #ifndef FIXED_FUNCTION_PIPELINE
 	bool mDeferredRendering;
 #endif
+	std::string mGlobalResourcePath;
 	float mHalfScreenWidth;
 	float mHalfScreenHeight;
 	float mAspectRatio;

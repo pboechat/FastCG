@@ -7,11 +7,6 @@
 
 COMPONENT(KeyBindings, Behaviour)
 public:
-	inline void SetSceneLights(std::vector<GameObject*>& rSceneLights)
-	{
-		mSceneLights = rSceneLights;
-	}
-
 	inline void SetLightDistance(float lightDistance)
 	{
 		mLightDistance = lightDistance;
@@ -28,7 +23,6 @@ protected:
 
 private:
 	float mLastKeyPressTime;
-	std::vector<GameObject*> mSceneLights;
 	float mLightDistance;
 
 };

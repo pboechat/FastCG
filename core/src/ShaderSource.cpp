@@ -2,25 +2,13 @@
 
 #include <ShaderSource.h>
 #include <FileReader.h>
+#include <File.h>
 #include <StringUtils.h>
-
-std::string ShaderSource::s_mShaderFolderPath = "";
 
 std::string ShaderSource::Parse(const std::string& rFileName)
 {
-	std::string fileName;
-
-	if (!s_mShaderFolderPath.empty())
-	{
-		fileName = s_mShaderFolderPath + "/" + rFileName;
-	}
-
-	else
-	{
-		fileName = rFileName;
-	}
-
-	std::string content = FileReader::Read(fileName, FM_TEXT);
+	std::string filePath = File::GetFilePath(rFileName);
+	std::string content = FileReader::Read(rFileName, FM_TEXT);
 	unsigned int includePosition = 0;
 
 	while ((includePosition = content.find("#include ", includePosition)) != std::string::npos)
@@ -34,16 +22,11 @@ std::string ShaderSource::Parse(const std::string& rFileName)
 		StringUtils::Replace(includeFileName, "<", "");
 		StringUtils::Replace(includeFileName, ">", "");
 		StringUtils::Trim(includeFileName);
-		std::string contentToAppend = Parse(includeFileName);
+		std::string contentToAppend = Parse(filePath + includeFileName);
 		StringUtils::Replace(content, includeStatement, contentToAppend);
 	}
 
 	return content;
-}
-
-void ShaderSource::SetShaderFolderPath(const std::string& rShaderFolderPath)
-{
-	s_mShaderFolderPath = rShaderFolderPath;
 }
 
 #endif

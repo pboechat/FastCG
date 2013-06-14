@@ -11,7 +11,7 @@ public:
 	static void Sleep(double seconds)
 	{
 #ifdef _WIN32
-		SleepEx((long)seconds * 1000L, 0);
+		SleepEx((long)(seconds * 1000.0), 0);
 #endif
 	}
 

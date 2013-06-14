@@ -9,9 +9,8 @@
 #include <MeshFilter.h>
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
-#include <KeyCode.h>
-#include <MouseButton.h>
 #include <FirstPersonCameraController.h>
+#include <Colors.h>
 #include <TextureImporter.h>
 #include <ModelImporter.h>
 #include <OpenGLExceptions.h>
@@ -23,14 +22,13 @@ const float BumpMappingApplication::WALK_SPEED = 20.0f;
 const float BumpMappingApplication::TURN_SPEED = 100.0f;
 
 BumpMappingApplication::BumpMappingApplication() :
-	Application("bumpmapping", 1024, 768, 60),
+	Application("bumpmapping", 1024, 768, 60, false, "../../core/"),
 	mpFloorMaterial(0),
 	mpFloorMesh(0),
 	mpSphereMaterial(0),
 	mpSphereMesh(0)
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-	mGlobalAmbientLight = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
@@ -44,9 +42,8 @@ void BumpMappingApplication::OnStart()
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
 
 	PointLight* pLight = PointLight::Instantiate(pLightGameObject);
-	pLight->SetAmbientColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	pLight->SetDiffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	pLight->SetSpecularColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	pLight->SetDiffuseColor(Colors::WHITE);
+	pLight->SetSpecularColor(Colors::WHITE);
 	pLight->SetIntensity(0.4f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
@@ -84,7 +81,7 @@ void BumpMappingApplication::OnStart()
 
 	GameObject* pFloorGameObject = GameObject::Instantiate();
 
-	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 100, 100, glm::vec3(0, 0, 0));
+	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
 	pMeshRenderer->AddMesh(mpFloorMesh);

@@ -80,7 +80,6 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 					}
 
 					Light* pLight = mrLights[i];
-					pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
 					pShader->SetVec4("_Light0AmbientColor", pLight->GetAmbientColor());
 					pShader->SetVec4("_Light0DiffuseColor", pLight->GetDiffuseColor());
 					pShader->SetVec4("_Light0SpecularColor", pLight->GetSpecularColor());
@@ -88,10 +87,14 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 
 					if (pLight->GetType().IsExactly(DirectionalLight::TYPE))
 					{
-						pShader->SetFloat("_Light0Type", 0.0);
+						pShader->SetVec3("_Light0Position", pLight->GetGameObject()->GetTransform()->GetPosition());
+						pShader->SetFloat("_Light0Type", -1.0);
 					}
 					else if (pLight->GetType().IsExactly(PointLight::TYPE))
 					{
+						glm::vec3 lightPosition = glm::vec3(rView * glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f));
+						pShader->SetVec3("_Light0Position", lightPosition);
+
 						PointLight* pPointLight = dynamic_cast<PointLight*>(pLight);
 						pShader->SetFloat("_Light0ConstantAttenuation", pPointLight->GetConstantAttenuation());
 						pShader->SetFloat("_Light0LinearAttenuation", pPointLight->GetLinearAttenuation());
@@ -100,9 +103,13 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 					}
 					/*else if (pLight->GetType().IsExactly(SpotLight::TYPE))
 					{
+						glm::vec3 lightPosition = glm::vec3(rView * glm::vec4(pLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f));
+						pShader->SetVec3("_Light0Position", lightPosition);
+
 						pShader->SetVec3("_Light0SpotDirection", pLight->GetSpotDirection());
 						pShader->SetFloat("_Light0SpotCutoff", pLight->GetSpotCutoff());
 						pShader->SetFloat("_Light0SpotExponent", pLight->GetSpotExponent());
+						pShader->SetFloat("_Light0Type", ???);
 					}*/
 					else 
 					{
@@ -115,7 +122,6 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 				}
 
 				glDisable(GL_BLEND);
-				glDepthFunc(GL_LESS);
 			}
 			mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 		}

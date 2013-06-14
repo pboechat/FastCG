@@ -6,7 +6,7 @@
 #include <MathT.h>
 
 ModelImportApplication::ModelImportApplication() :
-	Application("modelimport", 1024, 768, 30)
+	Application("modelimport", 1024, 768, 60, false, "../../core/")
 {
 	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	mShowFPS = true;

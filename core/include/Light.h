@@ -2,6 +2,7 @@
 #define LIGHT_H_
 
 #include <Component.h>
+#include <Colors.h>
 
 #include <glm/glm.hpp>
 
@@ -9,9 +10,9 @@ ABSTRACT_COMPONENT(Light, Component)
 public:
 	virtual void OnInstantiate()
 	{
-		mAmbientColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		mDiffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		mSpecularColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		mAmbientColor = Colors::BLACK;
+		mDiffuseColor = Colors::WHITE;
+		mSpecularColor = Colors::WHITE;
 		mIntensity = 1.0f;
 		/*mSpotDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 		mSpotCutoff = 15.0f;
