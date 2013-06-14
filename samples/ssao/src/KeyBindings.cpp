@@ -23,11 +23,14 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 	static unsigned int text4Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 4 + 9;
 	static unsigned int text5Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 5 + 11;
 	static unsigned int text6Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 6 + 13;
+	static unsigned int text7Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 7 + 15;
 
 	Application::GetInstance()->DrawText("Press 'F1' to toggle SSAO", FontRegistry::STANDARD_FONT_SIZE, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	Application::GetInstance()->DrawText("Press 'F2' to display SSAO texture", FontRegistry::STANDARD_FONT_SIZE, 10, text2Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	Application::GetInstance()->DrawText("Press +/- to change SSAO ray length", FontRegistry::STANDARD_FONT_SIZE, 10, text3Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	Application::GetInstance()->DrawText("Press Home/End to change SSAO exponent", FontRegistry::STANDARD_FONT_SIZE, 10, text4Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+	Camera* pMainCamera = Application::GetInstance()->GetMainCamera();
 
 	DeferredRenderingStrategy* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
 	float ssaoRayLength = pDeferredRenderingStrategy->GetSSAORayLength();
@@ -39,11 +42,12 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 	sprintf(pText, "SSAO Exponent: %d", ssaoExponent);
 	Application::GetInstance()->DrawText(pText, FontRegistry::STANDARD_FONT_SIZE, 10, text6Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
+	bool isSSAOEnabled = pMainCamera->IsSSAOEnabled();
+	Application::GetInstance()->DrawText((isSSAOEnabled) ? "SSAO: on" : "SSAO: off", FontRegistry::STANDARD_FONT_SIZE, 10, text7Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
 #endif
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
 	{
-		Camera* pMainCamera = Application::GetInstance()->GetMainCamera();
-		bool isSSAOEnabled = pMainCamera->IsSSAOEnabled();
 		pMainCamera->SetSSAOEnabled(!isSSAOEnabled);
 		mLastKeyPressTime = time;
 	}
