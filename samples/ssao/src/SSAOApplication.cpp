@@ -53,8 +53,8 @@ SSAOApplication::~SSAOApplication()
 void SSAOApplication::OnStart()
 {
 	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0.481f, 0.465f, 0.804f));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(29.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-23.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(29.0f, glm::vec3(0, 1, 0));
+	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-23.0f, glm::vec3(1, 0, 0));
 	mpMainCamera->SetSSAOEnabled(true);
 
 	GameObject* pLightGameObject;
@@ -70,7 +70,6 @@ void SSAOApplication::OnStart()
 	pPointLight = PointLight::Instantiate(pLightGameObject);
 	pPointLight->SetDiffuseColor(Colors::WHITE);
 	pPointLight->SetSpecularColor(Colors::WHITE);
-	pPointLight->SetIntensity(0.4f);
 
 	ModelImporter::LogToConsole();
 
@@ -90,7 +89,7 @@ void SSAOApplication::OnStart()
 	GameObject* pGround = GameObject::Instantiate();
 	pGround->GetTransform()->SetPosition(glm::vec3(0.0f, -0.5f, 0.0f));
 
-	mpGroundMesh = StandardGeometries::CreateXZPlane(5.0f, 5.0f);
+	mpGroundMesh = StandardGeometries::CreateXZPlane(5, 5);
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGround);
 	pMeshRenderer->AddMesh(mpGroundMesh);
 
@@ -99,12 +98,12 @@ void SSAOApplication::OnStart()
 
 	mpGroundMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
 	mpGroundMaterial->SetTexture("colorMap", mpGroundColorMapTexture);
-	mpGroundMaterial->SetTextureTiling("colorMap", glm::vec2(4.0f, 4.0f));
+	mpGroundMaterial->SetTextureTiling("colorMap", glm::vec2(4, 4));
 	mpGroundMaterial->SetTexture("bumpMap", mpGroundBumpMapTexture);
-	mpGroundMaterial->SetTextureTiling("bumpMap", glm::vec2(4.0f, 4.0f));
+	mpGroundMaterial->SetTextureTiling("bumpMap", glm::vec2(4, 4));
 	mpGroundMaterial->SetVec4("diffuseColor", Colors::WHITE);
-	mpGroundMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-	mpGroundMaterial->SetFloat("shininess", 5.0f);
+	mpGroundMaterial->SetVec4("specularColor", Colors::WHITE);
+	mpGroundMaterial->SetFloat("shininess", 5);
 
 	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGround);
 	pMeshFilter->SetMaterial(mpGroundMaterial);

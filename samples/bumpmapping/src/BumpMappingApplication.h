@@ -19,9 +19,6 @@ protected:
 	virtual void OnEnd();
 
 private:
-	static const unsigned int FLOOR_SIZE;
-	static const unsigned int NUMBER_OF_SPHERE_SLICES;
-	static const float SPHERE_RADIUS;
 	static const float WALK_SPEED;
 	static const float TURN_SPEED;
 

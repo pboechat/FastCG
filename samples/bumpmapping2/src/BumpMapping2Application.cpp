@@ -91,9 +91,6 @@ void BumpMapping2Application::GetMaterialsRecursively(const GameObject* pGameObj
 
 void BumpMapping2Application::CreateSceneLights(std::vector<GameObject*>& rSceneLights) const
 {
-	static glm::vec4 LIGHT1_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	static glm::vec4 LIGHT2_COLOR = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-
 	GameObject* pSceneLights = GameObject::Instantiate();
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
@@ -102,9 +99,9 @@ void BumpMapping2Application::CreateSceneLights(std::vector<GameObject*>& rScene
 	rSceneLights.push_back(pLightGameObject);
 
 	PointLight* pPointLight = PointLight::Instantiate(pLightGameObject);
-	pPointLight->SetDiffuseColor(LIGHT1_COLOR);
-	pPointLight->SetSpecularColor(LIGHT1_COLOR);
-	pPointLight->SetIntensity(0.4f);
+	pPointLight->SetDiffuseColor(Colors::WHITE);
+	pPointLight->SetSpecularColor(Colors::WHITE);
+	pPointLight->SetQuadraticAttenuation(0.25f);
 
 	pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
@@ -112,9 +109,9 @@ void BumpMapping2Application::CreateSceneLights(std::vector<GameObject*>& rScene
 	rSceneLights.push_back(pLightGameObject);
 
 	pPointLight = PointLight::Instantiate(pLightGameObject);
-	pPointLight->SetDiffuseColor(LIGHT2_COLOR);
-	pPointLight->SetSpecularColor(LIGHT2_COLOR);
-	pPointLight->SetIntensity(0.4f);
+	pPointLight->SetDiffuseColor(Colors::RED);
+	pPointLight->SetSpecularColor(Colors::RED);
+	pPointLight->SetQuadraticAttenuation(0.25f);
 }
 
 void BumpMapping2Application::LoadModel(std::vector<Material*>& rModelMaterials) const

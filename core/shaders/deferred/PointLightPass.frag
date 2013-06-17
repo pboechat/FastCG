@@ -4,12 +4,6 @@
 
 uniform float _Debug;
 
-float DistanceAttenuation(vec3 position)
-{
-	float _distance = distance(_Light0Position, position);
-	return 1.0 / min(_Light0ConstantAttenuation + _Light0LinearAttenuation * _distance + _Light0QuadraticAttenuation * pow(_distance, 2), 1.0);
-}
-
 vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 						vec4 materialSpecularColor,
 						float materialShininess,

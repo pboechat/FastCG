@@ -114,9 +114,6 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
-#ifndef FIXED_FUNCTION_PIPELINE
-	std::vector<glm::vec4> tangents;
-#endif
 	std::vector<glm::vec2> uvs;
 
 	float u_step = 2 * MathF::PI / (slices - 1);
@@ -165,9 +162,6 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 
 			vertices.push_back(glm::vec3(x, y, z));
 			normals.push_back(glm::vec3(nx, ny, nz));
-#ifndef FIXED_FUNCTION_PIPELINE
-			tangents.push_back(glm::vec4(MathF::Round(255.0f * (0.5f - 0.5f * tx)), MathF::Round(255.0f * (0.5f - 0.5f * ty)), MathF::Round(255.0f * (0.5f - 0.5f * tz)), 1.0f));
-#endif
 			uvs.push_back(glm::vec2(u / (2 * MathF::PI), v / MathF::PI));
 
 			v += v_step;
@@ -191,8 +185,10 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 	}
 
 #ifdef FIXED_FUNCTION_PIPELINE
-	return new Mesh(vertices, indices, normals, uvs);
+	return  new Mesh(vertices, indices, normals, uvs);
 #else
-	return new Mesh(vertices, indices, normals, tangents, uvs);
+	Mesh* pMesh = new Mesh(vertices, indices, normals, uvs);
+	pMesh->CalculateTangents();
+	return pMesh;
 #endif
 }

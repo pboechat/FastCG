@@ -1,11 +1,3 @@
-float DistanceAttenuation(vec3 position)
-{
-	float _distance = distance(_Light0Position, position);
-	float attenuation = min(_Light0ConstantAttenuation + _Light0LinearAttenuation * _distance + _Light0QuadraticAttenuation * pow(_distance, 2.0), 1.0);
-	attenuation = max(_Light0Type * attenuation, abs(_Light0Type));
-	return 1.0 / attenuation;
-}
-
 vec4 BlinnPhongLighting(vec4 materialAmbientColor,
 						vec4 materialDiffuseColor,
 						vec3 lightDirection,

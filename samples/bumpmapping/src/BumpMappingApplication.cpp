@@ -15,11 +15,8 @@
 #include <ModelImporter.h>
 #include <OpenGLExceptions.h>
 
-const unsigned int BumpMappingApplication::FLOOR_SIZE = 100;
-const float BumpMappingApplication::SPHERE_RADIUS = (FLOOR_SIZE * 0.025f);
-const unsigned int BumpMappingApplication::NUMBER_OF_SPHERE_SLICES = 30;
-const float BumpMappingApplication::WALK_SPEED = 20.0f;
-const float BumpMappingApplication::TURN_SPEED = 100.0f;
+const float BumpMappingApplication::WALK_SPEED = 20;
+const float BumpMappingApplication::TURN_SPEED = 100;
 
 BumpMappingApplication::BumpMappingApplication() :
 	Application("bumpmapping", 1024, 768, 60, false, "../../core/"),
@@ -28,28 +25,29 @@ BumpMappingApplication::BumpMappingApplication() :
 	mpSphereMaterial(0),
 	mpSphereMesh(0)
 {
-	mClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	mClearColor = glm::vec4(0, 0, 0, 1);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
 
 void BumpMappingApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-20.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 5, 10));
+	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-20, glm::vec3(1, 0, 0));
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
-	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, FLOOR_SIZE * 0.25f, 0.0f));
+	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0, 2.5f, 0));
 
 	PointLight* pLight = PointLight::Instantiate(pLightGameObject);
 	pLight->SetDiffuseColor(Colors::WHITE);
 	pLight->SetSpecularColor(Colors::WHITE);
-	pLight->SetIntensity(0.4f);
+	pLight->SetQuadraticAttenuation(0.25f);
+	pLight->SetIntensity(0.8f);
 
 	LightAnimator* pLightAnimator = LightAnimator::Instantiate(pLightGameObject);
-	pLightAnimator->SetSpeed(40.0f);
-	pLightAnimator->SetAmplitude((float)FLOOR_SIZE);
-	pLightAnimator->SetDirection(glm::vec3(0.0f, 0.0f, 1.0f));
+	pLightAnimator->SetSpeed(4);
+	pLightAnimator->SetAmplitude(10);
+	pLightAnimator->SetDirection(glm::vec3(0, 0, 1));
 
 	mFloorColorMapTextures.push_back(TextureImporter::Import("textures/FloorColorMap1.png"));
 	mFloorBumpMapTextures.push_back(TextureImporter::Import("textures/FloorBumpMap1.png"));
@@ -66,22 +64,21 @@ void BumpMappingApplication::OnStart()
 #ifdef FIXED_FUNCTION_PIPELINE
 	mpFloorMaterial = new Material();
 	mpFloorMaterial->SetTexture(mFloorColorMapTextures[0]);
-	mpFloorMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
-	mpFloorMaterial->SetShininess(5.0f);
+	mpFloorMaterial->SetSpecularColor(Colors::WHITE);
+	mpFloorMaterial->SetShininess(5);
 #else
 	Shader* pShader = ShaderRegistry::Find("BumpedSpecular");
 	mpFloorMaterial = new Material(pShader);
 	mpFloorMaterial->SetTexture("colorMap", mFloorColorMapTextures[0]);
 	mpFloorMaterial->SetTexture("bumpMap", mFloorBumpMapTextures[0]);
-	mpFloorMaterial->SetVec4("ambientColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpFloorMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpFloorMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-	mpFloorMaterial->SetFloat("shininess", 5.0f);
+	mpFloorMaterial->SetVec4("diffuseColor", Colors::WHITE);
+	mpFloorMaterial->SetVec4("specularColor", Colors::WHITE);
+	mpFloorMaterial->SetFloat("shininess", 5);
 #endif
 
 	GameObject* pFloorGameObject = GameObject::Instantiate();
 
-	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
+	mpFloorMesh = StandardGeometries::CreateXZPlane(10, 10, 1, 1, glm::vec3(0, 0, 0));
 
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
 	pMeshRenderer->AddMesh(mpFloorMesh);
@@ -96,24 +93,23 @@ void BumpMappingApplication::OnStart()
 #ifdef FIXED_FUNCTION_PIPELINE
 	mpSphereMaterial = new Material();
 	mpSphereMaterial->SetTexture(mSphereColorMapTextures[0]);
-	mpSphereMaterial->SetSpecularColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
-	mpSphereMaterial->SetShininess(10.0f);
+	mpSphereMaterial->SetSpecularColor(Colors::WHITE);
+	mpSphereMaterial->SetShininess(10);
 #else
 	mpSphereMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
 	mpSphereMaterial->SetTexture("colorMap", mSphereColorMapTextures[0]);
 	mpSphereMaterial->SetTexture("bumpMap", mSphereBumpMapTextures[0]);
-	mpSphereMaterial->SetVec4("ambientColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpSphereMaterial->SetVec4("diffuseColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mpSphereMaterial->SetVec4("specularColor", glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
-	mpSphereMaterial->SetFloat("shininess", 10.0f);
+	mpSphereMaterial->SetVec4("diffuseColor", Colors::WHITE);
+	mpSphereMaterial->SetVec4("specularColor", Colors::WHITE);
+	mpSphereMaterial->SetFloat("shininess", 10);
 #endif
 
-	mpSphereMesh = StandardGeometries::CreateSphere(SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
+	mpSphereMesh = StandardGeometries::CreateSphere(0.25f, 30);
 
 	std::vector<GameObject*> spheres;
-	for (unsigned int z = 0; z < FLOOR_SIZE; z += 10)
+	for (unsigned int z = 0; z < 10; z ++)
 	{
-		for (unsigned int x = 0; x < FLOOR_SIZE; x += 10)
+		for (unsigned int x = 0; x < 10; x++)
 		{
 			GameObject* pSphereGameObject = GameObject::Instantiate();
 
@@ -123,7 +119,7 @@ void BumpMappingApplication::OnStart()
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
 			pMeshFilter->SetMaterial(mpSphereMaterial);
 
-			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
+			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-4.5f + x, 0.25f, -4.5f + z));
 
 			spheres.push_back(pSphereGameObject);
 		}
@@ -133,8 +129,8 @@ void BumpMappingApplication::OnStart()
 
 	SpheresController* pSpheresController = SpheresController::Instantiate(pSpheresControllerGameObject);
 	pSpheresController->SetSpheres(spheres);
-	pSpheresController->SetRotationSpeed(50.0f);
-	pSpheresController->SetRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));
+	pSpheresController->SetRotationSpeed(50);
+	pSpheresController->SetRotationAxis(glm::vec3(0, 1, 0));
 	pSpheresController->SetColorMapTextures(mSphereColorMapTextures);
 	pSpheresController->SetBumpMapTextures(mSphereBumpMapTextures);
 
