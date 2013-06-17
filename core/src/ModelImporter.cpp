@@ -5,6 +5,7 @@
 #include <MeshFilter.h>
 #include <ShaderRegistry.h>
 #include <TextureImporter.h>
+#include <Colors.h>
 #include <Texture.h>
 #include <File.h>
 #include <MathT.h>
@@ -136,8 +137,6 @@ GameObject* ModelImporter::Import(const std::string& rFileName, unsigned int imp
 
 void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::string& rBaseDirectory, std::map<unsigned int, Material*>& rMaterialCatalog)
 {
-	static glm::vec4 whiteColor(1.0f, 1.0f, 1.0f, 1.0f);
-
 	if (pScene->HasTextures())
 	{
 		THROW_EXCEPTION(Exception, "Meshes with embedded textures are not supported yet");
@@ -182,11 +181,9 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		}
 
 		float shininess = 0;
-		float strength = 0;
-		if (aiGetMaterialFloatArray(pAIMaterial, AI_MATKEY_SHININESS, &shininess, &max) == AI_SUCCESS &&
-			aiGetMaterialFloatArray(pAIMaterial, AI_MATKEY_SHININESS_STRENGTH, &strength, &max) == AI_SUCCESS)
+		if (aiGetMaterialFloatArray(pAIMaterial, AI_MATKEY_SHININESS, &shininess, &max) == AI_SUCCESS)
 		{
-			shininess *= strength;
+			shininess /= specularColor.length();
 			materialAttributesMask |= MA_HAS_SHININESS;
 		}
 
@@ -259,7 +256,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		}
 		else
 		{
-			pManagedMaterial->SetVec4("ambientColor", whiteColor);
+			pManagedMaterial->SetVec4("ambientColor", Colors::BLACK);
 		}
 
 		if (materialAttributesMask & MA_HAS_DIFFUSE_COLOR)
@@ -272,7 +269,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		}
 		else
 		{
-			pManagedMaterial->SetVec4("diffuseColor", whiteColor);
+			pManagedMaterial->SetVec4("diffuseColor", Colors::BLACK);
 		}
 
 		if (materialAttributesMask & MA_HAS_SPECULAR_COLOR)
@@ -285,7 +282,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		}
 		else
 		{
-			pManagedMaterial->SetVec4("specularColor", whiteColor);
+			pManagedMaterial->SetVec4("specularColor", Colors::BLACK);
 		}
 
 		if (materialAttributesMask & MA_IS_EMISSIVE)
@@ -304,6 +301,10 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 #else
 			pManagedMaterial->SetFloat("shininess", shininess);
 #endif
+		}
+		else
+		{
+			pManagedMaterial->SetFloat("shininess", 0.0f);
 		}
 
 		if (materialAttributesMask & MA_HAS_COLOR_MAP)

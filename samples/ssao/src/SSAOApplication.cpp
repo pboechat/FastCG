@@ -23,6 +23,7 @@ SSAOApplication::SSAOApplication() :
 	mpGroundColorMapTexture(0),
 	mpGroundBumpMapTexture(0)
 {
+	mGlobalAmbientLight = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
@@ -111,7 +112,6 @@ void SSAOApplication::OnStart()
 	GameObject* pGameObject = GameObject::Instantiate();
 
 	KeyBindings* pKeyBindings = KeyBindings::Instantiate(pGameObject);
-	pKeyBindings->SetLightDistance(1.0f);
 
 	LightsAnimator* pLightsAnimator = LightsAnimator::Instantiate(pGameObject);
 	pLightsAnimator->SetSceneLights(sceneLights);

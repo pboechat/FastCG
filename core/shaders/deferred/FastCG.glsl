@@ -23,6 +23,11 @@ float DistanceAttenuation(vec3 position)
 	return 1.0 / max(_Light0ConstantAttenuation + _Light0LinearAttenuation * d + _Light0QuadraticAttenuation * pow(d, 2), 1.0);
 }
 
+vec3 UnpackNormal(vec4 packedNormal)
+{
+	return (packedNormal.xyz - 0.5) * 2.0;
+}
+
 float LinearizeDepth(float depth) 
 {
 	return (2.0 * depth - gl_DepthRange.near - gl_DepthRange.far) / (gl_DepthRange.far - gl_DepthRange.near);

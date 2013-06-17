@@ -27,7 +27,7 @@ void main()
 
 	vec3 position = GetPositionFromDepth(uv);
 	vec4 diffuseColor = texture2D(_DiffuseMap, uv);
-	vec3 normal = texture2D(_NormalMap, uv).xyz * 2.0 - 1.0;
+	vec3 normal = UnpackNormal(texture2D(_NormalMap, uv));
 	vec4 specularColor = texture2D(_SpecularMap, uv);
 	float shininess = specularColor.w;
 	specularColor = vec4(specularColor.xyz, 1.0);

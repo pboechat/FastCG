@@ -16,7 +16,7 @@ void main()
 	vec2 uv = gl_FragCoord.xy / _ScreenSize;
 
 	vec3 position = GetPositionFromDepth(uv);
-	vec3 normal = texture2D(_NormalMap, uv).xyz;
+	vec3 normal = UnpackNormal(texture2D(_NormalMap, uv));
 
 	vec2 noiseScale = vec2(_ScreenSize.x / NOISE_TEXTURE_WIDTH, _ScreenSize.y / NOISE_TEXTURE_HEIGHT);
 	vec3 randomOrientation = texture2D(_NoiseMap, uv * noiseScale).xyz;
