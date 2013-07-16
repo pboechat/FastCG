@@ -22,7 +22,7 @@ public:
 		mSSAOEnabled = false;
 	}
 
-	inline void SetUp(float fieldOfView = 45.0f, float frustumNear = 0.3f, float frustumFar = 1000.0f, float frustumBottom = 0.0f, float frustumTop = 0.0f, float frustumLeft = 0.0f, float frustumRight = 0.0f, ProjectionMode projectionMode = PM_PERSPECTIVE)
+	inline void SetUp(float fieldOfView = 60.0f, float frustumNear = 0.3f, float frustumFar = 1000.0f, float frustumBottom = 0.0f, float frustumTop = 0.0f, float frustumLeft = 0.0f, float frustumRight = 0.0f, ProjectionMode projectionMode = PM_PERSPECTIVE)
 	{
 		mFieldOfView = fieldOfView;
 		mFrustumNear = frustumNear;

@@ -1,6 +1,4 @@
-﻿#ifndef FIXED_FUNCTION_PIPELINE
-
-#include <Shader.h>
+﻿#include <Shader.h>
 #include <ShaderSource.h>
 
 Shader::Shader() :
@@ -153,5 +151,3 @@ void Shader::CheckValidate()
 		THROW_EXCEPTION(Exception, "Shader (%s) info log: %s\n", mName.c_str(), pBuffer);
 	}
 }
-
-#endif

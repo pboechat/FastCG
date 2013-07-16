@@ -10,7 +10,6 @@ class ComponentType;
 class Component;
 class Transform;
 class Renderer;
-class Application;
 
 class GameObject
 {
@@ -65,9 +64,7 @@ public:
 	}
 
 	void SetActive(bool active);
-
 	Component* GetComponent(const ComponentType& rComponentType) const;
-
 	friend class Component;
 
 private:
@@ -81,10 +78,8 @@ private:
 	GameObject();
 	GameObject(const std::string& rName);
 	~GameObject();
-
 	void AddComponent(Component* pComponent);
 	void RemoveComponent(Component* pComponent);
-
 	void DestroyAllComponents();
 
 };

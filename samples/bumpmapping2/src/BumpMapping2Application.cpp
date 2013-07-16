@@ -50,9 +50,7 @@ BumpMapping2Application::~BumpMapping2Application()
 
 void BumpMapping2Application::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0.481f, 0.465f, 0.804f));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(29.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-23.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0, 1.0f));
 
 	std::vector<GameObject*> sceneLights;
 	CreateSceneLights(sceneLights);
@@ -67,6 +65,13 @@ void BumpMapping2Application::OnStart()
 	KeyBindings* pKeyBindings = KeyBindings::Instantiate(pGameObject);
 	pKeyBindings->SetSceneLights(sceneLights);
 	pKeyBindings->SetModelMaterials(modelMaterials);
+
+	GameObject* pPlayerGameObject = GameObject::Instantiate();
+
+	FirstPersonCameraController* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pPlayerGameObject);
+	pFirstPersonCameraController->SetWalkSpeed(10.0f);
+	pFirstPersonCameraController->SetTurnSpeed(60.0f);
+	pFirstPersonCameraController->SetFlying(true);
 }
 
 void BumpMapping2Application::GetMaterialsRecursively(const GameObject* pGameObject, std::vector<Material*>& rMaterials) const
@@ -130,7 +135,7 @@ void BumpMapping2Application::LoadModel(std::vector<Material*>& rModelMaterials)
 	scale = MathF::Max(boundingVolume.max.z - boundingVolume.min.z, scale);
 	scale = 1.0f / scale;
 
-	pTransform->ScaleLocal(glm::vec3(scale, scale, scale));
+	pTransform->SetScale(glm::vec3(scale, scale, scale));
 	pTransform->SetPosition(-boundingVolume.center * scale);
 }
 

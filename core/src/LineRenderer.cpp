@@ -13,14 +13,5 @@ void LineRenderer::OnRender()
 		return;
 	}
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	glPushAttrib(GL_ENABLE_BIT);
-	glEnable(GL_COLOR_MATERIAL);
-#endif
-
 	mpLineStrip->DrawCall();
-
-#ifdef FIXED_FUNCTION_PIPELINE
-	glPopAttrib();
-#endif
 }

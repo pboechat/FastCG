@@ -33,7 +33,7 @@ BumpMappingApplication::BumpMappingApplication() :
 void BumpMappingApplication::OnStart()
 {
 	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 5, 10));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAroundLocal(-20, glm::vec3(1, 0, 0));
+	mpMainCamera->GetGameObject()->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
 	GameObject* pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0, 2.5f, 0));
@@ -61,12 +61,6 @@ void BumpMappingApplication::OnStart()
 	mSphereColorMapTextures.push_back(TextureImporter::Import("textures/SphereColorMap3.png"));
 	mSphereBumpMapTextures.push_back(TextureImporter::Import("textures/SphereBumpMap3.png"));
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	mpFloorMaterial = new Material();
-	mpFloorMaterial->SetTexture(mFloorColorMapTextures[0]);
-	mpFloorMaterial->SetSpecularColor(Colors::WHITE);
-	mpFloorMaterial->SetShininess(5);
-#else
 	Shader* pShader = ShaderRegistry::Find("BumpedSpecular");
 	mpFloorMaterial = new Material(pShader);
 	mpFloorMaterial->SetTexture("colorMap", mFloorColorMapTextures[0]);
@@ -74,7 +68,6 @@ void BumpMappingApplication::OnStart()
 	mpFloorMaterial->SetVec4("diffuseColor", Colors::WHITE);
 	mpFloorMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpFloorMaterial->SetFloat("shininess", 5);
-#endif
 
 	GameObject* pFloorGameObject = GameObject::Instantiate();
 
@@ -90,24 +83,17 @@ void BumpMappingApplication::OnStart()
 	pFloorController->SetColorMapTextures(mFloorColorMapTextures);
 	pFloorController->SetBumpMapTextures(mFloorBumpMapTextures);
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	mpSphereMaterial = new Material();
-	mpSphereMaterial->SetTexture(mSphereColorMapTextures[0]);
-	mpSphereMaterial->SetSpecularColor(Colors::WHITE);
-	mpSphereMaterial->SetShininess(10);
-#else
 	mpSphereMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
 	mpSphereMaterial->SetTexture("colorMap", mSphereColorMapTextures[0]);
 	mpSphereMaterial->SetTexture("bumpMap", mSphereBumpMapTextures[0]);
 	mpSphereMaterial->SetVec4("diffuseColor", Colors::WHITE);
 	mpSphereMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpSphereMaterial->SetFloat("shininess", 10);
-#endif
 
 	mpSphereMesh = StandardGeometries::CreateSphere(0.25f, 30);
 
 	std::vector<GameObject*> spheres;
-	for (unsigned int z = 0; z < 10; z ++)
+	for (unsigned int z = 0; z < 10; z++)
 	{
 		for (unsigned int x = 0; x < 10; x++)
 		{
@@ -119,7 +105,7 @@ void BumpMappingApplication::OnStart()
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
 			pMeshFilter->SetMaterial(mpSphereMaterial);
 
-			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-4.5f + x, 0.25f, -4.5f + z));
+			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-4.5f + x, 0.5f, -4.5f + z));
 
 			spheres.push_back(pSphereGameObject);
 		}

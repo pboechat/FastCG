@@ -31,17 +31,12 @@ void SpheresController::OnUpdate(float time, float deltaTime)
 
 			MeshFilter* pMeshFilter = dynamic_cast<MeshFilter*>(pSphere->GetComponent(MeshFilter::TYPE));
 
-#ifdef FIXED_FUNCTION_PIPELINE
-			pMeshFilter->GetMaterial()->SetTexture(mColorMapTextures[mCurrentTextureIndex]);
-#else
 			pMeshFilter->GetMaterial()->SetTexture("colorMap", mColorMapTextures[mCurrentTextureIndex]);
 			pMeshFilter->GetMaterial()->SetTexture("bumpMap", mBumpMapTextures[mCurrentTextureIndex]);
-#endif
 		}
 
 		mLastLeftButtonClickTime = time;
 	}
-#ifndef FIXED_FUNCTION_PIPELINE
 	else if (Input::GetMouseButton(MouseButton::MIDDLE_BUTTON) && time - mLastMiddleButtonClickTime > 0.5f)
 	{
 		GameObject* pSphere = mSpheres[0];
@@ -62,11 +57,10 @@ void SpheresController::OnUpdate(float time, float deltaTime)
 
 		mLastMiddleButtonClickTime = time;
 	}
-#endif
 
 	for (unsigned int i = 0; i < mSpheres.size(); i++)
 	{
 		GameObject* pSphere = mSpheres[i];
-		pSphere->GetTransform()->RotateAroundLocal(mRotationSpeed * deltaTime, mRotationAxis);
+		pSphere->GetTransform()->RotateAround(mRotationSpeed * deltaTime, mRotationAxis);
 	}
 }

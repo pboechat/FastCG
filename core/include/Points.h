@@ -23,13 +23,9 @@ private:
 	std::vector<glm::vec3> mVertices;
 	std::vector<glm::vec4> mColors;
 	float mSize;
-#ifdef FIXED_FUNCTION_PIPELINE
-	unsigned int mDisplayListId;
-#else
 	unsigned int mPointsVAOId;
 	unsigned int mVerticesVBOId;
 	unsigned int mColorsVBOId;
-#endif
 
 	void AllocateResources();
 	void DeallocateResources();

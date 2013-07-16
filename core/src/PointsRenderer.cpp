@@ -13,15 +13,5 @@ void PointsRenderer::OnRender()
 		return;
 	}
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	glPushAttrib(GL_ENABLE_BIT | GL_POINT_BIT);
-	glEnable(GL_COLOR_MATERIAL);
-	glPointSize(mpPoints->GetSize());
-#endif
-
 	mpPoints->DrawCall();
-
-#ifdef FIXED_FUNCTION_PIPELINE
-	glPopAttrib();
-#endif
 }

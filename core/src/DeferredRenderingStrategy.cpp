@@ -1,5 +1,3 @@
-#ifndef FIXED_FUNCTION_PIPELINE
-
 #include <DeferredRenderingStrategy.h>
 #include <ShaderRegistry.h>
 #include <StandardGeometries.h>
@@ -630,5 +628,3 @@ float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(PointLight* pPoi
 	float c = maxChannel * pPointLight->GetIntensity();
 	return (8.0f * MathF::Sqrt(c) + 1.0f);
 }
-
-#endif

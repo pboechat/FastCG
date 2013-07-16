@@ -1,5 +1,3 @@
-#ifndef FIXED_FUNCTION_PIPELINE
-
 #include <FontRegistry.h>
 #include <Directory.h>
 #include <StringUtils.h>
@@ -67,5 +65,3 @@ void FontRegistry::Unload()
 
 	mFontsByName.clear();
 }
-
-#endif

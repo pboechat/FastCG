@@ -7,12 +7,14 @@
 
 #include <algorithm>
 
+//////////////////////////////////////////////////////////////////////////
 GameObject::GameObject() :
 	mActive(true)
 {
 	mpTransform = new Transform(this);
 }
 
+//////////////////////////////////////////////////////////////////////////
 GameObject::GameObject(const std::string& rName) :
 	mActive(true),
 	mName(rName)
@@ -20,11 +22,13 @@ GameObject::GameObject(const std::string& rName) :
 	mpTransform = new Transform(this);
 }
 
+//////////////////////////////////////////////////////////////////////////
 GameObject::~GameObject()
 {
 	delete mpTransform;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GameObject::SetActive(bool active)
 { 
 	const std::vector<Transform*>& rChildren = mpTransform->GetChildren();
@@ -37,6 +41,7 @@ void GameObject::SetActive(bool active)
 	mActive = active;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GameObject::AddComponent(Component* pComponent)
 {
 	if (pComponent == 0)
@@ -61,6 +66,7 @@ void GameObject::AddComponent(Component* pComponent)
 	mComponents.push_back(pComponent);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GameObject::RemoveComponent(Component* pComponent)
 {
 	if (pComponent->GetType().IsDerived(Renderer::TYPE))
@@ -81,6 +87,7 @@ void GameObject::RemoveComponent(Component* pComponent)
 	Application::GetInstance()->UnregisterComponent(pComponent);
 }
 
+//////////////////////////////////////////////////////////////////////////
 Component* GameObject::GetComponent(const ComponentType& rComponentType) const
 {
 	for (unsigned int i = 0; i < mComponents.size(); i++)
@@ -94,6 +101,7 @@ Component* GameObject::GetComponent(const ComponentType& rComponentType) const
 	return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GameObject::DestroyAllComponents()
 {
 	std::vector<Component*> componentsToDestroy = mComponents;
@@ -110,6 +118,7 @@ void GameObject::DestroyAllComponents()
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 GameObject* GameObject::Instantiate()
 {
 	GameObject* pGameObject = new GameObject();
@@ -117,6 +126,7 @@ GameObject* GameObject::Instantiate()
 	return pGameObject;
 }
 
+//////////////////////////////////////////////////////////////////////////
 GameObject* GameObject::Instantiate(const std::string& rName)
 {
 	GameObject* pGameObject = new GameObject(rName);
@@ -124,6 +134,7 @@ GameObject* GameObject::Instantiate(const std::string& rName)
 	return pGameObject;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GameObject::Destroy(GameObject* pGameObject)
 {
 	pGameObject->DestroyAllComponents();

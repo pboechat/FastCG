@@ -64,6 +64,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -116,7 +117,6 @@
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\Directory.h" />
     <ClInclude Include="include\File.h" />
-    <ClInclude Include="include\FixedFunctionRenderingStrategy.h" />
     <ClInclude Include="include\ForwardRenderingStrategy.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\MaterialGroupsBatchingStrategy.h" />
@@ -173,7 +173,6 @@
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />
-    <ClCompile Include="src\FixedFunctionRenderingStrategy.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />
     <ClCompile Include="src\ForwardRenderingStrategy.cpp" />

@@ -4,8 +4,11 @@
 #include <KeyCode.h>
 #include <MouseButton.h>
 #include <Camera.h>
+#include <MathT.h>
 
 COMPONENT_IMPLEMENTATION(FirstPersonCameraController, Behaviour);
+
+const float FirstPersonCameraController::PITCH_LIMIT = 60.0f;
 
 void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 {
@@ -20,8 +23,27 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 			if (mousePosition != mLastMousePosition)
 			{
 				glm::vec2 direction = glm::normalize(mousePosition - mLastMousePosition);
-				pTransform->RotateAroundLocal(-direction.x * mTurnSpeed * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
-				pTransform->RotateAroundLocal(direction.y * mTurnSpeed * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+
+				if (direction.y > 0)
+				{
+					mPitch = glm::clamp(mPitch + (mTurnSpeed * deltaTime * MathF::Sign(pTransform->GetPosition().z)), -PITCH_LIMIT, PITCH_LIMIT);
+				} 
+				else if (direction.y < 0)
+				{
+					mPitch = glm::clamp(mPitch - (mTurnSpeed * deltaTime * MathF::Sign(pTransform->GetPosition().z)), -PITCH_LIMIT, PITCH_LIMIT);
+				}
+
+				if (direction.x > 0)
+				{
+					mYaw -= mTurnSpeed * deltaTime;
+				}
+				else if (direction.x < 0)
+				{
+					mYaw += mTurnSpeed * deltaTime;
+				}
+
+				pTransform->SetRotation(glm::rotate(glm::rotate(glm::quat(), mPitch, glm::vec3(1.0f, 0.0f, 0.0f)), mYaw, glm::vec3(0.0f, 1.0f, 0.0f)));
+
 				mLastMousePosition = mousePosition;
 			}
 		}

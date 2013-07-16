@@ -31,6 +31,7 @@ public:
 	inline static T Clamp(T value, T low, T high);
 	inline static T FMod(T a, T b);
 	inline static T Lerp(T a, T b, T c);
+	inline static T Sign(T a);
 
 private:
 	Math();
@@ -176,6 +177,13 @@ template<typename T>
 inline T Math<T>::Lerp(T a, T b, T c)
 {
 	return a + (b - a) * c;
+}
+
+template<typename T>
+inline T Math<T>::Sign(T a)
+{
+	if (a < 0) return -1;
+	else return 1;
 }
 
 typedef Math<float> MathF;

@@ -9,12 +9,9 @@ class Mesh
 {
 public:
 	Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs);
-#ifndef FIXED_FUNCTION_PIPELINE
 	Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs);
-#endif
 	virtual ~Mesh();
 
-#ifndef FIXED_FUNCTION_PIPELINE
 	inline bool IsUsingTangents() const
 	{
 		return mUseTangents;
@@ -36,7 +33,6 @@ public:
 	}
 
 	void CalculateTangents();
-#endif
 
 	inline unsigned int GetNumberOfTriangles() const
 	{
@@ -52,9 +48,6 @@ private:
 	std::vector<unsigned int> mIndexes;
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mUVs;
-#ifdef FIXED_FUNCTION_PIPELINE
-	unsigned int mDisplayListId;
-#else
 	std::vector<glm::vec4> mTangents;
 	unsigned int mTriangleMeshVAOId;
 	unsigned int mVerticesVBOId;
@@ -62,7 +55,6 @@ private:
 	unsigned int mUVsVBOId;
 	unsigned int mTangentsVBOId;
 	bool mUseTangents;
-#endif
 
 };
 

@@ -46,12 +46,7 @@ public:
 	static const std::string FONTS_FOLDER;
 	static const std::string DEFAULT_FONT_NAME;
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, const std::string& rGlobalResourcePath = "");
-#else
 	Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering = false, const std::string& rGlobalResourcePath = "");
-#endif
-	
 	virtual ~Application();
 
 	inline static Application* GetInstance()
@@ -91,9 +86,7 @@ public:
 
 	void Run(int argc, char** argv);
 	void Exit();
-#ifndef FIXED_FUNCTION_PIPELINE
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
-#endif
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 	void BeforeMeshFilterChange(MeshFilter* pMeshFilter);
 	void AfterMeshFilterChange(MeshFilter* pMeshFilter);
@@ -117,9 +110,7 @@ protected:
 	glm::vec4 mGlobalAmbientLight;
 	bool mShowFPS;
 	bool mShowRenderingStatistics;
-#ifndef FIXED_FUNCTION_PIPELINE
 	Font* mpStandardFont;
-#endif
 
 	virtual bool ParseCommandLineArguments(int argc, char** argv);
 	virtual void SetUpViewport();
@@ -140,24 +131,16 @@ private:
 		unsigned int size;
 		int x;
 		int y;
-#ifndef FIXED_FUNCTION_PIPELINE
 		Font* pFont;
-#endif
 		glm::vec4 color;
 
-#ifdef FIXED_FUNCTION_PIPELINE
-		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
-#else
 		DrawTextRequest(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
-#endif
 		{
 			text = rText;
 			this->size = size;
 			this->x = x;
 			this->y = y;
-#ifndef FIXED_FUNCTION_PIPELINE
 			this->pFont = pFont;
-#endif
 			color = rColor;
 		}
 	};
@@ -168,9 +151,7 @@ private:
 	unsigned int mScreenHeight;
 	unsigned int mFrameRate;
 	double mSecondsPerFrame;
-#ifndef FIXED_FUNCTION_PIPELINE
 	bool mDeferredRendering;
-#endif
 	std::string mGlobalResourcePath;
 	float mHalfScreenWidth;
 	float mHalfScreenHeight;

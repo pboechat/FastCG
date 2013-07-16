@@ -13,10 +13,6 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 {
 	static char pText[128];
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	static unsigned int text1Height = 15;
-	Application::GetInstance()->DrawText("Use WASD/arrow keys and left mouse button to navigate", 12, 10, text1Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-#else
 	static unsigned int text1Height = FontRegistry::STANDARD_FONT_SIZE + 3;
 	static unsigned int text2Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 2 + 5;
 	static unsigned int text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 3 + 7;
@@ -45,7 +41,6 @@ void KeyBindings::OnUpdate(float time, float deltaTime)
 	bool isSSAOEnabled = pMainCamera->IsSSAOEnabled();
 	Application::GetInstance()->DrawText((isSSAOEnabled) ? "SSAO: on" : "SSAO: off", FontRegistry::STANDARD_FONT_SIZE, 10, text7Height, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
-#endif
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
 	{
 		pMainCamera->SetSSAOEnabled(!isSSAOEnabled);

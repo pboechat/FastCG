@@ -1,5 +1,3 @@
-#ifndef FIXED_FUNCTION_PIPELINE
-
 #include <ForwardRenderingStrategy.h>
 #include <ShaderRegistry.h>
 
@@ -196,5 +194,3 @@ void ForwardRenderingStrategy::Render(const Camera* pCamera)
 		mpPointsShader->Unbind();
 	}
 }
-
-#endif

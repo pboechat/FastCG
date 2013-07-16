@@ -1,5 +1,3 @@
-#ifndef FIXED_FUNCTION_PIPELINE
-
 #include <ShaderSource.h>
 #include <FileReader.h>
 #include <File.h>
@@ -28,5 +26,3 @@ std::string ShaderSource::Parse(const std::string& rFileName)
 
 	return content;
 }
-
-#endif

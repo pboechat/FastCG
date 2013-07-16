@@ -211,9 +211,6 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 			materialAttributesMask |= MA_IS_TWO_SIDED;
 		}
 
-#ifdef FIXED_FUNCTION_PIPELINE
-		Material* pManagedMaterial = new Material();
-#else
 		Shader* pShader;
 
 		if (materialAttributesMask & MA_HAS_BUMP_MAP)
@@ -244,15 +241,9 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 		}
 
 		Material* pManagedMaterial = new Material(pShader);
-#endif
-
 		if (materialAttributesMask & MA_HAS_AMBIENT_COLOR)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetAmbientColor(ambientColor);
-#else
 			pManagedMaterial->SetVec4("ambientColor", ambientColor);
-#endif
 		}
 		else
 		{
@@ -261,11 +252,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 
 		if (materialAttributesMask & MA_HAS_DIFFUSE_COLOR)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetDiffuseColor(diffuseColor);
-#else
 			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
-#endif
 		}
 		else
 		{
@@ -274,11 +261,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 
 		if (materialAttributesMask & MA_HAS_SPECULAR_COLOR)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetSpecularColor(specularColor);
-#else
 			pManagedMaterial->SetVec4("specularColor", specularColor);
-#endif
 		}
 		else
 		{
@@ -287,20 +270,12 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 
 		if (materialAttributesMask & MA_IS_EMISSIVE)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetEmissiveColor(emissiveColor);
-#else
 			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);
-#endif
 		}
 
 		if (materialAttributesMask & MA_HAS_SHININESS)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetShininess(shininess);
-#else
 			pManagedMaterial->SetFloat("shininess", shininess);
-#endif
 		}
 		else
 		{
@@ -309,20 +284,12 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 
 		if (materialAttributesMask & MA_HAS_COLOR_MAP)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetTexture(pColorMapTexture);
-#else
 			pManagedMaterial->SetTexture("colorMap", pColorMapTexture);
-#endif
 		}
 
 		if (materialAttributesMask & MA_HAS_BUMP_MAP)
 		{
-#ifdef FIXED_FUNCTION_PIPELINE
-			pManagedMaterial->SetTexture(pBumpMapTexture);
-#else
 			pManagedMaterial->SetTexture("bumpMap", pBumpMapTexture);
-#endif
 		}
 
 		pManagedMaterial->SetTwoSided(twoSided != 0);
@@ -392,9 +359,7 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 		}
 
 		Mesh* pManagedMesh = new Mesh(vertices, indices, normals, uvs);
-#ifndef FIXED_FUNCTION_PIPELINE
 		pManagedMesh->CalculateTangents();
-#endif
 
 		rMeshCatalog.insert(std::make_pair(i, pManagedMesh));
 		s_mManagedMeshes.push_back(pManagedMesh);

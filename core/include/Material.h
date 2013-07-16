@@ -4,130 +4,10 @@
 #include <Shader.h>
 #include <Texture.h>
 
-#include <string>
-#include <map>
-
 #include <glm/glm.hpp>
 
-#ifdef FIXED_FUNCTION_PIPELINE
-
-class Material
-{
-public:
-	Material(const glm::vec4& ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 
-		     const glm::vec4& diffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 
-			 const glm::vec4& specularColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 
-			 float shininess = 3, 
-			 bool emissive = false, 
-			 const glm::vec4& emissiveColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	~Material();
-
-	inline const glm::vec4& GetAmbientColor() const
-	{
-		return mAmbientColor;
-	}
-
-	inline const glm::vec4& GetDiffuseColor() const
-	{
-		return mDiffuseColor;
-	}
-
-	inline const glm::vec4& GetSpecularColor() const
-	{
-		return mSpecularColor;
-	}
-
-	inline const glm::vec4& GetEmissiveColor() const
-	{
-		return mEmissiveColor;
-	}
-
-	inline float GetShininess() const
-	{
-		return mShininess;
-	}
-
-	inline bool IsEmissive() const
-	{
-		return mEmissive;
-	}
-
-	inline Texture* GetTexture() const
-	{
-		return mpTexture;
-	}
-
-	inline void SetAmbientColor(const glm::vec4& ambientColor)
-	{
-		mAmbientColor = ambientColor;
-	}
-
-	inline void SetDiffuseColor(const glm::vec4& diffuseColor)
-	{
-		mDiffuseColor = diffuseColor;
-	}
-
-	inline void SetSpecularColor(const glm::vec4& specularColor)
-	{
-		mSpecularColor = specularColor;
-	}
-
-	inline void SetEmissiveColor(const glm::vec4& emissiveColor)
-	{
-		mEmissiveColor = emissiveColor;
-	}
-
-	inline void SetShininess(float shininess)
-	{
-		mShininess = shininess;
-	}
-
-	inline void SetEmissive(bool emissive)
-	{
-		mEmissive = emissive;
-	}
-
-	inline void SetTexture(Texture* pTexture)
-	{
-		mpTexture = pTexture;
-	}
-
-	inline bool IsUnlit() const
-	{
-		return mUnlit;
-	}
-
-	inline void SetUnlit(bool unlit)
-	{
-		mUnlit = unlit;
-	}
-
-	inline bool IsTwoSided() const
-	{
-		return mTwoSided;
-	}
-
-	inline void SetTwoSided(bool twoSided)
-	{
-		mTwoSided = twoSided;
-	}
-
-	void SetUpParameters() const;
-
-private:
-	glm::vec4 mAmbientColor;
-	glm::vec4 mDiffuseColor;
-	glm::vec4 mSpecularColor;
-	glm::vec4 mEmissiveColor;
-	float mShininess;
-	bool mEmissive;
-	Texture* mpTexture;
-	bool mUnlit;
-	bool mTwoSided;
-
-};
-
-#else
+#include <string>
+#include <map>
 
 class Material
 {
@@ -208,7 +88,5 @@ private:
 	bool mTwoSided;
 
 };
-
-#endif
 
 #endif

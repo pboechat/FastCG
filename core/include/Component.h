@@ -6,6 +6,41 @@
 
 #include <string>
 
+//////////////////////////////////////////////////////////////////////////
+//							COMPONENT MACROS
+//////////////////////////////////////////////////////////////////////////
+
+#define COMPONENT(className, baseClassName) \
+class className : public baseClassName \
+{ \
+public: \
+	static const ComponentType TYPE; \
+	inline virtual const ComponentType& GetType() const { return TYPE; } \
+	static className* Instantiate(GameObject* pGameObject)  \
+	{ \
+	className* pComponent = new className(pGameObject); \
+	pComponent->OnInstantiate(); \
+	Component::AddToGameObject(pGameObject, pComponent); \
+	return pComponent; \
+	} \
+private: \
+	className(GameObject* pGameObject) : baseClassName(pGameObject) {} \
+	~className() {} \
+
+#define ABSTRACT_COMPONENT(className, baseClassName) \
+class className : public baseClassName \
+{ \
+public: \
+	static const ComponentType TYPE; \
+	inline virtual const ComponentType& GetType() const { return TYPE; } \
+protected: \
+	className(GameObject* pGameObject) : baseClassName(pGameObject) {} \
+	~className() {} \
+
+#define COMPONENT_IMPLEMENTATION(className, baseClassName) \
+	const ComponentType className::TYPE(#className, &baseClassName::TYPE) \
+
+//////////////////////////////////////////////////////////////////////////
 class ComponentType
 {
 public:
@@ -56,10 +91,15 @@ private:
 
 };
 
+//////////////////////////////////////////////////////////////////////////
 class Component
 {
 public:
 	static const ComponentType TYPE;
+
+	virtual ~Component()
+	{
+	}
 
 	inline virtual const ComponentType& GetType() const
 	{
@@ -105,10 +145,6 @@ protected:
 	{
 	}
 
-	virtual ~Component()
-	{
-	}
-
 	inline void RemoveFromParent()
 	{
 		mpGameObject->RemoveComponent(this);
@@ -127,35 +163,5 @@ private:
 	bool mEnabled;
 
 };
-
-#define COMPONENT(className, baseClassName) \
-class className : public baseClassName \
-{ \
-public: \
-	static const ComponentType TYPE; \
-	inline virtual const ComponentType& GetType() const { return TYPE; } \
-	static className* Instantiate(GameObject* pGameObject)  \
-	{ \
-		className* pComponent = new className(pGameObject); \
-		pComponent->OnInstantiate(); \
-		Component::AddToGameObject(pGameObject, pComponent); \
-		return pComponent; \
-	} \
-private: \
-	className(GameObject* pGameObject) : baseClassName(pGameObject) {} \
-	~className() {} \
-
-#define ABSTRACT_COMPONENT(className, baseClassName) \
-class className : public baseClassName \
-{ \
-public: \
-	static const ComponentType TYPE; \
-	inline virtual const ComponentType& GetType() const { return TYPE; } \
-protected: \
-	className(GameObject* pGameObject) : baseClassName(pGameObject) {} \
-	~className() {} \
-
-#define COMPONENT_IMPLEMENTATION(className, baseClassName) \
-	const ComponentType className::TYPE(#className, &baseClassName::TYPE) \
 
 #endif

@@ -9,14 +9,18 @@
 
 #include <vector>
 
+class Application;
+
 class Transform
 {
 public:
+	//////////////////////////////////////////////////////////////////////////
 	inline Transform* GetParent()
 	{
 		return mpParent;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline void SetParent(Transform* pParent)
 	{
 		if (mpParent != pParent)
@@ -25,156 +29,236 @@ public:
 		}
 
 		mpParent = pParent;
+
+		Update();
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline const std::vector<Transform*>& GetChildren() const
 	{
 		return mChildren;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetPosition() const
 	{
-		return glm::vec3(GetModel()[3]);
+		return mWorldTransform.position;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline void SetPosition(const glm::vec3& position)
 	{
-		if (mpParent != 0)
-		{
-			SetLocalPosition(position - mpParent->GetPosition());
-		}
-		else
-		{
-			SetLocalPosition(position);
-		}
+		mLocalTransform.position = position;
+		Update();
 	}
 
-	inline glm::vec3 GetLocalPosition() const
-	{
-		return glm::vec3(mLocalTransform[3]);
-	}
-
-	inline void SetLocalPosition(const glm::vec3& position)
-	{
-		mLocalTransform[3] = glm::vec4(position, 1.0f);
-	}
-
+	//////////////////////////////////////////////////////////////////////////
 	inline glm::quat GetRotation() const
 	{
-		return glm::toQuat(GetModel());
+		return mWorldTransform.rotation;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline void SetRotation(const glm::quat& rRotation)
 	{
-		if (mpParent != 0)
-		{
-			SetLocalRotation(glm::inverse(GetRotation()) * rRotation);
-		}
-		else
-		{
-			SetLocalRotation(rRotation);
-		}
+		mLocalTransform.rotation = rRotation;
+		Update();
 	}
 
-	inline glm::quat GetLocalRotation() const
-	{
-		return glm::toQuat(mLocalTransform);
-	}
-
-	inline void SetLocalRotation(const glm::quat& rLocalRotation)
-	{
-		glm::mat4 transform = glm::toMat4(rLocalRotation);
-		transform = glm::translate(transform, GetLocalPosition());
-		transform = glm::scale(transform, GetLocalScale());
-		mLocalTransform = transform;
-	}
-
+	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetScale() const
 	{
-		glm::mat4& rModel = GetModel();
-		return glm::vec3(rModel[0][0], rModel[1][1], rModel[2][2]);
+		return mWorldTransform.scale;
 	}
 
-	inline glm::vec3 GetLocalScale() const
+	//////////////////////////////////////////////////////////////////////////
+	inline void SetScale(const glm::vec3& rScale)
 	{
-		return glm::vec3(mLocalTransform[0][0], mLocalTransform[1][1], mLocalTransform[2][2]);
+		mLocalTransform.scale = rScale;
+		Update();
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline void Rotate(const glm::vec3& rEulerAngles)
 	{
-		mLocalTransform = mLocalTransform * glm::toMat4(glm::quat(rEulerAngles));
+		mLocalTransform.rotation = mLocalTransform.rotation * glm::quat(rEulerAngles);
+		Update();
 	}
 
-	inline void ScaleLocal(const glm::vec3& rScale)
+	//////////////////////////////////////////////////////////////////////////
+	inline void RotateAround(float angle, const glm::vec3& rAxis)
 	{
-		mLocalTransform = glm::scale(mLocalTransform, rScale);
+		mLocalTransform.rotation = glm::rotate(mLocalTransform.rotation, angle, rAxis);
+		Update();
 	}
 
-	inline void RotateAround(float angle, const glm::vec3& axis)
+	//////////////////////////////////////////////////////////////////////////
+	inline void RotateAroundLocal(float angle, const glm::vec3& rAxis)
 	{
-		glm::vec3 localPosition(mLocalTransform[3][0], mLocalTransform[3][1], mLocalTransform[3][2]);
-		mLocalTransform = glm::translate(glm::rotate(glm::mat4(1.0f), angle, axis), localPosition);
+		glm::mat4 newLocal = glm::rotate(glm::mat4(), angle, rAxis);
+		newLocal = glm::translate(newLocal, mLocalTransform.position);
+
+		mLocalTransform.position = glm::vec3(newLocal[3][0], newLocal[3][1], newLocal[3][2]);
+		mLocalTransform.rotation = glm::quat(newLocal);
+
+		Update();
 	}
 
-	inline void RotateAroundLocal(float angle, const glm::vec3& axis)
-	{
-		mLocalTransform = glm::rotate(mLocalTransform, angle, axis);
-	}
-
-	inline glm::vec3 GetForward() const
-	{
-		return glm::normalize(GetRotation() * glm::vec3(0.0f, 0.0f, -1.0f));
-	}
-
+	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetUp() const
 	{
-		return glm::normalize(GetRotation() * glm::vec3(0.0f, 1.0f, 0.0f));
+		return mWorldTransform.rotation * glm::vec3(0.0f, 1.0f, 0.0f);
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	inline glm::vec3 GetDown() const
+	{
+		return mWorldTransform.rotation * glm::vec3(0.0f, -1.0f, 0.0f);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	inline glm::vec3 GetRight() const
+	{
+		return mWorldTransform.rotation * glm::vec3(1.0f, 0.0f, 0.0f);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	inline glm::vec3 GetLeft() const
+	{
+		return mWorldTransform.rotation * glm::vec3(-1.0f, 0.0f, 0.0f);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	inline glm::vec3 GetForward() const
+	{
+		return mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, -1.0f);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	inline glm::vec3 GetBack() const
+	{
+		return mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 	inline glm::mat4 GetModel() const
 	{
-		if (mpParent != 0)
-		{
-			return mpParent->GetModel() * mLocalTransform;
-		}
-		else
-		{
-			return mLocalTransform;
-		}
+		return mWorldTransform.ToMat4();
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline GameObject* GetGameObject()
 	{
 		return mpGameObject;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	inline const GameObject* GetGameObject() const
 	{
 		return mpGameObject;
 	}
 
 	friend class GameObject;
+	friend class Application;
 
 private:
+	//////////////////////////////////////////////////////////////////////////
+	//						SCALE, ROTATE, TRANSLATE
+	//////////////////////////////////////////////////////////////////////////
+	struct SRT
+	{
+		glm::vec3 scale;
+		glm::quat rotation;
+		glm::vec3 position;
+
+		SRT() :
+			scale(1.0f, 1.0f, 1.0f)
+		{
+		}
+
+		SRT(const glm::vec3& rScale, const glm::quat& rRotation, const glm::vec3& rPosition) :
+			scale(rScale),
+			rotation(rRotation),
+			position(rPosition)
+		{
+		}
+
+		~SRT()
+		{
+		}
+
+		SRT operator * (const SRT& rOther) const
+		{
+			return SRT(scale * rOther.scale, rotation * rOther.rotation, position + rOther.position);
+		}
+
+		SRT& operator = (const SRT& rOther)
+		{
+			scale = rOther.scale;
+			rotation = rOther.rotation;
+			position = rOther.position;
+			return *this;
+		}
+
+		glm::mat4 ToMat4() const
+		{
+			glm::mat4 scaleMatrix(scale.x, 0, 0, 0,
+								  0, scale.y, 0, 0,
+							      0, 0, scale.z, 0,
+							      0, 0, 0, 1);
+
+			glm::mat4 rotationMatrix = glm::toMat4(rotation);
+
+			glm::mat4 translateMatrix(1, 0, 0, 0,
+									  0, 1, 0, 0,
+									  0, 0, 1, 0,
+									  position.x, position.y, position.z, 1);
+
+
+			return translateMatrix * rotationMatrix * scaleMatrix;
+		}
+	};
+
 	GameObject* mpGameObject;
 	Transform* mpParent;
 	std::vector<Transform*> mChildren;
-	glm::mat4 mLocalTransform;
-	glm::mat4 mTempTransform;
+	SRT mLocalTransform;
+	SRT mWorldTransform;
 
+	//////////////////////////////////////////////////////////////////////////
 	Transform(GameObject* pGameObject) :
 		mpGameObject(pGameObject),
 		mpParent(0)
 	{
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	~Transform() 
 	{
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	void Update()
+	{
+		if (mpParent != 0)
+		{
+			mWorldTransform = mpParent->mWorldTransform * mLocalTransform;
+		}
+		else
+		{
+			mWorldTransform = mLocalTransform;
+		}
+
+		for (unsigned int i = 0; i < mChildren.size(); i++)
+		{
+			mChildren[i]->Update();
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 	inline void AddChild(Transform* pChild)
 	{
-		pChild->mpGameObject->SetActive(mpGameObject->IsActive());
+		pChild->mpGameObject->SetActive(mpGameObject->IsActive()); // if parent is inactive, set as inactive as well
 		mChildren.push_back(pChild);
 	}
 

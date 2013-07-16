@@ -51,9 +51,7 @@ Mesh* StandardGeometries::CreateXYPlane(float width, float height, unsigned int 
 	}
 
 	Mesh* pMesh = new Mesh(vertices, indexes, normals, uvs);
-#ifndef FIXED_FUNCTION_PIPELINE
 	pMesh->CalculateTangents();
-#endif
 	return pMesh;
 }
 
@@ -104,9 +102,7 @@ Mesh* StandardGeometries::CreateXZPlane(float width, float depth, unsigned int x
 	}
 
 	Mesh* pMesh = new Mesh(vertices, indexes, normals, uvs);
-#ifndef FIXED_FUNCTION_PIPELINE
 	pMesh->CalculateTangents();
-#endif
 	return pMesh;
 }
 
@@ -116,23 +112,23 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> uvs;
 
-	float u_step = 2 * MathF::PI / (slices - 1);
-	float v_step = MathF::PI / (slices - 1);
-	float u = 0.0f;
+	float uStep = 2 * MathF::PI / (slices - 1);
+	float vStep = MathF::PI / (slices - 1);
+	float u = 0;
 	for (unsigned int i = 0; i < slices; i++)
 	{
-		float cos_u = MathF::Cos(u);
-		float sin_u = MathF::Sin(u);
+		float cosU = MathF::Cos(u);
+		float sinU = MathF::Sin(u);
 
-		float v = 0.0f;
+		float v = 0;
 		for (unsigned int j = 0; j < slices; j++)
 		{
-			float cos_v = MathF::Cos(v);
-			float sin_v = MathF::Sin(v);
+			float cosV = MathF::Cos(v);
+			float sinV = MathF::Sin(v);
 
-			float nx = sin_v * cos_u;
-			float ny = -cos_v;
-			float nz = -sin_v * sin_u;
+			float nx = sinV * cosU;
+			float ny = -cosV;
+			float nz = -sinV * sinU;
 
 			float n = MathF::Sqrt( nx * nx + ny * ny + nz * nz );
 
@@ -164,9 +160,9 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 			normals.push_back(glm::vec3(nx, ny, nz));
 			uvs.push_back(glm::vec2(u / (2 * MathF::PI), v / MathF::PI));
 
-			v += v_step;
+			v += vStep;
 		}
-		u += u_step;
+		u += uStep;
 	}
 
 	std::vector<unsigned int> indices;
@@ -184,11 +180,7 @@ Mesh* StandardGeometries::CreateSphere(float radius, unsigned int slices)
 		}
 	}
 
-#ifdef FIXED_FUNCTION_PIPELINE
-	return  new Mesh(vertices, indices, normals, uvs);
-#else
 	Mesh* pMesh = new Mesh(vertices, indices, normals, uvs);
 	pMesh->CalculateTangents();
 	return pMesh;
-#endif
 }

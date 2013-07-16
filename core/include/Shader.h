@@ -1,4 +1,4 @@
-#if (!defined(SHADER_H_) && !defined(FIXED_FUNCTION_PIPELINE))
+#ifndef SHADER_H_
 #define SHADER_H_
 
 #include <Texture.h>

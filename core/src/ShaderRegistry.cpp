@@ -1,5 +1,3 @@
-#ifndef FIXED_FUNCTION_PIPELINE
-
 #include <ShaderRegistry.h>
 #include <Directory.h>
 #include <StringUtils.h>
@@ -92,5 +90,3 @@ void ShaderRegistry::Unload()
 
 	mShadersByName.clear();
 }
-
-#endif

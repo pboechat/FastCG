@@ -1,4 +1,4 @@
-#if (!defined(SHADERREGISTRY_H_) && !defined(FIXED_FUNCTION_PIPELINE))
+#ifndef SHADERREGISTRY_H_
 #define SHADERREGISTRY_H_
 
 #include <Shader.h>

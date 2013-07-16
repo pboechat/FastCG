@@ -1,5 +1,3 @@
-#ifndef FIXED_FUNCTION_PIPELINE
-
 #include <Font.h>
 #include <Exception.h>
 #include <ShaderRegistry.h>
@@ -196,5 +194,3 @@ void Font::DrawString(const std::string& rText, unsigned int size, int x, int y,
 		left += spacing;
 	}
 }
-
-#endif

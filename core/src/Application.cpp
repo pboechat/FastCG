@@ -8,7 +8,6 @@
 #include <KeyCode.h>
 #include <MouseButton.h>
 #include <RenderingStrategy.h>
-#include <FixedFunctionRenderingStrategy.h>
 #include <ForwardRenderingStrategy.h>
 #include <DeferredRenderingStrategy.h>
 #include <MaterialGroupsBatchingStrategy.h>
@@ -30,33 +29,40 @@ const std::string Application::SHADERS_FOLDER = "shaders";
 const std::string Application::FONTS_FOLDER = "fonts";
 const std::string Application::DEFAULT_FONT_NAME = "verdana";
 
-Application* Application::s_mpInstance = NULL;
+Application* Application::s_mpInstance = 0;
 
-#ifdef FIXED_FUNCTION_PIPELINE
-Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, const std::string& rGlobalResourcePath) :
-	mWindowTitle(rWindowTitle),
-	mScreenWidth(screenWidth),
-	mScreenHeight(screenHeight),
-	mFrameRate(frameRate),
-	mGlobalResourcePath(rGlobalResourcePath),
-	mSecondsPerFrame(1.0 / (double)mFrameRate),
-	mHalfScreenWidth(screenWidth / 2.0f),
-	mHalfScreenHeight(screenHeight / 2.0f),
-	mAspectRatio(mScreenWidth / (float) mScreenHeight),
-	mClearColor(0.0f, 0.0f, 0.0f, 0.0f),
-	mGlobalAmbientLight(Colors::BLACK),
-	mGLUTWindowHandle(0),
-	mShowFPS(false),
-	mShowRenderingStatistics(false),
-	mElapsedFrames(0),
-	mTotalElapsedTime(0),
-	mpInput(0),
-	mpRenderingStrategy(0),
-	mpRenderBatchingStrategy(0)
-{
-	s_mpInstance = this;
-}
-#else
+#define REGISTER_COMPONENT(className, component) \
+	if (component->GetType().IsDerived(className::TYPE)) \
+	{ \
+		m##className##s.push_back(dynamic_cast<className*>(component)); \
+	} \
+
+
+#define UNREGISTER_COMPONENT(className, component) \
+	if (component->GetType().IsDerived(className::TYPE)) \
+	{ \
+		std::vector<className##*>::iterator it = std::find(m##className##s.begin(), m##className##s.end(), component); \
+		if (it == m##className##s.end()) \
+		{ \
+			THROW_EXCEPTION(Exception, "Error unregistering: %s", #className); \
+		} \
+		m##className##s.erase(it); \
+	} \
+
+#define BEGIN_DRAW_TEXT() \
+	glDisable(GL_DEPTH_TEST); \
+	glEnable(GL_BLEND); \
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+#define DRAW_TEXT(text, x, y, color) \
+	mpStandardFont->DrawString(text, FontRegistry::STANDARD_FONT_SIZE, x, y, color)
+
+#define END_DRAW_TEXT() \
+	glEnable(GL_LIGHTING); \
+	glDisable(GL_BLEND); \
+	glEnable(GL_DEPTH_TEST)
+
+//////////////////////////////////////////////////////////////////////////
 Application::Application(const std::string& rWindowTitle, unsigned int screenWidth, unsigned int screenHeight, unsigned int frameRate, bool deferredRendering, const std::string& rGlobalResourcePath) :
 	mWindowTitle(rWindowTitle),
 	mScreenWidth(screenWidth),
@@ -83,8 +89,8 @@ Application::Application(const std::string& rWindowTitle, unsigned int screenWid
 {
 	s_mpInstance = this;
 }
-#endif
 
+//////////////////////////////////////////////////////////////////////////
 Application::~Application()
 {
 	if (mpRenderingStrategy != 0)
@@ -105,11 +111,9 @@ Application::~Application()
 	}
 	mDrawTextRequests.clear();
 
-#ifndef FIXED_FUNCTION_PIPELINE
 	ShaderRegistry::Unload();
 	FontRegistry::Unload();
 	mpStandardFont = 0;
-#endif
 
 	std::vector<GameObject*> gameObjectsToDestroy = mGameObjects;
 	for (unsigned int i = 0; i < gameObjectsToDestroy.size(); i++)
@@ -195,6 +199,7 @@ Application::~Application()
 	s_mpInstance = 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::RegisterGameObject(GameObject* pGameObject)
 {
 	if (pGameObject == 0)
@@ -206,6 +211,7 @@ void Application::RegisterGameObject(GameObject* pGameObject)
 	mGameObjects.push_back(pGameObject);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::UnregisterGameObject(GameObject* pGameObject)
 {
 	if (pGameObject == 0)
@@ -225,12 +231,7 @@ void Application::UnregisterGameObject(GameObject* pGameObject)
 	mGameObjects.erase(gameObjectsIterator);
 }
 
-#define REGISTER_COMPONENT(className, component) \
-	if (component->GetType().IsDerived(className::TYPE)) \
-	{ \
-		m##className##s.push_back(dynamic_cast<className*>(component)); \
-	} \
- 
+//////////////////////////////////////////////////////////////////////////
 void Application::RegisterComponent(Component* pComponent)
 {
 	if (pComponent == 0)
@@ -260,23 +261,14 @@ void Application::RegisterComponent(Component* pComponent)
 	mComponents.push_back(pComponent);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::RegisterCamera(Camera* pCamera)
 {
 	mCameras.push_back(pCamera);
 	SetMainCamera(pCamera);
 }
 
-#define UNREGISTER_COMPONENT(className, component) \
-	if (component->GetType().IsDerived(className::TYPE)) \
-	{ \
-		std::vector<className##*>::iterator it = std::find(m##className##s.begin(), m##className##s.end(), component); \
-		if (it == m##className##s.end()) \
-		{ \
-			THROW_EXCEPTION(Exception, "Error unregistering: %s", #className); \
-		} \
-		m##className##s.erase(it); \
-	} \
- 
+//////////////////////////////////////////////////////////////////////////
 void Application::UnregisterComponent(Component* pComponent)
 {
 	if (pComponent == 0)
@@ -309,6 +301,7 @@ void Application::UnregisterComponent(Component* pComponent)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::SetMainCamera(Camera* pCamera)
 {
 	pCamera->SetEnabled(true);
@@ -329,6 +322,7 @@ void Application::SetMainCamera(Camera* pCamera)
 	mpMainCamera->SetAspectRatio(mAspectRatio);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::Run(int argc, char** argv)
 {
 	if (!ParseCommandLineArguments(argc, argv))
@@ -345,9 +339,6 @@ void Application::Run(int argc, char** argv)
 
 	try
 	{
-#ifdef FIXED_FUNCTION_PIPELINE
-		mpRenderingStrategy = new FixedFunctionRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);		
-#else
 		std::string shadersFolder;
 
 		ShaderRegistry::LoadShadersFromDisk(mGlobalResourcePath + ((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : SHADERS_FOLDER));
@@ -361,7 +352,6 @@ void Application::Run(int argc, char** argv)
 		{
 			mpRenderingStrategy = new ForwardRenderingStrategy(mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 		}
-#endif
 		mpRenderBatchingStrategy = new MaterialGroupsBatchingStrategy(mRenderBatches);
 
 		TextureImporter::Initialize();
@@ -380,11 +370,13 @@ void Application::Run(int argc, char** argv)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 bool Application::ParseCommandLineArguments(int argc, char** argv)
 {
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::SetUpGLUT(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -408,18 +400,16 @@ void Application::SetUpGLUT(int argc, char** argv)
 	glutSpecialUpFunc(GLUTSpecialKeysUpCallback);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::SetUpOpenGL()
 {
-	glEnable(GL_DEPTH_TEST);
-#ifdef FIXED_FUNCTION_PIPELINE
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
-	glShadeModel(GL_SMOOTH);
-#else
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-#endif
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::Update()
 {
 	static double deltaTime = 0.0;
@@ -427,6 +417,15 @@ void Application::Update()
 	double start = mStartTimer.GetTime();
 
 	mpInput->Swap();
+
+	for (unsigned int i = 0; i < mGameObjects.size(); i++)
+	{
+		if (mGameObjects[i]->GetTransform()->GetParent() != 0)
+		{
+			continue;
+		}
+		mGameObjects[i]->GetTransform()->Update();
+	}
 
 	for (unsigned int i = 0; i < mBehaviours.size(); i++)
 	{
@@ -462,48 +461,7 @@ void Application::Update()
 	}
 }
 
-#ifdef FIXED_FUNCTION_PIPELINE
-#define BEGIN_DRAW_TEXT() \
-	glDisable(GL_DEPTH_TEST); \
-	glEnable(GL_BLEND); \
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); \
-	glDisable(GL_LIGHTING); \
-	glPushAttrib(GL_TRANSFORM_BIT); \
-	glMatrixMode(GL_PROJECTION); \
-	glPushMatrix(); \
-	glLoadMatrixf(&glm::ortho(0.0f, (float)mScreenWidth, 0.0f, (float)mScreenHeight)[0][0]); \
-	glPopAttrib(); \
-	glMatrixMode(GL_MODELVIEW); \
-	glLoadMatrixf(&glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))[0][0]); \
-
-#define DRAW_TEXT(text, x, y, color) \
-	glColor4fv(&color[0]); \
-	glRasterPos2i(x, y); \
-	glutBitmapString(GLUT_BITMAP_HELVETICA_12, (unsigned char*)text)
-
-#define END_DRAW_TEXT() \
-	glPushAttrib(GL_TRANSFORM_BIT); \
-	glMatrixMode(GL_PROJECTION); \
-	glPopMatrix(); \
-	glPopAttrib(); \
-	glEnable(GL_LIGHTING); \
-	glDisable(GL_BLEND); \
-	glEnable(GL_DEPTH_TEST)
-#else
-#define BEGIN_DRAW_TEXT() \
-	glDisable(GL_DEPTH_TEST); \
-	glEnable(GL_BLEND); \
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-#define DRAW_TEXT(text, x, y, color) \
-	mpStandardFont->DrawString(text, FontRegistry::STANDARD_FONT_SIZE, x, y, color)
-
-#define END_DRAW_TEXT() \
-	glEnable(GL_LIGHTING); \
-	glDisable(GL_BLEND); \
-	glEnable(GL_DEPTH_TEST)
-#endif
-
+//////////////////////////////////////////////////////////////////////////
 void Application::DrawAllTexts()
 {
 	BEGIN_DRAW_TEXT();
@@ -520,6 +478,7 @@ void Application::DrawAllTexts()
 	END_DRAW_TEXT();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::ShowFPS()
 {
 	static char fpsText[128];
@@ -532,6 +491,7 @@ void Application::ShowFPS()
 	END_DRAW_TEXT();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::ShowRenderingStatistics()
 {
 	static char text[128];
@@ -547,6 +507,7 @@ void Application::ShowRenderingStatistics()
 	END_DRAW_TEXT();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::Render()
 {
 	glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
@@ -554,33 +515,31 @@ void Application::Render()
 	DrawAllTexts();
 }
 
-#ifdef FIXED_FUNCTION_PIPELINE
-void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
-{
-	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, rColor));
-}
-#else
+//////////////////////////////////////////////////////////////////////////
 void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor)
 {
 	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, pFont, rColor));
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor)
 {
 	mDrawTextRequests.push_back(new DrawTextRequest(rText, size, x, y, mpStandardFont, rColor));
 }
-#endif
 
+//////////////////////////////////////////////////////////////////////////
 void Application::BeforeMeshFilterChange(MeshFilter* pMeshFilter)
 {
 	mpRenderBatchingStrategy->RemoveMeshFilter(pMeshFilter);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::AfterMeshFilterChange(MeshFilter* pMeshFilter)
 {
 	mpRenderBatchingStrategy->AddMeshFilter(pMeshFilter);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::Resize(int width, int height)
 {
 	mScreenWidth = width;
@@ -593,22 +552,26 @@ void Application::Resize(int width, int height)
 	OnResize();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::SetUpViewport()
 {
 	glViewport(0, 0, mScreenWidth, mScreenHeight);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::Exit()
 {
 	glutLeaveMainLoop();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::MouseButton(int button, int state, int x, int y)
 {
 	mpInput->SetMouseButton(button, (state == MouseButton::PRESSED));
 	OnMouseButton(button, state, x, y);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::MouseWheel(int button, int direction, int x, int y)
 {
 	if (direction == 1)
@@ -624,12 +587,14 @@ void Application::MouseWheel(int button, int direction, int x, int y)
 	OnMouseWheel(button, direction, x, y);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::MouseMove(int x, int y)
 {
 	mpInput->SetMousePosition(glm::vec2((float)x, (float)(mScreenHeight - y)));
 	OnMouseMove(x, y);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::Keyboard(int keyCode, int x, int y, bool state)
 {
 	mpInput->SetKey(keyCode, state);
@@ -645,89 +610,107 @@ void Application::Keyboard(int keyCode, int x, int y, bool state)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::PrintUsage()
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnStart()
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnResize()
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnEnd()
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnMouseButton(int button, int state, int x, int y)
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnMouseWheel(int button, int direction, int x, int y)
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnMouseMove(int x, int y)
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnKeyPress(int keyCode)
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void Application::OnKeyRelease(int keyCode)
 {
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTIdleCallback()
 {
 	Application::GetInstance()->Update();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTDisplayCallback()
 {
 	Application::GetInstance()->Update();
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTReshapeWindowCallback(int width, int height)
 {
 	Application::GetInstance()->Resize(width, height);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTMouseButtonCallback(int button, int state, int x, int y)
 {
 	Application::GetInstance()->MouseButton(button, state, x, y);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTMouseWheelCallback(int button, int direction, int x, int y)
 {
 	Application::GetInstance()->MouseWheel(button, direction, x, y);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTMouseMoveCallback(int x, int y)
 {
 	Application::GetInstance()->MouseMove(x, y);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTKeyboardCallback(unsigned char keyCode, int x, int y)
 {
 	Application::GetInstance()->Keyboard((int) keyCode, x, y, true);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTKeyboardUpCallback(unsigned char keyCode, int x, int y)
 {
 	Application::GetInstance()->Keyboard((int) keyCode, x, y, false);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTSpecialKeysCallback(int keyCode, int x, int y)
 {
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, true);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void GLUTSpecialKeysUpCallback(int keyCode, int x, int y)
 {
 	Application::GetInstance()->Keyboard(KeyCode::ToRegularKeyCode(keyCode), x, y, false);
 }
-
