@@ -1,24 +1,26 @@
-#define NOISE_TEXTURE_WIDTH 4
-#define NOISE_TEXTURE_HEIGHT 4
+#define NOISE_TEXTURE_SIDE 4
 #define NOISE_TEXTURE_SIZE 16
 
-uniform vec2 _ScreenSize;
-uniform vec2 _TexelSize;
 uniform sampler2D _AmbientOcclusionMap;
+noperspective in vec2 vTexcoord;
 
 void main()
 {
-	vec2 uv = gl_FragCoord.xy / _ScreenSize;
+	vec2 texelSize = 1.0 / vec2(textureSize(_AmbientOcclusionMap, 0));
 
-	vec3 result;
-	for (int x = 0; x < NOISE_TEXTURE_WIDTH; x++) 
+	vec4 result = vec4(0);
+	vec2 hlim = vec2(-NOISE_TEXTURE_SIDE * 0.5 + 0.5);
+	for (int x = 0; x < NOISE_TEXTURE_SIDE; x++) 
 	{
-		for (int y = 0; y < NOISE_TEXTURE_HEIGHT; y++) 
+		for (int y = 0; y < NOISE_TEXTURE_SIDE; y++) 
 		{
-			vec2 offset = vec2(_TexelSize.x * x, _TexelSize.y * y);
-			result += texture2D(_AmbientOcclusionMap, uv + offset).rgb;
+			vec2 offset = vec2(float(x), float(y));
+			offset += hlim;
+			offset *= texelSize;
+
+			result += texture2D(_AmbientOcclusionMap, vTexcoord + offset);
 		}
 	}
 
-	gl_FragColor = vec4(result / NOISE_TEXTURE_SIZE, 1.0);
+	gl_FragColor = result / NOISE_TEXTURE_SIZE;
 }

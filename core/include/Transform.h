@@ -107,37 +107,37 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetUp() const
 	{
-		return mWorldTransform.rotation * glm::vec3(0.0f, 1.0f, 0.0f);
+		return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetDown() const
 	{
-		return mWorldTransform.rotation * glm::vec3(0.0f, -1.0f, 0.0f);
+		return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, -1.0f, 0.0f));
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetRight() const
 	{
-		return mWorldTransform.rotation * glm::vec3(1.0f, 0.0f, 0.0f);
+		return glm::normalize(mWorldTransform.rotation * glm::vec3(1.0f, 0.0f, 0.0f));
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetLeft() const
 	{
-		return mWorldTransform.rotation * glm::vec3(-1.0f, 0.0f, 0.0f);
+		return glm::normalize(mWorldTransform.rotation * glm::vec3(-1.0f, 0.0f, 0.0f));
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetForward() const
 	{
-		return mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, -1.0f);
+		return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	inline glm::vec3 GetBack() const
 	{
-		return mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+		return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, 1.0f));
 	}
 
 	//////////////////////////////////////////////////////////////////////////

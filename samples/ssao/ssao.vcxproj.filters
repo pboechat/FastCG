@@ -20,18 +20,12 @@
     <ClCompile Include="src\KeyBindings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\LightsAnimator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SSAOApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\KeyBindings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\LightsAnimator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

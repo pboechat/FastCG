@@ -11,7 +11,7 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 {
     vec4 ambientContribution = _GlobalLightAmbientColor + _Light0AmbientColor * _Light0Intensity * materialDiffuseColor;
 
-    float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
+    float diffuseAttenuation = max(dot(normal, lightDirection), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
 
 	vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));

@@ -1,6 +1,5 @@
 #include "SSAOApplication.h"
 #include "KeyBindings.h"
-#include "LightsAnimator.h"
 
 #include <DirectionalLight.h>
 #include <PointLight.h>
@@ -8,6 +7,7 @@
 #include <MeshRenderer.h>
 #include <MeshFilter.h>
 #include <PointLight.h>
+#include <FirstPersonCameraController.h>
 #include <ModelImporter.h>
 #include <TextureImporter.h>
 #include <StandardGeometries.h>
@@ -63,18 +63,18 @@ void SSAOApplication::OnStart()
 	std::vector<GameObject*> sceneLights;
 
 	pLightGameObject = GameObject::Instantiate();
-	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, 1.3f, 1.3f));
+	pLightGameObject->GetTransform()->SetPosition(glm::vec3(0.0f, 1.0f, 0.0f));
+	pLightGameObject->GetTransform()->Rotate(glm::vec3(90, 0, 0));
 	sceneLights.push_back(pLightGameObject);
 
-	PointLight* pPointLight;
-
-	pPointLight = PointLight::Instantiate(pLightGameObject);
-	pPointLight->SetDiffuseColor(Colors::WHITE);
-	pPointLight->SetSpecularColor(Colors::WHITE);
+	DirectionalLight* pDirectionalLight = DirectionalLight::Instantiate(pLightGameObject);
+	pDirectionalLight->SetDiffuseColor(Colors::WHITE);
+	pDirectionalLight->SetSpecularColor(Colors::WHITE);
+	pDirectionalLight->SetIntensity(1.0f);
 
 	ModelImporter::LogToConsole();
 
-	GameObject* pModel = ModelImporter::Import("models/Doomsday.obj");
+	GameObject* pModel = ModelImporter::Import("models/ChineseHouse.obj");
 
 	const AABB& boundingVolume = pModel->GetBoundingVolume();
 	Transform* pTransform = pModel->GetTransform();
@@ -84,7 +84,7 @@ void SSAOApplication::OnStart()
 	scale = MathF::Max(boundingVolume.max.z - boundingVolume.min.z, scale);
 	scale = 1.0f / scale;
 
-	pTransform->ScaleLocal(glm::vec3(scale, scale, scale));
+	pTransform->SetScale(glm::vec3(scale, scale, scale));
 	pTransform->SetPosition(-boundingVolume.center * scale);
 
 	GameObject* pGround = GameObject::Instantiate();
@@ -94,14 +94,7 @@ void SSAOApplication::OnStart()
 	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGround);
 	pMeshRenderer->AddMesh(mpGroundMesh);
 
-	mpGroundColorMapTexture = TextureImporter::Import("textures/GroundColorMap.png");
-	mpGroundBumpMapTexture = TextureImporter::Import("textures/GroundBumpMap.png");
-
-	mpGroundMaterial = new Material(ShaderRegistry::Find("BumpedSpecular"));
-	mpGroundMaterial->SetTexture("colorMap", mpGroundColorMapTexture);
-	mpGroundMaterial->SetTextureTiling("colorMap", glm::vec2(4, 4));
-	mpGroundMaterial->SetTexture("bumpMap", mpGroundBumpMapTexture);
-	mpGroundMaterial->SetTextureTiling("bumpMap", glm::vec2(4, 4));
+	mpGroundMaterial = new Material(ShaderRegistry::Find("SolidColor"));
 	mpGroundMaterial->SetVec4("diffuseColor", Colors::WHITE);
 	mpGroundMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpGroundMaterial->SetFloat("shininess", 5);
@@ -113,6 +106,8 @@ void SSAOApplication::OnStart()
 
 	KeyBindings* pKeyBindings = KeyBindings::Instantiate(pGameObject);
 
-	LightsAnimator* pLightsAnimator = LightsAnimator::Instantiate(pGameObject);
-	pLightsAnimator->SetSceneLights(sceneLights);
+	FirstPersonCameraController* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pGameObject);
+	pFirstPersonCameraController->SetWalkSpeed(5.0f);
+	pFirstPersonCameraController->SetTurnSpeed(60.0f);
+	pFirstPersonCameraController->SetFlying(true);
 }

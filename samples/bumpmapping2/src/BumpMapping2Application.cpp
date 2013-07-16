@@ -69,7 +69,7 @@ void BumpMapping2Application::OnStart()
 	GameObject* pPlayerGameObject = GameObject::Instantiate();
 
 	FirstPersonCameraController* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pPlayerGameObject);
-	pFirstPersonCameraController->SetWalkSpeed(10.0f);
+	pFirstPersonCameraController->SetWalkSpeed(5.0f);
 	pFirstPersonCameraController->SetTurnSpeed(60.0f);
 	pFirstPersonCameraController->SetFlying(true);
 }

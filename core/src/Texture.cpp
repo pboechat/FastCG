@@ -5,7 +5,15 @@
 #include <GL/gl.h>
 
 Texture::Texture(unsigned int width, unsigned int height, unsigned int bytesPerPixel, InternalFormat internalFormat, DataType dataType, FilterMode filter, WrapMode wrapMode, void* pData) :
-	mWidth(width), mHeight(height), mBytesPerPixel(bytesPerPixel), mInternalFormat(internalFormat), mDataType(dataType), mFilter(filter), mWrapMode(wrapMode), mpData(pData)
+	mTextureId(0),
+	mWidth(width), 
+	mHeight(height), 
+	mBytesPerPixel(bytesPerPixel), 
+	mInternalFormat(internalFormat), 
+	mDataType(dataType), 
+	mFilter(filter), 
+	mWrapMode(wrapMode), 
+	mpData(pData)
 {
 	AllocateResources();
 }

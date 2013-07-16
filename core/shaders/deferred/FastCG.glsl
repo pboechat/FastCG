@@ -17,6 +17,11 @@ uniform float _Light0LinearAttenuation;
 uniform float _Light0QuadraticAttenuation;
 uniform float _AmbientOcclusionFlag;
 
+const float NEAR = 0.3f;
+const float FAR = 1000.0f;
+const float DEPTH_RANGE_NEAR = 0;
+const float DEPTH_RANGE_FAR = 1;
+
 float DistanceAttenuation(vec3 position)
 {
 	float d = distance(_Light0Position, position);
@@ -30,19 +35,17 @@ vec3 UnpackNormal(vec4 packedNormal)
 
 float LinearizeDepth(float depth) 
 {
-	return (2.0 * depth - gl_DepthRange.near - gl_DepthRange.far) / (gl_DepthRange.far - gl_DepthRange.near);
+	return _Projection[3][2] / (depth - (_Projection[2][2] / _Projection[2][3]));
 }
 
-vec3 GetPositionFromDepth(vec2 uv)
+vec3 GetPositionFromDepth(float depth)
 {
-	float depth = texture2D(_DepthMap, uv).x;
-
 	vec3 normalizedDeviceCoordinatesPosition;
-    normalizedDeviceCoordinatesPosition.xy = 2.0 * uv - 1;
-    normalizedDeviceCoordinatesPosition.z = LinearizeDepth(depth);
+    normalizedDeviceCoordinatesPosition.xy = (2.0 * gl_FragCoord.xy) / _ScreenSize - 1;
+    normalizedDeviceCoordinatesPosition.z = (2.0 * depth - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
  
     vec4 clipSpacePosition;
-    clipSpacePosition.w = _Projection[2][2] / (normalizedDeviceCoordinatesPosition.z - (_Projection[3][2] / _Projection[2][3]));
+    clipSpacePosition.w = _Projection[3][2] / (normalizedDeviceCoordinatesPosition.z - (_Projection[2][2] / _Projection[2][3]));
     clipSpacePosition.xyz = normalizedDeviceCoordinatesPosition * clipSpacePosition.w;
  
     vec4 eyePosition = _InverseProjection * clipSpacePosition;

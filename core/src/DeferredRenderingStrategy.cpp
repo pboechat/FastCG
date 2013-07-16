@@ -213,7 +213,7 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
 
 	glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mrScreenWidth, mrScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mrScreenWidth, mrScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
@@ -388,8 +388,6 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glBindTexture(GL_TEXTURE_2D, mAmbientOcclusionTextureId);
 			
 			mpSSAOBlurPassShader->Bind();
-			mpSSAOBlurPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-			mpSSAOBlurPassShader->SetVec2("_TexelSize", glm::vec2(1.0f / mrScreenWidth, 1.0f / mrScreenHeight));
 			mpSSAOBlurPassShader->SetTexture("_AmbientOcclusionMap", 0);
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
@@ -522,12 +520,11 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
 			mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
 
-			glm::quat viewRotation = glm::toQuat(rView);
+			glm::quat inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
 			for (unsigned int i = 0; i < mrDirectionalLights.size(); i++)
 			{
 				DirectionalLight* pDirectionalLight = mrDirectionalLights[i];
-
-				mpDirectionalLightPassShader->SetVec3("_Light0Position", pDirectionalLight->GetDirection());
+				mpDirectionalLightPassShader->SetVec3("_Light0Position", glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1.0f))));
 				mpDirectionalLightPassShader->SetVec4("_Light0AmbientColor", pDirectionalLight->GetAmbientColor());
 				mpDirectionalLightPassShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 				mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());

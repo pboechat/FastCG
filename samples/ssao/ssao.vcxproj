@@ -93,13 +93,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\KeyBindings.cpp" />
-    <ClCompile Include="src\LightsAnimator.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\SSAOApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\KeyBindings.h" />
-    <ClInclude Include="src\LightsAnimator.h" />
     <ClInclude Include="src\SSAOApplication.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

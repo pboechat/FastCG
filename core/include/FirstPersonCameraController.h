@@ -12,8 +12,6 @@ public:
 	virtual void OnInstantiate()
 	{
 		mRightMouseButtonPressed = false;
-		mYaw = 0;
-		mPitch = 0;
 		mFlying = false;
 	}
 
@@ -55,8 +53,6 @@ private:
 	float mWalkSpeed;
 	float mTurnSpeed;
 	bool mFlying;
-	float mYaw;
-	float mPitch;
 	
 };
 

@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 enum ProjectionMode
 {
 	PM_PERSPECTIVE,

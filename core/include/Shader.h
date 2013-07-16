@@ -122,8 +122,6 @@ public:
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		pTexture->Bind();
 		glUniform1i(GetUniformLocation(rParameterName), textureUnit);
-		// TODO:
-		//texturePtr->Unbind();
 	}
 
 	inline void SetTexture(const std::string& rParameterName, unsigned int textureId, int textureUnit) const
