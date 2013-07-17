@@ -12,7 +12,7 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 						vec3 position,
 					    vec3 normal)
 {
-    vec4 ambientContribution = _GlobalLightAmbientColor + _Light0AmbientColor * _Light0Intensity * materialDiffuseColor;
+    vec4 ambientContribution = _Light0AmbientColor * _Light0Intensity * materialDiffuseColor;
 
     float diffuseAttenuation = max(dot(normal, lightDirection), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
@@ -27,8 +27,9 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 void main()
 {
 	vec2 uv = gl_FragCoord.xy / _ScreenSize;
+	float depth = texture2D(_DepthMap, uv).x;
 
-	vec3 position = GetPositionFromDepth(uv);
+	vec3 position = GetPositionFromWindowCoordinates(vec3(gl_FragCoord.xy, depth));
 	vec4 diffuseColor = texture2D(_DiffuseMap, uv);
 	vec3 normal = UnpackNormal(texture2D(_NormalMap, uv));
 	vec4 specularColor = texture2D(_SpecularMap, uv);

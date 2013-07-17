@@ -38,14 +38,14 @@ float LinearizeDepth(float depth)
 	return _Projection[3][2] / (depth - (_Projection[2][2] / _Projection[2][3]));
 }
 
-vec3 GetPositionFromDepth(float depth)
+vec3 GetPositionFromWindowCoordinates(vec3 windowCoordinates)
 {
 	vec3 normalizedDeviceCoordinatesPosition;
-    normalizedDeviceCoordinatesPosition.xy = (2.0 * gl_FragCoord.xy) / _ScreenSize - 1;
-    normalizedDeviceCoordinatesPosition.z = (2.0 * depth - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
+    normalizedDeviceCoordinatesPosition.xy = (2.0 * windowCoordinates.xy) / _ScreenSize - 1;
+    normalizedDeviceCoordinatesPosition.z = (2.0 * windowCoordinates.z - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
  
     vec4 clipSpacePosition;
-    clipSpacePosition.w = _Projection[3][2] / (normalizedDeviceCoordinatesPosition.z - (_Projection[2][2] / _Projection[2][3]));
+    clipSpacePosition.w = LinearizeDepth(normalizedDeviceCoordinatesPosition.z);
     clipSpacePosition.xyz = normalizedDeviceCoordinatesPosition * clipSpacePosition.w;
  
     vec4 eyePosition = _InverseProjection * clipSpacePosition;

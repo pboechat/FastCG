@@ -78,6 +78,11 @@ public:
 		mFrustumRight = rOther.mFrustumRight;
 		mProjectionMode = rOther.mProjectionMode;
 	}
+	
+	inline float GetFieldOfView() const
+	{
+		return mFieldOfView;
+	}
 
 private:
 	float mFieldOfView;

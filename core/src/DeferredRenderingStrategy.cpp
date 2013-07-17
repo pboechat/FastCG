@@ -54,6 +54,10 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mpQuadMesh(0),
 	mpSphereMesh(0)
 {
+	mHalfScreenWidth = mrScreenWidth / 2;
+	mHalfScreenHeight = mrScreenHeight / 2;
+	mAspectRatio = mrScreenWidth / (float)mrScreenHeight;
+
 	FindShaders();
 	BuildAuxiliaryMeshes();
 	GenerateNoiseTexture();
@@ -322,9 +326,6 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 	if (mDisplayGBufferEnabled)
 	{
-		unsigned int halfScreenWidth = mrScreenWidth / 2;
-		unsigned int halfScreenHeight = mrScreenHeight / 2;
-
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -332,19 +333,19 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 
 		// top left
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, halfScreenHeight, halfScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, mHalfScreenHeight, mHalfScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 		// top right
 		glReadBuffer(GL_COLOR_ATTACHMENT1);
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, halfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, mHalfScreenWidth, mHalfScreenHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 		// bottom left
 		glReadBuffer(GL_COLOR_ATTACHMENT2);
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, halfScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mHalfScreenWidth, mHalfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 		// bottom right
 		glReadBuffer(GL_DEPTH_ATTACHMENT);
-		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, halfScreenWidth, 0, mrScreenWidth, halfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, mHalfScreenWidth, 0, mrScreenWidth, mHalfScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 	else
 	{
@@ -509,9 +510,9 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glDrawBuffer(GL_COLOR_ATTACHMENT3);
 
 			mpDirectionalLightPassShader->Bind();
-			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpDirectionalLightPassShader->SetMat4("_Projection", rProjection);
 			mpDirectionalLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
+			mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 0);
 			mpDirectionalLightPassShader->SetTexture("_NormalMap", 1);
 			mpDirectionalLightPassShader->SetTexture("_SpecularMap", 2);

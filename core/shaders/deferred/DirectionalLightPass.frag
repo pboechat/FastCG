@@ -2,6 +2,8 @@
 
 #include "FastCG.glsl"
 
+in vec2 vertexUv;
+
 vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 						vec4 materialSpecularColor,
 						float materialShininess,
@@ -9,7 +11,7 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 					    vec3 viewerDirection,
 					    vec3 normal)
 {
-    vec4 ambientContribution = _GlobalLightAmbientColor + _Light0AmbientColor * _Light0Intensity * materialDiffuseColor;
+    vec4 ambientContribution = _Light0AmbientColor * _Light0Intensity * materialDiffuseColor;
 
     float diffuseAttenuation = max(dot(normal, lightDirection), 0.0);
     vec4 diffuseContribution = _Light0DiffuseColor * _Light0Intensity * materialDiffuseColor * diffuseAttenuation;
@@ -23,16 +25,15 @@ vec4 BlinnPhongLighting(vec4 materialDiffuseColor,
 
 void main()
 {
-	vec2 uv = gl_FragCoord.xy / _ScreenSize;
-
-	vec3 position = GetPositionFromDepth(uv);
-	vec4 diffuseColor = texture2D(_DiffuseMap, uv);
-	vec3 normal = UnpackNormal(texture2D(_NormalMap, uv));
-	vec4 specularColor = texture2D(_SpecularMap, uv);
+	float depth = texture2D(_DepthMap, vertexUv).x;
+	vec3 position = GetPositionFromWindowCoordinates(vec3(gl_FragCoord.xy, depth));
+	vec4 diffuseColor = texture2D(_DiffuseMap, vertexUv);
+	vec3 normal = UnpackNormal(texture2D(_NormalMap, vertexUv));
+	vec4 specularColor = texture2D(_SpecularMap, vertexUv);
 	float shininess = specularColor.w;
 	specularColor = vec4(specularColor.xyz, 1.0);
 
-	float ambientOcclusion = texture2D(_AmbientOcclusionMap, uv).x;
+	float ambientOcclusion = texture2D(_AmbientOcclusionMap, vertexUv).x;
 	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 
 	vec3 lightDirection = normalize(_Light0Position);

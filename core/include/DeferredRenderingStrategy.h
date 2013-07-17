@@ -89,6 +89,9 @@ private:
 
 	unsigned int& mrScreenWidth;
 	unsigned int& mrScreenHeight;
+	unsigned int mHalfScreenWidth;
+	unsigned int mHalfScreenHeight;
+	float mAspectRatio;
 	unsigned int mGBufferFBOId;
 	unsigned int mSSAOFBOId;
 	unsigned int mSSAOBlurFBOId;
