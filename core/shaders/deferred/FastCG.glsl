@@ -17,8 +17,6 @@ uniform float _Light0LinearAttenuation;
 uniform float _Light0QuadraticAttenuation;
 uniform float _AmbientOcclusionFlag;
 
-const float NEAR = 0.3f;
-const float FAR = 1000.0f;
 const float DEPTH_RANGE_NEAR = 0;
 const float DEPTH_RANGE_FAR = 1;
 
@@ -45,7 +43,7 @@ vec3 GetPositionFromWindowCoordinates(vec3 windowCoordinates)
     normalizedDeviceCoordinatesPosition.z = (2.0 * windowCoordinates.z - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
  
     vec4 clipSpacePosition;
-    clipSpacePosition.w = LinearizeDepth(normalizedDeviceCoordinatesPosition.z);
+    clipSpacePosition.w = _Projection[3][2] / (normalizedDeviceCoordinatesPosition.z - (_Projection[2][2] / _Projection[2][3]));
     clipSpacePosition.xyz = normalizedDeviceCoordinatesPosition * clipSpacePosition.w;
  
     vec4 eyePosition = _InverseProjection * clipSpacePosition;

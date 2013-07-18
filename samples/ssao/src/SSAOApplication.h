@@ -2,24 +2,14 @@
 #define SSAOAPPLICATION_H_
 
 #include <Application.h>
-#include <Mesh.h>
-#include <Material.h>
-#include <Texture.h>
 
 class SSAOApplication : public Application
 {
 public:
 	SSAOApplication();
-	~SSAOApplication();
 
 protected:
 	virtual void OnStart();
-
-private:
-	Mesh* mpGroundMesh;
-	Material* mpGroundMaterial;
-	Texture* mpGroundColorMapTexture;
-	Texture* mpGroundBumpMapTexture;
 
 };
 

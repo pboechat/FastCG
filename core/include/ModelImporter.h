@@ -32,6 +32,7 @@ public:
 	static void Initialize();
 	static GameObject* Import(const std::string& rFileName, unsigned int importSettings = IS_QUALITY_GOOD);
 	static void Dispose();
+	static void NoLog();
 	static void LogToConsole();
 	static void LogToFile();
 

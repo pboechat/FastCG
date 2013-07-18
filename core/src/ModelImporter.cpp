@@ -35,6 +35,15 @@ void ModelImporter::Initialize()
 	s_mInitialized = true;
 }
 
+void ModelImporter::NoLog()
+{
+	if (s_mpCurrentLogger != 0)
+	{
+		delete s_mpCurrentLogger;
+		s_mpCurrentLogger = 0;
+	}
+}
+
 void ModelImporter::LogToConsole()
 {
 	if (s_mpCurrentLogger != 0)

@@ -22,9 +22,43 @@ void FirstPersonCameraController::OnUpdate(float time, float deltaTime)
 
 			if (mousePosition != mLastMousePosition)
 			{
-				glm::vec2 direction = glm::normalize(mousePosition - mLastMousePosition);
-				glm::vec3 axis(direction.y, -direction.x, 0);
-				pTransform->SetRotation(pTransform->GetRotation() * glm::angleAxis(mTurnSpeed * deltaTime, axis));
+				glm::vec2 direction = mousePosition - mLastMousePosition;
+
+				float yaw, pitch;
+
+				if (direction.x > 0)
+				{
+					yaw = -mTurnSpeed * deltaTime;
+				}
+				else if (direction.x < 0)
+				{
+					yaw = mTurnSpeed * deltaTime;
+				}
+				else
+				{
+					yaw = 0;
+				}
+
+				if (direction.y > 0)
+				{
+					pitch = mTurnSpeed * deltaTime;
+				}
+				else if (direction.y < 0)
+				{
+					pitch = -mTurnSpeed * deltaTime;
+				}
+				else
+				{
+					pitch = 0;
+				}
+
+				glm::quat yawRotation = glm::angleAxis(yaw, glm::vec3(0, 1, 0));
+				glm::quat pitchRotation = glm::angleAxis(pitch, glm::vec3(1, 0, 0));
+				
+				glm::quat orientation = pTransform->GetRotation();
+
+				pTransform->SetRotation(orientation * yawRotation * pitchRotation);
+
 				mLastMousePosition = mousePosition;
 			}
 		}
