@@ -7,6 +7,7 @@
 #define NUMBER_OF_RANDOM_SAMPLES 30
 
 in vec2 vertexUv;
+noperspective in vec3 viewRay;
 
 uniform sampler2D _NoiseMap;
 uniform float _Radius;

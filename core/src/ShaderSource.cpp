@@ -6,7 +6,7 @@
 std::string ShaderSource::Parse(const std::string& rFileName)
 {
 	std::string filePath = File::GetFilePath(rFileName);
-	std::string content = FileReader::Read(rFileName, FM_TEXT);
+	std::string content = FileReader::Read(rFileName);
 	unsigned int includePosition = 0;
 
 	while ((includePosition = content.find("#include ", includePosition)) != std::string::npos)

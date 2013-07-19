@@ -24,15 +24,18 @@ public:
 		IS_QUALITY_POOR = 1,
 		IS_QUALITY_GOOD = 2,
 		IS_QUALITY_BEST = 4,
-		IS_INVERT_TEXTURE_COORDINATE_V = 8
+		IS_INVERT_TEXTURE_COORDINATE_V = 8,
+		IS_GENERATE_OPTIMIZED_MODEL_FILE = 16
 	};
 
 	static const std::string DEFAULT_LOG_FILE;
 
 	static void Initialize();
 	static GameObject* Import(const std::string& rFileName, unsigned int importSettings = IS_QUALITY_GOOD);
+
 	static void Dispose();
 	static void NoLog();
+
 	static void LogToConsole();
 	static void LogToFile();
 
@@ -49,6 +52,14 @@ private:
 		MA_IS_TWO_SIDED = 128
 	};
 
+	struct OptimizedModelHeader
+	{
+		unsigned int numVertices;
+		unsigned int numNormals;
+		unsigned int numUvs;
+		unsigned int numIndices;
+	};
+
 	static bool s_mInitialized;
 	static Assimp::Logger* s_mpCurrentLogger;
 	static std::vector<Texture*> s_mManagedTextures;
@@ -56,10 +67,17 @@ private:
 	static std::vector<Mesh*> s_mManagedMeshes;
 	static std::vector<const aiScene*> s_mImportedScenes;
 
+	static void DeleteLogger();
+	static const bool CheckOptimizedModelFile(const std::string& rFileName);
+	static GameObject* ImportOptimizedModelFile(const std::string& rFileName);
+	static GameObject* ImportFromRegularFile(const std::string &rFileName, unsigned int importSettings);
+	static void GenerateOptimizedModelFile(const std::string& rFileName, const GameObject* pGameObject);
+	static void CombineMeshes(const GameObject* pGameObject, std::vector<glm::vec3>& rVertices, std::vector<glm::vec3>& rNormals, std::vector<glm::vec2>& rUVs, std::vector<unsigned int>& rIndices);
 	static unsigned int GetAssimpImportSettings(unsigned int importSettings);
 	static void BuildMaterialCatalog(const aiScene* pScene, const std::string& rBaseDirectory, std::map<unsigned int, Material*>& rMaterialCatalog);
 	static void BuildMeshCatalog(const aiScene* pScene, std::map<unsigned int, Mesh*>& rMeshCatalog, unsigned int importSettings);
 	static AABB CalculateBoundingVolume(const aiScene* pScene);
+	static AABB CalculateBoundingVolume(const std::vector<glm::vec3>& rVertices);
 	static void CalculateBoundingVolumeRecursively(const aiScene* pScene, aiNode* pNode, const glm::mat4& rParentTransform, AABB& boundingVolume);
 	static GameObject* BuildGameObject(const std::string& rModelName, const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog);
 	static void BuildGameObjectRecursively(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog, aiNode* pNode, GameObject* pGameObject);

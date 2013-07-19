@@ -9,11 +9,14 @@
 #include <Texture.h>
 #include <File.h>
 #include <MathT.h>
+#include <FileReader.h>
 #include <Exception.h>
 
 #include <assimp/PostProcess.h>
 
 #include <map>
+#include <stdlib.h>
+#include <stdio.h>
 
 const std::string ModelImporter::DEFAULT_LOG_FILE = "assimp.log";
 
@@ -24,6 +27,7 @@ std::vector<Mesh*> ModelImporter::s_mManagedMeshes;
 std::vector<const aiScene*> ModelImporter::s_mImportedScenes;
 Assimp::Logger* ModelImporter::s_mpCurrentLogger = 0;
 
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::Initialize()
 {
 	if (s_mInitialized)
@@ -35,7 +39,8 @@ void ModelImporter::Initialize()
 	s_mInitialized = true;
 }
 
-void ModelImporter::NoLog()
+//////////////////////////////////////////////////////////////////////////
+void ModelImporter::DeleteLogger()
 {
 	if (s_mpCurrentLogger != 0)
 	{
@@ -44,30 +49,31 @@ void ModelImporter::NoLog()
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+void ModelImporter::NoLog()
+{
+	DeleteLogger();
+}
+
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::LogToConsole()
 {
-	if (s_mpCurrentLogger != 0)
-	{
-		delete s_mpCurrentLogger;
-		s_mpCurrentLogger = 0;
-	}
+	DeleteLogger();
 
 	Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
 	s_mpCurrentLogger = Assimp::DefaultLogger::create("", severity, aiDefaultLogStream_STDOUT);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::LogToFile()
 {
-	if (s_mpCurrentLogger != 0)
-	{
-		delete s_mpCurrentLogger;
-		s_mpCurrentLogger = 0;
-	}
+	DeleteLogger();
 
 	Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
 	s_mpCurrentLogger = Assimp::DefaultLogger::create(DEFAULT_LOG_FILE.c_str(), severity, aiDefaultLogStream_FILE);
 }
 
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::Dispose()
 {
 	for (unsigned int i = 0; i < s_mManagedMaterials.size(); i++)
@@ -97,6 +103,7 @@ void ModelImporter::Dispose()
 	s_mInitialized = false;
 }
 
+//////////////////////////////////////////////////////////////////////////
 unsigned int ModelImporter::GetAssimpImportSettings(unsigned int importSettings)
 {
 	if (importSettings & IS_QUALITY_POOR)
@@ -117,33 +124,20 @@ unsigned int ModelImporter::GetAssimpImportSettings(unsigned int importSettings)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 GameObject* ModelImporter::Import(const std::string& rFileName, unsigned int importSettings)
 {
-	const aiScene* pScene = aiImportFile(rFileName.c_str(), GetAssimpImportSettings(importSettings));
-
-	if (pScene == 0)
+	if (CheckOptimizedModelFile(rFileName))
 	{
-		THROW_EXCEPTION(Exception, "Failed to import model: %s", rFileName.c_str());
+		return ImportOptimizedModelFile(rFileName);
 	}
-
-	s_mImportedScenes.push_back(pScene);
-
-	std::string baseDirectory = File::GetFilePath(rFileName);
-
-	std::map<unsigned int, Material*> materialCatalog;
-	std::map<unsigned int, Mesh*> meshCatalog;
-
-	BuildMaterialCatalog(pScene, baseDirectory, materialCatalog);
-	BuildMeshCatalog(pScene, meshCatalog, importSettings);
-
-	std::string modelName = File::GetFileNameWithoutExtension(rFileName);
-
-	GameObject* pGameObject = BuildGameObject(modelName, pScene, materialCatalog, meshCatalog);
-	pGameObject->SetBoundingVolume(CalculateBoundingVolume(pScene));
-
-	return pGameObject;
+	else
+	{
+		return ImportFromRegularFile(rFileName, importSettings);
+	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::string& rBaseDirectory, std::map<unsigned int, Material*>& rMaterialCatalog)
 {
 	if (pScene->HasTextures())
@@ -308,6 +302,7 @@ void ModelImporter::BuildMaterialCatalog(const aiScene* pScene, const std::strin
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned int, Mesh*>& rMeshCatalog, unsigned int importSettings)
 {
 	for (unsigned int i = 0; i < pScene->mNumMeshes; i++)
@@ -375,6 +370,7 @@ void ModelImporter::BuildMeshCatalog(const aiScene* pScene, std::map<unsigned in
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 AABB ModelImporter::CalculateBoundingVolume(const aiScene* pScene)
 {
 	glm::mat4 transform;
@@ -392,6 +388,32 @@ AABB ModelImporter::CalculateBoundingVolume(const aiScene* pScene)
 	return boundingVolume;
 }
 
+//////////////////////////////////////////////////////////////////////////
+AABB ModelImporter::CalculateBoundingVolume(const std::vector<glm::vec3>& rVertices)
+{
+	AABB boundingVolume;
+	boundingVolume.min.x = boundingVolume.min.y = boundingVolume.min.z =  1e10f;
+	boundingVolume.max.x = boundingVolume.max.y = boundingVolume.max.z = -1e10f;
+
+	for (unsigned int i = 0; i < rVertices.size(); i++)
+	{
+		const glm::vec3& rVertex = rVertices[i];
+		boundingVolume.min.x = MathF::Min(boundingVolume.min.x, rVertex.x);
+		boundingVolume.min.y = MathF::Min(boundingVolume.min.y, rVertex.y);
+		boundingVolume.min.z = MathF::Min(boundingVolume.min.z, rVertex.z);
+		boundingVolume.max.x = MathF::Max(boundingVolume.max.x, rVertex.x);
+		boundingVolume.max.y = MathF::Max(boundingVolume.max.y, rVertex.y);
+		boundingVolume.max.z = MathF::Max(boundingVolume.max.z, rVertex.z);
+	}
+
+	boundingVolume.center.x = (boundingVolume.min.x + boundingVolume.max.x) / 2.0f;
+	boundingVolume.center.y = (boundingVolume.min.y + boundingVolume.max.y) / 2.0f;
+	boundingVolume.center.z = (boundingVolume.min.z + boundingVolume.max.z) / 2.0f;
+
+	return boundingVolume;
+}
+
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::CalculateBoundingVolumeRecursively(const aiScene* pScene, aiNode* pNode, const glm::mat4& rParentTransform, AABB& boundingVolume)
 {
 	glm::mat4 transform = rParentTransform * AssimpUtils::Convert(pNode->mTransformation);
@@ -419,6 +441,7 @@ void ModelImporter::CalculateBoundingVolumeRecursively(const aiScene* pScene, ai
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 GameObject* ModelImporter::BuildGameObject(const std::string& rModelName, const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog)
 {
 	GameObject* pGameObject = GameObject::Instantiate(rModelName);
@@ -426,6 +449,7 @@ GameObject* ModelImporter::BuildGameObject(const std::string& rModelName, const 
 	return pGameObject;
 }
 
+//////////////////////////////////////////////////////////////////////////
 void ModelImporter::BuildGameObjectRecursively(const aiScene* pScene, std::map<unsigned int, Material*>& rMaterialCatalog, std::map<unsigned int, Mesh*>& rMeshCatalog, aiNode* pNode, GameObject* pGameObject)
 {
 	Transform* pTransform = pGameObject->GetTransform();
@@ -464,5 +488,304 @@ void ModelImporter::BuildGameObjectRecursively(const aiScene* pScene, std::map<u
 		GameObject* pChild = GameObject::Instantiate();
 		pChild->GetTransform()->SetParent(pTransform);
 		BuildGameObjectRecursively(pScene, rMaterialCatalog, rMeshCatalog, pNode->mChildren[i], pChild);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+GameObject* ModelImporter::ImportFromRegularFile(const std::string &rFileName, unsigned int importSettings)
+{
+	const aiScene* pScene = aiImportFile(rFileName.c_str(), GetAssimpImportSettings(importSettings));
+
+	if (pScene == 0)
+	{
+		THROW_EXCEPTION(Exception, "Failed to import model: %s", rFileName.c_str());
+	}
+
+	s_mImportedScenes.push_back(pScene);
+
+	std::string baseDirectory = File::GetFilePath(rFileName);
+
+	std::map<unsigned int, Material*> materialCatalog;
+	std::map<unsigned int, Mesh*> meshCatalog;
+
+	BuildMaterialCatalog(pScene, baseDirectory, materialCatalog);
+	BuildMeshCatalog(pScene, meshCatalog, importSettings);
+
+	std::string modelName = File::GetFileNameWithoutExtension(rFileName);
+
+	GameObject* pGameObject = BuildGameObject(modelName, pScene, materialCatalog, meshCatalog);
+	pGameObject->SetBoundingVolume(CalculateBoundingVolume(pScene));
+
+	if (importSettings & IS_GENERATE_OPTIMIZED_MODEL_FILE)
+	{
+		GenerateOptimizedModelFile(rFileName, pGameObject);
+	}
+
+	return pGameObject;
+}
+
+//////////////////////////////////////////////////////////////////////////
+const bool ModelImporter::CheckOptimizedModelFile(const std::string& rFileName)
+{
+	return File::Exists(File::GetFileNameWithoutExtension(rFileName) + ".model");
+}
+
+//////////////////////////////////////////////////////////////////////////
+GameObject* ModelImporter::ImportOptimizedModelFile(const std::string& rFileName)
+{
+	std::string optimizedModelFileName = File::GetFileNameWithoutExtension(rFileName) + ".model";
+
+	FILE* pFile = fopen(optimizedModelFileName.c_str(), "rb");
+
+	//int fileSize = ftell(pFile);
+
+	OptimizedModelHeader header;
+	
+	unsigned int itemsRead = fread((void*)&header, sizeof(OptimizedModelHeader), 1, pFile);
+
+	if (itemsRead != 1)
+	{
+		THROW_EXCEPTION(Exception, "Error reading optimized model header from file: %s", optimizedModelFileName.c_str());
+	}
+
+	unsigned int itemsToRead = header.numVertices * 3;
+	float* pVerticesBuffer = new float[itemsToRead];
+	itemsRead = fread((void*)pVerticesBuffer, sizeof(float), itemsToRead, pFile);
+
+	if (itemsRead != itemsToRead)
+	{
+		THROW_EXCEPTION(Exception, "Error reading vertices from optimized model file: %s", optimizedModelFileName.c_str());
+	}
+
+	std::vector<glm::vec3> vertices;
+	vertices.resize(header.numVertices);
+	for (unsigned int i = 0, j = 0; i < header.numVertices; i++, j += 3)
+	{
+		vertices[i] = glm::vec3(pVerticesBuffer[j], pVerticesBuffer[j + 1], pVerticesBuffer[j + 2]);
+	}
+
+	delete[] pVerticesBuffer;
+
+	itemsToRead = header.numNormals * 3;
+	float* pNormalsBuffer = new float[itemsToRead];
+	itemsRead = fread((void*)pNormalsBuffer, sizeof(float), itemsToRead, pFile);
+
+	if (itemsRead != itemsToRead)
+	{
+		THROW_EXCEPTION(Exception, "Error reading normals from optimized model file: %s", optimizedModelFileName.c_str());
+	}
+
+	std::vector<glm::vec3> normals;
+	normals.resize(header.numNormals);
+	for (unsigned int i = 0, j = 0; i < header.numNormals; i++, j += 3)
+	{
+		normals[i] = glm::vec3(pNormalsBuffer[j], pNormalsBuffer[j + 1], pNormalsBuffer[j + 2]);
+	}
+
+	delete[] pNormalsBuffer;
+
+	itemsToRead = header.numUvs * 2;
+	float* pUVsBuffer = new float[itemsToRead];
+	itemsRead = fread((void*)pUVsBuffer, sizeof(float), itemsToRead, pFile);
+
+	if (itemsRead != itemsRead)
+	{
+		THROW_EXCEPTION(Exception, "Error reading uvs from optimized model file: %s", optimizedModelFileName.c_str());
+	}
+
+	std::vector<glm::vec2> uvs;
+	uvs.resize(header.numUvs);
+	for (unsigned int i = 0, j = 0; i < header.numUvs; i++, j += 2)
+	{
+		uvs[i] = glm::vec2(pUVsBuffer[j], pUVsBuffer[j + 1]);
+	}
+
+	delete[] pUVsBuffer;
+
+	unsigned int* pIndicesBuffer = new unsigned int[header.numIndices];
+	itemsRead = fread((void*)pIndicesBuffer, sizeof(unsigned int), header.numIndices, pFile);
+
+	if (itemsRead != header.numIndices)
+	{
+		THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", optimizedModelFileName.c_str());
+	}
+
+	std::vector<unsigned int> indices;
+	indices.resize(header.numIndices);
+	for (unsigned int i = 0; i < header.numIndices; i++)
+	{
+		indices[i] = pIndicesBuffer[i];
+	}
+
+	delete[] pIndicesBuffer;
+
+	fclose(pFile);
+
+	Mesh* pMesh = new Mesh(vertices, indices, normals, uvs);
+	s_mManagedMeshes.push_back(pMesh);
+
+	Material* pMaterial = new Material(ShaderRegistry::Find("SolidColor"));
+	pMaterial->SetVec4("diffuseColor", Colors::WHITE);
+	pMaterial->SetVec4("specularColor", Colors::BLACK);
+	pMaterial->SetFloat("shininess", 0);
+	s_mManagedMaterials.push_back(pMaterial);
+
+	std::string modelName = File::GetFileNameWithoutExtension(rFileName);
+
+	GameObject* pGameObject = GameObject::Instantiate(modelName);
+
+	MeshRenderer* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
+	MeshFilter* pMeshFilter = MeshFilter::Instantiate(pGameObject);
+
+	pMeshFilter->SetMaterial(pMaterial);
+	pMeshRenderer->AddMesh(pMesh);
+
+	pGameObject->SetBoundingVolume(CalculateBoundingVolume(vertices));
+
+	return pGameObject;
+}
+
+//////////////////////////////////////////////////////////////////////////
+void ModelImporter::GenerateOptimizedModelFile(const std::string& rFileName, const GameObject* pGameObject)
+{
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> uvs;
+	std::vector<unsigned int> indices;
+
+	CombineMeshes(pGameObject, vertices, normals, uvs, indices);
+
+	OptimizedModelHeader header;
+	header.numVertices = vertices.size();
+	header.numNormals = normals.size();
+	header.numUvs = uvs.size();
+	header.numIndices = indices.size();
+
+	float* pVerticesBuffer = new float[header.numVertices * 3];
+	float* pNormalsBuffer = new float[header.numNormals * 3];
+	float* pUVsBuffer = new float[header.numUvs * 2];
+	unsigned int* pIndicesBuffer = new unsigned int[header.numIndices];
+
+	for (unsigned int i = 0, j = 0; i < vertices.size(); i++, j += 3)
+	{
+		glm::vec3& rVertex = vertices[i];
+		pVerticesBuffer[j] = rVertex.x;
+		pVerticesBuffer[j + 1] = rVertex.y;
+		pVerticesBuffer[j + 2] = rVertex.z;
+	}
+
+	for (unsigned int i = 0, j = 0; i < normals.size(); i++, j += 3)
+	{
+		glm::vec3& rNormal = normals[i];
+		pNormalsBuffer[j] = rNormal.x;
+		pNormalsBuffer[j + 1] = rNormal.y;
+		pNormalsBuffer[j + 2] = rNormal.z;
+	}
+
+	for (unsigned int i = 0, j = 0; i < uvs.size(); i++, j += 2)
+	{
+		glm::vec2& rUV = uvs[i];
+		pUVsBuffer[j] = rUV.x;
+		pUVsBuffer[j + 1] = rUV.y;
+	}
+
+	for (unsigned int i = 0; i < indices.size(); i++)
+	{
+		pIndicesBuffer[i] = indices[i];
+	}
+
+	std::string optimizedModelFileName = File::GetFileNameWithoutExtension(rFileName) + ".model";
+
+	FILE* pFile = fopen(optimizedModelFileName.c_str(), "wb");
+
+	unsigned int itemsWritten = fwrite((const void*)&header, sizeof(OptimizedModelHeader), 1, pFile);
+
+	if (itemsWritten != 1)
+	{
+		THROW_EXCEPTION(Exception, "Error writing header to optimized model: %s", optimizedModelFileName.c_str());
+	}
+
+	unsigned int itemsToWrite = vertices.size() * 3;
+	itemsWritten = fwrite((const void*)pVerticesBuffer, sizeof(float), vertices.size() * 3, pFile);
+
+	if (itemsWritten != itemsToWrite)
+	{
+		THROW_EXCEPTION(Exception,  "Error writing vertices to optimized model: %s", optimizedModelFileName.c_str());
+	}
+
+	delete[] pVerticesBuffer;
+
+	itemsToWrite = normals.size() * 3;
+	itemsWritten = fwrite((const void*)pNormalsBuffer, sizeof(float), normals.size() * 3, pFile);
+
+	if (itemsWritten != itemsToWrite)
+	{
+		THROW_EXCEPTION(Exception, "Error writing normals to optimized model: %s", optimizedModelFileName.c_str());
+	}
+
+	delete[] pNormalsBuffer;
+
+	itemsToWrite = uvs.size() * 2;
+	itemsWritten = fwrite((const void*)pUVsBuffer, sizeof(float), uvs.size() * 2, pFile);
+
+	if (itemsWritten != itemsToWrite)
+	{
+		THROW_EXCEPTION(Exception, "Error writing uvs to optimized model: %s", optimizedModelFileName.c_str());
+	}
+
+	delete[] pUVsBuffer;
+
+	itemsToWrite = indices.size();
+	itemsWritten = fwrite((const void*)pIndicesBuffer, sizeof(unsigned int), indices.size(), pFile);
+
+	if (itemsWritten != itemsToWrite)
+	{
+		THROW_EXCEPTION(Exception, "Error writing indices to optimized model: %s", optimizedModelFileName.c_str());
+	}
+
+	delete[] pIndicesBuffer;
+
+	fclose(pFile);
+}
+
+//////////////////////////////////////////////////////////////////////////
+void ModelImporter::CombineMeshes(const GameObject* pGameObject, std::vector<glm::vec3>& rVertices, std::vector<glm::vec3>& rNormals, std::vector<glm::vec2>& rUVs, std::vector<unsigned int>& rIndices)
+{
+	MeshRenderer* pMeshRenderer = dynamic_cast<MeshRenderer*>(pGameObject->GetComponent(MeshRenderer::TYPE));
+
+	if (pMeshRenderer != 0)
+	{
+		glm::mat4& rModel = pGameObject->GetTransform()->GetModel();
+
+		std::vector<Mesh*>& rMeshes = pMeshRenderer->GetMeshes();
+		for (unsigned int i = 0; i < rMeshes.size(); i++)
+		{
+			Mesh* pMesh = rMeshes[i];
+
+			unsigned int indicesOffset = rVertices.size();
+			const std::vector<glm::vec3>& rMeshVertices = pMesh->GetVertices();
+			for (unsigned int j = 0; j < rMeshVertices.size(); j++)
+			{
+				rVertices.push_back(glm::vec3(rModel * glm::vec4(rMeshVertices[j], 1.0f)));
+			}
+
+			const std::vector<glm::vec3>& rMeshNormals = pMesh->GetNormals();
+			rNormals.insert(rNormals.end(), rMeshNormals.begin(), rMeshNormals.end());
+
+			const std::vector<glm::vec2>& rMeshUVs = pMesh->GetUVs();
+			rUVs.insert(rUVs.end(), rMeshUVs.begin(), rMeshUVs.end());
+
+			const std::vector<unsigned int>& rMeshIndices = pMesh->GetIndices();
+			for (unsigned int j = 0; j < rMeshIndices.size(); j++)
+			{
+				rIndices.push_back(indicesOffset + rMeshIndices[j]);
+			}
+		}
+	}
+
+	const std::vector<Transform*>& rChildren = pGameObject->GetTransform()->GetChildren();
+	for (unsigned int i = 0; i < rChildren.size(); i++)
+	{
+		CombineMeshes(rChildren[i]->GetGameObject(), rVertices, rNormals, rUVs, rIndices);
 	}
 }

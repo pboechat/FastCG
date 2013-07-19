@@ -60,7 +60,7 @@ void SSAOApplication::OnStart()
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
 	pDirectionalLight->SetIntensity(1.0f);
 
-	GameObject* pModel = ModelImporter::Import("models/Atrium.obj");
+	GameObject* pModel = ModelImporter::Import("models/Atrium.obj", ModelImporter::IS_QUALITY_GOOD | ModelImporter::IS_GENERATE_OPTIMIZED_MODEL_FILE);
 
 	pGameObject = GameObject::Instantiate();
 

@@ -160,6 +160,7 @@
     <ClInclude Include="include\ShaderRegistry.h" />
     <ClInclude Include="include\MeshRenderer.h" />
     <ClInclude Include="include\Behaviour.h" />
+    <ClInclude Include="src\FileWriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="src\Directory.cpp" />
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
+    <ClCompile Include="src\FileWriter.cpp" />
     <ClCompile Include="src\FirstPersonCameraController.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontRegistry.cpp" />

@@ -36,7 +36,27 @@ public:
 
 	inline unsigned int GetNumberOfTriangles() const
 	{
-		return mIndexes.size() / 3;
+		return mIndices.size() / 3;
+	}
+
+	inline const std::vector<glm::vec3> GetVertices() const
+	{
+		return mVertices;
+	}
+
+	inline const std::vector<glm::vec3> GetNormals() const
+	{
+		return mNormals;
+	}
+
+	inline const std::vector<glm::vec2> GetUVs() const
+	{
+		return mUVs;
+	}
+
+	inline const std::vector<unsigned int> GetIndices() const
+	{
+		return mIndices;
 	}
 	
 	void DrawCall();
@@ -45,7 +65,7 @@ public:
 
 private:
 	std::vector<glm::vec3> mVertices;
-	std::vector<unsigned int> mIndexes;
+	std::vector<unsigned int> mIndices;
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec2> mUVs;
 	std::vector<glm::vec4> mTangents;

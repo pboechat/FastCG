@@ -1,6 +1,8 @@
 uniform mat4 _Projection;
 uniform mat4 _InverseProjection;
 uniform vec2 _ScreenSize;
+uniform float _AspectRatio;
+uniform float _TanHalfFov;
 uniform sampler2D _DiffuseMap;
 uniform sampler2D _NormalMap;
 uniform sampler2D _SpecularMap;

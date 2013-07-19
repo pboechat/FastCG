@@ -6,9 +6,9 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs) :
+Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs) :
 	mVertices(vertices), 
-	mIndexes(indexes), 
+	mIndices(indices), 
 	mNormals(normals), 
 	mUVs(uvs)
 {
@@ -16,10 +16,10 @@ Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned in
 	mUseTangents = false;
 }
 
-Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexes, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs) :
+Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs) :
 	mTriangleMeshVAOId(0),
 	mVertices(vertices), 
-	mIndexes(indexes), 
+	mIndices(indices), 
 	mNormals(normals), 
 	mTangents(tangents),
 	mUVs(uvs), 
@@ -109,7 +109,7 @@ void Mesh::DrawCall()
 	}
 
 	glBindVertexArray(mTriangleMeshVAOId);
-	glDrawElements(GL_TRIANGLES, mIndexes.size(), GL_UNSIGNED_INT, &mIndexes[0]);
+	glDrawElements(GL_TRIANGLES, mIndices.size(), GL_UNSIGNED_INT, &mIndices[0]);
 	glBindVertexArray(0);
 }
 
@@ -130,11 +130,11 @@ void Mesh::CalculateTangents()
 	std::vector<glm::vec3> tangents1(mVertices.size());
 	std::vector<glm::vec3> tangents2(mVertices.size());
 
-	for (unsigned int i = 0; i < mIndexes.size(); i += 3)
+	for (unsigned int i = 0; i < mIndices.size(); i += 3)
 	{
-		unsigned int i1 = mIndexes[i];
-		unsigned int i2 = mIndexes[i + 1];
-		unsigned int i3 = mIndexes[i + 2];
+		unsigned int i1 = mIndices[i];
+		unsigned int i2 = mIndices[i + 1];
+		unsigned int i3 = mIndices[i + 2];
 
 		glm::vec3 v1 = mVertices[i1];
 		glm::vec3 v2 = mVertices[i2];

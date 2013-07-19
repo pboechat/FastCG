@@ -1,5 +1,10 @@
 #include <File.h>
 #include <StringUtils.h>
+#include <Exception.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 #include <vector>
 
@@ -28,10 +33,20 @@ std::string File::GetFileNameWithoutExtension(const std::string& rFilePath)
 	int position;
 	if ((position = fileName.find(".")) != std::string::npos)
 	{
-		return fileName.substr(0, position);
+		return GetFilePath(rFilePath) + fileName.substr(0, position);
 	}
 	else
 	{
-		return fileName;
+		return rFilePath;
 	}
+}
+
+bool File::Exists(const std::string& rFilePath)
+{
+#ifdef _WIN32
+	unsigned long fileAttributes = GetFileAttributes(rFilePath.c_str());
+	return (fileAttributes != INVALID_FILE_ATTRIBUTES);
+#else
+	THROW_EXCEPTION(Exception, "File::Exists() is not implemented on this platform");
+#endif
 }
