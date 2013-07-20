@@ -9,7 +9,8 @@
 
 const unsigned int DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
 const unsigned int DeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
-const float DeferredRenderingStrategy::DEFAULT_SSAO_RADIUS = 0.3f;
+const float DeferredRenderingStrategy::DEFAULT_SSAO_RADIUS = 0.5f;
+const float DeferredRenderingStrategy::DEFAULT_SSAO_DISTANCE_SCALE = 5.0f;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_WIDTH = 4;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_HEIGHT = 4;
 const unsigned int DeferredRenderingStrategy::NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
@@ -46,11 +47,13 @@ DeferredRenderingStrategy::DeferredRenderingStrategy(std::vector<Light*>& rLight
 	mSpecularTextureId(0),
 	mFinalOutputTextureId(0),
 	mDepthTextureId(0),
-	mAmbientOcclusionTextureId(0),
-	mBlurredAmbientOcclusionTextureId(0),
-	mSSAORadius(DEFAULT_SSAO_RADIUS),
+	mSSAOTextureId(0),
+	mBlurredSSAOTextureId(0),
 	mpQuadMesh(0),
-	mpSphereMesh(0)
+	mpSphereMesh(0),
+	mSSAORadius(DEFAULT_SSAO_RADIUS),
+	mSSAODistanceScale(DEFAULT_SSAO_DISTANCE_SCALE),
+	mSSAOBlurEnabled(true)
 {
 	mHalfScreenWidth = mrScreenWidth / 2;
 	mHalfScreenHeight = mrScreenHeight / 2;
@@ -105,14 +108,14 @@ DeferredRenderingStrategy::~DeferredRenderingStrategy()
 		glDeleteTextures(1, &mDepthTextureId);
 	}
 
-	if (mAmbientOcclusionTextureId != 0)
+	if (mSSAOTextureId != 0)
 	{
-		glDeleteTextures(1, &mAmbientOcclusionTextureId);
+		glDeleteTextures(1, &mSSAOTextureId);
 	}
 
-	if (mBlurredAmbientOcclusionTextureId != 0)
+	if (mBlurredSSAOTextureId != 0)
 	{
-		glDeleteTextures(1, &mBlurredAmbientOcclusionTextureId);
+		glDeleteTextures(1, &mBlurredSSAOTextureId);
 	}
 	
 	if (mpQuadMesh != 0)
@@ -225,25 +228,25 @@ void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	glGenFramebuffers(1, &mSSAOFBOId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOFBOId);
 
-	glGenTextures(1, &mAmbientOcclusionTextureId);
+	glGenTextures(1, &mSSAOTextureId);
 
-	glBindTexture(GL_TEXTURE_2D, mAmbientOcclusionTextureId);
+	glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mAmbientOcclusionTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOTextureId, 0);
 
 	// create ssao blur fbo
 	glGenFramebuffers(1, &mSSAOBlurFBOId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
 
-	glGenTextures(1, &mBlurredAmbientOcclusionTextureId);
+	glGenTextures(1, &mBlurredSSAOTextureId);
 
-	glBindTexture(GL_TEXTURE_2D, mBlurredAmbientOcclusionTextureId);
+	glBindTexture(GL_TEXTURE_2D, mBlurredSSAOTextureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredAmbientOcclusionTextureId, 0);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredSSAOTextureId, 0);
 
 	unsigned int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -276,6 +279,7 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	glm::mat4& rView = pCamera->GetView();
 	glm::mat4& rProjection = pCamera->GetProjection();
 	glm::mat4& rInverseProjection = glm::inverse(rProjection);
+	float tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * pCamera->GetFieldOfView()) / 2.0f);
 
 	mrRenderingStatistics.Reset();
 	for (unsigned int i = 0; i < mrRenderBatches.size(); i++)
@@ -369,28 +373,34 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			mpSSAOHighFrequencyPassShader->Bind();
 			mpSSAOHighFrequencyPassShader->SetMat4("_Projection", rProjection);
 			mpSSAOHighFrequencyPassShader->SetMat4("_InverseProjection", rInverseProjection);
+			mpSSAOHighFrequencyPassShader->SetFloat("_AspectRatio", mAspectRatio);
+			mpSSAOHighFrequencyPassShader->SetFloat("_TanHalfFov", tanHalfFov);
 			mpSSAOHighFrequencyPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
 			mpSSAOHighFrequencyPassShader->SetTexture("_NormalMap", 0);
 			mpSSAOHighFrequencyPassShader->SetTexture("_DepthMap", 1);
 			mpSSAOHighFrequencyPassShader->SetTexture("_NoiseMap", mpNoiseTexture, 2);
 			mpSSAOHighFrequencyPassShader->SetFloat("_Radius", mSSAORadius);
+			mpSSAOHighFrequencyPassShader->SetFloat("_DistanceScale", mSSAODistanceScale);
 			mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamples", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamples[0]);
 			mpQuadMesh->DrawCall();
 			mrRenderingStatistics.drawCalls++;
 			mpSSAOHighFrequencyPassShader->Unbind();
 
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
-			glClear(GL_COLOR_BUFFER_BIT);
+			if (mSSAOBlurEnabled)
+			{
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+				glClear(GL_COLOR_BUFFER_BIT);
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mAmbientOcclusionTextureId);
-			
-			mpSSAOBlurPassShader->Bind();
-			mpSSAOBlurPassShader->SetTexture("_AmbientOcclusionMap", 0);
-			mpQuadMesh->DrawCall();
-			mrRenderingStatistics.drawCalls++;
-			mpSSAOBlurPassShader->Unbind();
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
+
+				mpSSAOBlurPassShader->Bind();
+				mpSSAOBlurPassShader->SetTexture("_AmbientOcclusionMap", 0);
+				mpQuadMesh->DrawCall();
+				mrRenderingStatistics.drawCalls++;
+				mpSSAOBlurPassShader->Unbind();
+			}
 		}
 
 		if (mDisplaySSAOTextureEnabled)
@@ -398,8 +408,16 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, mSSAOBlurFBOId);
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			if (mSSAOBlurEnabled)
+			{
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, mSSAOBlurFBOId);
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+			}
+			else
+			{
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, mSSAOFBOId);
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+			}
 
 			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 		}
@@ -425,7 +443,14 @@ void DeferredRenderingStrategy::Render(const Camera* pCamera)
 			glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
 
 			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, mBlurredAmbientOcclusionTextureId);
+			if (mSSAOBlurEnabled)
+			{
+				glBindTexture(GL_TEXTURE_2D, mBlurredSSAOTextureId);
+			}
+			else
+			{
+				glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
+			}
 
 			for (unsigned int i = 0; i < mrPointLights.size(); i++)
 			{

@@ -11,13 +11,16 @@ noperspective in vec3 viewRay;
 
 uniform sampler2D _NoiseMap;
 uniform float _Radius;
+uniform float _DistanceScale;
 uniform vec3 _RandomSamples[NUMBER_OF_RANDOM_SAMPLES];
 
 void main()
 {
-	float depth = texture2D(_DepthMap, vertexUv).x;
-	vec3 position = GetPositionFromWindowCoordinates(vec3(gl_FragCoord.xy, depth));
-	depth = LinearizeDepth(depth);
+	float depth = LinearizeDepth(texture2D(_DepthMap, vertexUv).x);
+	//float depth = texture2D(_DepthMap, vertexUv).x;
+	//vec3 position = GetPositionFromWindowCoordinates(vec3(gl_FragCoord.xy, depth));
+	//depth = LinearizeDepth(depth);
+	vec3 position = viewRay * depth;
 
 	vec2 noiseUv = vec2(textureSize(_NormalMap, 0)) / vec2(textureSize(_NoiseMap, 0)) * vertexUv;
 	vec3 randomVector = texture2D(_NoiseMap, noiseUv).xyz * 2.0 - 1.0;
@@ -30,25 +33,25 @@ void main()
 	float occlusion = 0;
 	for (int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
-		vec3 samplePosition = position + (tangentSpaceMatrix * _RandomSamples[i]) * _Radius;
+		vec3 samplePosition = (tangentSpaceMatrix * _RandomSamples[i]) * _Radius + position;
 
 		vec4 sampleUv = _Projection * vec4(samplePosition, 1.0);
 		sampleUv.xy /= sampleUv.w;
 		sampleUv.xy = sampleUv.xy * 0.5 + 0.5;
 
 		float sampleDepth = LinearizeDepth(texture2D(_DepthMap, sampleUv).x);
-		float rangeCheck = smoothstep(0.0, 1.0, _Radius / abs(sampleDepth - depth));
-		occlusion += rangeCheck * step(depth, sampleDepth);
+		/*float rangeCheck = smoothstep(0.0, 1.0, _Radius / abs(sampleDepth - depth));
+		occlusion += rangeCheck * step(depth, sampleDepth);*/
 
-		/*if (sampleDepth == 1.0)
+		if (sampleDepth == 1.0)
 		{
 			occlusion++;
 		}
 		else
 		{		
-			float decay = 29000 * max(depth - sampleDepth, 0.0f);
-			occlusion  += 1.0f / (1.0f + decay * decay * 0.1);
-		}*/
+			float rangeCheck = _DistanceScale * max(depth - sampleDepth, 0.0f);
+			occlusion  += 1.0f / (1.0f + rangeCheck * rangeCheck * 0.1);
+		}
 	}
 	occlusion /= NUMBER_OF_RANDOM_SAMPLES;
 

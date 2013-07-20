@@ -65,6 +65,26 @@ public:
 	{
 		return mSSAORadius;
 	}
+
+	inline void SetSSAODistanceScale(float ssaoDistanceScale)
+	{
+		mSSAODistanceScale = ssaoDistanceScale;
+	}
+
+	inline float GetSSAODistanceScale() const
+	{
+		return mSSAODistanceScale;
+	}
+
+	inline bool IsSSAOBlurEnabled() const
+	{
+		return mSSAOBlurEnabled;
+	}
+
+	inline void SetSSAOBlurEnabled(bool ssaoBlurEnabled)
+	{
+		mSSAOBlurEnabled = ssaoBlurEnabled;
+	}
 	
 	virtual void Render(const Camera* pCamera);
 
@@ -72,6 +92,7 @@ private:
 	const static unsigned int NUMBER_OF_RANDOM_SAMPLES;
 	const static unsigned int LIGHT_MESH_DETAIL;
 	const static float DEFAULT_SSAO_RADIUS; 
+	const static float DEFAULT_SSAO_DISTANCE_SCALE;
 	const static unsigned int DEFAULT_SSAO_EXPONENT; 
 	const static unsigned int NOISE_TEXTURE_WIDTH;
 	const static unsigned int NOISE_TEXTURE_HEIGHT;
@@ -89,8 +110,8 @@ private:
 	unsigned int mDiffuseTextureId;
 	unsigned int mSpecularTextureId;
 	unsigned int mDepthTextureId;
-	unsigned int mAmbientOcclusionTextureId;
-	unsigned int mBlurredAmbientOcclusionTextureId;
+	unsigned int mSSAOTextureId;
+	unsigned int mBlurredSSAOTextureId;
 	unsigned int mFinalOutputTextureId;
 	Shader* mpStencilPassShader;
 	Shader* mpDirectionalLightPassShader;
@@ -106,6 +127,8 @@ private:
 	bool mDisplaySSAOTextureEnabled;
 	bool mShowPointLightsEnabled;
 	float mSSAORadius;
+	float mSSAODistanceScale;
+	bool mSSAOBlurEnabled;
 	std::vector<glm::vec3> mRandomSamples;
 
 	void BuildAuxiliaryMeshes();

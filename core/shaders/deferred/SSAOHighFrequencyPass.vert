@@ -12,8 +12,8 @@ noperspective out vec3 viewRay;
 void main()
 {
 	vertexUv = uv;
-	viewRay = normalize(vec3(position.x * _TanHalfFov * _AspectRatio,
-				   position.x * _TanHalfFov,
-				   1));
+	viewRay = vec3(-position.x * _TanHalfFov * _AspectRatio,
+				   -position.y * _TanHalfFov,
+				   1);
 	gl_Position = position;
 }

@@ -34,7 +34,7 @@ void SSAOApplication::OnStart()
 	DirectionalLight* pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
 	pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
-	pDirectionalLight->SetIntensity(1.0f);
+	pDirectionalLight->SetIntensity(0.5f);
 
 	pGameObject = GameObject::Instantiate();
 	pGameObject->GetTransform()->Rotate(glm::vec3(60, -90, 0));
@@ -42,7 +42,7 @@ void SSAOApplication::OnStart()
 	pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
 	pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
-	pDirectionalLight->SetIntensity(1.0f);
+	pDirectionalLight->SetIntensity(0.5f);
 
 	pGameObject = GameObject::Instantiate();
 	pGameObject->GetTransform()->Rotate(glm::vec3(60, 45, 0));
@@ -50,7 +50,7 @@ void SSAOApplication::OnStart()
 	pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
 	pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
-	pDirectionalLight->SetIntensity(1.0f);
+	pDirectionalLight->SetIntensity(0.5f);
 
 	pGameObject = GameObject::Instantiate();
 	pGameObject->GetTransform()->Rotate(glm::vec3(60, -45, 0));
@@ -58,7 +58,7 @@ void SSAOApplication::OnStart()
 	pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
 	pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
-	pDirectionalLight->SetIntensity(1.0f);
+	pDirectionalLight->SetIntensity(0.5f);
 
 	GameObject* pModel = ModelImporter::Import("models/Atrium.obj", ModelImporter::IS_QUALITY_GOOD | ModelImporter::IS_GENERATE_OPTIMIZED_MODEL_FILE);
 
