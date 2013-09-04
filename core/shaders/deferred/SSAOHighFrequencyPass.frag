@@ -17,9 +17,6 @@ uniform vec3 _RandomSamples[NUMBER_OF_RANDOM_SAMPLES];
 void main()
 {
 	float depth = LinearizeDepth(texture2D(_DepthMap, vertexUv).x);
-	//float depth = texture2D(_DepthMap, vertexUv).x;
-	//vec3 position = GetPositionFromWindowCoordinates(vec3(gl_FragCoord.xy, depth));
-	//depth = LinearizeDepth(depth);
 	vec3 position = viewRay * depth;
 
 	vec2 noiseUv = vec2(textureSize(_NormalMap, 0)) / vec2(textureSize(_NoiseMap, 0)) * vertexUv;
@@ -39,9 +36,7 @@ void main()
 		sampleUv.xy /= sampleUv.w;
 		sampleUv.xy = sampleUv.xy * 0.5 + 0.5;
 
-		float sampleDepth = LinearizeDepth(texture2D(_DepthMap, sampleUv).x);
-		/*float rangeCheck = smoothstep(0.0, 1.0, _Radius / abs(sampleDepth - depth));
-		occlusion += rangeCheck * step(depth, sampleDepth);*/
+		float sampleDepth = LinearizeDepth(texture2D(_DepthMap, sampleUv.xy).x);
 
 		if (sampleDepth == 1.0)
 		{

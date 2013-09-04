@@ -16,6 +16,8 @@
 
 #include <vector>
 
+#include <iostream>
+
 SSAOApplication::SSAOApplication() :
 	Application("ssao", 1024, 768, 30, true, "../../core/")
 {
@@ -60,7 +62,7 @@ void SSAOApplication::OnStart()
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
 	pDirectionalLight->SetIntensity(0.5f);
 
-	GameObject* pModel = ModelImporter::Import("models/Atrium.obj", ModelImporter::IS_QUALITY_GOOD | ModelImporter::IS_GENERATE_OPTIMIZED_MODEL_FILE);
+	GameObject* pModel = ModelImporter::Import("models/Atrium.obj", ModelImporter::IS_QUALITY_GOOD | ModelImporter::IS_INVERT_TEXTURE_COORDINATE_V);
 
 	pGameObject = GameObject::Instantiate();
 

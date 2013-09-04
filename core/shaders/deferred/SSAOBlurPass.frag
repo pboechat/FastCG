@@ -1,7 +1,9 @@
+#version 330
+
 #define NOISE_TEXTURE_SIDE 4
 #define NOISE_TEXTURE_SIZE 16
 
-noperspective in vec2 vertexUv;
+in vec2 vertexUv;
 
 uniform sampler2D _AmbientOcclusionMap;
 

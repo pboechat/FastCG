@@ -71,6 +71,9 @@ InternalFormat TextureImporter::GetInternalFormat(int format)
 	case GL_BGRA:
 		return IF_BGRA;
 
+	case GL_LUMINANCE:
+		return IF_LUMINANCE;
+
 	case GL_LUMINANCE_ALPHA:
 		return IF_LUMINANCE_ALPHA;
 

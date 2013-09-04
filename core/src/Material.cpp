@@ -68,3 +68,4 @@ void Material::SetUpParameters() const
 		textureParametersCursor++;
 	}
 }
+

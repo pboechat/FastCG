@@ -3,6 +3,7 @@
 
 #include <Shader.h>
 #include <Texture.h>
+#include <Exception.h>
 
 #include <glm/glm.hpp>
 
@@ -26,6 +27,16 @@ public:
 	}
 
 	void SetUpParameters() const;
+
+	float GetFloat(const std::string& rParameterName) const
+	{
+		std::map<std::string, float>::const_iterator it = mFloatParameters.find(rParameterName);
+		if (it == mFloatParameters.end())
+		{
+			THROW_EXCEPTION(Exception, "Parameter not found: %s", rParameterName.c_str());
+		}
+		return it->second;
+	}
 
 	inline void SetFloat(const std::string& rParameterName, float value)
 	{
@@ -76,7 +87,7 @@ public:
 	{
 		mTwoSided = twoSided;
 	}
-
+	
 private:
 	Shader* mpShader;
 	std::map<std::string, float> mFloatParameters;

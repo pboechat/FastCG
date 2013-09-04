@@ -22,6 +22,7 @@ enum InternalFormat
 	IF_RGBA,
 	IF_BGR,
 	IF_BGRA,
+	IF_LUMINANCE,
 	IF_LUMINANCE_ALPHA
 };
 
