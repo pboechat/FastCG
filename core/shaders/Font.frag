@@ -7,6 +7,6 @@ in vec2 textureCoordinates;
 
 void main()
 {
-	vec4 texel = texture(font, textureCoordinates);
-	gl_FragColor = texel * color;
+	float alpha = texture(font, textureCoordinates).r;
+	gl_FragColor = vec4(color.rgb, alpha);
 }

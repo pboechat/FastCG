@@ -15,8 +15,6 @@ public:
 private:
 	static bool s_mInitialized;
 
-	static InternalFormat GetInternalFormat(int format);
-
 	TextureImporter()
 	{
 	}

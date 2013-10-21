@@ -164,7 +164,7 @@ void DeferredRenderingStrategy::GenerateNoiseTexture()
 		}
 	}
 
-	mpNoiseTexture = new Texture(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 3, IF_RGB, DF_FLOAT, FM_POINT_FILTER, WM_REPEAT, &pNoises[0][0]);
+	mpNoiseTexture = new Texture(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, GL_NEAREST, GL_REPEAT, &pNoises[0][0]);
 }
 
 void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()

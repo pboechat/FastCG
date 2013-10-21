@@ -3,9 +3,7 @@
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/freeglut.h>
+#include <GL3/gl3w.h>
 
 Points::Points(const std::vector<glm::vec3>& rVertices, float size, const glm::vec4& rColor) :
 	mVertices(rVertices),

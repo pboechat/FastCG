@@ -3,6 +3,7 @@
 #include <ShaderRegistry.h>
 #include <MathT.h>
 #include <Application.h>
+#include <OpenGLExceptions.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -12,8 +13,7 @@
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <GL3/gl3w.h>
 
 const unsigned int Font::NUM_CHARS = 128;
 
@@ -121,14 +121,13 @@ void Font::AllocateResources()
 		int textureWidth = MathF::UpperPowerOfTwo(bitmap.width);
 		int textureHeight = MathF::UpperPowerOfTwo(bitmap.rows);
 
-		unsigned char* pData = new unsigned char[2 * textureWidth * textureHeight];
-
-		for (int j = 0; j < textureHeight; j++) 
+		unsigned char* pData = new unsigned char[textureWidth * textureHeight];
+		for (int j = 0, k = 0, l = 0; j < textureHeight; j++) 
 		{
-			for (int i = 0; i < textureWidth; i++)
+			k = j * characterWidth;
+			for (int i = 0; i < textureWidth; i++, l++)
 			{
-				pData[2 * (i + j * textureWidth)] = 255;
-				pData[2 * (i + j * textureWidth) + 1] = (i >= characterWidth || j >= characterHeight) ? 0 : bitmap.buffer[i + characterWidth * j];
+				pData[l] = (i >= characterWidth || j >= characterHeight) ? 0 : bitmap.buffer[k + i];
 			}
 		}
 
@@ -136,9 +135,13 @@ void Font::AllocateResources()
 		glBindTexture(GL_TEXTURE_2D, mCharactersTexturesIds[c]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, textureWidth, textureHeight, 0, GL_RED, GL_UNSIGNED_BYTE, pData);
 
-		mBillboards[c] = CreateCharacterBillboard(characterWidth, characterHeight, characterWidth / (float)textureWidth, characterHeight / (float)textureHeight);
+		CHECK_FOR_OPENGL_ERRORS();
+
+		mBillboards[c] = CreateCharacterBillboard(characterWidth, characterHeight, characterWidth / (float) textureWidth, characterHeight / (float) textureHeight);
 		mSpacings[c] = face->glyph->advance.x >> 6;
 		mOffsets[c] = glm::vec2((float)bitmapGlyph->left, (float)(bitmapGlyph->top - characterHeight));
 

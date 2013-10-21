@@ -21,23 +21,18 @@
 
 #include <glm/glm.hpp>
 
+#include <windows.h>
+#include <windowsx.h>
 #include <string>
 #include <vector>
 
-void GLUTIdleCallback();
-void GLUTDisplayCallback();
-void GLUTReshapeWindowCallback(int width, int height);
-void GLUTMouseButtonCallback(int button, int state, int x, int y);
-void GLUTMouseWheelCallback(int button, int direction, int x, int y);
-void GLUTMouseMoveCallback(int x, int y);
-void GLUTKeyboardCallback(unsigned char key, int x, int y);
-void GLUTKeyboardUpCallback(unsigned char key, int x, int y);
-void GLUTSpecialKeysCallback(int key, int x, int y);
-void GLUTSpecialKeysUpCallback(int key, int x, int y);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 class Input;
 class ModelImporter;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class Application
 {
 public:
@@ -84,27 +79,24 @@ public:
 		return mpRenderingStrategy;
 	}
 
-	void Run(int argc, char** argv);
+	int Run(int argc, char** argv);
 	void Exit();
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, Font* pFont, const glm::vec4& rColor);
 	void DrawText(const std::string& rText, unsigned int size, int x, int y, const glm::vec4& rColor);
 	void BeforeMeshFilterChange(MeshFilter* pMeshFilter);
 	void AfterMeshFilterChange(MeshFilter* pMeshFilter);
 
-	friend void GLUTIdleCallback();
-	friend void GLUTDisplayCallback();
-	friend void GLUTReshapeWindowCallback(int, int);
-	friend void GLUTMouseButtonCallback(int, int, int, int);
-	friend void GLUTMouseWheelCallback(int, int, int, int);
-	friend void GLUTMouseMoveCallback(int, int);
-	friend void GLUTKeyboardCallback(unsigned char, int, int);
-	friend void GLUTKeyboardUpCallback(unsigned char, int, int);
-	friend void GLUTSpecialKeysCallback(int, int, int);
-	friend void GLUTSpecialKeysUpCallback(int, int, int);
-	friend void ExitCallback();
 	friend class GameObject;
+	friend LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 protected:
+	static const std::string WINDOW_CLASS_NAME;
+	static const unsigned int BYTES_PER_PIXEL;
+	static const unsigned int COLOR_BUFFER_BITS;
+	static const unsigned int DEPTH_BUFFER_BITS;
+	static const unsigned int HAS_ALPHA;
+	static const PIXELFORMATDESCRIPTOR PIXEL_FORMAT_DESCRIPTOR;
+
 	Camera* mpMainCamera;
 	glm::vec4 mClearColor;
 	glm::vec4 mGlobalAmbientLight;
@@ -157,7 +149,11 @@ private:
 	float mHalfScreenHeight;
 	float mAspectRatio;
 	std::string mWindowTitle;
-	unsigned int mGLUTWindowHandle;
+	HINSTANCE mApplicationHandle;
+	HWND mWindowHandle;
+	HDC mDeviceContextHandle;
+	int mPixelFormat;
+	HGLRC mOpenGLRenderingContextHandle;
 	GameObject* mpInternalGameObject;
 	std::vector<GameObject*> mGameObjects;
 	std::vector<Camera*> mCameras;
@@ -170,7 +166,7 @@ private:
 	std::vector<PointsRenderer*> mPointsRenderers;
 	std::vector<Component*> mComponents;
 	std::vector<RenderBatch*> mRenderBatches;
-	Timer mStartTimer;
+	Timer mApplicationTimer;
 	Timer mFrameRateTimer;
 	unsigned int mElapsedFrames;
 	double mTotalElapsedTime;
@@ -181,7 +177,8 @@ private:
 	RenderBatchingStrategy* mpRenderBatchingStrategy;
 	RenderingStatistics mRenderingStatistics;
 
-	void SetUpGLUT(int argc, char** argv);
+	void Dispose();
+	WNDCLASSEX CreateWindowClass();
 	void SetUpOpenGL();
 	void SetMainCamera(Camera* pCamera);
 	void RegisterGameObject(GameObject* pGameObject);
@@ -198,7 +195,7 @@ private:
 	void MouseButton(int button, int state, int x, int y);
 	void MouseWheel(int button, int direction, int x, int y);
 	void MouseMove(int x, int y);
-	void Keyboard(int key, int x, int y, bool state);
+	void Keyboard(int key, bool state);
 	
 };
 

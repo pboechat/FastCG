@@ -1,8 +1,7 @@
 #include <Material.h>
 #include <Mesh.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <GL3/gl3w.h>
 
 #include <vector>
 #include <sstream>

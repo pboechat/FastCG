@@ -3,8 +3,7 @@
 #include <Exception.h>
 //#include <OpenGLExceptions.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <GL3/gl3w.h>
 
 Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs) :
 	mVertices(vertices), 

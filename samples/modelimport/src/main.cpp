@@ -7,7 +7,5 @@
 int main(int argc, char** argv)
 {
 	ModelImportApplication app;
-	app.Run(argc, argv);
-	system("pause");
-	return 0;
+	return app.Run(argc, argv);
 }

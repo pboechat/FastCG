@@ -7,7 +7,5 @@
 int main(int argc, char** argv)
 {
 	BumpMapping2Application app;
-	app.Run(argc, argv);
-	system("pause");
-	return 0;
+	return app.Run(argc, argv);
 }

@@ -6,8 +6,7 @@
 
 #include <glm/glm.hpp>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <GL3/gl3w.h>
 
 #include <cstdlib>
 #include <string>

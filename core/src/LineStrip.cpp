@@ -3,9 +3,7 @@
 #include <Exception.h>
 #include <OpenGLExceptions.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/freeglut.h>
+#include <GL3/gl3w.h>
 
 LineStrip::LineStrip(const std::vector<glm::vec3>& rVertices, const glm::vec4& rColor) :
 	mVertices(rVertices)
