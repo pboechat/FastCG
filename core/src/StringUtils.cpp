@@ -1,6 +1,7 @@
 #include <StringUtils.h>
 
 #include <algorithm>
+#include <xfunctional>
 #include <cctype>
 
 StringUtils::StringUtils()

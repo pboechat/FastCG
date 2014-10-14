@@ -97,7 +97,7 @@ GameObject* ModelImportApplication::ImportModelToScene(const std::string& rFileN
 	scale = MathF::Max(boundingVolume.max.z - boundingVolume.min.z, scale);
 	scale = 1.0f / scale;
 
-	pTransform->ScaleLocal(glm::vec3(scale, scale, scale));
+	pTransform->SetScale(glm::vec3(scale, scale, scale));
 	pTransform->SetPosition(-boundingVolume.center * scale);
 
 	pGameObject->SetActive(false);

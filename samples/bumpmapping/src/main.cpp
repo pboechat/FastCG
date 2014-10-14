@@ -2,7 +2,7 @@
 #include <cstdlib>
 
 // memory leak detection
-#include <vld.h>
+//#include <vld.h>
 
 int main(int argc, char** argv)
 {
