@@ -2,7 +2,7 @@
 
 **FastCG** is a C++ application framework for rapid prototyping of virtual reality applications.
 
-Developed during my *realtime rendering* master's course. 
+Developed during my *realtime rendering* master course. 
 
 It features:
 
