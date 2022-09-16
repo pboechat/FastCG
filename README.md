@@ -1,6 +1,6 @@
 # FastCG
 
-**FastCG** is a C++ application framework for rapid prototyping of virtual reality applications.
+**FastCG** is a C++ application framework for rapid prototyping of 3D applications.
 
 Developed during my *realtime rendering* master course. 
 
@@ -13,4 +13,4 @@ It features:
  - very simple shader management
  - true type font support
  - Unity-like API
- - OpenGL 4
+ - OpenGL 3.3

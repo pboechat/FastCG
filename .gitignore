@@ -1,31 +1,4 @@
-[Dd]ebug/
-[Rr]elease/
-[Dd]ebug_FFP/
-[Rr]elease_FFP/
-ipch/
-
-memory_leak_report.txt
-assimpLog.txt
-UpgradeLog.XML
-
-*.sdf
-*.opensdf
-*.suo
-*.vcxproj.user
-
-# AStyle Backup
-*.orig
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+.vs/
+build/
+bin/
+libs/

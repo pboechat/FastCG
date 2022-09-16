@@ -1,25 +1,20 @@
 #include "SSAOApplication.h"
-#include "KeyBindings.h"
+#include "Controls.h"
 
-#include <DirectionalLight.h>
-#include <PointLight.h>
-#include <ShaderRegistry.h>
-#include <MeshRenderer.h>
-#include <MeshFilter.h>
-#include <PointLight.h>
-#include <FirstPersonCameraController.h>
-#include <ModelImporter.h>
-#include <TextureImporter.h>
-#include <StandardGeometries.h>
-#include <Colors.h>
-#include <MathT.h>
-
-#include <vector>
-
-#include <iostream>
+#include <FastCG/TextureImporter.h>
+#include <FastCG/StandardGeometries.h>
+#include <FastCG/ShaderRegistry.h>
+#include <FastCG/PointLight.h>
+#include <FastCG/ModelImporter.h>
+#include <FastCG/MeshRenderer.h>
+#include <FastCG/MeshFilter.h>
+#include <FastCG/MathT.h>
+#include <FastCG/FirstPersonCameraController.h>
+#include <FastCG/DirectionalLight.h>
+#include <FastCG/Colors.h>
 
 SSAOApplication::SSAOApplication() :
-	Application("ssao", 1024, 768, 30, true, "../../core/")
+	Application("ssao", 1024, 768, 30, true, "../assets")
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -30,10 +25,10 @@ void SSAOApplication::OnStart()
 	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 2, 0));
 	mpMainCamera->SetSSAOEnabled(true);
 
-	GameObject* pGameObject = GameObject::Instantiate();
+	auto* pGameObject = GameObject::Instantiate();
 	pGameObject->GetTransform()->Rotate(glm::vec3(60, 90, 0));
 
-	DirectionalLight* pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
+	auto* pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
 	pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
 	pDirectionalLight->SetIntensity(0.5f);
@@ -62,13 +57,13 @@ void SSAOApplication::OnStart()
 	pDirectionalLight->SetSpecularColor(Colors::WHITE);
 	pDirectionalLight->SetIntensity(0.5f);
 
-	GameObject* pModel = ModelImporter::Import("models/Atrium.obj", ModelImporter::IS_QUALITY_GOOD | ModelImporter::IS_INVERT_TEXTURE_COORDINATE_V);
+	auto* pModel = ModelImporter::Import("objs/Atrium.obj", (ModelImporterOptions)ModelImporterOption::MIO_EXPORT_OPTIMIZED_MODEL_FILE);
 
 	pGameObject = GameObject::Instantiate();
 
-	KeyBindings* pKeyBindings = KeyBindings::Instantiate(pGameObject);
+	auto* pControls = Controls::Instantiate(pGameObject);
 
-	FirstPersonCameraController* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pGameObject);
+	auto* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pGameObject);
 	pFirstPersonCameraController->SetWalkSpeed(5.0f);
 	pFirstPersonCameraController->SetTurnSpeed(180.0f);
 	pFirstPersonCameraController->SetFlying(true);
