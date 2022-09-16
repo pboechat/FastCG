@@ -7,6 +7,7 @@
 #include <FastCG/Application.h>
 
 #include <cstdint>
+#include <cassert>
 
 IMPLEMENT_COMPONENT(Controls, Behaviour);
 
@@ -22,14 +23,16 @@ void Controls::OnUpdate(float time, float deltaTime)
 
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
 	{
-		auto* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
+		auto pDeferredRenderingStrategy = std::dynamic_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
+		assert(pDeferredRenderingStrategy != nullptr);
 		auto displayGBufferEnabled = pDeferredRenderingStrategy->IsDisplayGBufferEnabled();
 		pDeferredRenderingStrategy->SetDisplayGBufferEnabled(!displayGBufferEnabled);
 		mLastKeyPressTime = time;
 	}
 	else if (Input::GetKey(KeyCode::F2) && time - mLastKeyPressTime > 0.333f)
 	{
-		auto* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
+		auto pDeferredRenderingStrategy = std::dynamic_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
+		assert(pDeferredRenderingStrategy != nullptr);
 		auto showPointLightsEnabled = pDeferredRenderingStrategy->IsShowPointLightsEnabled();
 		pDeferredRenderingStrategy->SetShowPointLightsEnabled(!showPointLightsEnabled);
 		mLastKeyPressTime = time;

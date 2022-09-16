@@ -3,8 +3,9 @@
 
 #include <FastCG/Font.h>
 
-#include <map>
 #include <string>
+#include <memory>
+#include <map>
 #include <cstdint>
 
 namespace FastCG
@@ -15,12 +16,10 @@ namespace FastCG
 		static constexpr uint32_t STANDARD_FONT_SIZE = 16;
 
 		static void LoadFontsFromDisk(const std::string& rFontsDirectory);
-		static Font* Find(const std::string& rFontName);
+		static std::shared_ptr<Font> Find(const std::string& rFontName);
 		static void Unload();
 
 	private:
-		static std::map<std::string, Font*> mFontsByName;
-
 		FontRegistry() = delete;
 		~FontRegistry() = delete;
 

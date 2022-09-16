@@ -76,14 +76,14 @@ namespace FastCG
 			mClearColor = clearColor;
 		}
 
-		inline RenderingStrategy* GetRenderingStrategy()
+		inline std::shared_ptr<RenderingStrategy> GetRenderingStrategy() const
 		{
 			return mpRenderingStrategy;
 		}
 
 		int Run(int argc, char** argv);
 		void Exit();
-		void DrawText(const std::string& rText, uint32_t x, uint32_t y, Font* pFont, const glm::vec4& rColor);
+		void DrawText(const std::string& rText, uint32_t x, uint32_t y, const std::shared_ptr<Font>& pFont, const glm::vec4& rColor);
 		void DrawText(const std::string& rText, uint32_t x, uint32_t y, const glm::vec4& rColor);
 		void BeforeMeshFilterChange(MeshFilter* pMeshFilter);
 		void AfterMeshFilterChange(MeshFilter* pMeshFilter);
@@ -100,7 +100,7 @@ namespace FastCG
 		bool mRunning{ false };
 		bool mShowFPS{ false };
 		bool mShowRenderingStatistics{ false };
-		Font* mpStandardFont{ nullptr };
+		std::shared_ptr<Font> mpStandardFont{ nullptr };
 
 		virtual bool ParseCommandLineArguments(int argc, char** argv);
 		virtual void OnRegisterComponent() {}
@@ -120,7 +120,7 @@ namespace FastCG
 			std::string text;
 			uint32_t x;
 			uint32_t y;
-			Font* pFont;
+			std::shared_ptr<Font> pFont;
 			glm::vec4 color;
 
 		};
@@ -155,9 +155,8 @@ namespace FastCG
 		uint32_t mElapsedFrames{ 0 };
 		double mTotalElapsedTime{ 0 };
 		std::vector<DrawTextRequest> mDrawTextRequests;
-		Input* mpInput{ nullptr };
-		ModelImporter* mpModelImporter{ nullptr };
-		RenderingStrategy* mpRenderingStrategy{ nullptr };
+		std::unique_ptr<Input> mpInput{ nullptr };
+		std::shared_ptr<RenderingStrategy> mpRenderingStrategy{ nullptr };
 		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{ nullptr };
 		RenderingStatistics mRenderingStatistics;
 		double mLastFrameTime{ 0 };

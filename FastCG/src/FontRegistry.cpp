@@ -5,7 +5,7 @@
 
 namespace FastCG
 {
-	std::map<std::string, Font*> FontRegistry::mFontsByName;
+	static std::map<std::string, std::shared_ptr<Font>> gFontsByName;
 
 	bool FontRegistry::ExtractFontInfo(const std::string& rFontFileName, std::string& rFontName)
 	{
@@ -30,19 +30,18 @@ namespace FastCG
 			{
 				continue;
 			}
-			auto it = mFontsByName.find(fontName);
-			if (it == mFontsByName.end())
+			auto it = gFontsByName.find(fontName);
+			if (it == gFontsByName.end())
 			{
-				auto* newFont = new Font(rFontsDirectory + "/" + rFontFile, STANDARD_FONT_SIZE);
-				mFontsByName.emplace(fontName, newFont);
+				gFontsByName.emplace(fontName, std::make_shared<Font>(rFontsDirectory + "/" + rFontFile, STANDARD_FONT_SIZE));
 			}
 		}
 	}
 
-	Font* FontRegistry::Find(const std::string& rFontName)
+	std::shared_ptr<Font> FontRegistry::Find(const std::string& rFontName)
 	{
-		auto it = mFontsByName.find(rFontName);
-		if (it == mFontsByName.end())
+		auto it = gFontsByName.find(rFontName);
+		if (it == gFontsByName.end())
 		{
 			THROW_EXCEPTION(Exception, "Font not found: %s", rFontName.c_str());
 		}
@@ -51,13 +50,7 @@ namespace FastCG
 
 	void FontRegistry::Unload()
 	{
-		auto it = mFontsByName.begin();
-		while (it != mFontsByName.end())
-		{
-			delete it->second;
-			it++;
-		}
-		mFontsByName.clear();
+		gFontsByName.clear();
 	}
 
 }

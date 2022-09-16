@@ -7,6 +7,8 @@
 #include <FastCG/DeferredRenderingStrategy.h>
 #include <FastCG/MathT.h>
 
+#include <cassert>
+
 IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
@@ -28,7 +30,9 @@ void Controls::OnUpdate(float time, float deltaTime)
 
 	auto* pCamera = Application::GetInstance()->GetMainCamera();
 
-	auto* pDeferredRenderingStrategy = dynamic_cast<DeferredRenderingStrategy*>(Application::GetInstance()->GetRenderingStrategy());
+	auto pDeferredRenderingStrategy = std::dynamic_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
+	assert(pDeferredRenderingStrategy != nullptr);
+
 	float ssaoRadius = pDeferredRenderingStrategy->GetSSAORadius();
 	float ssaoDistanceScale = pDeferredRenderingStrategy->GetSSAODistanceScale();
 

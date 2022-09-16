@@ -16,6 +16,9 @@ namespace FastCG
 		static const int MOUSE_WHEEL_STEP = 1;
 		static const int MAXIMUM_MOUSE_WHEEL_DELTA = 128;
 
+		Input();
+		~Input();
+
 		static bool GetKey(int keyCode);
 		static MouseButtonState GetMouseButton(MouseButton button);
 		static const glm::vec2& GetMousePosition();
@@ -58,9 +61,6 @@ namespace FastCG
 
 		InputBuffer mFrontBuffer;
 		InputBuffer mBackBuffer;
-
-		Input();
-		~Input();
 
 		void SetKey(int keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);

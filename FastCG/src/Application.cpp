@@ -27,8 +27,9 @@
 
 namespace FastCG
 {
-	const std::string DEFERRED_RENDERING_SHADERS_FOLDER = "shaders/deferred";
 	const std::string SHADERS_FOLDER = "shaders";
+	const std::string FORWARD_RENDERING_SHADERS_FOLDER = SHADERS_FOLDER + "/forward";
+	const std::string DEFERRED_RENDERING_SHADERS_FOLDER = SHADERS_FOLDER + "/deferred";
 	const std::string FONTS_FOLDER = "fonts";
 	const std::string DEFAULT_FONT_NAME = "verdana";
 
@@ -57,9 +58,6 @@ namespace FastCG
 		sprintf_s(msg, sizeof(msg) / sizeof(char), fmt, ##__VA_ARGS__); \
 		MessageBoxA(NULL, msg, title, MB_ICONWARNING); \
 	}
-
-#define DRAW_TEXT(text, x, y, color) \
-	mpStandardFont->DrawString(text, x, y, color)
 
 #ifdef _WIN32
 	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -117,8 +115,8 @@ namespace FastCG
 		mDeferredRendering(deferredRendering),
 		mAssetsPath(rAssetsPath),
 		mSecondsPerFrame(1.0 / (double)mFrameRate),
-		mHalfScreenWidth(screenWidth / 2.0f),
-		mHalfScreenHeight(screenHeight / 2.0f),
+		mHalfScreenWidth(screenWidth * 0.5f),
+		mHalfScreenHeight(screenHeight * 0.5f),
 		mAspectRatio(mScreenWidth / (float)mScreenHeight)
 	{
 		s_mpInstance = this;
@@ -126,16 +124,6 @@ namespace FastCG
 
 	Application::~Application()
 	{
-		if (mpRenderingStrategy != nullptr)
-		{
-			delete mpRenderingStrategy;
-		}
-
-		if (mpInput != nullptr)
-		{
-			delete mpInput;
-		}
-
 		mDrawTextRequests.clear();
 
 		ShaderRegistry::Unload();
@@ -268,12 +256,13 @@ namespace FastCG
 
 		try
 		{
-			mpInput = new Input();
+			mpInput = std::make_unique<Input>();
 
 			SetUpPresentation();
 			SetUpOpenGL();
 
-			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + ((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : SHADERS_FOLDER));
+			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + SHADERS_FOLDER);
+			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + ((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : FORWARD_RENDERING_SHADERS_FOLDER));
 			FontRegistry::LoadFontsFromDisk(mAssetsPath + "/" + FONTS_FOLDER);
 			TextureImporter::SetBasePath(mAssetsPath);
 			ModelImporter::SetBasePath(mAssetsPath);
@@ -282,11 +271,11 @@ namespace FastCG
 
 			if (mDeferredRendering)
 			{
-				mpRenderingStrategy = new DeferredRenderingStrategy(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+				mpRenderingStrategy = std::make_unique<DeferredRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 			}
 			else
 			{
-				mpRenderingStrategy = new ForwardRenderingStrategy(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+				mpRenderingStrategy = std::make_unique<ForwardRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
 			}
 
 			mpRenderBatchingStrategy = std::make_unique<MaterialGroupsBatchingStrategy>(mRenderBatches);
@@ -420,40 +409,42 @@ namespace FastCG
 			NULL
 		);
 
-		if (mHWnd == 0)
+		if (mHWnd != 0)
+		{
+			mHDC = GetDC(mHWnd);
+
+			PIXELFORMATDESCRIPTOR pixelFormatDescr =
+			{
+				sizeof(PIXELFORMATDESCRIPTOR),
+				1,
+				PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+				PFD_TYPE_RGBA,
+				32,
+				0, 0, 0, 0, 0, 0,			// color bits (ignored)
+				0,							// no alpha buffer
+				0,							// alpha bits (ignored)
+				0,							// no accumulation buffer
+				0, 0, 0, 0,					// accum bits (ignored)
+				32,							// depth buffer
+				0,							// no stencil buffer
+				0,							// no auxiliary buffers
+				PFD_MAIN_PLANE,				// main layer
+				0,							// reserved
+				0, 0, 0,					// no layer, visible, damage masks
+			};
+			auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
+			if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
+			{
+				THROW_EXCEPTION(Exception, "Error setting pixel format");
+			}
+
+			ShowWindow(mHWnd, SW_SHOW);
+			UpdateWindow(mHWnd);
+		}
+		else
 		{
 			THROW_EXCEPTION(Exception, "Error creating window");
 		}
-
-		mHDC = GetDC(mHWnd);
-
-		PIXELFORMATDESCRIPTOR pixelFormatDescr =
-		{
-			sizeof(PIXELFORMATDESCRIPTOR),
-			1,
-			PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-			PFD_TYPE_RGBA,
-			32,
-			0, 0, 0, 0, 0, 0,			// color bits (ignored)
-			0,							// no alpha buffer
-			0,							// alpha bits (ignored)
-			0,							// no accumulation buffer
-			0, 0, 0, 0,					// accum bits (ignored)
-			32,							// depth buffer
-			0,							// no stencil buffer
-			0,							// no auxiliary buffers
-			PFD_MAIN_PLANE,				// main layer
-			0,							// reserved
-			0, 0, 0,					// no layer, visible, damage masks
-		};
-		auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
-		if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
-		{
-			THROW_EXCEPTION(Exception, "Error setting pixel format");
-		}
-
-		ShowWindow(mHWnd, SW_SHOW);
-		UpdateWindow(mHWnd);
 #else
 #error FastCG::Application::SetUpPresentation() is not implemented on the current platform
 #endif
@@ -583,7 +574,7 @@ namespace FastCG
 
 		for (auto& rDrawTextRequest : mDrawTextRequests)
 		{
-			DRAW_TEXT(rDrawTextRequest.text, rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y), rDrawTextRequest.color);
+			mpStandardFont->DrawString(rDrawTextRequest.text, rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y), rDrawTextRequest.color);
 		}
 		mDrawTextRequests.clear();
 	}
@@ -593,7 +584,7 @@ namespace FastCG
 		char fpsText[128];
 
 		sprintf_s(fpsText, sizeof(fpsText) / sizeof(char), "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
-		DRAW_TEXT(fpsText, mScreenWidth - 240, (mScreenHeight - 17), Colors::GREEN);
+		mpStandardFont->DrawString(fpsText, mScreenWidth - 240, (mScreenHeight - 17), Colors::GREEN);
 	}
 
 	void Application::ShowRenderingStatistics()
@@ -601,10 +592,10 @@ namespace FastCG
 		char text[128];
 
 		sprintf_s(text, sizeof(text) / sizeof(char), "Draw Calls: %zu", mRenderingStatistics.drawCalls);
-		DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 34), Colors::GREEN);
+		mpStandardFont->DrawString(text, mScreenWidth - 240, (mScreenHeight - 34), Colors::GREEN);
 
 		sprintf_s(text, sizeof(text) / sizeof(char), "No. Triangles: %zu", mRenderingStatistics.numberOfTriangles);
-		DRAW_TEXT(text, mScreenWidth - 240, (mScreenHeight - 51), Colors::GREEN);
+		mpStandardFont->DrawString(text, mScreenWidth - 240, (mScreenHeight - 51), Colors::GREEN);
 	}
 
 	void Application::Render()
@@ -619,7 +610,7 @@ namespace FastCG
 		DrawAllTexts();
 	}
 
-	void Application::DrawText(const std::string& rText, uint32_t x, uint32_t y, Font* pFont, const glm::vec4& rColor)
+	void Application::DrawText(const std::string& rText, uint32_t x, uint32_t y, const std::shared_ptr<Font>& pFont, const glm::vec4& rColor)
 	{
 		mDrawTextRequests.emplace_back(DrawTextRequest{ rText, x, y, pFont, rColor });
 	}
