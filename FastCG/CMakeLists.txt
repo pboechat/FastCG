@@ -44,7 +44,7 @@ source_group("include" FILES ${HEADERS})
 source_group("src" FILES ${SOURCES})
 source_group("shaders" FILES ${SHADERS})
 
-add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE CXX)

@@ -263,7 +263,7 @@ namespace FastCG
 		std::vector<uint32_t>& rIndices
 	)
 	{
-		auto* pMeshRenderer = dynamic_cast<MeshRenderer*>(pGameObject->GetComponent(MeshRenderer::TYPE));
+		auto* pMeshRenderer = static_cast<MeshRenderer*>(pGameObject->GetComponent(MeshRenderer::TYPE));
 		if (pMeshRenderer != nullptr)
 		{
 			auto& rModel = pGameObject->GetTransform()->GetModel();

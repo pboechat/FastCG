@@ -7,7 +7,7 @@
 #include <FastCG/Input.h>
 #include <FastCG/KeyCode.h>
 #include <FastCG/MouseButton.h>
-#include <FastCG/RenderingStrategy.h>
+#include <FastCG/RenderingPathStrategy.h>
 #include <FastCG/ForwardRenderingStrategy.h>
 #include <FastCG/DeferredRenderingStrategy.h>
 #include <FastCG/MaterialGroupsBatchingStrategy.h>
@@ -38,7 +38,7 @@ namespace FastCG
 #define REGISTER_COMPONENT(className, component) \
 	if (component->GetType().IsDerived(className::TYPE)) \
 	{ \
-		m##className##s.emplace_back(dynamic_cast<className*>(component)); \
+		m##className##s.emplace_back(static_cast<className*>(component)); \
 	}
 
 #define UNREGISTER_COMPONENT(className, component) \
@@ -139,7 +139,6 @@ namespace FastCG
 
 		assert(mGameObjects.empty());
 		assert(mCameras.empty());
-		assert(mLights.empty());
 		assert(mDirectionalLights.empty());
 		assert(mPointLights.empty());
 		assert(mMeshFilters.empty());
@@ -173,7 +172,6 @@ namespace FastCG
 	{
 		assert(pComponent != nullptr);
 
-		REGISTER_COMPONENT(Light, pComponent);
 		REGISTER_COMPONENT(DirectionalLight, pComponent);
 		REGISTER_COMPONENT(PointLight, pComponent);
 		REGISTER_COMPONENT(MeshFilter, pComponent);
@@ -183,11 +181,11 @@ namespace FastCG
 
 		if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 		{
-			RegisterCamera(dynamic_cast<Camera*>(pComponent));
+			RegisterCamera(static_cast<Camera*>(pComponent));
 		}
 		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
 		{
-			mpRenderBatchingStrategy->AddMeshFilter(dynamic_cast<MeshFilter*>(pComponent));
+			mpRenderBatchingStrategy->AddMeshFilter(static_cast<MeshFilter*>(pComponent));
 		}
 
 		mComponents.emplace_back(pComponent);
@@ -204,7 +202,6 @@ namespace FastCG
 		assert(pComponent != nullptr);
 
 		UNREGISTER_COMPONENT(Camera, pComponent);
-		UNREGISTER_COMPONENT(Light, pComponent);
 		UNREGISTER_COMPONENT(DirectionalLight, pComponent);
 		UNREGISTER_COMPONENT(PointLight, pComponent);
 		UNREGISTER_COMPONENT(LineRenderer, pComponent);
@@ -222,7 +219,7 @@ namespace FastCG
 		}
 		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
 		{
-			mpRenderBatchingStrategy->RemoveMeshFilter(dynamic_cast<MeshFilter*>(pComponent));
+			mpRenderBatchingStrategy->RemoveMeshFilter(static_cast<MeshFilter*>(pComponent));
 		}
 	}
 
@@ -265,11 +262,11 @@ namespace FastCG
 			{
 			case FastCG::RenderingPath::RP_FORWARD_RENDERING:
 				ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + FORWARD_RENDERING_SHADERS_FOLDER);
-				mpRenderingStrategy = std::make_unique<ForwardRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+				mpRenderingPathStrategy = std::make_unique<ForwardRenderingStrategy>(mScreenWidth, mScreenHeight, mAmbientLight, mDirectionalLights, mPointLights, mLineRenderers, mPointsRenderers, mRenderBatches, mRenderingStatistics);
 				break;
 			case FastCG::RenderingPath::RP_DEFERRED_RENDERING:
 				ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + DEFERRED_RENDERING_SHADERS_FOLDER);
-				mpRenderingStrategy = std::make_unique<DeferredRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+				mpRenderingPathStrategy = std::make_unique<DeferredRenderingStrategy>(mScreenWidth, mScreenHeight, mAmbientLight, mDirectionalLights, mPointLights, mLineRenderers, mPointsRenderers, mRenderBatches, mRenderingStatistics);
 				break;
 			default:
 				break;
@@ -608,7 +605,7 @@ namespace FastCG
 		}
 
 		glClearColor(mClearColor.x, mClearColor.y, mClearColor.z, mClearColor.w);
-		mpRenderingStrategy->Render(mpMainCamera);
+		mpRenderingPathStrategy->Render(mpMainCamera);
 		DrawAllTexts();
 	}
 

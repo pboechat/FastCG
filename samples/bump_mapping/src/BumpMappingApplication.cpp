@@ -25,7 +25,7 @@ void GetMaterialsRecursively(const GameObject* pGameObject, std::vector<std::sha
 	for (auto* pChild : pGameObject->GetTransform()->GetChildren())
 	{
 		const auto* pChildGameObject = pChild->GetGameObject();
-		auto* pMeshFilter = dynamic_cast<MeshFilter*>(pChildGameObject->GetComponent(MeshFilter::TYPE));
+		auto* pMeshFilter = static_cast<MeshFilter*>(pChildGameObject->GetComponent(MeshFilter::TYPE));
 		if (pMeshFilter == nullptr)
 		{
 			continue;

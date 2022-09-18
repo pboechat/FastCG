@@ -1,7 +1,7 @@
 #ifndef FASTCG_DEFERRED_RENDERING_STRATEGY_H_
 #define FASTCG_DEFERRED_RENDERING_STRATEGY_H_
 
-#include <FastCG/RenderingStrategy.h>
+#include <FastCG/RenderingPathStrategy.h>
 #include <FastCG/Texture.h>
 #include <FastCG/Shader.h>
 #include <FastCG/Mesh.h>
@@ -14,18 +14,17 @@
 
 namespace FastCG
 {
-	class DeferredRenderingStrategy : public RenderingStrategy
+	class DeferredRenderingStrategy : public RenderingPathStrategy
 	{
 	public:
 		DeferredRenderingStrategy(const uint32_t& rScreenWidth,
 			const uint32_t& rScreenHeight,
-			const std::vector<Light*>& rLights,
+			const glm::vec4& rAmbientLight,
 			const std::vector<DirectionalLight*>& rDirectionalLights,
 			const std::vector<PointLight*>& rPointLights,
-			const glm::vec4& rGlobalAmbientLight,
-			const std::vector<std::unique_ptr<RenderBatch>>& rRenderingGroups,
 			const std::vector<LineRenderer*>& rLineRenderers,
 			const std::vector<PointsRenderer*>& rPointsRenderer,
+			const std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches,
 			RenderingStatistics& rRenderingStatistics);
 
 		virtual ~DeferredRenderingStrategy();
@@ -140,7 +139,6 @@ namespace FastCG
 		void GenerateRandomSamplesInAHemisphere();
 		void AllocateTexturesAndFBOs();
 		void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
-		float CalculateLightBoundingBoxScale(PointLight* pLight);
 
 	};
 

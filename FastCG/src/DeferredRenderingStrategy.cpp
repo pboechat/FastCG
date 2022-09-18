@@ -10,6 +10,14 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+float CalculateLightBoundingSphereScale(const FastCG::PointLight* pPointLight)
+{
+	auto diffuseColor = pPointLight->GetDiffuseColor();
+	auto maxChannel = FastCG::MathF::Max(FastCG::MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+	auto c = maxChannel * pPointLight->GetIntensity();
+	return (8.0f * FastCG::MathF::Sqrt(c) + 1.0f);
+}
+
 namespace FastCG
 {
 	const uint32_t DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
@@ -22,15 +30,14 @@ namespace FastCG
 
 	DeferredRenderingStrategy::DeferredRenderingStrategy(const uint32_t& rScreenWidth,
 		const uint32_t& rScreenHeight,
-		const std::vector<Light*>& rLights,
+		const glm::vec4& rAmbientLight,
 		const std::vector<DirectionalLight*>& rDirectionalLights,
 		const std::vector<PointLight*>& rPointLights,
-		const glm::vec4& rGlobalAmbientLight,
-		const std::vector<std::unique_ptr<RenderBatch>>& rRenderingGroups,
 		const std::vector<LineRenderer*>& rLineRenderers,
 		const std::vector<PointsRenderer*>& rPointsRenderer,
+		const std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches,
 		RenderingStatistics& rRenderingStatistics) :
-		RenderingStrategy(rScreenWidth, rScreenHeight, rLights, rDirectionalLights, rPointLights, rGlobalAmbientLight, rRenderingGroups, rLineRenderers, rPointsRenderer, rRenderingStatistics),
+		RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics),
 		mSSAORadius(DEFAULT_SSAO_RADIUS),
 		mSSAODistanceScale(DEFAULT_SSAO_DISTANCE_SCALE)
 	{
@@ -528,7 +535,7 @@ namespace FastCG
 					glDisable(GL_CULL_FACE);
 
 					auto& rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
-					auto lightBoundingSphereScale = CalculateLightBoundingBoxScale(pPointLight);
+					auto lightBoundingSphereScale = CalculateLightBoundingSphereScale(pPointLight);
 					glm::vec3 scaleVector(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale);
 					auto modelViewProjection = rProjection * (rView * glm::scale(rModel, scaleVector));
 
@@ -567,7 +574,7 @@ namespace FastCG
 					mpPointLightPassShader->SetTexture("_DepthMap", 3);
 					mpPointLightPassShader->SetTexture("_AmbientOcclusionMap", 4);
 					mpPointLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
-					mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
+					mpPointLightPassShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
 					mpPointLightPassShader->SetVec3("_Light0Position", glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f)));
 					mpPointLightPassShader->SetVec4("_Light0AmbientColor", pPointLight->GetAmbientColor());
 					mpPointLightPassShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
@@ -615,7 +622,7 @@ namespace FastCG
 				mpDirectionalLightPassShader->SetTexture("_DepthMap", 3);
 				mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 4);
 				mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
-				mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
+				mpDirectionalLightPassShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
 
 				auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
 				for (auto* pDirectionalLight : mrDirectionalLights)
@@ -667,7 +674,7 @@ namespace FastCG
 				mpLineStripShader->SetMat4("_ModelView", modelView);
 				mpLineStripShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
-				mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
+				mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
 				pLineRenderer->Render();
 				mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 			}
@@ -696,7 +703,7 @@ namespace FastCG
 				mpPointsShader->SetMat4("_ModelView", modelView);
 				mpPointsShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpPointsShader->SetMat4("_ModelViewProjection", projection * modelView);
-				mpPointsShader->SetVec4("_GlobalLightAmbientColor", mrGlobalAmbientLight);
+				mpPointsShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
 				auto* pPoints = pPointsRenderer->GetPoints();
 
 				if (pPoints != 0)
@@ -712,14 +719,6 @@ namespace FastCG
 
 			CHECK_FOR_OPENGL_ERRORS();
 		}
-	}
-
-	float DeferredRenderingStrategy::CalculateLightBoundingBoxScale(PointLight* pPointLight)
-	{
-		auto diffuseColor = pPointLight->GetDiffuseColor();
-		auto maxChannel = MathF::Max(MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
-		auto c = maxChannel * pPointLight->GetIntensity();
-		return (8.0f * MathF::Sqrt(c) + 1.0f);
 	}
 
 }

@@ -23,7 +23,7 @@ void Controls::OnUpdate(float time, float deltaTime)
 
 	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
 	{
-		auto pDeferredRenderingStrategy = std::dynamic_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
+		auto pDeferredRenderingStrategy = std::static_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
 		assert(pDeferredRenderingStrategy != nullptr);
 		auto displayGBufferEnabled = pDeferredRenderingStrategy->IsDisplayGBufferEnabled();
 		pDeferredRenderingStrategy->SetDisplayGBufferEnabled(!displayGBufferEnabled);
@@ -31,7 +31,7 @@ void Controls::OnUpdate(float time, float deltaTime)
 	}
 	else if (Input::GetKey(KeyCode::F2) && time - mLastKeyPressTime > 0.333f)
 	{
-		auto pDeferredRenderingStrategy = std::dynamic_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
+		auto pDeferredRenderingStrategy = std::static_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
 		assert(pDeferredRenderingStrategy != nullptr);
 		auto showPointLightsEnabled = pDeferredRenderingStrategy->IsShowPointLightsEnabled();
 		pDeferredRenderingStrategy->SetShowPointLightsEnabled(!showPointLightsEnabled);

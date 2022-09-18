@@ -3,7 +3,7 @@
 
 #include <FastCG/Timer.h>
 #include <FastCG/Shader.h>
-#include <FastCG/RenderingStrategy.h>
+#include <FastCG/RenderingPathStrategy.h>
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/Renderer.h>
 #include <FastCG/RenderBatchingStrategy.h>
@@ -92,6 +92,8 @@ namespace FastCG
 			return mpMainCamera;
 		}
 
+		void SetMainCamera(Camera* pCamera);
+
 		inline const glm::vec4& GetClearColor() const
 		{
 			return mClearColor;
@@ -102,9 +104,9 @@ namespace FastCG
 			mClearColor = clearColor;
 		}
 
-		inline std::shared_ptr<RenderingStrategy> GetRenderingStrategy() const
+		inline std::shared_ptr<RenderingPathStrategy> GetRenderingStrategy() const
 		{
-			return mpRenderingStrategy;
+			return mpRenderingPathStrategy;
 		}
 
 		int Run(int argc, char** argv);
@@ -158,7 +160,7 @@ namespace FastCG
 		double mSecondsPerFrame;
 		bool mRunning{ false };
 		std::shared_ptr<Font> mpStandardFont{ nullptr };
-		std::shared_ptr<RenderingStrategy> mpRenderingStrategy{ nullptr };
+		std::shared_ptr<RenderingPathStrategy> mpRenderingPathStrategy{ nullptr };
 		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{ nullptr };
 		std::unique_ptr<Input> mpInput{ nullptr };
 		Timer mStartTimer;
@@ -171,7 +173,6 @@ namespace FastCG
 		Camera* mpMainCamera{ nullptr };
 		std::vector<GameObject*> mGameObjects;
 		std::vector<Camera*> mCameras;
-		std::vector<Light*> mLights;
 		std::vector<DirectionalLight*> mDirectionalLights;
 		std::vector<PointLight*> mPointLights;
 		std::vector<MeshFilter*> mMeshFilters;
@@ -195,7 +196,6 @@ namespace FastCG
 		void TearDownOpenGL();
 		void DestroyOpenGLContext();
 		void RunMainLoop();
-		void SetMainCamera(Camera* pCamera);
 		void RegisterGameObject(GameObject* pGameObject);
 		void UnregisterGameObject(GameObject* pGameObject);
 		void RegisterComponent(Component* pComponent);

@@ -56,7 +56,7 @@ namespace FastCG
 
 		if (rComponentType.IsDerived(Renderer::TYPE))
 		{
-			mpRenderer = dynamic_cast<Renderer*>(pComponent);
+			mpRenderer = static_cast<Renderer*>(pComponent);
 		}
 
 		Application::GetInstance()->RegisterComponent(pComponent);
@@ -129,7 +129,7 @@ namespace FastCG
 	AABB GameObject::GetBounds() const
 	{
 		AABB bounds;
-		auto* pMeshRenderer = dynamic_cast<MeshRenderer*>(GetComponent(MeshRenderer::TYPE));
+		auto* pMeshRenderer = static_cast<MeshRenderer*>(GetComponent(MeshRenderer::TYPE));
 		if (pMeshRenderer != nullptr)
 		{
 			for (const auto& pMesh : pMeshRenderer->GetMeshes())

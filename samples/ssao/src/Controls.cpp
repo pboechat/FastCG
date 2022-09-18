@@ -30,7 +30,7 @@ void Controls::OnUpdate(float time, float deltaTime)
 
 	auto* pCamera = Application::GetInstance()->GetMainCamera();
 
-	auto pDeferredRenderingStrategy = std::dynamic_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
+	auto pDeferredRenderingStrategy = std::static_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
 	assert(pDeferredRenderingStrategy != nullptr);
 
 	float ssaoRadius = pDeferredRenderingStrategy->GetSSAORadius();
