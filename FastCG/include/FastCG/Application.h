@@ -36,14 +36,35 @@ LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);
 
 namespace FastCG
 {
-
 	class Input;
 	class ModelImporter;
+
+	enum class RenderingPath : uint8_t
+	{
+		RP_FORWARD_RENDERING = 0,
+		RP_DEFERRED_RENDERING,
+
+	};
+
+	struct ApplicationSettings
+	{
+		std::string windowTitle;
+		uint32_t screenWidth{ 1024 };
+		uint32_t screenHeight{ 768 };
+		uint32_t frameRate{ 60 };
+		RenderingPath renderingPath{ RenderingPath::RP_FORWARD_RENDERING };
+		std::string assetsPath{ "../assets" };
+		glm::vec4 clearColor{ Colors::BLACK };
+		glm::vec4 ambientLight{ Colors::BLACK };
+		bool showFPS{ false };
+		bool showRenderingStatistics{ false };
+
+	};
 
 	class Application
 	{
 	public:
-		Application(const std::string& rWindowTitle, uint32_t screenWidth, uint32_t screenHeight, uint32_t frameRate, bool deferredRendering = false, const std::string& rAssetsPath = "");
+		Application(const ApplicationSettings& settings);
 		virtual ~Application();
 
 		inline static Application* GetInstance()
@@ -59,6 +80,11 @@ namespace FastCG
 		inline uint32_t GetScreenHeight() const
 		{
 			return mScreenHeight;
+		}
+
+		inline float GetAspectRatio() const
+		{
+			return mScreenWidth / (float)mScreenHeight;
 		}
 
 		inline Camera* GetMainCamera()
@@ -94,13 +120,10 @@ namespace FastCG
 #endif
 
 	protected:
-		Camera* mpMainCamera{ nullptr };
-		glm::vec4 mClearColor{ Colors::BLACK };
-		glm::vec4 mGlobalAmbientLight{ Colors::BLACK };
-		bool mRunning{ false };
-		bool mShowFPS{ false };
-		bool mShowRenderingStatistics{ false };
-		std::shared_ptr<Font> mpStandardFont{ nullptr };
+		glm::vec4 mClearColor;
+		glm::vec4 mAmbientLight;
+		bool mShowFPS;
+		bool mShowRenderingStatistics;
 
 		virtual bool ParseCommandLineArguments(int argc, char** argv);
 		virtual void OnRegisterComponent() {}
@@ -127,18 +150,25 @@ namespace FastCG
 
 		static Application* s_mpInstance;
 
+		std::string mWindowTitle;
 		uint32_t mScreenWidth;
 		uint32_t mScreenHeight;
-		uint32_t mFrameRate;
-		double mSecondsPerFrame;
-		bool mDeferredRendering;
+		RenderingPath mRenderingPath;
 		std::string mAssetsPath;
-		float mHalfScreenWidth;
-		float mHalfScreenHeight;
-		float mAspectRatio;
-		std::string mWindowTitle;
-		uint32_t mGLUTWindowHandle{ 0 };
+		double mSecondsPerFrame;
+		bool mRunning{ false };
+		std::shared_ptr<Font> mpStandardFont{ nullptr };
+		std::shared_ptr<RenderingStrategy> mpRenderingStrategy{ nullptr };
+		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{ nullptr };
+		std::unique_ptr<Input> mpInput{ nullptr };
+		Timer mStartTimer;
+		Timer mFrameRateTimer;
+		uint32_t mElapsedFrames{ 0 };
+		double mTotalElapsedTime{ 0 };
+		double mLastFrameTime{ 0 };
+		RenderingStatistics mRenderingStatistics;
 		GameObject* mpInternalGameObject{ nullptr };
+		Camera* mpMainCamera{ nullptr };
 		std::vector<GameObject*> mGameObjects;
 		std::vector<Camera*> mCameras;
 		std::vector<Light*> mLights;
@@ -150,16 +180,7 @@ namespace FastCG
 		std::vector<PointsRenderer*> mPointsRenderers;
 		std::vector<Component*> mComponents;
 		std::vector<std::unique_ptr<RenderBatch>> mRenderBatches;
-		Timer mStartTimer;
-		Timer mFrameRateTimer;
-		uint32_t mElapsedFrames{ 0 };
-		double mTotalElapsedTime{ 0 };
 		std::vector<DrawTextRequest> mDrawTextRequests;
-		std::unique_ptr<Input> mpInput{ nullptr };
-		std::shared_ptr<RenderingStrategy> mpRenderingStrategy{ nullptr };
-		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{ nullptr };
-		RenderingStatistics mRenderingStatistics;
-		double mLastFrameTime{ 0 };
 #ifdef _WIN32
 		HINSTANCE mHInstance{ 0 };
 		HWND mHWnd{ 0 };

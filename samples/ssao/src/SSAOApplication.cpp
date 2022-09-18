@@ -14,7 +14,7 @@
 #include <FastCG/Colors.h>
 
 SSAOApplication::SSAOApplication() :
-	Application("ssao", 1024, 768, 30, true, "../assets")
+	Application({ "ssao", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING })
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -22,8 +22,8 @@ SSAOApplication::SSAOApplication() :
 
 void SSAOApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 2, 0));
-	mpMainCamera->SetSSAOEnabled(true);
+	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 2, 0));
+	GetMainCamera()->SetSSAOEnabled(true);
 
 	auto* pGameObject = GameObject::Instantiate();
 	pGameObject->GetTransform()->Rotate(glm::vec3(60, 90, 0));

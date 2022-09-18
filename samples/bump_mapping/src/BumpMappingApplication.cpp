@@ -14,7 +14,7 @@
 #include <FastCG/Colors.h>
 
 BumpMappingApplication::BumpMappingApplication() :
-	Application("bump_mapping", 1024, 768, 60, false, "../assets")
+	Application({ "bump_mapping" })
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -85,7 +85,7 @@ void LoadModel(std::vector<std::shared_ptr<Material>>& rModelMaterials)
 
 void BumpMappingApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0, 1));
+	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0, 1));
 
 	std::vector<GameObject*> sceneLights;
 	CreateSceneLights(sceneLights);

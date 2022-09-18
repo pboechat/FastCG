@@ -29,7 +29,7 @@ const float WALK_SPEED = 20.0f;
 const float TURN_SPEED = 100.0f;
 
 DeferredRenderingApplication::DeferredRenderingApplication() :
-	Application("deferred_rendering", 1024, 768, 60, true, "../assets")
+	Application({ "deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING })
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -37,8 +37,8 @@ DeferredRenderingApplication::DeferredRenderingApplication() :
 
 void DeferredRenderingApplication::OnStart()
 {
-	mpMainCamera->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
-	mpMainCamera->GetGameObject()->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
+	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
+	GetMainCamera()->GetGameObject()->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
 	std::vector<PointLight*> pointLights;
 	GameObject* pPointLightGameObject;

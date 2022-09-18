@@ -107,17 +107,17 @@ namespace FastCG
 	}
 #endif
 
-	Application::Application(const std::string& rWindowTitle, uint32_t screenWidth, uint32_t screenHeight, uint32_t frameRate, bool deferredRendering, const std::string& rAssetsPath) :
-		mWindowTitle(rWindowTitle),
-		mScreenWidth(screenWidth),
-		mScreenHeight(screenHeight),
-		mFrameRate(frameRate),
-		mDeferredRendering(deferredRendering),
-		mAssetsPath(rAssetsPath),
-		mSecondsPerFrame(1.0 / (double)mFrameRate),
-		mHalfScreenWidth(screenWidth * 0.5f),
-		mHalfScreenHeight(screenHeight * 0.5f),
-		mAspectRatio(mScreenWidth / (float)mScreenHeight)
+	Application::Application(const ApplicationSettings& settings) :
+		mWindowTitle(settings.windowTitle),
+		mScreenWidth(settings.screenWidth),
+		mScreenHeight(settings.screenHeight),
+		mRenderingPath(settings.renderingPath),
+		mAssetsPath(settings.assetsPath),
+		mClearColor(settings.clearColor),
+		mAmbientLight(settings.ambientLight),
+		mShowFPS(settings.showFPS),
+		mShowRenderingStatistics(settings.showRenderingStatistics),
+		mSecondsPerFrame(1.0 / (double)settings.frameRate)
 	{
 		s_mpInstance = this;
 	}
@@ -128,8 +128,6 @@ namespace FastCG
 
 		ShaderRegistry::Unload();
 		FontRegistry::Unload();
-
-		mpStandardFont = nullptr;
 
 		auto gameObjectsToDestroy = mGameObjects;
 		for (auto* pGameObject : gameObjectsToDestroy)
@@ -243,7 +241,7 @@ namespace FastCG
 		}
 
 		mpMainCamera = pCamera;
-		mpMainCamera->SetAspectRatio(mAspectRatio);
+		mpMainCamera->SetAspectRatio(GetAspectRatio());
 	}
 
 	int Application::Run(int argc, char** argv)
@@ -262,21 +260,25 @@ namespace FastCG
 			SetUpOpenGL();
 
 			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + SHADERS_FOLDER);
-			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + ((mDeferredRendering) ? DEFERRED_RENDERING_SHADERS_FOLDER : FORWARD_RENDERING_SHADERS_FOLDER));
+
+			switch (mRenderingPath)
+			{
+			case FastCG::RenderingPath::RP_FORWARD_RENDERING:
+				ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + FORWARD_RENDERING_SHADERS_FOLDER);
+				mpRenderingStrategy = std::make_unique<ForwardRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+				break;
+			case FastCG::RenderingPath::RP_DEFERRED_RENDERING:
+				ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + DEFERRED_RENDERING_SHADERS_FOLDER);
+				mpRenderingStrategy = std::make_unique<DeferredRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
+				break;
+			default:
+				break;
+			}
 			FontRegistry::LoadFontsFromDisk(mAssetsPath + "/" + FONTS_FOLDER);
 			TextureImporter::SetBasePath(mAssetsPath);
 			ModelImporter::SetBasePath(mAssetsPath);
 
 			mpStandardFont = FontRegistry::Find(DEFAULT_FONT_NAME);
-
-			if (mDeferredRendering)
-			{
-				mpRenderingStrategy = std::make_unique<DeferredRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
-			}
-			else
-			{
-				mpRenderingStrategy = std::make_unique<ForwardRenderingStrategy>(mScreenWidth, mScreenHeight, mLights, mDirectionalLights, mPointLights, mGlobalAmbientLight, mRenderBatches, mLineRenderers, mPointsRenderers, mRenderingStatistics);
-			}
 
 			mpRenderBatchingStrategy = std::make_unique<MaterialGroupsBatchingStrategy>(mRenderBatches);
 
@@ -634,12 +636,9 @@ namespace FastCG
 	{
 		mScreenWidth = width;
 		mScreenHeight = height;
-		mHalfScreenWidth = width * 0.5f;
-		mHalfScreenHeight = height * 0.5f;
-		mAspectRatio = mScreenWidth / (float)mScreenHeight;
 		if (mpMainCamera != nullptr)
 		{
-			mpMainCamera->SetAspectRatio(mAspectRatio);
+			mpMainCamera->SetAspectRatio(GetAspectRatio());
 		}
 		OnResize();
 	}
@@ -688,4 +687,4 @@ namespace FastCG
 		}
 	}
 
-}
+	}
