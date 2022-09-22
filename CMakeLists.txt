@@ -17,6 +17,6 @@ foreach(CMAKE_CONFIGURATION_TYPE ${CMAKE_CONFIGURATION_TYPES})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CMAKE_CONFIGURATION_TYPE} ${LIBS})
 endforeach(CMAKE_CONFIGURATION_TYPE CMAKE_CONFIGURATION_TYPES)
 
-add_subdirectory(FastCG)
 add_subdirectory(dependencies)
+add_subdirectory(FastCG)
 add_subdirectory(samples)
