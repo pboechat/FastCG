@@ -16,12 +16,14 @@
 #include <FastCG/Exception.h>
 #include <FastCG/OpenGLExceptions.h>
 
-#include <GL/wglew.h>
 #include <GL/gl.h>
+#include <GL/glew.h>
 #ifdef _WIN32
+#include <GL/wglew.h>
 #include <Windows.h>
 #endif
 
+#include <cstdio>
 #include <cassert>
 #include <algorithm>
 
@@ -449,12 +451,77 @@ namespace FastCG
 #endif
 	}
 
+#ifdef _DEBUG
+#define CASE_RETURN_STRING(str) case str: return #str
+	const char* GetOpenGLDebugOutputMessageSourceString(GLenum source)
+	{
+		switch (source)
+		{
+			CASE_RETURN_STRING(GL_DEBUG_SOURCE_API);
+			CASE_RETURN_STRING(GL_DEBUG_SOURCE_SHADER_COMPILER);
+			CASE_RETURN_STRING(GL_DEBUG_SOURCE_WINDOW_SYSTEM);
+			CASE_RETURN_STRING(GL_DEBUG_SOURCE_APPLICATION);
+			CASE_RETURN_STRING(GL_DEBUG_SOURCE_OTHER);
+		default:
+			assert("Unhandled OpengGL debug output message source");
+			return nullptr;
+		}
+	}
+
+	const char* GetOpenGLDebugOutputMessageTypeString(GLenum type)
+	{
+		switch (type)
+		{
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_ERROR);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_PERFORMANCE);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_PORTABILITY);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_OTHER);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_MARKER);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_PUSH_GROUP);
+			CASE_RETURN_STRING(GL_DEBUG_TYPE_POP_GROUP);
+		default:
+			assert("Unhandled OpengGL debug output message type");
+			return nullptr;
+		}
+	}
+
+	const char* GetOpenGLDebugOutputMessageSeverity(GLenum severity)
+	{
+		switch (severity)
+		{
+			CASE_RETURN_STRING(GL_DEBUG_SEVERITY_HIGH);
+			CASE_RETURN_STRING(GL_DEBUG_SEVERITY_MEDIUM);
+			CASE_RETURN_STRING(GL_DEBUG_SEVERITY_LOW);
+			CASE_RETURN_STRING(GL_DEBUG_SEVERITY_NOTIFICATION);
+		default:
+			assert("Unhandled OpengGL debug output message severity");
+			return nullptr;
+		}
+	}
+
+	void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
+	{
+		printf_s(
+			"[%s] - %s - %s - %d - %s\n",
+			GetOpenGLDebugOutputMessageSeverity(severity),
+			GetOpenGLDebugOutputMessageSourceString(source),
+			GetOpenGLDebugOutputMessageTypeString(type),
+			id,
+			message
+		);
+	}
+#endif
+
 	void Application::SetUpOpenGL()
 	{
 		CreateOpenGLContext();
 
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_PROGRAM_POINT_SIZE);
+#ifdef _DEBUG
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallbackARB(OpenGLDebugCallback, nullptr);
+#endif
 	}
 
 	void Application::CreateOpenGLContext()
@@ -480,10 +547,13 @@ namespace FastCG
 		}
 
 		const int attribs[] = {
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 2,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3
+			, WGL_CONTEXT_MINOR_VERSION_ARB, 2
+			, WGL_CONTEXT_FLAGS_ARB, 0
+#ifdef _DEBUG
+			| WGL_CONTEXT_DEBUG_BIT_ARB
+#endif
+			, 0
 		};
 		mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
 		if (mHGLRC == 0)
