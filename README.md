@@ -9,8 +9,8 @@ It features:
  - basic materials: diffuse, specular, bump, etc.
  - deferred rendering
  - screen space ambient occlusion
- - model/texture importer (through DevIL and assimp)
+ - model/texture importer
  - very simple shader management
  - true type font support
  - Unity-like API
- - OpenGL 3.3
+ - OpenGL 3.3 (core profile)
