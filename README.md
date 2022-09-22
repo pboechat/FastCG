@@ -1,6 +1,6 @@
 # FastCG
 
-**FastCG** is a C++ application framework for rapid prototyping of 3D applications.
+**FastCG** is a C++ application framework for fast prototyping of 3D applications.
 
 Developed during my *realtime rendering* master course. 
 
