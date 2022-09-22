@@ -64,8 +64,7 @@ void CreateSceneLights(std::vector<GameObject*>& rSceneLights)
 
 void LoadModel(std::vector<std::shared_ptr<Material>>& rModelMaterials)
 {
-	auto pModel = ModelImporter::Import("objs/Doomsday.obj");
-
+	auto* pModel = ModelImporter::Import("objs/Doomsday.obj");
 	if (pModel == nullptr)
 	{
 		THROW_EXCEPTION(Exception, "Missing doomsday model");
