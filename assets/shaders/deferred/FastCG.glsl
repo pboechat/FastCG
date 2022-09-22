@@ -6,11 +6,12 @@ uniform float _TanHalfFov;
 uniform sampler2D _DiffuseMap;
 uniform sampler2D _NormalMap;
 uniform sampler2D _SpecularMap;
-uniform sampler2D _DepthMap;
+uniform sampler2D _TangentMap;
+uniform sampler2D _ExtraData;
+uniform sampler2D _Depth;
 uniform sampler2D _AmbientOcclusionMap;
-uniform vec4 _GlobalLightAmbientColor;
+uniform vec4 _AmbientColor;
 uniform vec3 _Light0Position;
-uniform vec4 _Light0AmbientColor;
 uniform vec4 _Light0DiffuseColor;
 uniform vec4 _Light0SpecularColor;
 uniform float _Light0Intensity;
@@ -28,9 +29,24 @@ float DistanceAttenuation(vec3 position)
 	return 1.0 / max(_Light0ConstantAttenuation + _Light0LinearAttenuation * d + _Light0QuadraticAttenuation * pow(d, 2), 1.0);
 }
 
-vec3 UnpackNormal(vec4 packedNormal)
+vec3 PackNormalToColor(vec3 value)
 {
-	return (packedNormal.xyz - 0.5) * 2.0;
+	return value.xyz * 0.5 + 0.5;
+}
+
+vec4 PackNormalToColor(vec4 value)
+{
+	return vec4(PackNormalToColor(value.xyz), value.w);
+}
+
+vec3 UnpackNormalFromColor(vec3 color)
+{
+	return (color.xyz - 0.5) * 2.0;
+}
+
+vec4 UnpackNormalFromColor(vec4 color)
+{
+	return vec4((color.xyz - 0.5) * 2.0, color.w);
 }
 
 float LinearizeDepth(float depth) 
@@ -38,17 +54,17 @@ float LinearizeDepth(float depth)
 	return _Projection[3][2] / (depth - (_Projection[2][2] / _Projection[2][3]));
 }
 
-vec3 GetPositionFromWindowCoordinates(vec3 windowCoordinates)
+vec3 GetWorldPositionFromScreenCoordsAndDepth(vec3 screenCoords)
 {
-	vec3 normalizedDeviceCoordinatesPosition;
-    normalizedDeviceCoordinatesPosition.xy = (2.0 * windowCoordinates.xy) / _ScreenSize - 1;
-    normalizedDeviceCoordinatesPosition.z = (2.0 * windowCoordinates.z - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
+	vec3 ndc;
+    ndc.xy = (2.0 * screenCoords.xy) / _ScreenSize - 1;
+    ndc.z = (2.0 * screenCoords.z - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
  
-    vec4 clipSpacePosition;
-    clipSpacePosition.w = _Projection[3][2] / (normalizedDeviceCoordinatesPosition.z - (_Projection[2][2] / _Projection[2][3]));
-    clipSpacePosition.xyz = normalizedDeviceCoordinatesPosition * clipSpacePosition.w;
+    vec4 clipCoords;
+    clipCoords.w = _Projection[3][2] / (ndc.z - (_Projection[2][2] / _Projection[2][3]));
+    clipCoords.xyz = ndc * clipCoords.w;
  
-    vec4 eyePosition = _InverseProjection * clipSpacePosition;
+    vec4 eyePosition = _InverseProjection * clipCoords;
 
 	return eyePosition.xyz / eyePosition.w;
 }

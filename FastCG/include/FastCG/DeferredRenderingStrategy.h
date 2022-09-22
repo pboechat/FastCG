@@ -101,8 +101,6 @@ namespace FastCG
 		const static uint32_t NOISE_TEXTURE_HEIGHT;
 		const static uint32_t NOISE_TEXTURE_SIZE;
 
-		uint32_t mHalfScreenWidth;
-		uint32_t mHalfScreenHeight;
 		float mAspectRatio;
 		uint32_t mGBufferFBOId{ ~0u };
 		uint32_t mSSAOFBOId{ ~0u };
@@ -110,6 +108,8 @@ namespace FastCG
 		uint32_t mNormalTextureId{ ~0u };
 		uint32_t mDiffuseTextureId{ ~0u };
 		uint32_t mSpecularTextureId{ ~0u };
+		uint32_t mTangentTextureId{ ~0u };
+		uint32_t mExtraDataTextureId{ ~0u };
 		uint32_t mDepthTextureId{ ~0u };
 		uint32_t mSSAOTextureId{ ~0u };
 		uint32_t mBlurredSSAOTextureId{ ~0u };

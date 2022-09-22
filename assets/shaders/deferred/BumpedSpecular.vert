@@ -10,15 +10,13 @@ in vec4 tangent;
 in vec2 uv;
 
 out vec3 vertexNormal;
-out vec3 vertexTangent;
-out vec3 vertexBinormal;
+out vec4 vertexTangent;
 out vec2 vertexUV;
 
 void main()
 {
 	vertexNormal = normalize(_ModelViewInverseTranspose * normal);
-	vertexTangent = normalize(_ModelViewInverseTranspose * tangent.xyz);
-	vertexBinormal = normalize(cross(vertexNormal, vertexTangent) * tangent.w);
+	vertexTangent = vec4(normalize(_ModelViewInverseTranspose * tangent.xyz), tangent.w);
 	vertexUV = uv;
 	gl_Position = _ModelViewProjection * position;
 }

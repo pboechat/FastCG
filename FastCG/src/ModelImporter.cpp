@@ -143,7 +143,6 @@ namespace FastCG
 		{
 			auto& material = pMaterials[materialIdx];
 
-			auto ambientColor = glm::vec4{ material.ambient[0], material.ambient[1], material.ambient[2], 1.0 };
 			auto diffuseColor = glm::vec4{ material.diffuse[0], material.diffuse[1], material.diffuse[2], 1.0 };
 			auto specularColor = glm::vec4{ material.specular[0], material.specular[1], material.specular[2], 1.0 };
 			auto emissiveColor = glm::vec4{ material.emission[0], material.emission[1], material.emission[2], 1.0 };
@@ -165,7 +164,7 @@ namespace FastCG
 			if (pBumpMapTexture != nullptr)
 			{
 				// TODO:
-				if (shininess != 1.0f)
+				if (shininess != 0.0f)
 				{
 					pShader = ShaderRegistry::Find("BumpedSpecular");
 				}
@@ -177,7 +176,7 @@ namespace FastCG
 			else if (pColorMapTexture != nullptr)
 			{
 				// TODO:
-				if (shininess != 1.0f)
+				if (shininess != 0.0f)
 				{
 					pShader = ShaderRegistry::Find("Specular");
 				}
@@ -192,7 +191,6 @@ namespace FastCG
 			}
 
 			auto pManagedMaterial = std::make_shared<Material>(pShader);
-			pManagedMaterial->SetVec4("ambientColor", ambientColor);
 			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
 			pManagedMaterial->SetVec4("specularColor", specularColor);
 			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);

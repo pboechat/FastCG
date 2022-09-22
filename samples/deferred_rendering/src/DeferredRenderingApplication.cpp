@@ -61,7 +61,7 @@ void DeferredRenderingApplication::OnStart()
 			pPointLight->SetSpecularColor(color);
 			pPointLight->SetIntensity(intensity);
 
-			pointLights.push_back(pPointLight);
+			pointLights.emplace_back(pPointLight);
 		}
 	}
 

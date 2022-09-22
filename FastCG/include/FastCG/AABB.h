@@ -10,9 +10,14 @@ namespace FastCG
 		glm::vec3 min{ 0, 0, 0 };
 		glm::vec3 max{ 0, 0, 0 };
 
+		inline glm::vec3 getExtent() const
+		{
+			return max - min;
+		}
+
 		inline glm::vec3 getCenter() const
 		{
-			return (max - min) * 0.5f;
+			return min + getExtent() * 0.5f;
 		}
 
 		void Expand(const AABB& other)

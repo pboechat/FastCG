@@ -19,14 +19,25 @@ file(GLOB SOURCES
 	"${PROJECT_SOURCE_DIR}/src/*.c"
 )
 
-file(GLOB SHADERS 
-	"${PROJECT_SOURCE_DIR}/../assets/shaders/**/*.vert" 
-	"${PROJECT_SOURCE_DIR}/../assets/shaders/**/*.frag" 
-	"${PROJECT_SOURCE_DIR}/../assets/shaders/**/*.glsl" 
+file(GLOB FORWARD_SHADERS 
+	"${PROJECT_SOURCE_DIR}/../assets/shaders/forward/*.vert" 
+	"${PROJECT_SOURCE_DIR}/../assets/shaders/forward/*.frag" 
+	"${PROJECT_SOURCE_DIR}/../assets/shaders/forward/*.glsl" 
+)
+
+file(GLOB DEFERRED_SHADERS 
+	"${PROJECT_SOURCE_DIR}/../assets/shaders/deferred/*.vert" 
+	"${PROJECT_SOURCE_DIR}/../assets/shaders/deferred/*.frag" 
+	"${PROJECT_SOURCE_DIR}/../assets/shaders/deferred/*.glsl" 
+)
+
+file(GLOB GENERAL_SHADERS 
 	"${PROJECT_SOURCE_DIR}/../assets/shaders/*.vert" 
 	"${PROJECT_SOURCE_DIR}/../assets/shaders/*.frag" 
 	"${PROJECT_SOURCE_DIR}/../assets/shaders/*.glsl" 
 )
+
+set(SHADERS ${FORWARD_SHADERS} ${DEFERRED_SHADERS} ${GENERAL_SHADERS})
 
 set(${PROJECT_NAME}_INCLUDE_DIRS ${glew_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include 
 	CACHE INTERNAL "${PROJECT_NAME}: includes" FORCE)
@@ -42,7 +53,9 @@ include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 
 source_group("include" FILES ${HEADERS})
 source_group("src" FILES ${SOURCES})
-source_group("shaders" FILES ${SHADERS})
+source_group("shaders/deferred" FILES ${DEFERRED_SHADERS})
+source_group("shaders/forward" FILES ${FORWARD_SHADERS})
+source_group("shaders" FILES ${GENERAL_SHADERS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
 

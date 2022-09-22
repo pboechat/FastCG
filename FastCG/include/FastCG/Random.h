@@ -11,6 +11,7 @@ namespace FastCG
 		static float NextFloat();
 		static int Range(int min, int max);
 		static glm::vec4 NextColor();
+		static void Seed(unsigned int seed);
 		static void SeedWithTime();
 
 	private:

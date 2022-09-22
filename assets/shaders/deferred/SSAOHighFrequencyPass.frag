@@ -16,13 +16,13 @@ uniform vec3 _RandomSamples[NUMBER_OF_RANDOM_SAMPLES];
 
 void main()
 {
-	float depth = LinearizeDepth(texture2D(_DepthMap, uv).x);
+	float depth = LinearizeDepth(texture2D(_Depth, uv).x);
 	vec3 position = viewRay * depth;
 
 	vec2 noiseUv = vec2(textureSize(_NormalMap, 0)) / vec2(textureSize(_NoiseMap, 0)) * uv;
 	vec3 randomVector = texture2D(_NoiseMap, noiseUv).xyz * 2.0 - 1.0;
 
-	vec3 normal = UnpackNormal(texture2D(_NormalMap, uv));
+	vec3 normal = UnpackNormalFromColor(texture2D(_NormalMap, uv)).xyz;
 	vec3 tangent = normalize(randomVector - normal * dot(randomVector, normal)); // gram-schmidt orthonormalization
 	vec3 binormal = cross(normal, tangent);
 	mat3 tangentSpaceMatrix = mat3(tangent, binormal, normal);
@@ -36,7 +36,7 @@ void main()
 		sampleUv.xy /= sampleUv.w;
 		sampleUv.xy = sampleUv.xy * 0.5 + 0.5;
 
-		float sampleDepth = LinearizeDepth(texture2D(_DepthMap, sampleUv.xy).x);
+		float sampleDepth = LinearizeDepth(texture2D(_Depth, sampleUv.xy).x);
 
 		if (sampleDepth == 1.0)
 		{

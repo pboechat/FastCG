@@ -1,11 +1,10 @@
 #version 330
 
 #include "FastCG.glsl"
-#include "Lighting.glsl"
+#include "../Lighting.glsl"
 
 uniform sampler2D colorMap;
 uniform vec2 colorMapTiling;
-uniform vec4 ambientColor;
 uniform vec4 diffuseColor;
 uniform vec4 specularColor;
 uniform float shininess;
@@ -17,17 +16,9 @@ in vec2 vertexUV;
 
 void main()
 {
-	vec4 texelColor = texture(colorMap, (vertexUV * colorMapTiling));
-	vec4 finalDiffuseColor = diffuseColor * texelColor;
+	vec4 finalDiffuseColor = diffuseColor * texture(colorMap, (vertexUV * colorMapTiling));
 
 	vec3 lightDirection = normalize(_Light0Position - (step(0.0, _Light0Type) * vertexPosition));
 
-	gl_FragColor = BlinnPhongLighting(ambientColor,
-	                                  finalDiffuseColor,
-									  specularColor,
-									  shininess,
-									  lightDirection,
-									  viewerDirection,
-									  vertexPosition,
-									  vertexNormal);
+	gl_FragColor = Lighting(finalDiffuseColor, specularColor, shininess, lightDirection, viewerDirection, vertexPosition, vertexNormal);
 }

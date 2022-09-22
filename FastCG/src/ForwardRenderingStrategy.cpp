@@ -81,7 +81,7 @@ namespace FastCG
 				pShader->SetMat4("_ModelView", modelView);
 				pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				pShader->SetMat4("_ModelViewProjection", rProjection * modelView);
-				pShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
+				pShader->SetVec4("_AmbientColor", mrAmbientLight);
 				if (pMaterial->IsUnlit() || (mrDirectionalLights.size() == 0 && mrPointLights.size() == 0))
 				{
 					pRenderer->Render();
@@ -107,12 +107,11 @@ namespace FastCG
 						}
 
 						auto* pDirectionalLight = mrDirectionalLights[i];
-						pShader->SetVec4("_Light0AmbientColor", pDirectionalLight->GetAmbientColor());
 						pShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
 						pShader->SetVec3("_Light0Position", pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
-						pShader->SetFloat("_Light0Type", -1.0);
+						pShader->SetFloat("_Light0Type", -1);
 						pRenderer->Render();
 						mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 					}
@@ -129,16 +128,15 @@ namespace FastCG
 						}
 
 						auto* pPointLight = mrPointLights[i];
-						pShader->SetVec4("_Light0AmbientColor", pPointLight->GetAmbientColor());
 						pShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
-						auto lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1.0f));
+						auto lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1));
 						pShader->SetVec3("_Light0Position", lightPosition);
 						pShader->SetFloat("_Light0ConstantAttenuation", pPointLight->GetConstantAttenuation());
 						pShader->SetFloat("_Light0LinearAttenuation", pPointLight->GetLinearAttenuation());
 						pShader->SetFloat("_Light0QuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
-						pShader->SetFloat("_Light0Type", 1.0);
+						pShader->SetFloat("_Light0Type", 1);
 						pRenderer->Render();
 						mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 					}
@@ -172,7 +170,6 @@ namespace FastCG
 				mpLineStripShader->SetMat4("_ModelView", modelView);
 				mpLineStripShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpLineStripShader->SetMat4("_ModelViewProjection", rProjection * modelView);
-				mpLineStripShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
 				pLineRenderer->Render();
 				mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 			}
@@ -199,7 +196,6 @@ namespace FastCG
 				mpPointsShader->SetMat4("_ModelView", modelView);
 				mpPointsShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpPointsShader->SetMat4("_ModelViewProjection", rProjection * modelView);
-				mpPointsShader->SetVec4("_GlobalLightAmbientColor", mrAmbientLight);
 				auto* pPoints = pPointsRenderer->GetPoints();
 
 				if (pPoints != 0)

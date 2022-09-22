@@ -4,10 +4,9 @@ uniform mat4 _ModelView;
 uniform mat4 _Projection;
 uniform mat4 _ModelViewProjection;
 uniform mat3 _ModelViewInverseTranspose;
-uniform vec4 _GlobalLightAmbientColor;
+uniform vec4 _AmbientColor;
 uniform float _Light0Type;
 uniform vec3 _Light0Position;
-uniform vec4 _Light0AmbientColor;
 uniform vec4 _Light0DiffuseColor;
 uniform vec4 _Light0SpecularColor;
 uniform float _Light0Intensity;
@@ -33,7 +32,12 @@ float DistanceAttenuation(vec3 position)
 	}
 }
 
-vec3 UnpackNormal(vec4 packedNormal)
+vec4 PackNormalToColor(vec4 value)
 {
-	return (packedNormal.xyz - 0.5) * 2.0;
+	return vec4(value.xyz * 0.5 + 1.0, value.w);
+}
+
+vec4 UnpackNormalFromColor(vec4 color)
+{
+	return vec4((color.xyz - 0.5) * 2.0, color.w);
 }

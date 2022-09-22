@@ -14,7 +14,7 @@
 #include <FastCG/Colors.h>
 
 BumpMappingApplication::BumpMappingApplication() :
-	Application({ "bump_mapping" })
+	Application({ "bump_mapping", 1024, 768, 60, RenderingPath::RP_FORWARD_RENDERING })
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -30,7 +30,7 @@ void GetMaterialsRecursively(const GameObject* pGameObject, std::vector<std::sha
 		{
 			continue;
 		}
-		rMaterials.push_back(pMeshFilter->GetMaterial());
+		rMaterials.emplace_back(pMeshFilter->GetMaterial());
 		GetMaterialsRecursively(pChildGameObject, rMaterials);
 	}
 }
@@ -42,21 +42,23 @@ void CreateSceneLights(std::vector<GameObject*>& rSceneLights)
 	auto* pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(2, 2, 0));
-	rSceneLights.push_back(pLightGameObject);
+	rSceneLights.emplace_back(pLightGameObject);
 
 	auto* pPointLight = PointLight::Instantiate(pLightGameObject);
 	pPointLight->SetDiffuseColor(Colors::WHITE);
 	pPointLight->SetSpecularColor(Colors::WHITE);
+	pPointLight->SetIntensity(1);
 	pPointLight->SetQuadraticAttenuation(0.25f);
 
 	pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(-2, 2, 0));
-	rSceneLights.push_back(pLightGameObject);
+	rSceneLights.emplace_back(pLightGameObject);
 
 	pPointLight = PointLight::Instantiate(pLightGameObject);
 	pPointLight->SetDiffuseColor(Colors::RED);
 	pPointLight->SetSpecularColor(Colors::RED);
+	pPointLight->SetIntensity(1);
 	pPointLight->SetQuadraticAttenuation(0.25f);
 }
 
@@ -128,7 +130,7 @@ void BumpMappingApplication::CreateGround()
 	mpGroundMaterial->SetTextureTiling("bumpMap", glm::vec2(4, 4));
 	mpGroundMaterial->SetVec4("diffuseColor", Colors::WHITE);
 	mpGroundMaterial->SetVec4("specularColor", Colors::WHITE);
-	mpGroundMaterial->SetFloat("shininess", 5);
+	mpGroundMaterial->SetFloat("shininess", 30);
 
 	auto* pMeshFilter = MeshFilter::Instantiate(pGround);
 	pMeshFilter->SetMaterial(mpGroundMaterial);

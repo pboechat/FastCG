@@ -20,9 +20,14 @@ namespace FastCG
 		return glm::vec4(NextFloat(), NextFloat(), NextFloat(), 1.0f);
 	}
 
+	void Random::Seed(unsigned int seed)
+	{
+		srand(seed);
+	}
+
 	void Random::SeedWithTime()
 	{
-		srand((unsigned int)time(0));
+		Seed((unsigned int)time(0));
 	}
 
 }
