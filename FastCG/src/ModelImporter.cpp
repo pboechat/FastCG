@@ -41,9 +41,9 @@ namespace FastCG
 
 	};
 
-	std::string GetOptimizedModelFileName(const std::string& rFileName)
+	std::string GetOptimizedModelFilePath(const std::string& rFilePath)
 	{
-		return File::GetFileNameWithoutExtension(rFileName) + ".model";
+		return File::GetBasePath(rFilePath) + File::GetFileNameWithoutExtension(rFilePath) + ".model";
 	}
 
 	void FileReaderCallback(void* context,
@@ -324,7 +324,7 @@ namespace FastCG
 		FileWriter::WriteBinary(rOptimizedModelFileName, outStream.GetData(), outStream.GetSize());
 	}
 
-	GameObject* ImportModelFromObjFile(const std::string& rBasePath, const std::string& rFileName, ModelImporterOptions options)
+	GameObject* ImportModelFromObjFile(const std::string& rBasePath, const std::string& rFilePath)
 	{
 		tinyobj_attrib_t attributes;
 		tinyobj_shape_t* pShapes;
@@ -338,7 +338,7 @@ namespace FastCG
 			&numShapes,
 			&pMaterials,
 			&numMaterials,
-			rFileName.c_str(),
+			rFilePath.c_str(),
 			&FileReaderCallback,
 			(void*)&importContext,
 			TINYOBJ_FLAG_TRIANGULATE) != TINYOBJ_SUCCESS)
@@ -352,13 +352,8 @@ namespace FastCG
 		MeshCatalog meshCatalog;
 		BuildMeshCatalog(attributes, pShapes, numShapes, meshCatalog);
 
-		auto modelName = File::GetFileNameWithoutExtension(rFileName);
+		auto modelName = File::GetFileNameWithoutExtension(rFilePath);
 		auto* pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog, meshCatalog);
-
-		if ((options & (uint8_t)ModelImporterOption::MIO_EXPORT_OPTIMIZED_MODEL_FILE) != 0)
-		{
-			ExportOptimizedModelFile(rFileName, pModelGameObject);
-		}
 
 		tinyobj_attrib_free(&attributes);
 		tinyobj_shapes_free(pShapes, numShapes);
@@ -367,14 +362,14 @@ namespace FastCG
 		return pModelGameObject;
 	}
 
-	GameObject* ImportModelFromOptimizedFile(const std::string& rBasePath, const std::string& rOptimizedModelFileName)
+	GameObject* ImportModelFromOptimizedFile(const std::string& rOptimizedModelFilePath)
 	{
 		size_t dataSize;
-		auto data = FileReader::ReadBinary(rBasePath + "/" + rOptimizedModelFileName, dataSize);
+		auto data = FileReader::ReadBinary(rOptimizedModelFilePath, dataSize);
 
 		if (data == nullptr)
 		{
-			THROW_EXCEPTION(Exception, "Error opening optimized model file: %s", rOptimizedModelFileName.c_str());
+			THROW_EXCEPTION(Exception, "Error opening optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		InputBinaryStream inStream(data.get(), dataSize);
@@ -387,28 +382,28 @@ namespace FastCG
 		vertices.resize(header.numVertices);
 		if (!inStream.Read(&vertices[0], vertices.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading vertices from optimized model file: %s", rOptimizedModelFileName.c_str());
+			THROW_EXCEPTION(Exception, "Error reading vertices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		std::vector<glm::vec3> normals;
 		normals.resize(header.numNormals);
 		if (!inStream.Read(&normals[0], normals.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading normals from optimized model file: %s", rOptimizedModelFileName.c_str());
+			THROW_EXCEPTION(Exception, "Error reading normals from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		std::vector<glm::vec2> uvs;
 		uvs.resize(header.numUvs);
 		if (!inStream.Read(&uvs[0], uvs.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading uvs from optimized model file: %s", rOptimizedModelFileName.c_str());
+			THROW_EXCEPTION(Exception, "Error reading uvs from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		std::vector<uint32_t> indices;
 		indices.resize(header.numIndices);
 		if (!inStream.Read(&indices[0], indices.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFileName.c_str());
+			THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		auto pMesh = std::make_shared<Mesh>(vertices, normals, uvs, indices);
@@ -421,7 +416,7 @@ namespace FastCG
 
 		gManagedMaterials.emplace_back(pMaterial);
 
-		auto* pGameObject = GameObject::Instantiate(File::GetFileNameWithoutExtension(rOptimizedModelFileName));
+		auto* pGameObject = GameObject::Instantiate(File::GetFileNameWithoutExtension(rOptimizedModelFilePath));
 		auto* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
 		auto* pMeshFilter = MeshFilter::Instantiate(pGameObject);
 
@@ -436,16 +431,21 @@ namespace FastCG
 		gBasePath = basePath;
 	}
 
-	GameObject* ModelImporter::Import(const std::string& rFileName, ModelImporterOptions options)
+	GameObject* ModelImporter::Import(const std::string& rFilePath, ModelImporterOptions options)
 	{
-		auto rOptimizedFileName = GetOptimizedModelFileName(rFileName);
-		if (File::Exists(rOptimizedFileName))
+		auto optimizedFilePath = gBasePath + "/" +GetOptimizedModelFilePath(rFilePath);
+		if (File::Exists(optimizedFilePath))
 		{
-			return ImportModelFromOptimizedFile(gBasePath, rOptimizedFileName);
+			return ImportModelFromOptimizedFile(optimizedFilePath);
 		}
 		else
 		{
-			return ImportModelFromObjFile(gBasePath, rFileName, options);
+			auto* pModelGameObject = ImportModelFromObjFile(gBasePath, rFilePath);
+			if ((options & (uint8_t)ModelImporterOption::MIO_EXPORT_OPTIMIZED_MODEL_FILE) != 0)
+			{
+				ExportOptimizedModelFile(optimizedFilePath, pModelGameObject);
+			}
+			return pModelGameObject;
 		}
 	}
 

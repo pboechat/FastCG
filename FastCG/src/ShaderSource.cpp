@@ -5,11 +5,11 @@
 
 namespace FastCG
 {
-	std::string ShaderSource::Parse(const std::string& rFileName)
+	std::string ShaderSource::Parse(const std::string& rFilePath)
 	{
-		auto filePath = File::GetFilePath(rFileName);
+		auto basePath = File::GetBasePath(rFilePath);
 		size_t fileSize;
-		auto data = FileReader::ReadText(rFileName, fileSize);
+		auto data = FileReader::ReadText(rFilePath, fileSize);
 		std::string content(data.get(), data.get() + fileSize);
 		size_t includePosition = 0;
 		while ((includePosition = content.find("#include ", includePosition)) != std::string::npos)
@@ -23,7 +23,7 @@ namespace FastCG
 			StringUtils::Replace(includeFileName, "<", "");
 			StringUtils::Replace(includeFileName, ">", "");
 			StringUtils::Trim(includeFileName);
-			auto contentToAppend = Parse(filePath + includeFileName);
+			auto contentToAppend = Parse(basePath + includeFileName);
 			StringUtils::Replace(content, includeStatement, contentToAppend);
 		}
 

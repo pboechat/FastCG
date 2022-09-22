@@ -10,7 +10,7 @@
 
 namespace FastCG
 {
-	std::string File::GetFilePath(const std::string& rFilePath)
+	std::string File::GetBasePath(const std::string& rFilePath)
 	{
 		std::vector<std::string> tokens;
 		StringUtils::Tokenize(rFilePath, "/", tokens);
