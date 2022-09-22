@@ -9,7 +9,11 @@ namespace FastCG
 	{
 	public:
 		static float NextFloat();
-		static int Range(int min, int max);
+		template<typename T>
+		static T Range(T min, T max)
+		{
+			return min + (int)(NextFloat() * (max - min));
+		}
 		static glm::vec4 NextColor();
 		static void Seed(unsigned int seed);
 		static void SeedWithTime();

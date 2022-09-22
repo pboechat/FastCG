@@ -8,10 +8,13 @@ uniform float shininess;
 
 in vec3 vertexNormal;
 
+layout(location = 0) out vec4 diffuse;
+layout(location = 1) out vec4 normal;
+layout(location = 2) out vec4 specular;
+
 void main()
 {
-	gl_FragData[0] = diffuseColor;
-	gl_FragData[1] = vec4(PackNormalToColor(vertexNormal), 0.0);
-	gl_FragData[2] = vec4(specularColor.xyz, shininess);
-	gl_FragData[3] = vec4(0.0);
+	diffuse = diffuseColor;
+	normal = vec4(PackNormalToColor(vertexNormal), 0.0);
+	specular = vec4(specularColor.xyz, shininess);
 }

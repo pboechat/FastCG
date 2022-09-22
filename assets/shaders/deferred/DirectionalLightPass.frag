@@ -5,6 +5,8 @@
 
 in vec2 vertexUv;
 
+layout(location = 0) out vec4 color;
+
 void main()
 {
 	float depth = texture2D(_Depth, vertexUv).x;
@@ -36,5 +38,5 @@ void main()
 	float ambientOcclusion = texture2D(_AmbientOcclusionMap, vertexUv).x;
 	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 
-	gl_FragColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, normal) * ambientOcclusion;
+	color = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, normal) * ambientOcclusion;
 }

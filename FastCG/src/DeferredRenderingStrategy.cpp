@@ -310,7 +310,7 @@ namespace FastCG
 
 		for (GLint bufferIdx = 0; bufferIdx < numGeometryPassDrawBuffers; bufferIdx++)
 		{
-			glClearBufferfv(GL_COLOR, bufferIdx, &Colors::BLACK[0]);
+			glClearBufferfv(GL_COLOR, bufferIdx, &Colors::NONE[0]);
 		}
 
 		glDepthMask(GL_TRUE);
@@ -449,7 +449,7 @@ namespace FastCG
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOFBOId);
 				glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-				glClearBufferfv(GL_COLOR, 0, &Colors::BLACK[0]);
+				glClearBufferfv(GL_COLOR, 0, &Colors::NONE[0]);
 
 				glDisable(GL_DEPTH_TEST);
 				glDepthMask(GL_FALSE);
@@ -485,7 +485,7 @@ namespace FastCG
 
 					CHECK_FOR_OPENGL_ERRORS();
 
-					glClearBufferfv(GL_COLOR, 0, &Colors::BLACK[0]);
+					glClearBufferfv(GL_COLOR, 0, &Colors::NONE[0]);
 
 					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
@@ -532,7 +532,7 @@ namespace FastCG
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 				glDrawBuffer(GL_COLOR_ATTACHMENT7);
 
-				glClearBufferfv(GL_COLOR, 0, &Colors::BLACK[0]);
+				glClearBufferfv(GL_COLOR, 0, &Colors::NONE[0]);
 
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);

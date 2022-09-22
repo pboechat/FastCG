@@ -14,14 +14,20 @@ in vec3 vertexNormal;
 in vec4 vertexTangent;
 in vec2 vertexUV;
 
+layout(location = 0) out vec4 diffuse;
+layout(location = 1) out vec4 normal;
+layout(location = 2) out vec4 specular;
+layout(location = 3) out vec4 tangent;
+layout(location = 4) out vec4 extraData;
+
 void main()
 {
-	gl_FragData[0] = diffuseColor * texture2D(colorMap, vertexUV * colorMapTiling);
+	diffuse = diffuseColor * texture2D(colorMap, vertexUV * colorMapTiling);
 
-	vec3 normal = texture2D(bumpMap, vertexUV * bumpMapTiling).xyz;
+	vec3 bump = texture2D(bumpMap, vertexUV * bumpMapTiling).xyz;
 
-	gl_FragData[1] = vec4(PackNormalToColor(vertexNormal), 0.0);
-	gl_FragData[2] = vec4(specularColor.xyz, shininess);
-	gl_FragData[3] = PackNormalToColor(vertexTangent);
-	gl_FragData[4] = vec4(normal, 0.0);
+	normal = vec4(PackNormalToColor(vertexNormal), 0.0);
+	specular = vec4(specularColor.xyz, shininess);
+	tangent = PackNormalToColor(vertexTangent);
+	extraData = vec4(bump, 0.0);
 }

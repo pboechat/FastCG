@@ -14,6 +14,8 @@ uniform float _Radius;
 uniform float _DistanceScale;
 uniform vec3 _RandomSamples[NUMBER_OF_RANDOM_SAMPLES];
 
+layout(location = 0) out vec4 ambientOcclusion;
+
 void main()
 {
 	float depth = LinearizeDepth(texture2D(_Depth, uv).x);
@@ -50,5 +52,5 @@ void main()
 	}
 	occlusion /= NUMBER_OF_RANDOM_SAMPLES;
 
-	gl_FragColor = vec4(occlusion, occlusion, occlusion, 1.0);
+	ambientOcclusion = vec4(occlusion, occlusion, occlusion, 1.0);
 }

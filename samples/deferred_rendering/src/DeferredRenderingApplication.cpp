@@ -56,7 +56,7 @@ void DeferredRenderingApplication::OnStart()
 			pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 
 			pPointLight = PointLight::Instantiate(pPointLightGameObject);
-			auto color = Colors::COMMON_LIGHT_COLORS[Random::Range(0, Colors::NUMBER_OF_COMMON_LIGHT_COLORS)];
+			auto color = Colors::COMMON_LIGHT_COLORS[Random::Range<size_t>(0, Colors::NUMBER_OF_COMMON_LIGHT_COLORS)];
 			pPointLight->SetDiffuseColor(color);
 			pPointLight->SetSpecularColor(color);
 			pPointLight->SetIntensity(intensity);

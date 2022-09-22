@@ -5,6 +5,8 @@
 
 uniform float _Debug;
 
+layout(location = 0) out vec4 color;
+
 void main()
 {
 	vec2 uv = gl_FragCoord.xy / _ScreenSize;
@@ -38,5 +40,5 @@ void main()
 	float ambientOcclusion = texture2D(_AmbientOcclusionMap, uv).x;
 	ambientOcclusion = max(ambientOcclusion, 1.0 - _AmbientOcclusionFlag);
 
-	gl_FragColor = vec4(_Debug) + (Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, position, normal) * ambientOcclusion);
+	color = vec4(_Debug) + (Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, position, normal) * ambientOcclusion);
 }

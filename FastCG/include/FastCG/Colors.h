@@ -8,6 +8,7 @@ namespace FastCG
 	class Colors
 	{
 	public:
+		static const glm::vec4 NONE;
 		static const glm::vec4 WHITE;
 		static const glm::vec4 SILVER;
 		static const glm::vec4 GRAY;
@@ -24,7 +25,7 @@ namespace FastCG
 		static const glm::vec4 NAVY;
 		static const glm::vec4 FUCHSIA;
 		static const glm::vec4 PURPLE;
-		static const unsigned int NUMBER_OF_COMMON_LIGHT_COLORS;
+		static const size_t NUMBER_OF_COMMON_LIGHT_COLORS;
 		static const glm::vec4 COMMON_LIGHT_COLORS[];
 
 	private:

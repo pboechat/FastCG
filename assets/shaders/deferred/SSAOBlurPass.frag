@@ -7,6 +7,8 @@ in vec2 uv;
 
 uniform sampler2D _AmbientOcclusionMap;
 
+layout(location = 0) out vec4 ambientOcclusion;
+
 void main()
 {
 	vec2 texelSize = 1.0 / vec2(textureSize(_AmbientOcclusionMap, 0));
@@ -25,5 +27,5 @@ void main()
 		}
 	}
 
-	gl_FragColor = result / NOISE_TEXTURE_SIZE;
+	ambientOcclusion = result / NOISE_TEXTURE_SIZE;
 }

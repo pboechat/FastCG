@@ -11,11 +11,13 @@ in vec3 vertexPosition;
 in vec3 vertexNormal;
 in vec2 vertexUV;
 
+layout(location = 0) out vec4 color;
+
 void main()
 {
 	vec4 finalDiffuseColor = diffuseColor * texture(colorMap, (vertexUV * colorMapTiling));
 
 	vec3 lightDirection = normalize(_Light0Position - (step(0.0, _Light0Type) * vertexPosition));
 	
-	gl_FragColor = Lighting(finalDiffuseColor, lightDirection, vertexPosition, vertexNormal);
+	color = Lighting(finalDiffuseColor, lightDirection, vertexPosition, vertexNormal);
 }
