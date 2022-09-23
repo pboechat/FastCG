@@ -9,7 +9,7 @@
 #include <FastCG/MeshRenderer.h>
 #include <FastCG/MeshFilter.h>
 #include <FastCG/MathT.h>
-#include <FastCG/FirstPersonCameraController.h>
+#include <FastCG/FlyCameraController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 
@@ -63,8 +63,7 @@ void SSAOApplication::OnStart()
 
 	auto* pControls = Controls::Instantiate(pGameObject);
 
-	auto* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pGameObject);
-	pFirstPersonCameraController->SetWalkSpeed(5.0f);
-	pFirstPersonCameraController->SetTurnSpeed(180.0f);
-	pFirstPersonCameraController->SetFlying(true);
+	auto* pFlyCameraController = FlyCameraController::Instantiate(pGameObject);
+	pFlyCameraController->SetWalkSpeed(5.0f);
+	pFlyCameraController->SetTurnSpeed(180.0f);
 }

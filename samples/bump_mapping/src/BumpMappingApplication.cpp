@@ -9,7 +9,7 @@
 #include <FastCG/MeshRenderer.h>
 #include <FastCG/MeshFilter.h>
 #include <FastCG/MathT.h>
-#include <FastCG/FirstPersonCameraController.h>
+#include <FastCG/FlyCameraController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 
@@ -81,12 +81,13 @@ void LoadModel(std::vector<std::shared_ptr<Material>>& rModelMaterials)
 	scale = 1.0f / scale;
 
 	pTransform->SetScale(glm::vec3(scale, scale, scale));
-	pTransform->SetPosition(-bounds.getCenter() * scale);
+	auto center = bounds.getCenter();
+	pTransform->SetPosition(glm::vec3(-center.x * scale, 0, -center.z * scale));
 }
 
 void BumpMappingApplication::OnStart()
 {
-	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0, 1));
+	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
 
 	std::vector<GameObject*> sceneLights;
 	CreateSceneLights(sceneLights);
@@ -104,16 +105,14 @@ void BumpMappingApplication::OnStart()
 
 	auto* pPlayerGameObject = GameObject::Instantiate();
 
-	auto* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pPlayerGameObject);
-	pFirstPersonCameraController->SetWalkSpeed(1);
-	pFirstPersonCameraController->SetTurnSpeed(90);
-	pFirstPersonCameraController->SetFlying(true);
+	auto* pFlyCameraController = FlyCameraController::Instantiate(pPlayerGameObject);
+	pFlyCameraController->SetWalkSpeed(5);
+	pFlyCameraController->SetTurnSpeed(5);
 }
 
 void BumpMappingApplication::CreateGround()
 {
 	auto* pGround = GameObject::Instantiate();
-	pGround->GetTransform()->SetPosition(glm::vec3(0, -0.5f, 0));
 
 	mpGroundMesh = StandardGeometries::CreateXZPlane(5, 5);
 	auto* pMeshRenderer = MeshRenderer::Instantiate(pGround);

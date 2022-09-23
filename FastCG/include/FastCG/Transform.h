@@ -38,7 +38,7 @@ namespace FastCG
 			return mChildren;
 		}
 
-		inline glm::vec3 GetPosition() const
+		inline const glm::vec3& GetPosition() const
 		{
 			return mWorldTransform.position;
 		}
@@ -49,7 +49,7 @@ namespace FastCG
 			Update();
 		}
 
-		inline glm::quat GetRotation() const
+		inline const glm::quat& GetRotation() const
 		{
 			return mWorldTransform.rotation;
 		}
@@ -60,7 +60,7 @@ namespace FastCG
 			Update();
 		}
 
-		inline glm::vec3 GetScale() const
+		inline const glm::vec3& GetScale() const
 		{
 			return mWorldTransform.scale;
 		}
@@ -96,32 +96,32 @@ namespace FastCG
 
 		inline glm::vec3 GetUp() const
 		{
-			return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, 1.0f, 0.0f));
+			return glm::normalize(mWorldTransform.rotation * glm::vec3(0, 1, 0));
 		}
 
 		inline glm::vec3 GetDown() const
 		{
-			return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, -1.0f, 0.0f));
+			return glm::normalize(mWorldTransform.rotation * glm::vec3(0, -1, 0));
 		}
 
 		inline glm::vec3 GetRight() const
 		{
-			return glm::normalize(mWorldTransform.rotation * glm::vec3(1.0f, 0.0f, 0.0f));
+			return glm::normalize(mWorldTransform.rotation * glm::vec3(1, 0, 0));
 		}
 
 		inline glm::vec3 GetLeft() const
 		{
-			return glm::normalize(mWorldTransform.rotation * glm::vec3(-1.0f, 0.0f, 0.0f));
+			return glm::normalize(mWorldTransform.rotation * glm::vec3(-1, 0, 0));
 		}
 
 		inline glm::vec3 GetForward() const
 		{
-			return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, -1.0f));
+			return glm::normalize(mWorldTransform.rotation * glm::vec3(0, 0, -1));
 		}
 
 		inline glm::vec3 GetBack() const
 		{
-			return glm::normalize(mWorldTransform.rotation * glm::vec3(0.0f, 0.0f, 1.0f));
+			return glm::normalize(mWorldTransform.rotation * glm::vec3(0, 0, 1));
 		}
 
 		inline glm::mat4 GetModel() const
@@ -150,7 +150,7 @@ namespace FastCG
 			glm::vec3 position;
 
 			SRT() :
-				scale(1.0f, 1.0f, 1.0f)
+				scale(1, 1, 1)
 			{
 			}
 
@@ -176,18 +176,21 @@ namespace FastCG
 
 			glm::mat4 ToMat4() const
 			{
-				glm::mat4 scaleMatrix(scale.x, 0, 0, 0,
+				glm::mat4 scaleMatrix(
+					scale.x, 0, 0, 0,
 					0, scale.y, 0, 0,
 					0, 0, scale.z, 0,
-					0, 0, 0, 1);
+					0, 0, 0, 1
+				);
 
 				glm::mat4 rotationMatrix = glm::toMat4(rotation);
 
-				glm::mat4 translateMatrix(1, 0, 0, 0,
+				glm::mat4 translateMatrix(
+					1, 0, 0, 0,
 					0, 1, 0, 0,
 					0, 0, 1, 0,
-					position.x, position.y, position.z, 1);
-
+					position.x, position.y, position.z, 1
+				);
 
 				return translateMatrix * rotationMatrix * scaleMatrix;
 			}

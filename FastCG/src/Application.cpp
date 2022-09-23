@@ -587,9 +587,10 @@ namespace FastCG
 
 		mpInput->Swap();
 
+		// update scene graph
 		for (auto* pGameObject : mGameObjects)
 		{
-			if (pGameObject->GetTransform()->GetParent() != 0)
+			if (pGameObject->GetTransform()->GetParent() != nullptr)
 			{
 				continue;
 			}

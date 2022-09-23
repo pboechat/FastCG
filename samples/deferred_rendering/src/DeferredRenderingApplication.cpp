@@ -12,7 +12,7 @@
 #include <FastCG/MeshRenderer.h>
 #include <FastCG/MeshFilter.h>
 #include <FastCG/MathT.h>
-#include <FastCG/FirstPersonCameraController.h>
+#include <FastCG/FlyCameraController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 
@@ -26,7 +26,7 @@ const uint32_t LIGHT_GRID_WIDTH = 7;
 const uint32_t LIGHT_GRID_DEPTH = 7;
 const uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
 const float WALK_SPEED = 20.0f;
-const float TURN_SPEED = 100.0f;
+const float TURN_SPEED = 20.0f;
 
 DeferredRenderingApplication::DeferredRenderingApplication() :
 	Application({ "deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING })
@@ -114,8 +114,7 @@ void DeferredRenderingApplication::OnStart()
 
 	auto* pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
 
-	auto* pFirstPersonCameraController = FirstPersonCameraController::Instantiate(pGeneralBehavioursGameObject);
-	pFirstPersonCameraController->SetWalkSpeed(WALK_SPEED);
-	pFirstPersonCameraController->SetTurnSpeed(TURN_SPEED);
-	pFirstPersonCameraController->SetFlying(true);
+	auto* pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
+	pFlyCameraController->SetWalkSpeed(WALK_SPEED);
+	pFlyCameraController->SetTurnSpeed(TURN_SPEED);
 }
