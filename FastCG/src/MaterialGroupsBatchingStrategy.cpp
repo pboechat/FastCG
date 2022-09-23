@@ -56,12 +56,13 @@ namespace FastCG
 			if ((*it)->pMaterial == pMaterial)
 			{
 				auto& rMeshFilters = (*it)->meshFilters;
-				auto it = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
-				assert(it != rMeshFilters.end());
-				rMeshFilters.erase(it);
+				auto it2 = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
+				assert(it2 != rMeshFilters.end());
+				rMeshFilters.erase(it2);
 				removed = true;
 				break;
 			}
+			it++;
 		}
 
 		assert(removed);
