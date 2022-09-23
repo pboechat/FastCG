@@ -68,3 +68,8 @@ vec3 GetWorldPositionFromScreenCoordsAndDepth(vec3 screenCoords)
 
 	return eyePosition.xyz / eyePosition.w;
 }
+
+bool HasBump(vec4 tangent, vec4 extraData)
+{
+	return extraData.x != 0 && extraData.y != 0 && extraData.z != 0;
+}

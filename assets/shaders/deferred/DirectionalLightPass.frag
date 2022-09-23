@@ -21,7 +21,7 @@ void main()
 
 	mat3 tangentSpaceMatrix;
 	// FIXME: divergence control
-	if (tangent.w != 0.0)
+	if (HasBump(tangent, extraData))
 	{
 		vec3 binormal = normalize(cross(normal, tangent.xyz) * tangent.w);
 		tangentSpaceMatrix = transpose(mat3(tangent.xyz, binormal, normal));
