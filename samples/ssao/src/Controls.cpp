@@ -13,6 +13,12 @@ IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {
+	if (Input::GetKey(KeyCode::ESCAPE))
+	{
+		Application::GetInstance()->Exit();
+		return;
+	}
+
 	const unsigned int text1Height = FontRegistry::STANDARD_FONT_SIZE + 3;
 	const unsigned int text2Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 2 + 5;
 	const unsigned int text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 3 + 7;
@@ -21,6 +27,7 @@ void Controls::OnUpdate(float time, float deltaTime)
 	const unsigned int text6Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 6 + 13;
 	const unsigned int text7Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 7 + 15;
 	const unsigned int text8Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 8 + 17;
+	const unsigned int text9Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 9 + 18;
 
 	Application::GetInstance()->DrawText("Press 'F1' to toggle SSAO", 10, text1Height, glm::vec4{ 0, 1, 0, 1 });
 	Application::GetInstance()->DrawText("Press 'F2' to display SSAO texture", 10, text2Height, glm::vec4{ 0, 1, 0, 1 });
@@ -31,7 +38,6 @@ void Controls::OnUpdate(float time, float deltaTime)
 	auto* pCamera = Application::GetInstance()->GetMainCamera();
 
 	auto pDeferredRenderingStrategy = std::static_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
-	assert(pDeferredRenderingStrategy != nullptr);
 
 	float ssaoRadius = pDeferredRenderingStrategy->GetSSAORadius();
 	float ssaoDistanceScale = pDeferredRenderingStrategy->GetSSAODistanceScale();
@@ -43,48 +49,17 @@ void Controls::OnUpdate(float time, float deltaTime)
 	sprintf_s(text, sizeof(text) / sizeof(char), "SSAO Distance Scale: %.3f", ssaoDistanceScale);
 	Application::GetInstance()->DrawText(text, 10, text7Height, glm::vec4{ 0, 1, 0, 1 });
 
-	bool isSSAOEnabled = pCamera->IsSSAOEnabled();
+	auto isSSAOEnabled = pCamera->IsSSAOEnabled();
 	Application::GetInstance()->DrawText((isSSAOEnabled) ? "SSAO: on" : "SSAO: off", 10, text8Height, glm::vec4{ 0, 1, 0, 1 });
 
-	if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
-	{
-		pCamera->SetSSAOEnabled(!isSSAOEnabled);
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::F2) && time - mLastKeyPressTime > 0.333f)
-	{
-		bool displaySSAOTextureEnabled = pDeferredRenderingStrategy->IsDisplaySSAOTextureEnabled();
-		pDeferredRenderingStrategy->SetDisplaySSAOTextureEnabled(!displaySSAOTextureEnabled);
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::F3) && time - mLastKeyPressTime > 0.333f)
-	{
-		bool ssaoBlurEnabled = pDeferredRenderingStrategy->IsSSAOBlurEnabled();
-		pDeferredRenderingStrategy->SetSSAOBlurEnabled(!ssaoBlurEnabled);
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::PLUS) && time - mLastKeyPressTime > 0.333f)
-	{
-		pDeferredRenderingStrategy->SetSSAORadius(MathF::Clamp(ssaoRadius + 1.0f * deltaTime, 0.01f, 1.0f));
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::MINUS) && time - mLastKeyPressTime > 0.333f)
-	{
-		pDeferredRenderingStrategy->SetSSAORadius(MathF::Clamp(ssaoRadius - 1.0f * deltaTime, 0.01f, 1.0f));
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::HOME) && time - mLastKeyPressTime > 0.333f)
-	{
-		pDeferredRenderingStrategy->SetSSAODistanceScale(MathF::Clamp(ssaoDistanceScale + 33.0f * deltaTime, 0.1f, 100.0f));
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::END) && time - mLastKeyPressTime > 0.333f)
-	{
-		pDeferredRenderingStrategy->SetSSAODistanceScale(MathF::Clamp(ssaoDistanceScale - 33.0f * deltaTime, 0.1f, 100.0f));
-		mLastKeyPressTime = time;
-	}
-	else if (Input::GetKey(KeyCode::ESCAPE))
-	{
-		Application::GetInstance()->Exit();
-	}
+	auto isSSAOBlurEnabled = pDeferredRenderingStrategy->IsSSAOBlurEnabled();
+	Application::GetInstance()->DrawText((isSSAOBlurEnabled) ? "SSAO Blur: on" : "SSAO Blur: off", 10, text9Height, glm::vec4{ 0, 1, 0, 1 });
+
+	IsKeyPressed(KeyCode::F1, mPressedKeyMask, 0, [&]() { pCamera->SetSSAOEnabled(!isSSAOEnabled); });
+	IsKeyPressed(KeyCode::F2, mPressedKeyMask, 1, [&]() { pDeferredRenderingStrategy->SetDisplaySSAOTextureEnabled(!pDeferredRenderingStrategy->IsDisplaySSAOTextureEnabled()); });
+	IsKeyPressed(KeyCode::F3, mPressedKeyMask, 2, [&]() { pDeferredRenderingStrategy->SetSSAOBlurEnabled(!isSSAOBlurEnabled); });
+	IsKeyPressed(KeyCode::PLUS, mPressedKeyMask, 3, [&]() { pDeferredRenderingStrategy->SetSSAORadius(MathF::Clamp(ssaoRadius + 1 * deltaTime, 0.01f, 10)); });
+	IsKeyPressed(KeyCode::MINUS, mPressedKeyMask, 4, [&]() { pDeferredRenderingStrategy->SetSSAORadius(MathF::Clamp(ssaoRadius - 1 * deltaTime, 0.01f, 10)); });
+	IsKeyPressed(KeyCode::HOME, mPressedKeyMask, 5, [&]() { pDeferredRenderingStrategy->SetSSAODistanceScale(MathF::Clamp(ssaoDistanceScale + 33 * deltaTime, 0.1f, 100)); });
+	IsKeyPressed(KeyCode::END, mPressedKeyMask, 6, [&]() { pDeferredRenderingStrategy->SetSSAODistanceScale(MathF::Clamp(ssaoDistanceScale - 33 * deltaTime, 0.1f, 100)); });
 }

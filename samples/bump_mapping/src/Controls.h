@@ -26,15 +26,10 @@ public:
 protected:
 	void OnUpdate(float time, float deltaTime) override;
 
-	void OnInstantiate() override
-	{
-		mLastKeyPressTime = 0;
-	}
-
 private:
 	std::vector<GameObject*> mSceneLights;
 	std::vector<std::shared_ptr<Material>> mMaterials;
-	float mLastKeyPressTime;
+	uint8_t mPressedKeyMask{ 0 };
 
 };
 

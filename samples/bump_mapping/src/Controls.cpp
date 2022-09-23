@@ -12,42 +12,43 @@ IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {
-	Application::GetInstance()->DrawText("Press 'F1' to toggle bump mapping", 10, 10, glm::vec4{ 0, 1, 0, 1 });
-
 	if (Input::GetKey(KeyCode::ESCAPE))
 	{
 		Application::GetInstance()->Exit();
+		return;
 	}
-	else if (Input::GetKey(KeyCode::F1) && time - mLastKeyPressTime > 0.333f)
-	{
-		for (auto& pMaterial : mMaterials)
+
+	Application::GetInstance()->DrawText("Press 'F1' to toggle bump mapping", 10, 10, glm::vec4{ 0, 1, 0, 1 });
+
+	IsKeyPressed(KeyCode::F1, mPressedKeyMask, 0, [&]()
 		{
-			const auto& pShader = pMaterial->GetShader();
-			if (pShader->GetName().find("Diffuse") != std::string::npos)
+			for (auto& pMaterial : mMaterials)
 			{
-				if (pShader->GetName() == "BumpedDiffuse")
+				const auto& pShader = pMaterial->GetShader();
+				if (pShader->GetName().find("Diffuse") != std::string::npos)
 				{
-					pMaterial->SetShader(ShaderRegistry::Find("Diffuse"));
+					if (pShader->GetName() == "BumpedDiffuse")
+					{
+						pMaterial->SetShader(ShaderRegistry::Find("Diffuse"));
+					}
+					else
+					{
+						pMaterial->SetShader(ShaderRegistry::Find("BumpedDiffuse"));
+					}
 				}
-				else
+				else if (pShader->GetName().find("Specular") != std::string::npos)
 				{
-					pMaterial->SetShader(ShaderRegistry::Find("BumpedDiffuse"));
+					if (pShader->GetName() == "BumpedSpecular")
+					{
+						pMaterial->SetShader(ShaderRegistry::Find("Specular"));
+					}
+					else
+					{
+						pMaterial->SetShader(ShaderRegistry::Find("BumpedSpecular"));
+					}
 				}
 			}
-			else if (pShader->GetName().find("Specular") != std::string::npos)
-			{
-				if (pShader->GetName() == "BumpedSpecular")
-				{
-					pMaterial->SetShader(ShaderRegistry::Find("Specular"));
-				}
-				else
-				{
-					pMaterial->SetShader(ShaderRegistry::Find("BumpedSpecular"));
-				}
-			}
-		}
-		mLastKeyPressTime = time;
-	}
+		});
 
 	for (auto* pSceneLight : mSceneLights)
 	{

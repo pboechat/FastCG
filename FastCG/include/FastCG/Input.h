@@ -71,6 +71,24 @@ namespace FastCG
 
 	};
 
+	template <typename MaskType, typename ElementType, typename CallbackType>
+	void IsKeyPressed(int keyCode, MaskType& pressedElementsMask, ElementType element, const CallbackType& callback)
+	{
+		MaskType elementMask = 1 << element;
+		if (Input::GetKey(keyCode))
+		{
+			if ((pressedElementsMask & elementMask) == 0)
+			{
+				callback();
+				pressedElementsMask |= elementMask;
+			}
+		}
+		else
+		{
+			pressedElementsMask &= ~elementMask;
+		}
+	}
+
 }
 
 #endif

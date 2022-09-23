@@ -3,6 +3,8 @@
 
 #include <FastCG/Behaviour.h>
 
+#include <cstdint>
+
 using namespace FastCG;
 
 class Controls : public Behaviour
@@ -12,13 +14,8 @@ class Controls : public Behaviour
 public:
 	void OnUpdate(float time, float deltaTime) override;
 
-	void OnInstantiate() override
-	{
-		mLastKeyPressTime = 0;
-	}
-
 private:
-	float mLastKeyPressTime;
+	uint8_t mPressedKeyMask{ 0 };
 
 };
 
