@@ -13,13 +13,6 @@ namespace FastCG
 		DECLARE_ABSTRACT_COMPONENT(Light, Component);
 
 	public:
-		void OnInstantiate() override
-		{
-			mDiffuseColor = Colors::WHITE;
-			mSpecularColor = Colors::WHITE;
-			mIntensity = 1.0f;
-		}
-
 		inline float GetIntensity() const
 		{
 			return mIntensity;
@@ -51,9 +44,9 @@ namespace FastCG
 		}
 
 	protected:
-		glm::vec4 mDiffuseColor;
-		glm::vec4 mSpecularColor;
-		float mIntensity;
+		glm::vec4 mDiffuseColor{ Colors::WHITE };
+		glm::vec4 mSpecularColor{ Colors::WHITE };
+		float mIntensity{ 1 };
 
 	};
 
