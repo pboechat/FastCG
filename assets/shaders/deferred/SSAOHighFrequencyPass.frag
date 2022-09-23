@@ -6,7 +6,7 @@
 #define NOISE_TEXTURE_HEIGHT 4
 #define NUMBER_OF_RANDOM_SAMPLES 30
 
-in vec2 uv;
+in vec2 vertexUv;
 noperspective in vec3 viewRay;
 
 uniform sampler2D _NoiseMap;
@@ -18,13 +18,13 @@ layout(location = 0) out vec4 ambientOcclusion;
 
 void main()
 {
-	float depth = LinearizeDepth(texture2D(_Depth, uv).x);
+	float depth = LinearizeDepth(texture2D(_Depth, vertexUv).x);
 	vec3 position = viewRay * depth;
 
-	vec2 noiseUv = vec2(textureSize(_NormalMap, 0)) / vec2(textureSize(_NoiseMap, 0)) * uv;
-	vec3 randomVector = texture2D(_NoiseMap, noiseUv).xyz * 2.0 - 1.0;
+	vec2 noiseUv = vec2(textureSize(_NormalMap, 0)) / vec2(textureSize(_NoiseMap, 0)) * vertexUv;
+	vec3 randomVector = UnpackNormalFromColor(texture2D(_NoiseMap, noiseUv).xyz);
 
-	vec3 normal = UnpackNormalFromColor(texture2D(_NormalMap, uv)).xyz;
+	vec3 normal = UnpackNormalFromColor(texture2D(_NormalMap, vertexUv)).xyz;
 	vec3 tangent = normalize(randomVector - normal * dot(randomVector, normal)); // gram-schmidt orthonormalization
 	vec3 binormal = cross(normal, tangent);
 	mat3 tangentSpaceMatrix = mat3(tangent, binormal, normal);
@@ -47,7 +47,7 @@ void main()
 		else
 		{		
 			float rangeCheck = _DistanceScale * max(depth - sampleDepth, 0.0f);
-			occlusion  += 1.0f / (1.0f + rangeCheck * rangeCheck * 0.1);
+			occlusion += 1.0f / (1.0f + rangeCheck * rangeCheck * 0.1);
 		}
 	}
 	occlusion /= NUMBER_OF_RANDOM_SAMPLES;
