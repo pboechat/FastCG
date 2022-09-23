@@ -110,7 +110,7 @@ namespace FastCG
 						pShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
-						pShader->SetVec3("_Light0Position", pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
+						pShader->SetVec3("_Light0Position", pDirectionalLight->GetDirection());
 						pShader->SetFloat("_Light0Type", -1);
 						pRenderer->Render();
 						mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();

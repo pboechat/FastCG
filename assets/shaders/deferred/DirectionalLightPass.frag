@@ -32,7 +32,7 @@ void main()
 		tangentSpaceMatrix = mat3(1.0);
 	}
 
-	vec3 lightDirection = tangentSpaceMatrix * normalize(_Light0Position - position);
+	vec3 lightDirection = tangentSpaceMatrix * normalize(_Light0Position);
 	vec3 viewerDirection = tangentSpaceMatrix * normalize(-position);
 
 	float ambientOcclusion = texture2D(_AmbientOcclusionMap, vertexUv).x;

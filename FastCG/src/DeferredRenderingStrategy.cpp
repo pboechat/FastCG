@@ -627,6 +627,7 @@ namespace FastCG
 					mpPointLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
 					auto lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1));
 					mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
+					mpPointLightPassShader->SetFloat("_Light0Type", 1);
 					mpPointLightPassShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
 					mpPointLightPassShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
 					mpPointLightPassShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
@@ -681,6 +682,7 @@ namespace FastCG
 				{
 					auto lightDirection = glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1)));
 					mpDirectionalLightPassShader->SetVec3("_Light0Position", lightDirection);
+					mpDirectionalLightPassShader->SetFloat("_Light0Type", -1);
 					mpDirectionalLightPassShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 					mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
 					mpDirectionalLightPassShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
