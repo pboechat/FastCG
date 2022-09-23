@@ -103,7 +103,7 @@ void DeferredRenderingApplication::OnStart()
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
 			pMeshFilter->SetMaterial(mpSphereMaterial);
 			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
-			spheres.push_back(pSphereGameObject);
+			spheres.emplace_back(pSphereGameObject);
 		}
 	}
 

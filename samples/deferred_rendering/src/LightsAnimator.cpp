@@ -19,7 +19,7 @@ void LightsAnimator::SetLights(const std::vector<PointLight*>& rLights)
 	Random::SeedWithTime();
 	for (auto* pPointLight : mPointLights)
 	{
-		mDirections.push_back(glm::normalize(glm::vec3(Random::NextFloat() - 0.5f, 0, Random::NextFloat() - 0.5f)));
+		mDirections.emplace_back(glm::normalize(glm::vec3(Random::NextFloat() - 0.5f, 0, Random::NextFloat() - 0.5f)));
 	}
 }
 
