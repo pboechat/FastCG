@@ -195,17 +195,26 @@ namespace FastCG
 			THROW_EXCEPTION(Exception, "Cannot calculate normals after VAO is already created: %d", mTriangleMeshVAOId);
 		}
 
+		mNormals.resize(mVertices.size());
 		for (size_t i = 0; i < mIndices.size(); i += 3)
 		{
 			uint32_t i1 = mIndices[i];
 			uint32_t i2 = mIndices[i + 1];
 			uint32_t i3 = mIndices[i + 2];
 
-			auto& v1 = mVertices[i1];
-			auto& v2 = mVertices[i2];
-			auto& v3 = mVertices[i3];
+			const auto& v1 = mVertices[i1];
+			const auto& v2 = mVertices[i2];
+			const auto& v3 = mVertices[i3];
 
-			mNormals[i1] = mNormals[i2] = mNormals[i3] = glm::normalize(glm::cross(v3 - v2, v1 - v2));
+			auto n = glm::cross(v2 - v1, v3 - v1);
+			mNormals[i1] += n;
+			mNormals[i2] += n;
+			mNormals[i3] += n;
+		}
+
+		for (auto& rNormal : mNormals)
+		{
+			rNormal = glm::normalize(rNormal);
 		}
 	}
 
