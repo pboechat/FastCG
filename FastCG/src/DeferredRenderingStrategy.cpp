@@ -671,7 +671,7 @@ namespace FastCG
 				mpDirectionalLightPassShader->SetTexture("_NormalMap", 1);
 				mpDirectionalLightPassShader->SetTexture("_SpecularMap", 2);
 				mpDirectionalLightPassShader->SetTexture("_TangentMap", 3);
-				mpDirectionalLightPassShader->SetTexture("_ExtraData", 3);
+				mpDirectionalLightPassShader->SetTexture("_ExtraData", 4);
 				mpDirectionalLightPassShader->SetTexture("_Depth", 5);
 				mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
 				mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
