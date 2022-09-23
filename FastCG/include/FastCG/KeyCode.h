@@ -17,9 +17,9 @@ namespace FastCG
 		static const int ESCAPE = VK_ESCAPE;
 		static const int SPACE = VK_SPACE;
 		static const int ASTERISK = VK_MULTIPLY;
-		static const int PLUS = VK_OEM_PLUS;
+		static const int PLUS = VK_ADD;
 		static const int COMMA = VK_OEM_COMMA;
-		static const int MINUS = VK_OEM_MINUS;
+		static const int MINUS = VK_SUBTRACT;
 		static const int DOT = VK_OEM_PERIOD;
 		static const int SLASH = VK_DIVIDE;
 		static const int NUMBER_0 = VK_NUMPAD0;
