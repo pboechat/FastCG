@@ -14,6 +14,8 @@ namespace FastCG
 		{
 #ifdef _WIN32
 			SleepEx((long)(seconds * 1000.0), 0);
+#else
+#error "Thread::Sleep() not implemented on current platform"
 #endif
 		}
 
