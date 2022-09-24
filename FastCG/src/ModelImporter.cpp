@@ -61,7 +61,8 @@ namespace FastCG
 
 	using MeshCatalog = std::map<size_t, std::shared_ptr<Mesh>>;
 
-	void BuildMeshCatalog(const tinyobj_attrib_t& attributes,
+	void BuildMeshCatalog(const std::string& rName,
+		const tinyobj_attrib_t& attributes,
 		const tinyobj_shape_t* pShapes,
 		size_t numShapes,
 		MeshCatalog& rMeshCatalog)
@@ -120,7 +121,7 @@ namespace FastCG
 				}
 			}
 
-			auto pMesh = std::make_shared<Mesh>(vertices, normals, uvs, indices);
+			auto pMesh = std::make_shared<Mesh>(rName + " (" + std::to_string(shapeIdx) + ")", vertices, normals, uvs, indices);
 			if (regenNormals)
 			{
 				pMesh->CalculateNormals();
@@ -350,7 +351,7 @@ namespace FastCG
 		BuildMaterialCatalog(rBasePath, pMaterials, numMaterials, materialCatalog);
 
 		MeshCatalog meshCatalog;
-		BuildMeshCatalog(attributes, pShapes, numShapes, meshCatalog);
+		BuildMeshCatalog(rFilePath, attributes, pShapes, numShapes, meshCatalog);
 
 		auto modelName = File::GetFileNameWithoutExtension(rFilePath);
 		auto* pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog, meshCatalog);
@@ -406,7 +407,7 @@ namespace FastCG
 			FASTCG_THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
-		auto pMesh = std::make_shared<Mesh>(vertices, normals, uvs, indices);
+		auto pMesh = std::make_shared<Mesh>(rOptimizedModelFilePath, vertices, normals, uvs, indices);
 		gManagedMeshes.emplace_back(pMesh);
 
 		auto pMaterial = std::make_shared<Material>(ShaderRegistry::Find("SolidColor"));

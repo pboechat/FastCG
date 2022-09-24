@@ -53,6 +53,7 @@ namespace FastCG
 			return nullptr;
 		}
 		auto pTexture = std::make_shared<Texture>(
+			rFilePath,
 			(uint32_t)width,
 			(uint32_t)height,
 			GetTextureFormat(components),

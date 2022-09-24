@@ -4,24 +4,24 @@
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/Exception.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 namespace FastCG
 {
-	Mesh::Mesh(const std::vector<uint32_t>& indexes) :
+	Mesh::Mesh(const std::string& rName, const std::vector<uint32_t>& indexes) :
+		mName(rName),
 		mIndices(indexes)
 	{
 	}
 
-	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indexes) :
+	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indexes) :
+		mName(rName),
 		mVertices(vertices),
 		mIndices(indexes)
 	{
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<uint32_t>& indexes) :
+	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<uint32_t>& indexes) :
+		mName(rName),
 		mVertices(vertices),
 		mNormals(normals),
 		mIndices(indexes)
@@ -30,13 +30,15 @@ namespace FastCG
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indexes)
+	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indexes) :
+		mName(rName)
 	{
 		assert(vertices.size() == uvs.size());
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indices) :
+	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indices) :
+		mName(rName),
 		mVertices(vertices),
 		mNormals(normals),
 		mUVs(uvs),
@@ -46,7 +48,8 @@ namespace FastCG
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indices) :
+	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indices) :
+		mName(rName),
 		mVertices(vertices),
 		mNormals(normals),
 		mTangents(tangents),
@@ -64,46 +67,91 @@ namespace FastCG
 
 	void Mesh::AllocateResources()
 	{
-		// create vertex buffer object and attach data
-		glGenBuffers(1, &mVerticesVBOId);
-
 		if (!mVertices.empty())
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
+			// create vertices buffer and upload data
+			glGenBuffers(1, &mVerticesBufferId);
+			glBindBuffer(GL_ARRAY_BUFFER, mVerticesBufferId);
+#ifdef _DEBUG
+			{
+				std::string bufferLabel = mName + " Vertices (GL_BUFFER)";
+				glObjectLabel(GL_BUFFER, mVerticesBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
+			}
+#endif
 			glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(glm::vec3), &mVertices[0], GL_STATIC_DRAW);
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		if (!mNormals.empty())
 		{
-			// create normals buffer object and attach data
-			glGenBuffers(1, &mNormalsVBOId);
-			glBindBuffer(GL_ARRAY_BUFFER, mNormalsVBOId);
+			// create normals buffer and upload data
+			glGenBuffers(1, &mNormalsBufferId);
+			glBindBuffer(GL_ARRAY_BUFFER, mNormalsBufferId);
+#ifdef _DEBUG
+			{
+				std::string bufferLabel = mName + " Normals (GL_BUFFER)";
+				glObjectLabel(GL_BUFFER, mNormalsBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
+			}
+#endif
 			glBufferData(GL_ARRAY_BUFFER, mNormals.size() * sizeof(glm::vec3), &mNormals[0], GL_STATIC_DRAW);
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		if (!mUVs.empty())
 		{
-			// create uvs buffer object and attach data
-			glGenBuffers(1, &mUVsVBOId);
-			glBindBuffer(GL_ARRAY_BUFFER, mUVsVBOId);
+			// create uvs buffer and upload data
+			glGenBuffers(1, &mUVsBufferId);
+			glBindBuffer(GL_ARRAY_BUFFER, mUVsBufferId);
+#ifdef _DEBUG
+			{
+				std::string bufferLabel = mName + " UVs (GL_BUFFER)";
+				glObjectLabel(GL_BUFFER, mUVsBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
+			}
+#endif
 			glBufferData(GL_ARRAY_BUFFER, mUVs.size() * sizeof(glm::vec2), &mUVs[0], GL_STATIC_DRAW);
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		if (!mTangents.empty())
 		{
-			// create tangents buffer object and attach data
-			glGenBuffers(1, &mTangentsVBOId);
-			glBindBuffer(GL_ARRAY_BUFFER, mTangentsVBOId);
+			// create tangents buffer and upload data
+			glGenBuffers(1, &mTangentsBufferId);
+			glBindBuffer(GL_ARRAY_BUFFER, mTangentsBufferId);
+#ifdef _DEBUG
+			{
+				std::string bufferLabel = mName + " Tangents (GL_BUFFER)";
+				glObjectLabel(GL_BUFFER, mTangentsBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
+			}
+#endif
 			glBufferData(GL_ARRAY_BUFFER, mTangents.size() * sizeof(glm::vec4), &mTangents[0], GL_STATIC_DRAW);
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
-		glGenBuffers(1, &mIndicesVBOId);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndicesVBOId);
+		glGenBuffers(1, &mIndicesBufferId);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndicesBufferId);
+#ifdef _DEBUG
+		{
+			std::string bufferLabel = mName + " Indices (GL_BUFFER)";
+			glObjectLabel(GL_BUFFER, mIndicesBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
+		}
+#endif
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(uint32_t), &mIndices[0], GL_STATIC_DRAW);
 
-		// create vertex array object with all previous vbos attached
-		glGenVertexArrays(1, &mTriangleMeshVAOId);
-		glBindVertexArray(mTriangleMeshVAOId);
+		FASTCG_CHECK_OPENGL_ERROR();
+
+		// create vertex array with all previous buffers attached
+		glGenVertexArrays(1, &mVertexArrayId);
+		glBindVertexArray(mVertexArrayId);
+#ifdef _DEBUG
+		{
+			std::string vertexArrayLabel = mName + " (GL_VERTEX_ARRAY)";
+			glObjectLabel(GL_VERTEX_ARRAY, mVertexArrayId, (GLsizei)vertexArrayLabel.size(), vertexArrayLabel.c_str());
+		}
+#endif
 
 		if (!mVertices.empty())
 		{
@@ -124,22 +172,22 @@ namespace FastCG
 
 		if (!mVertices.empty())
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, mVerticesVBOId);
+			glBindBuffer(GL_ARRAY_BUFFER, mVerticesBufferId);
 			glVertexAttribPointer(Shader::VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		}
 		if (!mNormals.empty())
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, mNormalsVBOId);
+			glBindBuffer(GL_ARRAY_BUFFER, mNormalsBufferId);
 			glVertexAttribPointer(Shader::NORMALS_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		}
 		if (!mUVs.empty())
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, mUVsVBOId);
+			glBindBuffer(GL_ARRAY_BUFFER, mUVsBufferId);
 			glVertexAttribPointer(Shader::UVS_ATTRIBUTE_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
 		}
 		if (!mTangents.empty())
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, mTangentsVBOId);
+			glBindBuffer(GL_ARRAY_BUFFER, mTangentsBufferId);
 			glVertexAttribPointer(Shader::TANGENTS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
 		}
 
@@ -148,41 +196,41 @@ namespace FastCG
 
 	void Mesh::DeallocateResources()
 	{
-		if (mIndicesVBOId != ~0u)
+		if (mIndicesBufferId != ~0u)
 		{
-			glDeleteBuffers(1, &mIndicesVBOId);
+			glDeleteBuffers(1, &mIndicesBufferId);
 		}
-		if (mTangentsVBOId != ~0u)
+		if (mTangentsBufferId != ~0u)
 		{
-			glDeleteBuffers(1, &mTangentsVBOId);
+			glDeleteBuffers(1, &mTangentsBufferId);
 		}
-		if (mUVsVBOId != ~0u)
+		if (mUVsBufferId != ~0u)
 		{
-			glDeleteBuffers(1, &mUVsVBOId);
+			glDeleteBuffers(1, &mUVsBufferId);
 		}
-		if (mNormalsVBOId != ~0u)
+		if (mNormalsBufferId != ~0u)
 		{
-			glDeleteBuffers(1, &mNormalsVBOId);
+			glDeleteBuffers(1, &mNormalsBufferId);
 		}
-		if (mVerticesVBOId != ~0u)
+		if (mVerticesBufferId != ~0u)
 		{
-			glDeleteBuffers(1, &mVerticesVBOId);
+			glDeleteBuffers(1, &mVerticesBufferId);
 		}
-		if (mTriangleMeshVAOId != ~0u)
+		if (mVertexArrayId != ~0u)
 		{
-			glDeleteBuffers(1, &mTriangleMeshVAOId);
+			glDeleteBuffers(1, &mVertexArrayId);
 		}
 	}
 
 	void Mesh::Draw()
 	{
-		if (mTriangleMeshVAOId == ~0u)
+		if (mVertexArrayId == ~0u)
 		{
 			AllocateResources();
 		}
 
-		glBindVertexArray(mTriangleMeshVAOId);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndicesVBOId);
+		glBindVertexArray(mVertexArrayId);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndicesBufferId);
 		glDrawElements(GL_TRIANGLES, (GLsizei)mIndices.size(), GL_UNSIGNED_INT, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
@@ -190,9 +238,9 @@ namespace FastCG
 
 	void Mesh::CalculateNormals()
 	{
-		if (mTriangleMeshVAOId != ~0u)
+		if (mNormalsBufferId != ~0u)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Cannot calculate normals after VAO is already created: %d", mTriangleMeshVAOId);
+			FASTCG_THROW_EXCEPTION(Exception, "Cannot calculate normals after normals buffer is already created (Mesh: %s)", mName.c_str());
 		}
 
 		mNormals.resize(mVertices.size());
@@ -220,9 +268,9 @@ namespace FastCG
 
 	void Mesh::CalculateTangents()
 	{
-		if (mTriangleMeshVAOId != ~0u)
+		if (mVertexArrayId != ~0u)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mTriangleMeshVAOId);
+			FASTCG_THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mVertexArrayId);
 		}
 
 		// if there's no vertices, exit

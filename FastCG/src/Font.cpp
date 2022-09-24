@@ -45,13 +45,24 @@ namespace FastCG
 				{
 					FASTCG_THROW_EXCEPTION(Exception, "Failed to bake font bitmap: %s", mFileName.c_str());
 				}
-				mpCharMap = std::make_shared<Texture>(BITMAP_SIDE, BITMAP_SIDE, TextureFormat::TF_R, TextureDataType::DT_UNSIGNED_CHAR, TextureFilter::TF_LINEAR_FILTER, TextureWrapMode::TW_CLAMP, true, bitmap.get());
+
+				mpCharMap = std::make_shared<Texture>(
+					mFileName,
+					BITMAP_SIDE,
+					BITMAP_SIDE,
+					TextureFormat::TF_R,
+					TextureDataType::DT_UNSIGNED_CHAR,
+					TextureFilter::TF_LINEAR_FILTER,
+					TextureWrapMode::TW_CLAMP,
+					true,
+					bitmap.get()
+					);
 			}
 		}
 
 		mpFontShader = ShaderRegistry::Find("Font");
 
-		mpCharBillboard = std::unique_ptr<Mesh>(new Mesh({ 0, 1, 3, 0, 3, 2 }));
+		mpBillboard = std::unique_ptr<Mesh>(new Mesh(mFileName + " Billboard", { 0, 1, 3, 0, 3, 2 }));
 	}
 
 	void Font::DrawString(const std::string& rText, uint32_t x, uint32_t y, const glm::vec4& rColor)
@@ -59,8 +70,13 @@ namespace FastCG
 		auto projection = glm::ortho(0.0f, (float)Application::GetInstance()->GetScreenWidth(), 0.0f, (float)Application::GetInstance()->GetScreenHeight(), 0.0f, 1.0f);
 
 		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		glDisable(GL_STENCIL_TEST);
+		glStencilMask(0);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 
 		auto nX = (float)x;
 		auto nY = (float)y;
@@ -81,7 +97,7 @@ namespace FastCG
 
 			mpFontShader->SetVec4("_ScreenCoords", glm::vec4{ quad.x0, baseLine - quad.y1, quad.x1 - quad.x0, quad.y1 - quad.y0 });
 			mpFontShader->SetVec4("_MapCoords", glm::vec4{ quad.s0, quad.t1, quad.s1 - quad.s0, quad.t0 - quad.t1 });
-			mpCharBillboard->Draw();
+			mpBillboard->Draw();
 		}
 		mpFontShader->Unbind();
 	}

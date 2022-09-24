@@ -69,7 +69,7 @@ void SSAOApplication::OnStart()
 		auto* pGameObject = GameObject::Instantiate();
 
 		auto* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
-		mMeshes.emplace_back(StandardGeometries::CreateXZPlane(5, 5));
+		mMeshes.emplace_back(StandardGeometries::CreateXZPlane("Ground", 5, 5));
 		pMeshRenderer->AddMesh(mMeshes.back());
 
 		auto* pMeshFilter = MeshFilter::Instantiate(pGameObject);

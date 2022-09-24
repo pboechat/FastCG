@@ -36,7 +36,7 @@ namespace FastCG
 		std::string mFileName;
 		uint32_t mSize;
 		std::shared_ptr<Shader> mpFontShader{ nullptr };
-		std::unique_ptr<Mesh> mpCharBillboard{ nullptr };
+		std::unique_ptr<Mesh> mpBillboard{ nullptr };
 		std::shared_ptr<Texture> mpCharMap{ nullptr };
 		std::unique_ptr<stbtt_bakedchar[]> mCharData{ nullptr };
 

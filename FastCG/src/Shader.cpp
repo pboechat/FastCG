@@ -11,15 +11,14 @@ void CheckCompile(GLuint shaderObjectId, const std::string& rShaderName, const s
 		return;
 	}
 
-	int bufferLength;
-	glGetShaderiv(shaderObjectId, GL_INFO_LOG_LENGTH, &bufferLength);
+	GLint infoLogLength;
+	glGetShaderiv(shaderObjectId, GL_INFO_LOG_LENGTH, &infoLogLength);
 
-	if (bufferLength > 1)
-	{
-		char pBuffer[4096];
-		glGetShaderInfoLog(shaderObjectId, bufferLength, &bufferLength, pBuffer);
-		FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log ('%s'): %s", rShaderName.c_str(), rShaderFileName.c_str(), pBuffer);
-	}
+	std::string infoLog;
+	infoLog.reserve(infoLogLength);
+	glGetShaderInfoLog(shaderObjectId, infoLogLength, &infoLogLength, &infoLog[0]);
+
+	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log ('%s'): %s", rShaderName.c_str(), rShaderFileName.c_str(), infoLog.c_str());
 }
 
 void CheckLink(GLuint programId, const std::string& rShaderName)
@@ -32,13 +31,14 @@ void CheckLink(GLuint programId, const std::string& rShaderName)
 		return;
 	}
 
-	GLint bufferLength;
-	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &bufferLength);
+	GLint infoLogLength;
+	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
 
-	char* pBuffer = new char[bufferLength];
-	glGetProgramInfoLog(programId, bufferLength, &bufferLength, pBuffer);
-	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), pBuffer);
-	delete[] pBuffer;
+	std::string infoLog;
+	infoLog.reserve((size_t)infoLogLength);
+	glGetProgramInfoLog(programId, infoLogLength, &infoLogLength, &infoLog[0]);
+
+	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), infoLog.c_str());
 }
 
 void CheckValidate(GLuint programId, const std::string& rShaderName)
@@ -51,13 +51,41 @@ void CheckValidate(GLuint programId, const std::string& rShaderName)
 		return;
 	}
 
-	int bufferLength;
-	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &bufferLength);
+	GLint infoLogLength;
+	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
 
-	char* pBuffer = new char[bufferLength];
-	glGetProgramInfoLog(programId, bufferLength, &bufferLength, pBuffer);
-	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), pBuffer);
-	delete[] pBuffer;
+	std::string infoLog;
+	infoLog.reserve((size_t)infoLogLength);
+	glGetProgramInfoLog(programId, infoLogLength, &infoLogLength, &infoLog[0]);
+
+	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), infoLog.c_str());
+}
+
+#define CASE_RETURN_STRING(str) case str: return #str
+const char* GetOpenGLShaderTypeString(GLenum shaderType)
+{
+	switch (shaderType)
+	{
+		CASE_RETURN_STRING(GL_VERTEX_SHADER);
+		CASE_RETURN_STRING(GL_FRAGMENT_SHADER);
+	default:
+		FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpenGL shader type");
+		return nullptr;
+	}
+}
+
+GLenum GetOpenGLShaderType(FastCG::ShaderType shaderType)
+{
+	switch (shaderType)
+	{
+	case FastCG::ShaderType::ST_VERTEX:
+		return GL_VERTEX_SHADER;
+	case FastCG::ShaderType::ST_FRAGMENT:
+		return GL_FRAGMENT_SHADER;
+	default:
+		FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled shader type");
+		return 0;
+	}
 }
 
 namespace FastCG
@@ -87,7 +115,8 @@ namespace FastCG
 	void Shader::Compile(const std::string& rShaderFileName, ShaderType shaderType)
 	{
 		auto shaderSource = ShaderSource::Parse(rShaderFileName);
-		auto shaderId = glCreateShader(GetShaderTypeMapping(shaderType));
+		auto glShaderType = GetOpenGLShaderType(shaderType);
+		auto shaderId = glCreateShader(glShaderType);
 
 		if (shaderSource.empty())
 		{
@@ -96,22 +125,29 @@ namespace FastCG
 
 		const auto* pShaderSource = shaderSource.c_str();
 		glShaderSource(shaderId, 1, (const char**)&pShaderSource, 0);
+
 		glCompileShader(shaderId);
 		CheckCompile(shaderId, mName, rShaderFileName);
+
 		mShadersIds.insert(std::make_pair(shaderType, shaderId));
 
 		FASTCG_CHECK_OPENGL_ERROR();
+
+#ifdef _DEBUG
+		std::string shaderLabel = mName + " (" + GetOpenGLShaderTypeString(glShaderType) + ")";
+		glObjectLabel(GL_SHADER, shaderId, (GLsizei)shaderLabel.size(), shaderLabel.c_str());
+#endif
 	}
 
 	void Shader::Link()
 	{
 		mProgramId = glCreateProgram();
-		auto shaderIdsCursor = mShadersIds.begin();
 
-		while (shaderIdsCursor != mShadersIds.end())
+		auto it = mShadersIds.begin();
+		while (it != mShadersIds.end())
 		{
-			glAttachShader(mProgramId, shaderIdsCursor->second);
-			shaderIdsCursor++;
+			glAttachShader(mProgramId, it->second);
+			it++;
 		}
 
 		BindAttributeLocation("position", VERTICES_ATTRIBUTE_INDEX);
@@ -122,27 +158,33 @@ namespace FastCG
 
 		glLinkProgram(mProgramId);
 		CheckLink(mProgramId, mName);
+
 		glValidateProgram(mProgramId);
 		CheckValidate(mProgramId, mName);
+
+#ifdef _DEBUG
+		std::string programLabel = mName + " (GL_PROGRAM)";
+		glObjectLabel(GL_PROGRAM, mProgramId, (GLsizei)programLabel.size(), programLabel.c_str());
+#endif
 	}
 
 	void Shader::DetachShaders()
 	{
-		auto shaderIdsCursor = mShadersIds.begin();
-		while (shaderIdsCursor != mShadersIds.end())
+		auto it = mShadersIds.begin();
+		while (it != mShadersIds.end())
 		{
-			glDetachShader(mProgramId, shaderIdsCursor->second);
-			shaderIdsCursor++;
+			glDetachShader(mProgramId, it->second);
+			it++;
 		}
 	}
 
 	void Shader::DeleteShaders()
 	{
-		auto shaderIdsCursor = mShadersIds.begin();
-		while (shaderIdsCursor != mShadersIds.end())
+		auto it = mShadersIds.begin();
+		while (it != mShadersIds.end())
 		{
-			glDeleteShader(shaderIdsCursor->second);
-			shaderIdsCursor++;
+			glDeleteShader(it->second);
+			it++;
 		}
 	}
 

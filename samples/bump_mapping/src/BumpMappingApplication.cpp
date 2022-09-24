@@ -114,7 +114,7 @@ void BumpMappingApplication::CreateGround()
 {
 	auto* pGround = GameObject::Instantiate();
 
-	mpGroundMesh = StandardGeometries::CreateXZPlane(5, 5);
+	mpGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
 	auto* pMeshRenderer = MeshRenderer::Instantiate(pGround);
 	pMeshRenderer->AddMesh(mpGroundMesh);
 

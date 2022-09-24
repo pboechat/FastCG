@@ -107,9 +107,9 @@ namespace FastCG
 			glDeleteTextures(1, &mSSAOTextureId);
 		}
 
-		if (mBlurredSSAOTextureId != ~0u)
+		if (mSSAOBlurTextureId != ~0u)
 		{
-			glDeleteTextures(1, &mBlurredSSAOTextureId);
+			glDeleteTextures(1, &mSSAOBlurTextureId);
 		}
 	}
 
@@ -127,8 +127,8 @@ namespace FastCG
 
 	void DeferredRenderingStrategy::BuildAuxiliaryMeshes()
 	{
-		mpQuadMesh = StandardGeometries::CreateXYPlane(2, 2, 1, 1, glm::vec3(0, 0, 0));
-		mpSphereMesh = StandardGeometries::CreateSphere(1, LIGHT_MESH_DETAIL);
+		mpQuadMesh = StandardGeometries::CreateXYPlane("Deferred Rendering Fullscreen Quad", 2, 2, 1, 1, glm::vec3(0, 0, 0));
+		mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
 	}
 
 	void DeferredRenderingStrategy::GenerateNoiseTexture()
@@ -143,7 +143,17 @@ namespace FastCG
 				pNoises[i * NOISE_TEXTURE_WIDTH + j] = glm::normalize(noise);
 			}
 		}
-		mpNoiseTexture = std::make_unique<Texture>(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, TextureFormat::TF_RGB, TextureDataType::DT_FLOAT, TextureFilter::TF_POINT_FILTER, TextureWrapMode::TW_REPEAT, false, &pNoises[0][0]);
+		mpNoiseTexture = std::make_unique<Texture>(
+			"NoiseTexture",
+			NOISE_TEXTURE_WIDTH,
+			NOISE_TEXTURE_HEIGHT,
+			TextureFormat::TF_RGB,
+			TextureDataType::DT_FLOAT,
+			TextureFilter::TF_POINT_FILTER,
+			TextureWrapMode::TW_REPEAT,
+			false,
+			&pNoises[0][0]
+			);
 	}
 
 	void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
@@ -165,14 +175,25 @@ namespace FastCG
 		// create g-buffer fbo
 		glGenFramebuffers(1, &mGBufferFBOId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
+#ifdef _DEBUG
+		{
+			const char framebufferLabel[] = "G-Buffer (GL_FRAMEBUFFER)";
+			glObjectLabel(GL_FRAMEBUFFER, mGBufferFBOId, sizeof(framebufferLabel) / sizeof(char), framebufferLabel);
+		}
+#endif
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
 		// create g-buffer attachments
 
-
 		glGenTextures(1, &mDiffuseTextureId);
 		glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Diffuse (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mDiffuseTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -182,6 +203,12 @@ namespace FastCG
 
 		glGenTextures(1, &mNormalTextureId);
 		glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Normal (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mNormalTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -191,6 +218,12 @@ namespace FastCG
 
 		glGenTextures(1, &mSpecularTextureId);
 		glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Specular (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mSpecularTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -200,6 +233,12 @@ namespace FastCG
 
 		glGenTextures(1, &mTangentTextureId);
 		glBindTexture(GL_TEXTURE_2D, mTangentTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Tangent (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mTangentTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -209,6 +248,12 @@ namespace FastCG
 
 		glGenTextures(1, &mExtraDataTextureId);
 		glBindTexture(GL_TEXTURE_2D, mExtraDataTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Extra Data (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mExtraDataTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -218,6 +263,12 @@ namespace FastCG
 
 		glGenTextures(1, &mFinalOutputTextureId);
 		glBindTexture(GL_TEXTURE_2D, mFinalOutputTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Final (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mFinalOutputTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -227,6 +278,12 @@ namespace FastCG
 
 		glGenTextures(1, &mDepthTextureId);
 		glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "G-Buffer Depth (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mDepthTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mrScreenWidth, mrScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -244,12 +301,24 @@ namespace FastCG
 		// create ssao fbo
 		glGenFramebuffers(1, &mSSAOFBOId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOFBOId);
+#ifdef _DEBUG
+		{
+			const char framebufferLabel[] = "SSAO (GL_FRAMEBUFFER)";
+			glObjectLabel(GL_FRAMEBUFFER, mSSAOFBOId, sizeof(framebufferLabel) / sizeof(char), framebufferLabel);
+		}
+#endif
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
 		// create ssao attachments
 		glGenTextures(1, &mSSAOTextureId);
 		glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "SSAO (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mSSAOTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -266,17 +335,28 @@ namespace FastCG
 		// create ssao blur fbo
 		glGenFramebuffers(1, &mSSAOBlurFBOId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
+#ifdef _DEBUG
+		{
+			const char framebufferLabel[] = "SSAO Blur (GL_FRAMEBUFFER)";
+			glObjectLabel(GL_FRAMEBUFFER, mSSAOBlurFBOId, sizeof(framebufferLabel) / sizeof(char), framebufferLabel);
+		}
+#endif
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mBlurredSSAOTextureId);
-
 		// create sso blur attachments
-		glBindTexture(GL_TEXTURE_2D, mBlurredSSAOTextureId);
+		glGenTextures(1, &mSSAOBlurTextureId);
+		glBindTexture(GL_TEXTURE_2D, mSSAOBlurTextureId);
+#ifdef _DEBUG
+		{
+			const char attachmentLabel[] = "SSAO Blur (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mSSAOBlurTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
+		}
+#endif
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredSSAOTextureId, 0);
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOBlurTextureId, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
@@ -292,6 +372,10 @@ namespace FastCG
 
 	void DeferredRenderingStrategy::Render(const Camera* pCamera)
 	{
+#ifdef _DEBUG
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Deferred Rendering");
+#endif
+
 		static const GLenum pGeometryPassDrawBuffers[] = {
 			GL_COLOR_ATTACHMENT0,
 			GL_COLOR_ATTACHMENT1,
@@ -303,7 +387,10 @@ namespace FastCG
 
 		glViewport(0, 0, mrScreenWidth, mrScreenHeight);
 
-		// geometry pass
+		// geometry passes
+#ifdef _DEBUG
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Geometry Passes");
+#endif
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 		glDrawBuffers(numGeometryPassDrawBuffers, pGeometryPassDrawBuffers);
@@ -342,6 +429,8 @@ namespace FastCG
 				glDisable(GL_DEPTH_TEST);
 				glDepthMask(GL_FALSE);
 			}
+			glDisable(GL_STENCIL_TEST);
+			glStencilMask(0);
 
 			if (pMaterial->IsTwoSided())
 			{
@@ -387,8 +476,16 @@ namespace FastCG
 			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
+#ifdef _DEBUG
+		glPopDebugGroup();
+#endif
+
 		if (mDisplayGBufferEnabled)
 		{
+#ifdef _DEBUG
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Display G-Buffer Pass");
+#endif
+
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -435,6 +532,10 @@ namespace FastCG
 			mrRenderingStatistics.drawCalls++;
 			mpDepthToScreenShader->Unbind();
 
+#ifdef _DEBUG
+			glPopDebugGroup();
+#endif
+
 			FASTCG_CHECK_OPENGL_ERROR();
 		}
 		else
@@ -444,6 +545,10 @@ namespace FastCG
 
 			if (isSSAOEnabled)
 			{
+#ifdef _DEBUG
+				glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SSAO High Frequency Pass");
+#endif
+
 				// ssao high frequency pass
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOFBOId);
@@ -476,10 +581,18 @@ namespace FastCG
 				mrRenderingStatistics.drawCalls++;
 				mpSSAOHighFrequencyPassShader->Unbind();
 
+#ifdef _DEBUG
+				glPopDebugGroup();
+#endif
+
 				FASTCG_CHECK_OPENGL_ERROR();
 
 				if (mSSAOBlurEnabled)
 				{
+#ifdef _DEBUG
+					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SSAO Blur Pass");
+#endif
+
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
 					glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -496,12 +609,20 @@ namespace FastCG
 					mrRenderingStatistics.drawCalls++;
 					mpSSAOBlurPassShader->Unbind();
 
+#ifdef _DEBUG
+					glPopDebugGroup();
+#endif
+
 					FASTCG_CHECK_OPENGL_ERROR();
 				}
 			}
 
 			if (mDisplaySSAOTextureEnabled)
 			{
+#ifdef _DEBUG
+				glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Display SSAO Pass");
+#endif
+
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 				glClear(GL_COLOR_BUFFER_BIT);
@@ -523,16 +644,26 @@ namespace FastCG
 
 				glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
+#ifdef _DEBUG
+				glPopDebugGroup();
+#endif
+
 				FASTCG_CHECK_OPENGL_ERROR();
 			}
 			else
 			{
-				// light pass
+				// light passes
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 				glDrawBuffer(GL_COLOR_ATTACHMENT7);
 
+#ifdef _DEBUG
+				glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Clear Final G-Buffer");
+#endif
 				glClearBufferfv(GL_COLOR, 0, &Colors::NONE[0]);
+#ifdef _DEBUG
+				glPopDebugGroup();
+#endif
 
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
@@ -555,148 +686,176 @@ namespace FastCG
 				glActiveTexture(GL_TEXTURE6);
 				if (mSSAOBlurEnabled)
 				{
-					glBindTexture(GL_TEXTURE_2D, mBlurredSSAOTextureId);
+					glBindTexture(GL_TEXTURE_2D, mSSAOBlurTextureId);
 				}
 				else
 				{
 					glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
 				}
 
-				for (auto* pPointLight : mrPointLights)
+				if (!mrPointLights.empty())
 				{
-					glStencilMask(0xFF);
-					const GLint emptyStencil = 0;
-					glClearBufferiv(GL_STENCIL, 0, &emptyStencil);
+#ifdef _DEBUG
+					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Light Passes");
+#endif
 
-					glDrawBuffer(GL_NONE);
+					for (auto* pPointLight : mrPointLights)
+					{
+						glStencilMask(0xFF);
+						const GLint emptyStencil = 0;
+						glClearBufferiv(GL_STENCIL, 0, &emptyStencil);
 
-					glEnable(GL_DEPTH_TEST);
-					glDepthMask(GL_FALSE);
+						glDrawBuffer(GL_NONE);
 
-					glEnable(GL_STENCIL_TEST);
-					glStencilFunc(GL_ALWAYS, 0, 0);
-					glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
-					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
+						glEnable(GL_DEPTH_TEST);
+						glDepthMask(GL_FALSE);
 
-					glDisable(GL_BLEND);
+						glEnable(GL_STENCIL_TEST);
+						glStencilFunc(GL_ALWAYS, 0, 0);
+						glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
+						glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
 
-					glDisable(GL_CULL_FACE);
+						glDisable(GL_BLEND);
 
-					auto& rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
-					auto lightBoundingSphereScale = CalculateLightBoundingSphereScale(pPointLight);
-					glm::vec3 scaleVector(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale);
-					auto modelViewProjection = rProjection * (rView * glm::scale(rModel, scaleVector));
+						glDisable(GL_CULL_FACE);
 
-					mpStencilPassShader->Bind();
-					mpStencilPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
-					mpSphereMesh->Draw();
-					mrRenderingStatistics.drawCalls++;
-					mpStencilPassShader->Unbind();
+						auto& rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
+						auto lightBoundingSphereScale = CalculateLightBoundingSphereScale(pPointLight);
+						glm::vec3 scaleVector(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale);
+						auto modelViewProjection = rProjection * (rView * glm::scale(rModel, scaleVector));
 
-					FASTCG_CHECK_OPENGL_ERROR();
+						mpStencilPassShader->Bind();
+						mpStencilPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
+						mpSphereMesh->Draw();
+						mrRenderingStatistics.drawCalls++;
+						mpStencilPassShader->Unbind();
+
+						FASTCG_CHECK_OPENGL_ERROR();
+
+						glDrawBuffer(GL_COLOR_ATTACHMENT7);
+
+						glDisable(GL_DEPTH_TEST);
+						glDepthMask(GL_FALSE);
+
+						glEnable(GL_STENCIL_TEST);
+						glStencilMask(0);
+						glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+
+						glEnable(GL_BLEND);
+						glBlendEquation(GL_FUNC_ADD);
+						glBlendFunc(GL_ONE, GL_ONE);
+
+						glEnable(GL_CULL_FACE);
+						glCullFace(GL_FRONT);
+
+						mpPointLightPassShader->Bind();
+						mpPointLightPassShader->SetMat4("_Projection", rProjection);
+						mpPointLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
+						mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
+						mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+						mpPointLightPassShader->SetTexture("_DiffuseMap", 0);
+						mpPointLightPassShader->SetTexture("_NormalMap", 1);
+						mpPointLightPassShader->SetTexture("_SpecularMap", 2);
+						mpPointLightPassShader->SetTexture("_TangentMap", 3);
+						mpPointLightPassShader->SetTexture("_ExtraData", 4);
+						mpPointLightPassShader->SetTexture("_Depth", 5);
+						mpPointLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
+						mpPointLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
+						mpPointLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
+						auto lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1));
+						mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
+						mpPointLightPassShader->SetFloat("_Light0Type", 1);
+						mpPointLightPassShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
+						mpPointLightPassShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
+						mpPointLightPassShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
+						mpPointLightPassShader->SetFloat("_Light0ConstantAttenuation", pPointLight->GetConstantAttenuation());
+						mpPointLightPassShader->SetFloat("_Light0LinearAttenuation", pPointLight->GetLinearAttenuation());
+						mpPointLightPassShader->SetFloat("_Light0QuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
+						if (mShowPointLightsEnabled)
+						{
+							mpPointLightPassShader->SetFloat("_Debug", 0.25f);
+						}
+						else
+						{
+							mpPointLightPassShader->SetFloat("_Debug", 0.0f);
+						}
+						mpSphereMesh->Draw();
+						mrRenderingStatistics.drawCalls++;
+						mpPointLightPassShader->Unbind();
+
+						FASTCG_CHECK_OPENGL_ERROR();
+					}
+#ifdef _DEBUG
+					glPopDebugGroup();
+#endif
+				}
+
+				if (!mrDirectionalLights.empty())
+				{
+#ifdef _DEBUG
+					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Directional Light Passes");
+#endif
 
 					glDrawBuffer(GL_COLOR_ATTACHMENT7);
 
 					glDisable(GL_DEPTH_TEST);
 					glDepthMask(GL_FALSE);
-
-					glEnable(GL_STENCIL_TEST);
+					glDisable(GL_STENCIL_TEST);
 					glStencilMask(0);
-					glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
 
 					glEnable(GL_BLEND);
 					glBlendEquation(GL_FUNC_ADD);
 					glBlendFunc(GL_ONE, GL_ONE);
 
 					glEnable(GL_CULL_FACE);
-					glCullFace(GL_FRONT);
+					glCullFace(GL_BACK);
 
-					mpPointLightPassShader->Bind();
-					mpPointLightPassShader->SetMat4("_Projection", rProjection);
-					mpPointLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
-					mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
-					mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-					mpPointLightPassShader->SetTexture("_DiffuseMap", 0);
-					mpPointLightPassShader->SetTexture("_NormalMap", 1);
-					mpPointLightPassShader->SetTexture("_SpecularMap", 2);
-					mpPointLightPassShader->SetTexture("_TangentMap", 3);
-					mpPointLightPassShader->SetTexture("_ExtraData", 4);
-					mpPointLightPassShader->SetTexture("_Depth", 5);
-					mpPointLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
-					mpPointLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
-					mpPointLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
-					auto lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1));
-					mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
-					mpPointLightPassShader->SetFloat("_Light0Type", 1);
-					mpPointLightPassShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
-					mpPointLightPassShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
-					mpPointLightPassShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
-					mpPointLightPassShader->SetFloat("_Light0ConstantAttenuation", pPointLight->GetConstantAttenuation());
-					mpPointLightPassShader->SetFloat("_Light0LinearAttenuation", pPointLight->GetLinearAttenuation());
-					mpPointLightPassShader->SetFloat("_Light0QuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
-					if (mShowPointLightsEnabled)
+					mpDirectionalLightPassShader->Bind();
+					mpDirectionalLightPassShader->SetMat4("_Projection", rProjection);
+					mpDirectionalLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
+					mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+					mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 0);
+					mpDirectionalLightPassShader->SetTexture("_NormalMap", 1);
+					mpDirectionalLightPassShader->SetTexture("_SpecularMap", 2);
+					mpDirectionalLightPassShader->SetTexture("_TangentMap", 3);
+					mpDirectionalLightPassShader->SetTexture("_ExtraData", 4);
+					mpDirectionalLightPassShader->SetTexture("_Depth", 5);
+					mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
+					mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
+					mpDirectionalLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
+					auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
+					for (auto* pDirectionalLight : mrDirectionalLights)
 					{
-						mpPointLightPassShader->SetFloat("_Debug", 0.25f);
+						auto lightDirection = glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1)));
+						mpDirectionalLightPassShader->SetVec3("_Light0Position", lightDirection);
+						mpDirectionalLightPassShader->SetFloat("_Light0Type", -1);
+						mpDirectionalLightPassShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
+						mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
+						mpDirectionalLightPassShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
+						mpQuadMesh->Draw();
+						mrRenderingStatistics.drawCalls++;
 					}
-					else
-					{
-						mpPointLightPassShader->SetFloat("_Debug", 0.0f);
-					}
-					mpSphereMesh->Draw();
-					mrRenderingStatistics.drawCalls++;
-					mpPointLightPassShader->Unbind();
+					mpDirectionalLightPassShader->Unbind();
+
+#ifdef _DEBUG
+					glPopDebugGroup();
+#endif
 
 					FASTCG_CHECK_OPENGL_ERROR();
 				}
 
-				glDrawBuffer(GL_COLOR_ATTACHMENT7);
-
-				glDisable(GL_DEPTH_TEST);
-				glDepthMask(GL_FALSE);
-				glDisable(GL_STENCIL_TEST);
-				glStencilMask(0);
-
-				glEnable(GL_BLEND);
-				glBlendEquation(GL_FUNC_ADD);
-				glBlendFunc(GL_ONE, GL_ONE);
-
-				glEnable(GL_CULL_FACE);
-				glCullFace(GL_BACK);
-
-				mpDirectionalLightPassShader->Bind();
-				mpDirectionalLightPassShader->SetMat4("_Projection", rProjection);
-				mpDirectionalLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
-				mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
-				mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 0);
-				mpDirectionalLightPassShader->SetTexture("_NormalMap", 1);
-				mpDirectionalLightPassShader->SetTexture("_SpecularMap", 2);
-				mpDirectionalLightPassShader->SetTexture("_TangentMap", 3);
-				mpDirectionalLightPassShader->SetTexture("_ExtraData", 4);
-				mpDirectionalLightPassShader->SetTexture("_Depth", 5);
-				mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
-				mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
-				mpDirectionalLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
-
-				auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
-				for (auto* pDirectionalLight : mrDirectionalLights)
-				{
-					auto lightDirection = glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1)));
-					mpDirectionalLightPassShader->SetVec3("_Light0Position", lightDirection);
-					mpDirectionalLightPassShader->SetFloat("_Light0Type", -1);
-					mpDirectionalLightPassShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
-					mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
-					mpDirectionalLightPassShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
-					mpQuadMesh->Draw();
-					mrRenderingStatistics.drawCalls++;
-				}
-				mpDirectionalLightPassShader->Unbind();
-
-				FASTCG_CHECK_OPENGL_ERROR();
+#ifdef _DEBUG
+				glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Copy Final G-Buffer");
+#endif
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBufferFBOId);
 				glReadBuffer(GL_COLOR_ATTACHMENT7);
 				glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+#ifdef _DEBUG
+				glPopDebugGroup();
+#endif
 
 				FASTCG_CHECK_OPENGL_ERROR();
 
@@ -705,12 +864,26 @@ namespace FastCG
 		}
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+#ifdef _DEBUG
+		glPopDebugGroup();
+#endif
 	}
 
 	void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection)
 	{
-		if (mrLineRenderers.size() > 0)
+		if (!mrLineRenderers.empty())
 		{
+#ifdef _DEBUG
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Passes");
+#endif
+
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glDisable(GL_STENCIL_TEST);
+			glStencilMask(0);
+			glDisable(GL_BLEND);
+
 			mpLineStripShader->Bind();
 			mpLineStripShader->SetMat4("_View", view);
 			mpLineStripShader->SetMat4("_Projection", projection);
@@ -734,11 +907,25 @@ namespace FastCG
 
 			mpLineStripShader->Unbind();
 
+#ifdef _DEBUG
+			glPopDebugGroup();
+#endif
+
 			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
-		if (mrPointsRenderer.size() > 0)
+		if (!mrPointsRenderer.empty())
 		{
+#ifdef _DEBUG
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Passes");
+#endif
+
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glDisable(GL_STENCIL_TEST);
+			glStencilMask(0);
+			glDisable(GL_BLEND);
+
 			mpPointsShader->Bind();
 			mpPointsShader->SetMat4("_View", view);
 			mpPointsShader->SetMat4("_Projection", projection);
@@ -768,6 +955,10 @@ namespace FastCG
 			}
 
 			mpPointsShader->Unbind();
+
+#ifdef _DEBUG
+			glPopDebugGroup();
+#endif
 
 			FASTCG_CHECK_OPENGL_ERROR();
 		}

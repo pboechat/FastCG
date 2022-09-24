@@ -77,7 +77,7 @@ void DeferredRenderingApplication::OnStart()
 	mpFloorMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpFloorMaterial->SetFloat("shininess", 5.0f);
 
-	mpFloorMesh = StandardGeometries::CreateXZPlane((float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
+	mpFloorMesh = StandardGeometries::CreateXZPlane("Floor", (float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
 	auto* pFloorGameObject = GameObject::Instantiate();
 	auto* pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
@@ -90,7 +90,7 @@ void DeferredRenderingApplication::OnStart()
 	mpSphereMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpSphereMaterial->SetFloat("shininess", 30.0f);
 
-	mpSphereMesh = StandardGeometries::CreateSphere(SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
+	mpSphereMesh = StandardGeometries::CreateSphere("Sphere", SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
 
 	std::vector<GameObject*> spheres;
 	for (float z = 0; z < FLOOR_SIZE; z += 1)

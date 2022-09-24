@@ -10627,6 +10627,7 @@ typedef void (GLAPIENTRY * PFNGLGETPOINTERVPROC) (GLenum pname, void** params);
 typedef void (GLAPIENTRY * PFNGLOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
 typedef void (GLAPIENTRY * PFNGLOBJECTPTRLABELPROC) (void* ptr, GLsizei length, const GLchar* label);
 typedef void (GLAPIENTRY * PFNGLPUSHDEBUGGROUPPROC) (GLenum source, GLuint id, GLsizei length, const GLchar * message);
+typedef void (GLAPIENTRY* PFNGLPOPDEBUGGROUPPROC) ();
 
 #define glDebugMessageCallback GLEW_GET_FUN(__glewDebugMessageCallback)
 #define glDebugMessageControl GLEW_GET_FUN(__glewDebugMessageControl)
@@ -10638,6 +10639,7 @@ typedef void (GLAPIENTRY * PFNGLPUSHDEBUGGROUPPROC) (GLenum source, GLuint id, G
 #define glObjectLabel GLEW_GET_FUN(__glewObjectLabel)
 #define glObjectPtrLabel GLEW_GET_FUN(__glewObjectPtrLabel)
 #define glPushDebugGroup GLEW_GET_FUN(__glewPushDebugGroup)
+#define glPopDebugGroup GLEW_GET_FUN(__glewPopDebugGroup)
 
 #define GLEW_KHR_debug GLEW_GET_VAR(__GLEW_KHR_debug)
 
@@ -15984,6 +15986,7 @@ GLEW_FUN_EXPORT PFNGLGETPOINTERVPROC __glewGetPointerv;
 GLEW_FUN_EXPORT PFNGLOBJECTLABELPROC __glewObjectLabel;
 GLEW_FUN_EXPORT PFNGLOBJECTPTRLABELPROC __glewObjectPtrLabel;
 GLEW_FUN_EXPORT PFNGLPUSHDEBUGGROUPPROC __glewPushDebugGroup;
+GLEW_FUN_EXPORT PFNGLPOPDEBUGGROUPPROC __glewPopDebugGroup;
 
 GLEW_FUN_EXPORT PFNGLBUFFERREGIONENABLEDPROC __glewBufferRegionEnabled;
 GLEW_FUN_EXPORT PFNGLDELETEBUFFERREGIONPROC __glewDeleteBufferRegion;

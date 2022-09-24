@@ -467,7 +467,7 @@ namespace FastCG
 			CASE_RETURN_STRING(GL_DEBUG_SOURCE_APPLICATION);
 			CASE_RETURN_STRING(GL_DEBUG_SOURCE_OTHER);
 		default:
-			assert("Unhandled OpengGL debug output message source");
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled OpengGL debug output message source");
 			return nullptr;
 		}
 	}
@@ -486,7 +486,7 @@ namespace FastCG
 			CASE_RETURN_STRING(GL_DEBUG_TYPE_PUSH_GROUP);
 			CASE_RETURN_STRING(GL_DEBUG_TYPE_POP_GROUP);
 		default:
-			assert("Unhandled OpengGL debug output message type");
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled OpengGL debug output message type");
 			return nullptr;
 		}
 	}
@@ -500,7 +500,7 @@ namespace FastCG
 			CASE_RETURN_STRING(GL_DEBUG_SEVERITY_LOW);
 			CASE_RETURN_STRING(GL_DEBUG_SEVERITY_NOTIFICATION);
 		default:
-			assert("Unhandled OpengGL debug output message severity");
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled OpengGL debug output message severity");
 			return nullptr;
 		}
 	}
@@ -592,7 +592,6 @@ namespace FastCG
 
 		mpInput->Swap();
 
-		// update scene graph
 		for (auto* pGameObject : mGameObjects)
 		{
 			if (pGameObject->GetTransform()->GetParent() != nullptr)
@@ -613,16 +612,6 @@ namespace FastCG
 
 		mTotalElapsedTime += deltaTime;
 		mElapsedFrames++;
-
-		if (mShowFPS)
-		{
-			ShowFPS();
-		}
-
-		if (mShowRenderingStatistics)
-		{
-			ShowRenderingStatistics();
-		}
 
 		Present();
 
@@ -645,6 +634,10 @@ namespace FastCG
 
 	void Application::DrawAllTexts()
 	{
+#ifdef _DEBUG
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Text Passes");
+#endif
+
 		glViewport(0, 0, mScreenWidth, mScreenHeight);
 
 		for (auto& rDrawTextRequest : mDrawTextRequests)
@@ -652,6 +645,20 @@ namespace FastCG
 			mpStandardFont->DrawString(rDrawTextRequest.text, rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y), rDrawTextRequest.color);
 		}
 		mDrawTextRequests.clear();
+
+		if (mShowFPS)
+		{
+			ShowFPS();
+		}
+
+		if (mShowRenderingStatistics)
+		{
+			ShowRenderingStatistics();
+		}
+
+#ifdef _DEBUG
+		glPopDebugGroup();
+#endif
 	}
 
 	void Application::ShowFPS()

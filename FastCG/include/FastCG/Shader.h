@@ -10,9 +10,9 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include <cstdlib>
 #include <string>
 #include <map>
+#include <cstdlib>
 
 namespace FastCG
 {
@@ -167,9 +167,9 @@ namespace FastCG
 		}
 
 	private:
-		unsigned int mProgramId{ ~0u };
+		GLuint mProgramId{ ~0u };
 		std::string mName;
-		std::map<ShaderType, unsigned int> mShadersIds;
+		std::map<ShaderType, GLuint> mShadersIds;
 
 		void DetachShaders();
 		void DeleteShaders();
@@ -179,23 +179,6 @@ namespace FastCG
 			auto location = glGetUniformLocation(mProgramId, rParameterName.c_str());
 			FASTCG_CHECK_OPENGL_ERROR();
 			return location;
-		}
-
-		inline unsigned int GetShaderTypeMapping(ShaderType shaderType)
-		{
-			if (shaderType == ShaderType::ST_VERTEX)
-			{
-				return GL_VERTEX_SHADER;
-			}
-			else if (shaderType == ShaderType::ST_FRAGMENT)
-			{
-				return GL_FRAGMENT_SHADER;
-			}
-			else
-			{
-				FASTCG_THROW_EXCEPTION(Exception, "Unhandled shader type: %d", shaderType);
-				return 0;
-			}
 		}
 
 	};

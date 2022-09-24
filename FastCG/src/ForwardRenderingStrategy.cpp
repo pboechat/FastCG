@@ -21,15 +21,33 @@ namespace FastCG
 
 	void ForwardRenderingStrategy::Render(const Camera* pCamera)
 	{
-		glViewport(0, 0, mrScreenWidth, mrScreenHeight);
-
-		glDepthMask(GL_TRUE);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+#ifdef _DEBUG
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Forward Rendering");
+#endif
 		auto& rView = pCamera->GetView();
 		auto& rProjection = pCamera->GetProjection();
 
 		mrRenderingStatistics.Reset();
+
+		glViewport(0, 0, mrScreenWidth, mrScreenHeight);
+
+#ifdef _DEBUG
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Clear Backbuffer");
+#endif
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+		glDepthMask(GL_TRUE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+#ifdef _DEBUG
+		glPopDebugGroup();
+#endif
+
+#ifdef _DEBUG
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Geometry Passes");
+#endif
+
 		for (const auto& pRenderingGroup : mrRenderBatches)
 		{
 			const auto& pMaterial = pRenderingGroup->pMaterial;
@@ -44,6 +62,8 @@ namespace FastCG
 				glDisable(GL_DEPTH_TEST);
 				glDepthMask(GL_FALSE);
 			}
+			glDisable(GL_STENCIL_TEST);
+			glStencilMask(0);
 
 			if (pMaterial->IsTwoSided())
 			{
@@ -147,12 +167,26 @@ namespace FastCG
 			}
 
 			pShader->Unbind();
-			// FIXME: shouldn't be necessary if we could guarantee that all textures are unbound after use!
-			glBindTexture(GL_TEXTURE_2D, 0);
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
-		if (mrLineRenderers.size() > 0)
+#ifdef _DEBUG
+		glPopDebugGroup();
+#endif
+
+		if (!mrLineRenderers.empty())
 		{
+#ifdef _DEBUG
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Passes");
+#endif
+
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glDisable(GL_STENCIL_TEST);
+			glStencilMask(0);
+			glDisable(GL_CULL_FACE);
+
 			mpLineStripShader->Bind();
 			mpLineStripShader->SetMat4("_View", rView);
 			mpLineStripShader->SetMat4("_Projection", rProjection);
@@ -175,10 +209,26 @@ namespace FastCG
 			}
 
 			mpLineStripShader->Unbind();
+
+#ifdef _DEBUG
+			glPopDebugGroup();
+#endif
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
-		if (mrPointsRenderer.size() > 0)
+		if (!mrPointsRenderer.empty())
 		{
+#ifdef _DEBUG
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Passes");
+#endif
+
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glDisable(GL_STENCIL_TEST);
+			glStencilMask(0);
+			glDisable(GL_CULL_FACE);
+
 			mpPointsShader->Bind();
 			mpPointsShader->SetMat4("_View", rView);
 			mpPointsShader->SetMat4("_Projection", rProjection);
@@ -208,7 +258,17 @@ namespace FastCG
 			}
 
 			mpPointsShader->Unbind();
+
+#ifdef _DEBUG
+			glPopDebugGroup();
+#endif
+
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
+
+#ifdef _DEBUG
+		glPopDebugGroup();
+#endif
 	}
 
 }

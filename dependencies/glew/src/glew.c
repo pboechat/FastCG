@@ -1997,6 +1997,7 @@ PFNGLGETPOINTERVPROC __glewGetPointerv = NULL;
 PFNGLOBJECTLABELPROC __glewObjectLabel = NULL;
 PFNGLOBJECTPTRLABELPROC __glewObjectPtrLabel = NULL;
 PFNGLPUSHDEBUGGROUPPROC __glewPushDebugGroup = NULL;
+PFNGLPOPDEBUGGROUPPROC __glewPopDebugGroup = NULL;
 
 PFNGLBUFFERREGIONENABLEDPROC __glewBufferRegionEnabled = NULL;
 PFNGLDELETEBUFFERREGIONPROC __glewDeleteBufferRegion = NULL;
@@ -7243,6 +7244,7 @@ static GLboolean _glewInit_GL_KHR_debug (GLEW_CONTEXT_ARG_DEF_INIT)
   r = ((glObjectLabel = (PFNGLOBJECTLABELPROC)glewGetProcAddress((const GLubyte*)"glObjectLabel")) == NULL) || r;
   r = ((glObjectPtrLabel = (PFNGLOBJECTPTRLABELPROC)glewGetProcAddress((const GLubyte*)"glObjectPtrLabel")) == NULL) || r;
   r = ((glPushDebugGroup = (PFNGLPUSHDEBUGGROUPPROC)glewGetProcAddress((const GLubyte*)"glPushDebugGroup")) == NULL) || r;
+  r = ((glPopDebugGroup = (PFNGLPOPDEBUGGROUPPROC)glewGetProcAddress((const GLubyte*)"glPopDebugGroup")) == NULL) || r;
 
   return r;
 }

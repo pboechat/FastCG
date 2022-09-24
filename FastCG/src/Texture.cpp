@@ -2,9 +2,6 @@
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/Exception.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 namespace FastCG
 {
 	uint32_t GetOpenGLFilter(TextureFilter filter)
@@ -71,7 +68,15 @@ namespace FastCG
 		}
 	}
 
-	Texture::Texture(uint32_t width, uint32_t height, TextureFormat format, TextureDataType dataType, TextureFilter filter, TextureWrapMode wrapMode, bool generateMipmaps, void* pData) :
+	Texture::Texture(const std::string& rName,
+		uint32_t width,
+		uint32_t height,
+		TextureFormat format,
+		TextureDataType dataType,
+		TextureFilter filter,
+		TextureWrapMode wrapMode,
+		bool generateMipmaps,
+		void* pData) :
 		mWidth(width),
 		mHeight(height),
 		mFormat(format),
@@ -79,7 +84,7 @@ namespace FastCG
 		mFilter(filter),
 		mWrapMode(wrapMode)
 	{
-		AllocateResources(pData, generateMipmaps);
+		AllocateResources(rName, pData, generateMipmaps);
 	}
 
 	Texture::~Texture()
@@ -87,7 +92,7 @@ namespace FastCG
 		DeallocateResources();
 	}
 
-	void Texture::AllocateResources(void* pData, bool generateMipmaps)
+	void Texture::AllocateResources(const std::string& rName, void* pData, bool generateMipmaps)
 	{
 		auto filter = GetOpenGLFilter(mFilter);
 		auto wrapMode = GetOpenGLWrapMode(mWrapMode);
@@ -96,6 +101,12 @@ namespace FastCG
 
 		glGenTextures(1, &mTextureId);
 		glBindTexture(GL_TEXTURE_2D, mTextureId);
+#ifdef _DEBUG
+		{
+			std::string textureLabel = rName + " (GL_TEXTURE)";
+			glObjectLabel(GL_TEXTURE, mTextureId, (GLsizei)textureLabel.size(), textureLabel.c_str());
+		}
+#endif
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);

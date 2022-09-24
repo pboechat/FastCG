@@ -112,7 +112,7 @@ namespace FastCG
 		uint32_t mExtraDataTextureId{ ~0u };
 		uint32_t mDepthTextureId{ ~0u };
 		uint32_t mSSAOTextureId{ ~0u };
-		uint32_t mBlurredSSAOTextureId{ ~0u };
+		uint32_t mSSAOBlurTextureId{ ~0u };
 		uint32_t mFinalOutputTextureId{ ~0u };
 		std::shared_ptr<Shader> mpStencilPassShader{ nullptr };
 		std::shared_ptr<Shader> mpDirectionalLightPassShader{ nullptr };
