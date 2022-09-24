@@ -16,7 +16,7 @@ namespace FastCG
 		case TextureFilter::TF_LINEAR_FILTER:
 			return GL_LINEAR;
 		default:
-			THROW_EXCEPTION(Exception, "Unhandled filter: %d", filter);
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled filter: %d", filter);
 			return 0;
 		}
 	}
@@ -30,7 +30,7 @@ namespace FastCG
 		case TextureWrapMode::TW_REPEAT:
 			return GL_REPEAT;
 		default:
-			THROW_EXCEPTION(Exception, "Unhandled wrapping mode: %d", wrapMode);
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled wrapping mode: %d", wrapMode);
 			return 0;
 		}
 	}
@@ -52,7 +52,7 @@ namespace FastCG
 		case TextureFormat::TF_BGRA:
 			return GL_BGRA;
 		default:
-			THROW_EXCEPTION(Exception, "Unhandled internal format: %d", format);
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled internal format: %d", format);
 			return 0;
 		}
 	}
@@ -66,7 +66,7 @@ namespace FastCG
 		case TextureDataType::DT_UNSIGNED_CHAR:
 			return GL_UNSIGNED_BYTE;
 		default:
-			THROW_EXCEPTION(Exception, "Unhandled data type: %d", dataType);
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled data type: %d", dataType);
 			return 0;
 		}
 	}
@@ -107,7 +107,7 @@ namespace FastCG
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 	}
 
 	void Texture::DeallocateResources()
@@ -121,13 +121,13 @@ namespace FastCG
 	void Texture::Bind() const
 	{
 		glBindTexture(GL_TEXTURE_2D, mTextureId);
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 	}
 
 	void Texture::Unbind() const
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 	}
 
 }

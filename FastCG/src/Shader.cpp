@@ -18,7 +18,7 @@ void CheckCompile(GLuint shaderObjectId, const std::string& rShaderName, const s
 	{
 		char pBuffer[4096];
 		glGetShaderInfoLog(shaderObjectId, bufferLength, &bufferLength, pBuffer);
-		THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log ('%s'): %s", rShaderName.c_str(), rShaderFileName.c_str(), pBuffer);
+		FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log ('%s'): %s", rShaderName.c_str(), rShaderFileName.c_str(), pBuffer);
 	}
 }
 
@@ -37,7 +37,7 @@ void CheckLink(GLuint programId, const std::string& rShaderName)
 
 	char* pBuffer = new char[bufferLength];
 	glGetProgramInfoLog(programId, bufferLength, &bufferLength, pBuffer);
-	THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), pBuffer);
+	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), pBuffer);
 	delete[] pBuffer;
 }
 
@@ -56,7 +56,7 @@ void CheckValidate(GLuint programId, const std::string& rShaderName)
 
 	char* pBuffer = new char[bufferLength];
 	glGetProgramInfoLog(programId, bufferLength, &bufferLength, pBuffer);
-	THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), pBuffer);
+	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), pBuffer);
 	delete[] pBuffer;
 }
 
@@ -91,7 +91,7 @@ namespace FastCG
 
 		if (shaderSource.empty())
 		{
-			THROW_EXCEPTION(Exception, "Shader file not found: %s", rShaderFileName.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Shader file not found: %s", rShaderFileName.c_str());
 		}
 
 		const auto* pShaderSource = shaderSource.c_str();
@@ -100,7 +100,7 @@ namespace FastCG
 		CheckCompile(shaderId, mName, rShaderFileName);
 		mShadersIds.insert(std::make_pair(shaderType, shaderId));
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 	}
 
 	void Shader::Link()

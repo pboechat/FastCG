@@ -43,7 +43,7 @@ namespace FastCG
 		auto it = gFontsByName.find(rFontName);
 		if (it == gFontsByName.end())
 		{
-			THROW_EXCEPTION(Exception, "Font not found: %s", rFontName.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Font not found: %s", rFontName.c_str());
 		}
 		return it->second;
 	}

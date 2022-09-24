@@ -26,7 +26,7 @@ namespace FastCG
 	};
 
 #ifdef _DEBUG
-#define CHECK_FOR_OPENGL_ERRORS() \
+#define FASTCG_CHECK_OPENGL_ERROR() \
 { \
 	GLenum __errorCode; \
 	if ((__errorCode = glGetError()) != GL_NO_ERROR) \
@@ -38,11 +38,11 @@ namespace FastCG
 			__stringStream << __pErrorMessage; \
 		} \
 		__stringStream << "\n" << "(error code: %d)"; \
-		THROW_EXCEPTION(OpenGLException, __stringStream.str().c_str(), __errorCode); \
+		FASTCG_THROW_EXCEPTION(OpenGLException, __stringStream.str().c_str(), __errorCode); \
 	} \
 }
 #else
-#define CHECK_FOR_OPENGL_ERRORS()
+#define FASTCG_CHECK_OPENGL_ERROR()
 #endif
 
 }

@@ -15,7 +15,7 @@ void Write(const std::string& rFileName, const T* pData, size_t dataSize)
 
 	if (!fileStream.is_open())
 	{
-		THROW_EXCEPTION(FastCG::Exception, "Error opening file: %s", rFileName.c_str());
+		FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error opening file: %s", rFileName.c_str());
 	}
 
 	fileStream.write((const char*)pData, dataSize);

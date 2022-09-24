@@ -48,7 +48,7 @@ namespace FastCG
 		inline void Bind() const
 		{
 			glUseProgram(mProgramId);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void Unbind() const
@@ -59,79 +59,79 @@ namespace FastCG
 		inline void BindAttributeLocation(const std::string& rAttribute, unsigned int location) const
 		{
 			glBindAttribLocation(mProgramId, location, rAttribute.c_str());
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetInt(const std::string& rParameterName, int value) const
 		{
 			glUniform1i(GetUniformLocation(rParameterName), value);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetFloat(const std::string& rParameterName, float value) const
 		{
 			glUniform1f(GetUniformLocation(rParameterName), value);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetBool(const std::string& rParameterName, bool value) const
 		{
 			glUniform1i(GetUniformLocation(rParameterName), value);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec2(const std::string& rParameterName, float x, float y) const
 		{
 			glUniform2f(GetUniformLocation(rParameterName), x, y);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec2(const std::string& rParameterName, const glm::vec2& rVector) const
 		{
 			glUniform2fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec3(const std::string& rParameterName, float x, float y, float z) const
 		{
 			glUniform3f(GetUniformLocation(rParameterName), x, y, z);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec3(const std::string& rParameterName, const glm::vec3& rVector) const
 		{
 			glUniform3fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec3Array(const std::string& rParameterName, unsigned int arraySize, const glm::vec3* pVectorArray) const
 		{
 			glUniform3fv(GetUniformLocation(rParameterName), arraySize, &pVectorArray[0][0]);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec4(const std::string& rParameterName, float x, float y, float z, float w) const
 		{
 			glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector) const
 		{
 			glUniform4fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetMat3(const std::string& rParameterName, const glm::mat3& rMatrix) const
 		{
 			glUniformMatrix3fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix) const
 		{
 			glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetTexture(const std::string& rParameterName, const std::shared_ptr<Texture>& pTexture, GLint textureUnit) const
@@ -147,13 +147,13 @@ namespace FastCG
 			glActiveTexture(GL_TEXTURE0 + textureUnit);
 			glBindTexture(GL_TEXTURE_2D, textureId);
 			glUniform1i(GetUniformLocation(rParameterName), textureUnit);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		inline void SetTexture(const std::string& rParameterName, GLint textureUnit) const
 		{
 			glUniform1i(GetUniformLocation(rParameterName), textureUnit);
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		void Compile(const std::string& rShaderFileName, ShaderType shaderType);
@@ -177,7 +177,7 @@ namespace FastCG
 		inline int GetUniformLocation(const std::string& rParameterName) const
 		{
 			auto location = glGetUniformLocation(mProgramId, rParameterName.c_str());
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 			return location;
 		}
 
@@ -193,7 +193,7 @@ namespace FastCG
 			}
 			else
 			{
-				THROW_EXCEPTION(Exception, "Unhandled shader type: %d", shaderType);
+				FASTCG_THROW_EXCEPTION(Exception, "Unhandled shader type: %d", shaderType);
 				return 0;
 			}
 		}

@@ -143,7 +143,7 @@ namespace FastCG
 			glVertexAttribPointer(Shader::TANGENTS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
 		}
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 	}
 
 	void Mesh::DeallocateResources()
@@ -192,7 +192,7 @@ namespace FastCG
 	{
 		if (mTriangleMeshVAOId != ~0u)
 		{
-			THROW_EXCEPTION(Exception, "Cannot calculate normals after VAO is already created: %d", mTriangleMeshVAOId);
+			FASTCG_THROW_EXCEPTION(Exception, "Cannot calculate normals after VAO is already created: %d", mTriangleMeshVAOId);
 		}
 
 		mNormals.resize(mVertices.size());
@@ -222,7 +222,7 @@ namespace FastCG
 	{
 		if (mTriangleMeshVAOId != ~0u)
 		{
-			THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mTriangleMeshVAOId);
+			FASTCG_THROW_EXCEPTION(Exception, "Cannot calculate tangents after VAO is already created: %d", mTriangleMeshVAOId);
 		}
 
 		// if there's no vertices, exit

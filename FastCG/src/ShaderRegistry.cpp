@@ -71,7 +71,7 @@ namespace FastCG
 		auto it = mShadersByName.find(rShaderName);
 		if (it == mShadersByName.end())
 		{
-			THROW_EXCEPTION(Exception, "Shader not found: %s", rShaderName.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Shader not found: %s", rShaderName.c_str());
 		}
 
 		return it->second;

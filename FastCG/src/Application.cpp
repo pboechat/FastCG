@@ -37,29 +37,33 @@ namespace FastCG
 
 	Application* Application::s_mpInstance = nullptr;
 
-#define REGISTER_COMPONENT(className, component) \
+#define FASTCG_REGISTER_COMPONENT(className, component) \
 	if (component->GetType().IsDerived(className::TYPE)) \
 	{ \
 		m##className##s.emplace_back(static_cast<className*>(component)); \
 	}
 
-#define UNREGISTER_COMPONENT(className, component) \
+#define FASTCG_UNREGISTER_COMPONENT(className, component) \
 	if (component->GetType().IsDerived(className::TYPE)) \
 	{ \
 		auto it = std::find(m##className##s.begin(), m##className##s.end(), component); \
 		if (it == m##className##s.end()) \
 		{ \
-			THROW_EXCEPTION(Exception, "Error unregistering: %s", #className); \
+			FASTCG_THROW_EXCEPTION(Exception, "Error unregistering: %s", #className); \
 		} \
 		m##className##s.erase(it); \
 	}
 
-#define MSG_BOX(title, fmt, ...) \
+#ifdef _WIN32
+#define FASTCG_MSG_BOX(title, fmt, ...) \
 	{ \
 		char msg[4096]; \
 		sprintf_s(msg, sizeof(msg) / sizeof(char), fmt, ##__VA_ARGS__); \
 		MessageBoxA(NULL, msg, title, MB_ICONWARNING); \
 	}
+#else
+#error "FASTCG_MSG_BOX() is not implemented on the current platform"
+#endif
 
 #ifdef _WIN32
 	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -174,12 +178,12 @@ namespace FastCG
 	{
 		assert(pComponent != nullptr);
 
-		REGISTER_COMPONENT(DirectionalLight, pComponent);
-		REGISTER_COMPONENT(PointLight, pComponent);
-		REGISTER_COMPONENT(MeshFilter, pComponent);
-		REGISTER_COMPONENT(LineRenderer, pComponent);
-		REGISTER_COMPONENT(PointsRenderer, pComponent);
-		REGISTER_COMPONENT(Behaviour, pComponent);
+		FASTCG_REGISTER_COMPONENT(DirectionalLight, pComponent);
+		FASTCG_REGISTER_COMPONENT(PointLight, pComponent);
+		FASTCG_REGISTER_COMPONENT(MeshFilter, pComponent);
+		FASTCG_REGISTER_COMPONENT(LineRenderer, pComponent);
+		FASTCG_REGISTER_COMPONENT(PointsRenderer, pComponent);
+		FASTCG_REGISTER_COMPONENT(Behaviour, pComponent);
 
 		if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 		{
@@ -203,14 +207,14 @@ namespace FastCG
 	{
 		assert(pComponent != nullptr);
 
-		UNREGISTER_COMPONENT(Camera, pComponent);
-		UNREGISTER_COMPONENT(DirectionalLight, pComponent);
-		UNREGISTER_COMPONENT(PointLight, pComponent);
-		UNREGISTER_COMPONENT(LineRenderer, pComponent);
-		UNREGISTER_COMPONENT(PointsRenderer, pComponent);
-		UNREGISTER_COMPONENT(MeshFilter, pComponent);
-		UNREGISTER_COMPONENT(Behaviour, pComponent);
-		UNREGISTER_COMPONENT(Component, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(Camera, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(DirectionalLight, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(PointLight, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(LineRenderer, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(PointsRenderer, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(MeshFilter, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(Behaviour, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(Component, pComponent);
 
 		if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 		{
@@ -253,7 +257,7 @@ namespace FastCG
 
 		try
 		{
-			mpInput = std::make_unique<Input>();
+			mpInput = std::unique_ptr<Input, DeleteInputCallback>(new Input(), [](Input* input) { delete input; });
 
 			SetUpPresentation();
 			SetUpOpenGL();
@@ -301,7 +305,7 @@ namespace FastCG
 		}
 		catch (Exception& e)
 		{
-			MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
+			FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
 			return -1;
 		}
 	}
@@ -390,7 +394,7 @@ namespace FastCG
 
 		if (!RegisterClassEx(&windowClass))
 		{
-			THROW_EXCEPTION(Exception, "Error registering window class");
+			FASTCG_THROW_EXCEPTION(Exception, "Error registering window class");
 		}
 
 		auto dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
@@ -436,7 +440,7 @@ namespace FastCG
 			auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
 			if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
 			{
-				THROW_EXCEPTION(Exception, "Error setting pixel format");
+				FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
 			}
 
 			ShowWindow(mHWnd, SW_SHOW);
@@ -444,7 +448,7 @@ namespace FastCG
 		}
 		else
 		{
-			THROW_EXCEPTION(Exception, "Error creating window");
+			FASTCG_THROW_EXCEPTION(Exception, "Error creating window");
 		}
 #else
 #error FastCG::Application::SetUpPresentation() is not implemented on the current platform
@@ -530,19 +534,19 @@ namespace FastCG
 		auto tmpHGLRC = wglCreateContext(mHDC);
 		if (tmpHGLRC == 0)
 		{
-			THROW_EXCEPTION(Exception, "Error creating a temporary GL context");
+			FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary GL context");
 		}
 
 		if (!wglMakeCurrent(mHDC, tmpHGLRC))
 		{
-			THROW_EXCEPTION(Exception, "Error making the temporary GL context current");
+			FASTCG_THROW_EXCEPTION(Exception, "Error making the temporary GL context current");
 		}
 
 		{
 			GLenum glewInitRes;
 			if ((glewInitRes = glewInit()) != GLEW_OK)
 			{
-				THROW_EXCEPTION(Exception, "Error intializing glew: %s", glewGetErrorString(glewInitRes));
+				FASTCG_THROW_EXCEPTION(Exception, "Error intializing glew: %s", glewGetErrorString(glewInitRes));
 			}
 		}
 
@@ -559,12 +563,12 @@ namespace FastCG
 		mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
 		if (mHGLRC == 0)
 		{
-			THROW_EXCEPTION(Exception, "Error creating the final GL context");
+			FASTCG_THROW_EXCEPTION(Exception, "Error creating the final GL context");
 		}
 
 		if (!wglMakeCurrent(mHDC, mHGLRC))
 		{
-			THROW_EXCEPTION(Exception, "Error making GL context current");
+			FASTCG_THROW_EXCEPTION(Exception, "Error making GL context current");
 		}
 
 		wglDeleteContext(tmpHGLRC);
@@ -653,20 +657,22 @@ namespace FastCG
 	void Application::ShowFPS()
 	{
 		char fpsText[128];
+		constexpr auto fpsTextLength = sizeof(fpsText) / sizeof(char);
 
-		sprintf_s(fpsText, sizeof(fpsText) / sizeof(char), "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
+		sprintf_s(fpsText, fpsTextLength, "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
 		mpStandardFont->DrawString(fpsText, mScreenWidth - 240, (mScreenHeight - 17), Colors::GREEN);
 	}
 
 	void Application::ShowRenderingStatistics()
 	{
-		char text[128];
+		char renderStatsText[128];
+		constexpr auto renderStatsTextLength = sizeof(renderStatsText) / sizeof(char);
 
-		sprintf_s(text, sizeof(text) / sizeof(char), "Draw Calls: %zu", mRenderingStatistics.drawCalls);
-		mpStandardFont->DrawString(text, mScreenWidth - 240, (mScreenHeight - 34), Colors::GREEN);
+		sprintf_s(renderStatsText, renderStatsTextLength, "Draw Calls: %zu", mRenderingStatistics.drawCalls);
+		mpStandardFont->DrawString(renderStatsText, mScreenWidth - 240, (mScreenHeight - 34), Colors::GREEN);
 
-		sprintf_s(text, sizeof(text) / sizeof(char), "No. Triangles: %zu", mRenderingStatistics.numberOfTriangles);
-		mpStandardFont->DrawString(text, mScreenWidth - 240, (mScreenHeight - 51), Colors::GREEN);
+		sprintf_s(renderStatsText, renderStatsTextLength, "No. Triangles: %zu", mRenderingStatistics.numberOfTriangles);
+		mpStandardFont->DrawString(renderStatsText, mScreenWidth - 240, (mScreenHeight - 51), Colors::GREEN);
 	}
 
 	void Application::Render()

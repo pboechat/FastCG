@@ -11,14 +11,12 @@
 
 namespace FastCG
 {
-	GameObject::GameObject() :
-		mActive(true)
+	GameObject::GameObject()
 	{
 		mpTransform = new Transform(this);
 	}
 
 	GameObject::GameObject(const std::string& rName) :
-		mActive(true),
 		mName(rName)
 	{
 		mpTransform = new Transform(this);
@@ -31,7 +29,7 @@ namespace FastCG
 
 	void GameObject::SetActive(bool active)
 	{
-		const std::vector<Transform*>& rChildren = mpTransform->GetChildren();
+		const auto& rChildren = mpTransform->GetChildren();
 		for (auto* pChild : rChildren)
 		{
 			pChild->GetGameObject()->SetActive(active);
@@ -42,16 +40,13 @@ namespace FastCG
 
 	void GameObject::AddComponent(Component* pComponent)
 	{
-		if (pComponent == 0)
-		{
-			THROW_EXCEPTION(Exception, "Cannot add null component");
-		}
+		assert(pComponent != nullptr);
 
-		const ComponentType& rComponentType = pComponent->GetType();
+		const auto& rComponentType = pComponent->GetType();
 
-		if (GetComponent(rComponentType) != 0)
+		if (GetComponent(rComponentType) != nullptr)
 		{
-			THROW_EXCEPTION(Exception, "Cannot add two components of the same type: %s", rComponentType.GetName().c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Cannot add two components of the same type: %s", rComponentType.GetName().c_str());
 		}
 
 		if (rComponentType.IsDerived(Renderer::TYPE))
@@ -68,10 +63,10 @@ namespace FastCG
 	{
 		if (pComponent->GetType().IsDerived(Renderer::TYPE))
 		{
-			mpRenderer = 0;
+			mpRenderer = nullptr;
 		}
 
-		std::vector<Component*>::iterator it = std::find(mComponents.begin(), mComponents.end(), pComponent);
+		auto it = std::find(mComponents.begin(), mComponents.end(), pComponent);
 
 		assert(it != mComponents.end());
 
@@ -95,7 +90,7 @@ namespace FastCG
 
 	void GameObject::DestroyAllComponents()
 	{
-		std::vector<Component*> componentsToDestroy = mComponents;
+		auto componentsToDestroy = mComponents;
 		for (auto* pComponent : componentsToDestroy)
 		{
 			Component::Destroy(pComponent);

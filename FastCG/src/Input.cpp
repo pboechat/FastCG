@@ -13,7 +13,7 @@ namespace FastCG
 	{
 		if (s_mpInstance != nullptr)
 		{
-			THROW_EXCEPTION(Exception, "There can only be one Input instance");
+			FASTCG_THROW_EXCEPTION(Exception, "There can only be one Input instance");
 		}
 
 		s_mpInstance = this;
@@ -77,17 +77,7 @@ namespace FastCG
 
 	Input::InputBuffer::InputBuffer()
 	{
-		mpKeys = new bool[NUMBER_OF_KEYS];
-		memset(mpKeys, 0, NUMBER_OF_KEYS * sizeof(bool));
-	}
-
-	Input::InputBuffer::~InputBuffer()
-	{
-		if (mpKeys != 0)
-		{
-			delete[] mpKeys;
-			mpKeys = 0;
-		}
+		memset(mpKeys, 0, sizeof(mpKeys));
 	}
 
 	bool Input::InputBuffer::GetKey(int keyCode) const
@@ -101,12 +91,10 @@ namespace FastCG
 		{
 			return mLeftMouseButton;
 		}
-
 		else if (button == MouseButton::MIDDLE_BUTTON)
 		{
 			return mMiddleMouseButton;
 		}
-
 		else
 		{
 			return mRightMouseButton;
@@ -134,12 +122,10 @@ namespace FastCG
 		{
 			mLeftMouseButton = state;
 		}
-
 		else if (button == MouseButton::MIDDLE_BUTTON)
 		{
 			mMiddleMouseButton = state;
 		}
-
 		else
 		{
 			mRightMouseButton = state;
@@ -163,11 +149,10 @@ namespace FastCG
 
 	void Input::InputBuffer::Copy(InputBuffer& rOther)
 	{
-		memcpy(mpKeys, rOther.mpKeys, NUMBER_OF_KEYS * sizeof(bool));
+		memcpy(mpKeys, rOther.mpKeys, sizeof(mpKeys));
 		mLeftMouseButton = rOther.mLeftMouseButton;
 		mMiddleMouseButton = rOther.mMiddleMouseButton;
 		mRightMouseButton = rOther.mRightMouseButton;
-		auto mousePosition = mMousePosition;
 		mMousePosition = rOther.mMousePosition;
 		mMouseWheelDelta = rOther.mMouseWheelDelta;
 	}

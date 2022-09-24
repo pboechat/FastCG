@@ -150,6 +150,8 @@ namespace FastCG
 
 		};
 
+		typedef void(*DeleteInputCallback)(Input*);
+
 		static Application* s_mpInstance;
 
 		std::string mWindowTitle;
@@ -162,7 +164,7 @@ namespace FastCG
 		std::shared_ptr<Font> mpStandardFont{ nullptr };
 		std::shared_ptr<RenderingPathStrategy> mpRenderingPathStrategy{ nullptr };
 		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{ nullptr };
-		std::unique_ptr<Input> mpInput{ nullptr };
+		std::unique_ptr<Input, DeleteInputCallback> mpInput{ nullptr, nullptr };
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
 		uint32_t mElapsedFrames{ 0 };

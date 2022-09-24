@@ -23,7 +23,7 @@ namespace FastCG
 			}
 			else
 			{
-				THROW_EXCEPTION(Exception, "Cannot query performance counter frequency: %d", 0);
+				FASTCG_THROW_EXCEPTION(Exception, "Cannot query performance counter frequency: %d", 0);
 			}
 #else
 #error "FastCG::Timer::Timer() is not implemented on the current platform"
@@ -41,7 +41,7 @@ namespace FastCG
 			}
 			else
 			{
-				THROW_EXCEPTION(Exception, "Cannot query performance counter: %d", 0);
+				FASTCG_THROW_EXCEPTION(Exception, "Cannot query performance counter: %d", 0);
 				return 0;
 			}
 #else

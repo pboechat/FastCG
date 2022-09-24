@@ -25,7 +25,7 @@ void LoadModel()
 	auto* pModel = ModelImporter::Import("objs/Doomsday.obj");
 	if (pModel == nullptr)
 	{
-		THROW_EXCEPTION(Exception, "Missing doomsday model");
+		FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
 	}
 
 	const auto& bounds = pModel->GetBounds();

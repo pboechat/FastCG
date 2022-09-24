@@ -34,7 +34,7 @@ namespace FastCG
 			auto data = FileReader::ReadBinary(mFileName.c_str(), fileSize);
 			if (data == nullptr)
 			{
-				THROW_EXCEPTION(Exception, "Failed to load font: %s", mFileName.c_str());
+				FASTCG_THROW_EXCEPTION(Exception, "Failed to load font: %s", mFileName.c_str());
 			}
 
 			{
@@ -43,7 +43,7 @@ namespace FastCG
 
 				if (res == -1)
 				{
-					THROW_EXCEPTION(Exception, "Failed to bake font bitmap: %s", mFileName.c_str());
+					FASTCG_THROW_EXCEPTION(Exception, "Failed to bake font bitmap: %s", mFileName.c_str());
 				}
 				mpCharMap = std::make_shared<Texture>(BITMAP_SIDE, BITMAP_SIDE, TextureFormat::TF_R, TextureDataType::DT_UNSIGNED_CHAR, TextureFilter::TF_LINEAR_FILTER, TextureWrapMode::TW_CLAMP, true, bitmap.get());
 			}

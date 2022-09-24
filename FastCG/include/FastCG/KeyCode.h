@@ -209,7 +209,7 @@ namespace FastCG
 			}
 			else
 			{
-				THROW_EXCEPTION(Exception, "Unhandled special key code: %d", specialKeyCode);
+				FASTCG_THROW_EXCEPTION(Exception, "Unhandled special key code: %d", specialKeyCode);
 			}
 		}
 	private:

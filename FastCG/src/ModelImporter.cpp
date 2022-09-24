@@ -369,7 +369,7 @@ namespace FastCG
 
 		if (data == nullptr)
 		{
-			THROW_EXCEPTION(Exception, "Error opening optimized model file: %s", rOptimizedModelFilePath.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Error opening optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		InputBinaryStream inStream(data.get(), dataSize);
@@ -382,28 +382,28 @@ namespace FastCG
 		vertices.resize(header.numVertices);
 		if (!inStream.Read(&vertices[0], vertices.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading vertices from optimized model file: %s", rOptimizedModelFilePath.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Error reading vertices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		std::vector<glm::vec3> normals;
 		normals.resize(header.numNormals);
 		if (!inStream.Read(&normals[0], normals.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading normals from optimized model file: %s", rOptimizedModelFilePath.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Error reading normals from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		std::vector<glm::vec2> uvs;
 		uvs.resize(header.numUvs);
 		if (!inStream.Read(&uvs[0], uvs.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading uvs from optimized model file: %s", rOptimizedModelFilePath.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Error reading uvs from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		std::vector<uint32_t> indices;
 		indices.resize(header.numIndices);
 		if (!inStream.Read(&indices[0], indices.size()))
 		{
-			THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
+			FASTCG_THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
 		auto pMesh = std::make_shared<Mesh>(vertices, normals, uvs, indices);

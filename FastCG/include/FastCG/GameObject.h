@@ -65,7 +65,7 @@ namespace FastCG
 		Transform* mpTransform;
 		Renderer* mpRenderer{ nullptr };
 		std::vector<Component*> mComponents;
-		bool mActive;
+		bool mActive{ true };
 
 		GameObject();
 		GameObject(const std::string& rName);

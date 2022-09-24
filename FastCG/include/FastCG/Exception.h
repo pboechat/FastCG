@@ -80,24 +80,26 @@ namespace FastCG
 #ifdef _DEBUG
 
 #ifdef _WIN32
-#define BREAK_TO_DEBUGGER() __debugbreak()
+#define FASTCG_BREAK_TO_DEBUGGER() __debugbreak()
 #else
-#error "BREAK_TO_DEBUGGER() is not implemented on the current platform"
+#error "FASTCG_BREAK_TO_DEBUGGER() is not implemented on the current platform"
 #endif
 
-#define THROW_EXCEPTION(exceptionType, format, ...) \
+#define FASTCG_THROW_EXCEPTION(exceptionType, format, ...) \
 { \
 	char __buffer[4096]; \
-	sprintf_s(__buffer, sizeof(__buffer) / sizeof(char), format, ##__VA_ARGS__); \
+	constexpr auto __bufferLength = sizeof(__buffer) / sizeof(char); \
+	sprintf_s(__buffer, __bufferLength, format, ##__VA_ARGS__); \
 	exceptionType __exception(__buffer); \
 	__exception.SetFunction(__FUNCTION__); \
 	__exception.SetFile(__FILE__); \
 	__exception.SetLine(__LINE__); \
-	BREAK_TO_DEBUGGER(); \
+	FASTCG_BREAK_TO_DEBUGGER(); \
 	throw __exception; \
 }
 #else
-#define THROW_EXCEPTION(exceptionType, format, ...)
+#define FASTCG_BREAK_TO_DEBUGGER()
+#define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)
 #endif
 }
 

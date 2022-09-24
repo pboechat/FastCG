@@ -68,7 +68,7 @@ void DeferredRenderingApplication::OnStart()
 	mpCheckersColorMapTexture = TextureImporter::Import("textures/CheckersColorMap.png");
 	if (mpCheckersColorMapTexture == nullptr)
 	{
-		THROW_EXCEPTION(Exception, "Missing checkers texture");
+		FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");
 	}
 
 	mpFloorMaterial = std::make_shared<Material>(ShaderRegistry::Find("Specular"));

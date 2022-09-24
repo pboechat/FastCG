@@ -166,7 +166,7 @@ namespace FastCG
 		glGenFramebuffers(1, &mGBufferFBOId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		// create g-buffer attachments
 
@@ -178,7 +178,7 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mNormalTextureId);
 		glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
@@ -187,7 +187,7 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mSpecularTextureId);
 		glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
@@ -196,7 +196,7 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mTangentTextureId);
 		glBindTexture(GL_TEXTURE_2D, mTangentTextureId);
@@ -205,7 +205,7 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mTangentTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mExtraDataTextureId);
 		glBindTexture(GL_TEXTURE_2D, mExtraDataTextureId);
@@ -214,7 +214,7 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mExtraDataTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mFinalOutputTextureId);
 		glBindTexture(GL_TEXTURE_2D, mFinalOutputTextureId);
@@ -223,7 +223,7 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mDepthTextureId);
 		glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
@@ -233,19 +233,19 @@ namespace FastCG
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			THROW_EXCEPTION(OpenGLException, "Error creating G-Buffer FBO: 0x%x\n", status);
+			FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating G-Buffer FBO: 0x%x\n", status);
 		}
 
 		// create ssao fbo
 		glGenFramebuffers(1, &mSSAOFBOId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOFBOId);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		// create ssao attachments
 		glGenTextures(1, &mSSAOTextureId);
@@ -255,19 +255,19 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			THROW_EXCEPTION(OpenGLException, "Error creating SSAO FBO: 0x%x\n", status);
+			FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating SSAO FBO: 0x%x\n", status);
 		}
 
 		// create ssao blur fbo
 		glGenFramebuffers(1, &mSSAOBlurFBOId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		glGenTextures(1, &mBlurredSSAOTextureId);
 
@@ -278,12 +278,12 @@ namespace FastCG
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mBlurredSSAOTextureId, 0);
 
-		CHECK_FOR_OPENGL_ERRORS();
+		FASTCG_CHECK_OPENGL_ERROR();
 
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			THROW_EXCEPTION(OpenGLException, "Error creating SSAO Blur FBO: 0x%x\n", status);
+			FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating SSAO Blur FBO: 0x%x\n", status);
 		}
 
 		// restore to "default" fbo
@@ -384,7 +384,7 @@ namespace FastCG
 
 			pShader->Unbind();
 
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		if (mDisplayGBufferEnabled)
@@ -435,7 +435,7 @@ namespace FastCG
 			mrRenderingStatistics.drawCalls++;
 			mpDepthToScreenShader->Unbind();
 
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 		else
 		{
@@ -476,14 +476,14 @@ namespace FastCG
 				mrRenderingStatistics.drawCalls++;
 				mpSSAOHighFrequencyPassShader->Unbind();
 
-				CHECK_FOR_OPENGL_ERRORS();
+				FASTCG_CHECK_OPENGL_ERROR();
 
 				if (mSSAOBlurEnabled)
 				{
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSAOBlurFBOId);
 					glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-					CHECK_FOR_OPENGL_ERRORS();
+					FASTCG_CHECK_OPENGL_ERROR();
 
 					glClearBufferfv(GL_COLOR, 0, &Colors::NONE[0]);
 
@@ -496,7 +496,7 @@ namespace FastCG
 					mrRenderingStatistics.drawCalls++;
 					mpSSAOBlurPassShader->Unbind();
 
-					CHECK_FOR_OPENGL_ERRORS();
+					FASTCG_CHECK_OPENGL_ERROR();
 				}
 			}
 
@@ -511,19 +511,19 @@ namespace FastCG
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, mSSAOBlurFBOId);
 					glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-					CHECK_FOR_OPENGL_ERRORS();
+					FASTCG_CHECK_OPENGL_ERROR();
 				}
 				else
 				{
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, mSSAOFBOId);
 					glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-					CHECK_FOR_OPENGL_ERRORS();
+					FASTCG_CHECK_OPENGL_ERROR();
 				}
 
 				glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-				CHECK_FOR_OPENGL_ERRORS();
+				FASTCG_CHECK_OPENGL_ERROR();
 			}
 			else
 			{
@@ -593,7 +593,7 @@ namespace FastCG
 					mrRenderingStatistics.drawCalls++;
 					mpStencilPassShader->Unbind();
 
-					CHECK_FOR_OPENGL_ERRORS();
+					FASTCG_CHECK_OPENGL_ERROR();
 
 					glDrawBuffer(GL_COLOR_ATTACHMENT7);
 
@@ -646,7 +646,7 @@ namespace FastCG
 					mrRenderingStatistics.drawCalls++;
 					mpPointLightPassShader->Unbind();
 
-					CHECK_FOR_OPENGL_ERRORS();
+					FASTCG_CHECK_OPENGL_ERROR();
 				}
 
 				glDrawBuffer(GL_COLOR_ATTACHMENT7);
@@ -691,14 +691,14 @@ namespace FastCG
 				}
 				mpDirectionalLightPassShader->Unbind();
 
-				CHECK_FOR_OPENGL_ERRORS();
+				FASTCG_CHECK_OPENGL_ERROR();
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBufferFBOId);
 				glReadBuffer(GL_COLOR_ATTACHMENT7);
 				glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-				CHECK_FOR_OPENGL_ERRORS();
+				FASTCG_CHECK_OPENGL_ERROR();
 
 				RenderUnlitGeometries(rView, rProjection);
 			}
@@ -734,7 +734,7 @@ namespace FastCG
 
 			mpLineStripShader->Unbind();
 
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
 		if (mrPointsRenderer.size() > 0)
@@ -769,7 +769,7 @@ namespace FastCG
 
 			mpPointsShader->Unbind();
 
-			CHECK_FOR_OPENGL_ERRORS();
+			FASTCG_CHECK_OPENGL_ERROR();
 		}
 	}
 
