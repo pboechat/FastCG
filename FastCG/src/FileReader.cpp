@@ -1,4 +1,3 @@
-#include <FastCG/IOExceptions.h>
 #include <FastCG/FileReader.h>
 
 #include <fstream>
