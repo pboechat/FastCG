@@ -7,7 +7,7 @@
 
 namespace FastCG
 {
-	uint32_t GetGLFilter(TextureFilter filter)
+	uint32_t GetOpenGLFilter(TextureFilter filter)
 	{
 		switch (filter)
 		{
@@ -21,7 +21,7 @@ namespace FastCG
 		}
 	}
 
-	uint32_t GetGLWrapMode(TextureWrapMode wrapMode)
+	uint32_t GetOpenGLWrapMode(TextureWrapMode wrapMode)
 	{
 		switch (wrapMode)
 		{
@@ -35,7 +35,7 @@ namespace FastCG
 		}
 	}
 
-	uint32_t GetGLFormat(TextureFormat format)
+	uint32_t GetOpenGLFormat(TextureFormat format)
 	{
 		switch (format)
 		{
@@ -57,7 +57,7 @@ namespace FastCG
 		}
 	}
 
-	uint32_t GetGLDataType(TextureDataType dataType)
+	uint32_t GetOpenGLDataType(TextureDataType dataType)
 	{
 		switch (dataType)
 		{
@@ -89,10 +89,10 @@ namespace FastCG
 
 	void Texture::AllocateResources(void* pData, bool generateMipmaps)
 	{
-		auto filter = GetGLFilter(mFilter);
-		auto wrapMode = GetGLWrapMode(mWrapMode);
-		auto format = GetGLFormat(mFormat);
-		auto dataType = GetGLDataType(mDataType);
+		auto filter = GetOpenGLFilter(mFilter);
+		auto wrapMode = GetOpenGLWrapMode(mWrapMode);
+		auto format = GetOpenGLFormat(mFormat);
+		auto dataType = GetOpenGLDataType(mDataType);
 
 		glGenTextures(1, &mTextureId);
 		glBindTexture(GL_TEXTURE_2D, mTextureId);
