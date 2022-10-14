@@ -31,7 +31,7 @@ namespace FastCG
 
 		void SetUpParameters() const;
 
-		float GetFloat(const std::string &rParameterName) const
+		inline float GetFloat(const std::string &rParameterName) const
 		{
 			auto it = mFloatParameters.find(rParameterName);
 			assert(it != mFloatParameters.end());

@@ -11,56 +11,46 @@
 
 namespace FastCG
 {
-	Material::Material(const std::shared_ptr<Shader>& pShader) :
-		mpShader(pShader)
+	Material::Material(const std::shared_ptr<Shader> &pShader) : mpShader(pShader)
 	{
 	}
 
 	void Material::SetUpParameters() const
 	{
-		auto floatParametersCursor = mFloatParameters.begin();
-		while (floatParametersCursor != mFloatParameters.end())
+		for (auto it = mFloatParameters.begin(); it != mFloatParameters.end(); it++)
 		{
-			mpShader->SetFloat(floatParametersCursor->first, floatParametersCursor->second);
-			floatParametersCursor++;
+			mpShader->SetFloat(it->first, it->second);
 		}
 
-		auto vec4ParametersCursor = mVec4Parameters.begin();
-		while (vec4ParametersCursor != mVec4Parameters.end())
+		for (auto it = mVec4Parameters.begin(); it != mVec4Parameters.end(); it++)
 		{
-			mpShader->SetVec4(vec4ParametersCursor->first, vec4ParametersCursor->second);
-			vec4ParametersCursor++;
+			mpShader->SetVec4(it->first, it->second);
 		}
 
-		auto mat4ParametersCursor = mMat4Parameters.begin();
-		while (mat4ParametersCursor != mMat4Parameters.end())
+		for (auto it = mMat4Parameters.begin(); it != mMat4Parameters.end(); it++)
 		{
-			mpShader->SetMat4(mat4ParametersCursor->first, mat4ParametersCursor->second);
-			mat4ParametersCursor++;
+			mpShader->SetMat4(it->first, it->second);
 		}
 
-		auto textureParametersCursor = mTextureParameters.begin();
 		GLint textureUnit = 0;
-		while (textureParametersCursor != mTextureParameters.end())
+		for (auto it = mTextureParameters.begin(); it != mTextureParameters.end(); it++)
 		{
-			mpShader->SetTexture(textureParametersCursor->first, textureParametersCursor->second, textureUnit);
+			mpShader->SetTexture(it->first, it->second, textureUnit);
 
 			std::stringstream variableName;
-			variableName << textureParametersCursor->first << "Tiling";
+			variableName << it->first << "Tiling";
 
-			auto textureTilingCursor = mTexturesTiling.find(textureParametersCursor->first);
-			glm::vec2 tiling(1.0f, 1.0f);
-			if (textureTilingCursor != mTexturesTiling.end())
+			glm::vec2 tiling(1, 1);
+			auto it2 = mTexturesTiling.find(it->first);
+			if (it2 != mTexturesTiling.end())
 			{
-				tiling = textureTilingCursor->second;
+				tiling = it2->second;
 			}
 
 			mpShader->SetVec2(variableName.str(), tiling);
 
 			textureUnit++;
-			textureParametersCursor++;
 		}
 	}
 
 }
-
