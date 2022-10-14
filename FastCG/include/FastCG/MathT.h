@@ -1,5 +1,5 @@
-#ifndef FASTCG_MATHT_H_
-#define FASTCG_MATHT_H_
+#ifndef FASTCG_MATHT_H
+#define FASTCG_MATHT_H
 
 #define _USE_MATH_DEFINES
 

@@ -1,5 +1,5 @@
-#ifndef FASTCG_RENDER_BATCH_H_
-#define FASTCG_RENDER_BATCH_H_
+#ifndef FASTCG_RENDER_BATCH_H
+#define FASTCG_RENDER_BATCH_H
 
 #include <FastCG/Material.h>
 #include <FastCG/MeshFilter.h>

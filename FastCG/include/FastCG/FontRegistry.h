@@ -1,5 +1,5 @@
-#ifndef FASTCG_FONTREGISTRY_H_
-#define FASTCG_FONTREGISTRY_H_
+#ifndef FASTCG_FONTREGISTRY_H
+#define FASTCG_FONTREGISTRY_H
 
 #include <FastCG/Font.h>
 

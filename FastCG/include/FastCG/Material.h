@@ -1,5 +1,5 @@
-#ifndef FASTCG_MATERIAL_H_
-#define FASTCG_MATERIAL_H_
+#ifndef FASTCG_MATERIAL_H
+#define FASTCG_MATERIAL_H
 
 #include <FastCG/Shader.h>
 #include <FastCG/Texture.h>

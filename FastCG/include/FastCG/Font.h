@@ -1,5 +1,5 @@
-#ifndef FASTCG_FONT_H_
-#define FASTCG_FONT_H_
+#ifndef FASTCG_FONT_H
+#define FASTCG_FONT_H
 
 #include <FastCG/Texture.h>
 #include <FastCG/Shader.h>

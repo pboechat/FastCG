@@ -1,5 +1,5 @@
-#ifndef FASTCG_SHADER_H_
-#define FASTCG_SHADER_H_
+#ifndef FASTCG_SHADER_H
+#define FASTCG_SHADER_H
 
 #include <FastCG/Texture.h>
 #include <FastCG/OpenGLExceptions.h>

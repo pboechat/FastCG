@@ -1,5 +1,5 @@
-#ifndef FASTCG_MOUSE_BUTTON_H_
-#define FASTCG_MOUSE_BUTTON_H_
+#ifndef FASTCG_MOUSE_BUTTON_H
+#define FASTCG_MOUSE_BUTTON_H
 
 #include <cstdint>
 

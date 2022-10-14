@@ -1,5 +1,5 @@
-#ifndef FASTCG_RANDOM_H_
-#define FASTCG_RANDOM_H_
+#ifndef FASTCG_RANDOM_H
+#define FASTCG_RANDOM_H
 
 #include <glm/glm.hpp>
 

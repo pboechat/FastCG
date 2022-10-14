@@ -1,5 +1,5 @@
-#ifndef FASTCG_BEHAVIOUR_H_
-#define FASTCG_BEHAVIOUR_H_
+#ifndef FASTCG_BEHAVIOUR_H
+#define FASTCG_BEHAVIOUR_H
 
 #include <FastCG/Component.h>
 

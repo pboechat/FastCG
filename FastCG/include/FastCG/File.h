@@ -1,5 +1,5 @@
-#ifndef FASTCG_FILE_H_
-#define FASTCG_FILE_H_
+#ifndef FASTCG_FILE_H
+#define FASTCG_FILE_H
 
 #include <string>
 

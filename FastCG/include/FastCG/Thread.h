@@ -1,5 +1,5 @@
-#ifndef FASTCG_THREAD_H_
-#define FASTCG_THREAD_H_
+#ifndef FASTCG_THREAD_H
+#define FASTCG_THREAD_H
 
 #ifdef _WIN32
 #include <Windows.h>

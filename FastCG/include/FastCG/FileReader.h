@@ -1,5 +1,5 @@
-#ifndef FASTCG_FILE_READER_H_
-#define FASTCG_FILE_READER_H_
+#ifndef FASTCG_FILE_READER_H
+#define FASTCG_FILE_READER_H
 
 #include <string>
 #include <memory>

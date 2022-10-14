@@ -1,5 +1,5 @@
-#ifndef FASTCG_KEYCODE_H_
-#define FASTCG_KEYCODE_H_
+#ifndef FASTCG_KEYCODE_H
+#define FASTCG_KEYCODE_H
 
 #include <FastCG/Exception.h>
 

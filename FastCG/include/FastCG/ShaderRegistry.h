@@ -1,5 +1,5 @@
-#ifndef FASTCG_SHADER_REGISTRY_H_
-#define FASTCG_SHADER_REGISTRY_H_
+#ifndef FASTCG_SHADER_REGISTRY_H
+#define FASTCG_SHADER_REGISTRY_H
 
 #include <FastCG/Shader.h>
 

@@ -1,5 +1,5 @@
-#ifndef FASTCG_AABB_H_
-#define FASTCG_AABB_H_
+#ifndef FASTCG_AABB_H
+#define FASTCG_AABB_H
 
 #include <glm/glm.hpp>
 

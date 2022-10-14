@@ -1,5 +1,5 @@
-#ifndef FASTCG_RENDERER_H_
-#define FASTCG_RENDERER_H_
+#ifndef FASTCG_RENDERER_H
+#define FASTCG_RENDERER_H
 
 #include <FastCG/Component.h>
 

@@ -1,5 +1,5 @@
-#ifndef FASTCG_DIRECTORY_H_
-#define FASTCG_DIRECTORY_H_
+#ifndef FASTCG_DIRECTORY_H
+#define FASTCG_DIRECTORY_H
 
 #include <vector>
 #include <string>

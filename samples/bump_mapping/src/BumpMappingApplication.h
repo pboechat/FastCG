@@ -1,5 +1,5 @@
-#ifndef BUMPMAPPING_APPLICATION_H_
-#define BUMPMAPPING_APPLICATION_H_
+#ifndef BUMPMAPPING_APPLICATION_H
+#define BUMPMAPPING_APPLICATION_H
 
 #include <FastCG/Application.h>
 #include <FastCG/GameObject.h>

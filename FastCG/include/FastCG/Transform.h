@@ -1,5 +1,5 @@
-#ifndef FASTCG_TRANSFORM_H_
-#define FASTCG_TRANSFORM_H_
+#ifndef FASTCG_TRANSFORM_H
+#define FASTCG_TRANSFORM_H
 
 #include <FastCG/Component.h>
 

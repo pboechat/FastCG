@@ -1,5 +1,5 @@
-#ifndef FASTCG_GAME_OBJECT_H_
-#define FASTCG_GAME_OBJECT_H_
+#ifndef FASTCG_GAME_OBJECT_H
+#define FASTCG_GAME_OBJECT_H
 
 #include <FastCG/AABB.h>
 

@@ -1,5 +1,5 @@
-#ifndef SPHERES_ANIMATOR_H_
-#define SPHERES_ANIMATOR_H_
+#ifndef SPHERES_ANIMATOR_H
+#define SPHERES_ANIMATOR_H
 
 #include <FastCG/Behaviour.h>
 #include <FastCG/Texture.h>

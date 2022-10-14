@@ -1,5 +1,5 @@
-#ifndef FASTCG_RENDERING_PATH_STRATEGY_H_
-#define FASTCG_RENDERING_PATH_STRATEGY_H_
+#ifndef FASTCG_RENDERING_PATH_STRATEGY_H
+#define FASTCG_RENDERING_PATH_STRATEGY_H
 
 #include <FastCG/Camera.h>
 #include <FastCG/DirectionalLight.h>

@@ -1,5 +1,5 @@
-#ifndef FASTCG_COMPONENT_H_
-#define FASTCG_COMPONENT_H_
+#ifndef FASTCG_COMPONENT_H
+#define FASTCG_COMPONENT_H
 
 #include <FastCG/GameObject.h>
 #include <FastCG/Exception.h>

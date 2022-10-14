@@ -1,5 +1,5 @@
-#ifndef FASTCG_LINE_RENDERER_H_
-#define FASTCG_LINE_RENDERER_H_
+#ifndef FASTCG_LINE_RENDERER_H
+#define FASTCG_LINE_RENDERER_H
 
 #include <FastCG/Renderer.h>
 #include <FastCG/LineStrip.h>

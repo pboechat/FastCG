@@ -1,5 +1,5 @@
-#ifndef FASTCG_INPUT_H_
-#define FASTCG_INPUT_H_
+#ifndef FASTCG_INPUT_H
+#define FASTCG_INPUT_H
 
 #include <FastCG/MouseButton.h>
 #include <FastCG/Application.h>

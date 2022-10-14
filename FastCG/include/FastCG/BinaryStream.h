@@ -1,5 +1,5 @@
-#ifndef FASTCG_BINARY_STREAM_H_
-#define FASTCG_BINARY_STREAM_H_
+#ifndef FASTCG_BINARY_STREAM_H
+#define FASTCG_BINARY_STREAM_H
 
 #include <vector>
 #include <cstdint>

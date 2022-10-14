@@ -1,5 +1,5 @@
-#ifndef FASTCG_MESH_RENDERER_H_
-#define FASTCG_MESH_RENDERER_H_
+#ifndef FASTCG_MESH_RENDERER_H
+#define FASTCG_MESH_RENDERER_H
 
 #include <FastCG/Renderer.h>
 #include <FastCG/Mesh.h>

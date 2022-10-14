@@ -1,5 +1,5 @@
-#ifndef FASTCG_POINTS_RENDERER_H_
-#define FASTCG_POINTS_RENDERER_H_
+#ifndef FASTCG_POINTS_RENDERER_H
+#define FASTCG_POINTS_RENDERER_H
 
 #include <FastCG/Renderer.h>
 #include <FastCG/Points.h>

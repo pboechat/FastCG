@@ -1,5 +1,5 @@
-#ifndef FASTCG_DIRECTIONAL_LIGHT_H_
-#define FASTCG_DIRECTIONAL_LIGHT_H_
+#ifndef FASTCG_DIRECTIONAL_LIGHT_H
+#define FASTCG_DIRECTIONAL_LIGHT_H
 
 #include <FastCG/Light.h>
 #include <FastCG/Transform.h>

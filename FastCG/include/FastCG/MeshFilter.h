@@ -1,5 +1,5 @@
-#ifndef FASTCG_MESH_FILTER_H_
-#define FASTCG_MESH_FILTER_H_
+#ifndef FASTCG_MESH_FILTER_H
+#define FASTCG_MESH_FILTER_H
 
 #include <FastCG/Component.h>
 #include <FastCG/Material.h>

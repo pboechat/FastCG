@@ -1,5 +1,5 @@
-#ifndef LIGHTS_ANIMATOR_H_
-#define LIGHTS_ANIMATOR_H_
+#ifndef LIGHTS_ANIMATOR_H
+#define LIGHTS_ANIMATOR_H
 
 #include <FastCG/Behaviour.h>
 #include <FastCG/PointLight.h>

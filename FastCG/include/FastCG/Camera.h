@@ -1,5 +1,5 @@
-#ifndef FASTCG_CAMERA_H_
-#define FASTCG_CAMERA_H_
+#ifndef FASTCG_CAMERA_H
+#define FASTCG_CAMERA_H
 
 #include <FastCG/Component.h>
 #include <FastCG/Transform.h>

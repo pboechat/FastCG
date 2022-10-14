@@ -1,5 +1,5 @@
-#ifndef FASTCG_TEXTURE_H_
-#define FASTCG_TEXTURE_H_
+#ifndef FASTCG_TEXTURE_H
+#define FASTCG_TEXTURE_H
 
 #include <GL/glew.h>
 #include <GL/gl.h>

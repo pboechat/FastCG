@@ -1,5 +1,5 @@
-#ifndef FASTCG_FILE_WRITER_H_
-#define FASTCG_FILE_WRITER_H_
+#ifndef FASTCG_FILE_WRITER_H
+#define FASTCG_FILE_WRITER_H
 
 #include <string>
 #include <cstdint>

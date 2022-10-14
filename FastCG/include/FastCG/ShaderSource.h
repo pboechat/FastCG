@@ -1,5 +1,5 @@
-#ifndef FASTCG_SHADER_SOURCE_H_
-#define FASTCG_SHADER_SOURCE_H_
+#ifndef FASTCG_SHADER_SOURCE_H
+#define FASTCG_SHADER_SOURCE_H
 
 #include <string>
 

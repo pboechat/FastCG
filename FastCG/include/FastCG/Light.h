@@ -1,5 +1,5 @@
-#ifndef FASTCG_LIGHT_H_
-#define FASTCG_LIGHT_H_
+#ifndef FASTCG_LIGHT_H
+#define FASTCG_LIGHT_H
 
 #include <FastCG/Component.h>
 #include <FastCG/Colors.h>

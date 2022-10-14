@@ -1,5 +1,5 @@
-#ifndef FASTCG_EXCEPTION_H_
-#define FASTCG_EXCEPTION_H_
+#ifndef FASTCG_EXCEPTION_H
+#define FASTCG_EXCEPTION_H
 
 #include <string>
 #include <sstream>

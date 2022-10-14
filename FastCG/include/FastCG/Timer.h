@@ -1,5 +1,5 @@
-#ifndef FASTCG_TIMER_H_
-#define FASTCG_TIMER_H_
+#ifndef FASTCG_TIMER_H
+#define FASTCG_TIMER_H
 
 #include <FastCG/Exception.h>
 

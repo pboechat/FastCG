@@ -1,5 +1,5 @@
-#ifndef FASTCG_STRING_UTILS_H_
-#define FASTCG_STRING_UTILS_H_
+#ifndef FASTCG_STRING_UTILS_H
+#define FASTCG_STRING_UTILS_H
 
 #include <vector>
 #include <string>

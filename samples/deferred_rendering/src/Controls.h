@@ -1,5 +1,5 @@
-#ifndef CONTROLS_H_
-#define CONTROLS_H_
+#ifndef CONTROLS_H
+#define CONTROLS_H
 
 #include <FastCG/Behaviour.h>
 

@@ -1,5 +1,5 @@
-#ifndef FASTCG_APPLICATION_H_
-#define FASTCG_APPLICATION_H_
+#ifndef FASTCG_APPLICATION_H
+#define FASTCG_APPLICATION_H
 
 #include <FastCG/Timer.h>
 #include <FastCG/Shader.h>

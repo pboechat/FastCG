@@ -1,5 +1,5 @@
-#ifndef FASTCG_MESH_H_
-#define FASTCG_MESH_H_
+#ifndef FASTCG_MESH_H
+#define FASTCG_MESH_H
 
 #include <FastCG/AABB.h>
 

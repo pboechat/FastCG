@@ -1,5 +1,5 @@
-#ifndef FASTCG_LINE_STRIP_H_
-#define FASTCG_LINE_STRIP_H_
+#ifndef FASTCG_LINE_STRIP_H
+#define FASTCG_LINE_STRIP_H
 
 #include <glm/glm.hpp>
 

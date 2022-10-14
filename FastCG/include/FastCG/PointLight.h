@@ -1,5 +1,5 @@
-#ifndef FASTCG_POINT_LIGHT_H_
-#define FASTCG_POINT_LIGHT_H_
+#ifndef FASTCG_POINT_LIGHT_H
+#define FASTCG_POINT_LIGHT_H
 
 #include <FastCG/Light.h>
 

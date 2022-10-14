@@ -1,5 +1,5 @@
-#ifndef FASTCG_COLORS_H_
-#define FASTCG_COLORS_H_
+#ifndef FASTCG_COLORS_H
+#define FASTCG_COLORS_H
 
 #include <glm/glm.hpp>
 

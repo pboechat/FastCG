@@ -1,5 +1,5 @@
-#ifndef FASTCG_POINTS_H_
-#define FASTCG_POINTS_H_
+#ifndef FASTCG_POINTS_H
+#define FASTCG_POINTS_H
 
 #include <glm/glm.hpp>
 

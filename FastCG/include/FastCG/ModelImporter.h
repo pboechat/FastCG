@@ -1,5 +1,5 @@
-#ifndef FASTCG_MODEL_IMPORTER_H_
-#define FASTCG_MODEL_IMPORTER_H_
+#ifndef FASTCG_MODEL_IMPORTER_H
+#define FASTCG_MODEL_IMPORTER_H
 
 #include <FastCG/Mesh.h>
 #include <FastCG/Material.h>
