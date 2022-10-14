@@ -16,19 +16,19 @@ namespace FastCG
 		DECLARE_COMPONENT(MeshRenderer, Renderer);
 
 	public:
-		inline void AddMesh(const std::shared_ptr<Mesh>& pMesh)
+		inline void AddMesh(const std::shared_ptr<Mesh> &pMesh)
 		{
 			mMeshes.emplace_back(pMesh);
 		}
 
-		inline void RemoveMesh(const std::shared_ptr<Mesh>& pMesh)
+		inline void RemoveMesh(const std::shared_ptr<Mesh> &pMesh)
 		{
 			auto it = std::find(mMeshes.begin(), mMeshes.end(), pMesh);
 			assert(it != mMeshes.end());
 			mMeshes.erase(it);
 		}
 
-		inline const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const
+		inline const std::vector<std::shared_ptr<Mesh>> &GetMeshes() const
 		{
 			return mMeshes;
 		}
@@ -41,7 +41,7 @@ namespace FastCG
 		inline size_t GetNumberOfTriangles() const override
 		{
 			size_t totalNumberOfTriangles = 0;
-			for (const auto& pMesh : mMeshes)
+			for (const auto &pMesh : mMeshes)
 			{
 				totalNumberOfTriangles += pMesh->GetNumberOfTriangles();
 			}
@@ -53,7 +53,6 @@ namespace FastCG
 
 	private:
 		std::vector<std::shared_ptr<Mesh>> mMeshes;
-
 	};
 
 }

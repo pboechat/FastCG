@@ -16,12 +16,12 @@ namespace FastCG
 	class Transform
 	{
 	public:
-		inline Transform* GetParent()
+		inline Transform *GetParent()
 		{
 			return mpParent;
 		}
 
-		inline void SetParent(Transform* pParent)
+		inline void SetParent(Transform *pParent)
 		{
 			if (mpParent != pParent)
 			{
@@ -33,57 +33,57 @@ namespace FastCG
 			Update();
 		}
 
-		inline const std::vector<Transform*>& GetChildren() const
+		inline const std::vector<Transform *> &GetChildren() const
 		{
 			return mChildren;
 		}
 
-		inline const glm::vec3& GetPosition() const
+		inline const glm::vec3 &GetPosition() const
 		{
 			return mWorldTransform.position;
 		}
 
-		inline void SetPosition(const glm::vec3& position)
+		inline void SetPosition(const glm::vec3 &position)
 		{
 			mLocalTransform.position = position;
 			Update();
 		}
 
-		inline const glm::quat& GetRotation() const
+		inline const glm::quat &GetRotation() const
 		{
 			return mWorldTransform.rotation;
 		}
 
-		inline void SetRotation(const glm::quat& rRotation)
+		inline void SetRotation(const glm::quat &rRotation)
 		{
 			mLocalTransform.rotation = rRotation;
 			Update();
 		}
 
-		inline const glm::vec3& GetScale() const
+		inline const glm::vec3 &GetScale() const
 		{
 			return mWorldTransform.scale;
 		}
 
-		inline void SetScale(const glm::vec3& rScale)
+		inline void SetScale(const glm::vec3 &rScale)
 		{
 			mLocalTransform.scale = rScale;
 			Update();
 		}
 
-		inline void Rotate(const glm::vec3& rEulerAngles)
+		inline void Rotate(const glm::vec3 &rEulerAngles)
 		{
 			mLocalTransform.rotation = mLocalTransform.rotation * glm::quat(rEulerAngles);
 			Update();
 		}
 
-		inline void RotateAround(float angle, const glm::vec3& rAxis)
+		inline void RotateAround(float angle, const glm::vec3 &rAxis)
 		{
 			mLocalTransform.rotation = glm::rotate(mLocalTransform.rotation, angle, rAxis);
 			Update();
 		}
 
-		inline void RotateAroundLocal(float angle, const glm::vec3& rAxis)
+		inline void RotateAroundLocal(float angle, const glm::vec3 &rAxis)
 		{
 			auto newLocal = glm::rotate(glm::mat4(), angle, rAxis);
 			newLocal = glm::translate(newLocal, mLocalTransform.position);
@@ -129,12 +129,12 @@ namespace FastCG
 			return mWorldTransform.ToMat4();
 		}
 
-		inline GameObject* GetGameObject()
+		inline GameObject *GetGameObject()
 		{
 			return mpGameObject;
 		}
 
-		inline const GameObject* GetGameObject() const
+		inline const GameObject *GetGameObject() const
 		{
 			return mpGameObject;
 		}
@@ -149,24 +149,22 @@ namespace FastCG
 			glm::quat rotation;
 			glm::vec3 position;
 
-			SRT() :
-				scale(1, 1, 1)
+			SRT() : scale(1, 1, 1)
 			{
 			}
 
-			SRT(const glm::vec3& rScale, const glm::quat& rRotation, const glm::vec3& rPosition) :
-				scale(rScale),
-				rotation(rRotation),
-				position(rPosition)
+			SRT(const glm::vec3 &rScale, const glm::quat &rRotation, const glm::vec3 &rPosition) : scale(rScale),
+																								   rotation(rRotation),
+																								   position(rPosition)
 			{
 			}
 
-			SRT operator*(const SRT& rOther) const
+			SRT operator*(const SRT &rOther) const
 			{
 				return SRT(scale * rOther.scale, rotation * rOther.rotation, position + rOther.position);
 			}
 
-			SRT& operator=(const SRT& rOther)
+			SRT &operator=(const SRT &rOther)
 			{
 				scale = rOther.scale;
 				rotation = rOther.rotation;
@@ -180,8 +178,7 @@ namespace FastCG
 					scale.x, 0, 0, 0,
 					0, scale.y, 0, 0,
 					0, 0, scale.z, 0,
-					0, 0, 0, 1
-				);
+					0, 0, 0, 1);
 
 				glm::mat4 rotationMatrix = glm::toMat4(rotation);
 
@@ -189,21 +186,19 @@ namespace FastCG
 					1, 0, 0, 0,
 					0, 1, 0, 0,
 					0, 0, 1, 0,
-					position.x, position.y, position.z, 1
-				);
+					position.x, position.y, position.z, 1);
 
 				return translateMatrix * rotationMatrix * scaleMatrix;
 			}
 		};
 
-		GameObject* mpGameObject;
-		Transform* mpParent{ nullptr };
-		std::vector<Transform*> mChildren;
+		GameObject *mpGameObject;
+		Transform *mpParent{nullptr};
+		std::vector<Transform *> mChildren;
 		SRT mLocalTransform;
 		SRT mWorldTransform;
 
-		Transform(GameObject* pGameObject) :
-			mpGameObject(pGameObject)
+		Transform(GameObject *pGameObject) : mpGameObject(pGameObject)
 		{
 		}
 
@@ -218,18 +213,17 @@ namespace FastCG
 				mWorldTransform = mLocalTransform;
 			}
 
-			for (auto* pChild : mChildren)
+			for (auto *pChild : mChildren)
 			{
 				pChild->Update();
 			}
 		}
 
-		inline void AddChild(Transform* pChild)
+		inline void AddChild(Transform *pChild)
 		{
 			pChild->mpGameObject->SetActive(mpGameObject->IsActive()); // if parent is inactive, set as inactive as well
 			mChildren.emplace_back(pChild);
 		}
-
 	};
 
 }

@@ -53,7 +53,6 @@ namespace FastCG
 		float mConstantAttenuation;
 		float mLinearAttenuation;
 		float mQuadraticAttenuation;
-
 	};
 
 }

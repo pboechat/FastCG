@@ -18,41 +18,39 @@ namespace FastCG
 	class RenderingPathStrategy
 	{
 	public:
-		RenderingPathStrategy(const uint32_t& rScreenWidth,
-			const uint32_t& rScreenHeight,
-			const glm::vec4& rAmbientLight,
-			const std::vector<DirectionalLight*>& rDirectionalLights,
-			const std::vector<PointLight*>& rPointLights,
-			const std::vector<LineRenderer*>& rLineRenderers,
-			const std::vector<PointsRenderer*>& rPointsRenderer,
-			const std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches,
-			RenderingStatistics& rRenderingStatistics) :
-			mrScreenWidth(rScreenWidth),
-			mrScreenHeight(rScreenHeight),
-			mrAmbientLight(rAmbientLight),
-			mrDirectionalLights(rDirectionalLights),
-			mrPointLights(rPointLights),
-			mrLineRenderers(rLineRenderers),
-			mrPointsRenderer(rPointsRenderer),
-			mrRenderingStatistics(rRenderingStatistics),
-			mrRenderBatches(rRenderBatches)
+		RenderingPathStrategy(const uint32_t &rScreenWidth,
+							  const uint32_t &rScreenHeight,
+							  const glm::vec4 &rAmbientLight,
+							  const std::vector<DirectionalLight *> &rDirectionalLights,
+							  const std::vector<PointLight *> &rPointLights,
+							  const std::vector<LineRenderer *> &rLineRenderers,
+							  const std::vector<PointsRenderer *> &rPointsRenderer,
+							  const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
+							  RenderingStatistics &rRenderingStatistics) : mrScreenWidth(rScreenWidth),
+																		   mrScreenHeight(rScreenHeight),
+																		   mrAmbientLight(rAmbientLight),
+																		   mrDirectionalLights(rDirectionalLights),
+																		   mrPointLights(rPointLights),
+																		   mrLineRenderers(rLineRenderers),
+																		   mrPointsRenderer(rPointsRenderer),
+																		   mrRenderingStatistics(rRenderingStatistics),
+																		   mrRenderBatches(rRenderBatches)
 		{
 		}
 		virtual ~RenderingPathStrategy() = default;
 
-		virtual void Render(const Camera* pCamera) = 0;
+		virtual void Render(const Camera *pCamera) = 0;
 
 	protected:
-		const uint32_t& mrScreenWidth;
-		const uint32_t& mrScreenHeight;
-		const glm::vec4& mrAmbientLight;
-		const std::vector<DirectionalLight*>& mrDirectionalLights;
-		const std::vector<PointLight*>& mrPointLights;
-		const std::vector<LineRenderer*>& mrLineRenderers;
-		const std::vector<PointsRenderer*>& mrPointsRenderer;
-		const std::vector<std::unique_ptr<RenderBatch>>& mrRenderBatches;
-		RenderingStatistics& mrRenderingStatistics;
-
+		const uint32_t &mrScreenWidth;
+		const uint32_t &mrScreenHeight;
+		const glm::vec4 &mrAmbientLight;
+		const std::vector<DirectionalLight *> &mrDirectionalLights;
+		const std::vector<PointLight *> &mrPointLights;
+		const std::vector<LineRenderer *> &mrLineRenderers;
+		const std::vector<PointsRenderer *> &mrPointsRenderer;
+		const std::vector<std::unique_ptr<RenderBatch>> &mrRenderBatches;
+		RenderingStatistics &mrRenderingStatistics;
 	};
 
 }

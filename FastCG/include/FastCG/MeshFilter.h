@@ -18,7 +18,7 @@ namespace FastCG
 			return mpMaterial;
 		}
 
-		void SetMaterial(const std::shared_ptr<Material>& pMaterial);
+		void SetMaterial(const std::shared_ptr<Material> &pMaterial);
 
 		void OnInstantiate() override
 		{
@@ -27,7 +27,6 @@ namespace FastCG
 
 	private:
 		std::shared_ptr<Material> mpMaterial;
-
 	};
 
 }

@@ -212,6 +212,7 @@ namespace FastCG
 				FASTCG_THROW_EXCEPTION(Exception, "Unhandled special key code: %d", specialKeyCode);
 			}
 		}
+
 	private:
 		/* special keys */
 		static const int SPECIAL_LEFT_ARROW = 100;
@@ -244,7 +245,6 @@ namespace FastCG
 
 		KeyCode() = delete;
 		~KeyCode() = delete;
-
 	};
 
 }

@@ -11,12 +11,12 @@ namespace FastCG
 		DECLARE_COMPONENT(PointsRenderer, Renderer);
 
 	public:
-		inline void SetPoints(Points* pPoints)
+		inline void SetPoints(Points *pPoints)
 		{
 			mpPoints = pPoints;
 		}
 
-		inline Points* GetPoints() const
+		inline Points *GetPoints() const
 		{
 			return mpPoints;
 		}
@@ -30,8 +30,7 @@ namespace FastCG
 		void OnRender() override;
 
 	private:
-		Points* mpPoints;
-
+		Points *mpPoints;
 	};
 
 }

@@ -9,7 +9,7 @@ namespace FastCG
 	{
 	public:
 		static float NextFloat();
-		template<typename T>
+		template <typename T>
 		static T Range(T min, T max)
 		{
 			return min + (int)(NextFloat() * (max - min));
@@ -21,7 +21,6 @@ namespace FastCG
 	private:
 		Random() = delete;
 		~Random() = delete;
-
 	};
 
 }

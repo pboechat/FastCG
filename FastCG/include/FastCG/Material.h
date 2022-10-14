@@ -17,53 +17,53 @@ namespace FastCG
 	class Material
 	{
 	public:
-		Material(const std::shared_ptr<Shader>& pShader);
+		Material(const std::shared_ptr<Shader> &pShader);
 
-		inline const std::shared_ptr<Shader>& GetShader() const
+		inline const std::shared_ptr<Shader> &GetShader() const
 		{
 			return mpShader;
 		}
 
-		inline void SetShader(const std::shared_ptr<Shader>& pShader)
+		inline void SetShader(const std::shared_ptr<Shader> &pShader)
 		{
 			mpShader = pShader;
 		}
 
 		void SetUpParameters() const;
 
-		float GetFloat(const std::string& rParameterName) const
+		float GetFloat(const std::string &rParameterName) const
 		{
 			auto it = mFloatParameters.find(rParameterName);
 			assert(it != mFloatParameters.end());
 			return it->second;
 		}
 
-		inline void SetFloat(const std::string& rParameterName, float value)
+		inline void SetFloat(const std::string &rParameterName, float value)
 		{
 			mFloatParameters[rParameterName] = value;
 		}
 
-		inline void SetVec4(const std::string& rParameterName, const glm::vec4& rVector)
+		inline void SetVec4(const std::string &rParameterName, const glm::vec4 &rVector)
 		{
 			mVec4Parameters[rParameterName] = rVector;
 		}
 
-		inline void SetMat4(const std::string& rParameterName, const glm::mat4& rMatrix)
+		inline void SetMat4(const std::string &rParameterName, const glm::mat4 &rMatrix)
 		{
 			mMat4Parameters[rParameterName] = rMatrix;
 		}
 
-		inline void SetTexture(const std::string& rParameterName, const std::shared_ptr<Texture>& pTexture)
+		inline void SetTexture(const std::string &rParameterName, const std::shared_ptr<Texture> &pTexture)
 		{
 			mTextureParameters[rParameterName] = pTexture;
 		}
 
-		inline const glm::vec2& GetTextureTiling(const std::string& rTextureName) const
+		inline const glm::vec2 &GetTextureTiling(const std::string &rTextureName) const
 		{
 			return mTexturesTiling.find(rTextureName)->second;
 		}
 
-		inline void SetTextureTiling(const std::string& rTextureName, const glm::vec2& rTextureTiling)
+		inline void SetTextureTiling(const std::string &rTextureName, const glm::vec2 &rTextureTiling)
 		{
 			mTexturesTiling[rTextureName] = rTextureTiling;
 		}
@@ -105,10 +105,9 @@ namespace FastCG
 		std::map<std::string, glm::mat4> mMat4Parameters;
 		std::map<std::string, std::shared_ptr<Texture>> mTextureParameters;
 		std::map<std::string, glm::vec2> mTexturesTiling;
-		bool mUnlit{ false };
-		bool mTwoSided{ false };
-		bool mHasDepth{ true };
-
+		bool mUnlit{false};
+		bool mTwoSided{false};
+		bool mHasDepth{true};
 	};
 
 }

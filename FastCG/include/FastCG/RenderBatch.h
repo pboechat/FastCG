@@ -12,8 +12,7 @@ namespace FastCG
 	struct RenderBatch
 	{
 		std::shared_ptr<Material> pMaterial;
-		std::vector<MeshFilter*> meshFilters;
-
+		std::vector<MeshFilter *> meshFilters;
 	};
 
 }

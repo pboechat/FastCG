@@ -39,15 +39,15 @@ namespace FastCG
 		}
 	}
 
-	void TextureImporter::SetBasePath(const std::string& basePath)
+	void TextureImporter::SetBasePath(const std::string &basePath)
 	{
 		gBasePath = basePath;
 	}
 
-	std::shared_ptr<Texture> TextureImporter::Import(const std::string& rFilePath)
+	std::shared_ptr<Texture> TextureImporter::Import(const std::string &rFilePath)
 	{
 		int width, height, components;
-		auto* pData = stbi_load((gBasePath + '/' + rFilePath).c_str(), &width, &height, &components, 0);
+		auto *pData = stbi_load((gBasePath + '/' + rFilePath).c_str(), &width, &height, &components, 0);
 		if (pData == nullptr)
 		{
 			return nullptr;
@@ -61,8 +61,7 @@ namespace FastCG
 			TextureFilter::TF_LINEAR_FILTER,
 			TextureWrapMode::TW_REPEAT,
 			true,
-			(void*)pData
-			);
+			(void *)pData);
 		stbi_image_free(pData);
 		gManagedTextures.emplace_back(pTexture);
 		return pTexture;

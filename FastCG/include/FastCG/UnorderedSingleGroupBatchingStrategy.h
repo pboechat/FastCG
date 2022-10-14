@@ -8,14 +8,12 @@ namespace FastCG
 	class UnorderedSingleGroupBatchingStrategy : public RenderBatchingStrategy
 	{
 	public:
-		UnorderedSingleGroupBatchingStrategy(std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches) :
-			RenderBatchingStrategy(rRenderBatches)
+		UnorderedSingleGroupBatchingStrategy(std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches) : RenderBatchingStrategy(rRenderBatches)
 		{
 		}
 
-		void AddMeshFilter(MeshFilter* pMeshFilter) override;
-		void RemoveMeshFilter(MeshFilter* pMeshFilter) override;
-
+		void AddMeshFilter(MeshFilter *pMeshFilter) override;
+		void RemoveMeshFilter(MeshFilter *pMeshFilter) override;
 	};
 
 }

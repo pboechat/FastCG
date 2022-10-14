@@ -1,7 +1,7 @@
 ﻿#include <FastCG/ShaderSource.h>
 #include <FastCG/Shader.h>
 
-void CheckCompile(GLuint shaderObjectId, const std::string& rShaderName, const std::string& rShaderFileName)
+void CheckCompile(GLuint shaderObjectId, const std::string &rShaderName, const std::string &rShaderFileName)
 {
 	GLint compileStatus;
 	glGetShaderiv(shaderObjectId, GL_COMPILE_STATUS, &compileStatus);
@@ -21,7 +21,7 @@ void CheckCompile(GLuint shaderObjectId, const std::string& rShaderName, const s
 	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log ('%s'): %s", rShaderName.c_str(), rShaderFileName.c_str(), infoLog.c_str());
 }
 
-void CheckLink(GLuint programId, const std::string& rShaderName)
+void CheckLink(GLuint programId, const std::string &rShaderName)
 {
 	GLint linkStatus;
 	glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
@@ -41,7 +41,7 @@ void CheckLink(GLuint programId, const std::string& rShaderName)
 	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), infoLog.c_str());
 }
 
-void CheckValidate(GLuint programId, const std::string& rShaderName)
+void CheckValidate(GLuint programId, const std::string &rShaderName)
 {
 	GLint validateStatus;
 	glGetProgramiv(programId, GL_VALIDATE_STATUS, &validateStatus);
@@ -61,8 +61,10 @@ void CheckValidate(GLuint programId, const std::string& rShaderName)
 	FASTCG_THROW_EXCEPTION(FastCG::Exception, "Shader (%s) info log: %s", rShaderName.c_str(), infoLog.c_str());
 }
 
-#define CASE_RETURN_STRING(str) case str: return #str
-const char* GetOpenGLShaderTypeString(GLenum shaderType)
+#define CASE_RETURN_STRING(str) \
+	case str:                   \
+		return #str
+const char *GetOpenGLShaderTypeString(GLenum shaderType)
 {
 	switch (shaderType)
 	{
@@ -90,13 +92,11 @@ GLenum GetOpenGLShaderType(FastCG::ShaderType shaderType)
 
 namespace FastCG
 {
-	Shader::Shader() :
-		mName("Default")
+	Shader::Shader() : mName("Default")
 	{
 	}
 
-	Shader::Shader(const std::string& rName) :
-		mName(rName)
+	Shader::Shader(const std::string &rName) : mName(rName)
 	{
 	}
 
@@ -112,7 +112,7 @@ namespace FastCG
 		}
 	}
 
-	void Shader::Compile(const std::string& rShaderFileName, ShaderType shaderType)
+	void Shader::Compile(const std::string &rShaderFileName, ShaderType shaderType)
 	{
 		auto shaderSource = ShaderSource::Parse(rShaderFileName);
 		auto glShaderType = GetOpenGLShaderType(shaderType);
@@ -123,8 +123,8 @@ namespace FastCG
 			FASTCG_THROW_EXCEPTION(Exception, "Shader file not found: %s", rShaderFileName.c_str());
 		}
 
-		const auto* pShaderSource = shaderSource.c_str();
-		glShaderSource(shaderId, 1, (const char**)&pShaderSource, 0);
+		const auto *pShaderSource = shaderSource.c_str();
+		glShaderSource(shaderId, 1, (const char **)&pShaderSource, 0);
 
 		glCompileShader(shaderId);
 		CheckCompile(shaderId, mName, rShaderFileName);

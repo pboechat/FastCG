@@ -16,8 +16,7 @@ protected:
 	void OnUpdate(float time, float deltaTime) override;
 
 private:
-	uint8_t mPressedKeyMask{ 0 };
-
+	uint8_t mPressedKeyMask{0};
 };
 
 #endif

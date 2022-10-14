@@ -16,8 +16,7 @@ namespace FastCG
 		mpTransform = new Transform(this);
 	}
 
-	GameObject::GameObject(const std::string& rName) :
-		mName(rName)
+	GameObject::GameObject(const std::string &rName) : mName(rName)
 	{
 		mpTransform = new Transform(this);
 	}
@@ -29,8 +28,8 @@ namespace FastCG
 
 	void GameObject::SetActive(bool active)
 	{
-		const auto& rChildren = mpTransform->GetChildren();
-		for (auto* pChild : rChildren)
+		const auto &rChildren = mpTransform->GetChildren();
+		for (auto *pChild : rChildren)
 		{
 			pChild->GetGameObject()->SetActive(active);
 		}
@@ -38,11 +37,11 @@ namespace FastCG
 		mActive = active;
 	}
 
-	void GameObject::AddComponent(Component* pComponent)
+	void GameObject::AddComponent(Component *pComponent)
 	{
 		assert(pComponent != nullptr);
 
-		const auto& rComponentType = pComponent->GetType();
+		const auto &rComponentType = pComponent->GetType();
 
 		if (GetComponent(rComponentType) != nullptr)
 		{
@@ -51,7 +50,7 @@ namespace FastCG
 
 		if (rComponentType.IsDerived(Renderer::TYPE))
 		{
-			mpRenderer = static_cast<Renderer*>(pComponent);
+			mpRenderer = static_cast<Renderer *>(pComponent);
 		}
 
 		Application::GetInstance()->RegisterComponent(pComponent);
@@ -59,7 +58,7 @@ namespace FastCG
 		mComponents.emplace_back(pComponent);
 	}
 
-	void GameObject::RemoveComponent(Component* pComponent)
+	void GameObject::RemoveComponent(Component *pComponent)
 	{
 		if (pComponent->GetType().IsDerived(Renderer::TYPE))
 		{
@@ -75,9 +74,9 @@ namespace FastCG
 		Application::GetInstance()->UnregisterComponent(pComponent);
 	}
 
-	Component* GameObject::GetComponent(const ComponentType& rComponentType) const
+	Component *GameObject::GetComponent(const ComponentType &rComponentType) const
 	{
-		for (auto* pComponent : mComponents)
+		for (auto *pComponent : mComponents)
 		{
 			if (pComponent->GetType().IsDerived(rComponentType))
 			{
@@ -91,7 +90,7 @@ namespace FastCG
 	void GameObject::DestroyAllComponents()
 	{
 		auto componentsToDestroy = mComponents;
-		for (auto* pComponent : componentsToDestroy)
+		for (auto *pComponent : componentsToDestroy)
 		{
 			Component::Destroy(pComponent);
 		}
@@ -100,21 +99,21 @@ namespace FastCG
 		assert(mComponents.size() == 0);
 	}
 
-	GameObject* GameObject::Instantiate()
+	GameObject *GameObject::Instantiate()
 	{
-		auto* pGameObject = new GameObject();
+		auto *pGameObject = new GameObject();
 		Application::GetInstance()->RegisterGameObject(pGameObject);
 		return pGameObject;
 	}
 
-	GameObject* GameObject::Instantiate(const std::string& rName)
+	GameObject *GameObject::Instantiate(const std::string &rName)
 	{
-		auto* pGameObject = new GameObject(rName);
+		auto *pGameObject = new GameObject(rName);
 		Application::GetInstance()->RegisterGameObject(pGameObject);
 		return pGameObject;
 	}
 
-	void GameObject::Destroy(GameObject* pGameObject)
+	void GameObject::Destroy(GameObject *pGameObject)
 	{
 		pGameObject->DestroyAllComponents();
 		Application::GetInstance()->UnregisterGameObject(pGameObject);
@@ -124,15 +123,15 @@ namespace FastCG
 	AABB GameObject::GetBounds() const
 	{
 		AABB bounds;
-		auto* pMeshRenderer = static_cast<MeshRenderer*>(GetComponent(MeshRenderer::TYPE));
+		auto *pMeshRenderer = static_cast<MeshRenderer *>(GetComponent(MeshRenderer::TYPE));
 		if (pMeshRenderer != nullptr)
 		{
-			for (const auto& pMesh : pMeshRenderer->GetMeshes())
+			for (const auto &pMesh : pMeshRenderer->GetMeshes())
 			{
 				bounds.Expand(pMesh->GetBounds());
 			}
 		}
-		for (auto* pChild : GetTransform()->GetChildren())
+		for (auto *pChild : GetTransform()->GetChildren())
 		{
 			bounds.Expand(pChild->GetGameObject()->GetBounds());
 		}

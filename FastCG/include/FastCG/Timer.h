@@ -65,10 +65,9 @@ namespace FastCG
 		}
 
 	private:
-		double mStart{ 0 };
-		double mEnd{ 0 };
-		double mSeconds{ 0 };
-
+		double mStart{0};
+		double mEnd{0};
+		double mSeconds{0};
 	};
 
 }

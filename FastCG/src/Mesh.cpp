@@ -6,55 +6,49 @@
 
 namespace FastCG
 {
-	Mesh::Mesh(const std::string& rName, const std::vector<uint32_t>& indexes) :
-		mName(rName),
-		mIndices(indexes)
+	Mesh::Mesh(const std::string &rName, const std::vector<uint32_t> &indexes) : mName(rName),
+																				 mIndices(indexes)
 	{
 	}
 
-	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indexes) :
-		mName(rName),
-		mVertices(vertices),
-		mIndices(indexes)
+	Mesh::Mesh(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<uint32_t> &indexes) : mName(rName),
+																														 mVertices(vertices),
+																														 mIndices(indexes)
 	{
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<uint32_t>& indexes) :
-		mName(rName),
-		mVertices(vertices),
-		mNormals(normals),
-		mIndices(indexes)
+	Mesh::Mesh(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<uint32_t> &indexes) : mName(rName),
+																																								mVertices(vertices),
+																																								mNormals(normals),
+																																								mIndices(indexes)
 	{
 		assert(vertices.size() == normals.size());
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indexes) :
-		mName(rName)
+	Mesh::Mesh(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indexes) : mName(rName)
 	{
 		assert(vertices.size() == uvs.size());
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indices) :
-		mName(rName),
-		mVertices(vertices),
-		mNormals(normals),
-		mUVs(uvs),
-		mIndices(indices)
+	Mesh::Mesh(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices) : mName(rName),
+																																																   mVertices(vertices),
+																																																   mNormals(normals),
+																																																   mUVs(uvs),
+																																																   mIndices(indices)
 	{
 		assert(vertices.size() == normals.size() && vertices.size() == uvs.size());
 		CalculateBounds();
 	}
 
-	Mesh::Mesh(const std::string& rName, const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec4>& tangents, const std::vector<glm::vec2>& uvs, const std::vector<uint32_t>& indices) :
-		mName(rName),
-		mVertices(vertices),
-		mNormals(normals),
-		mTangents(tangents),
-		mIndices(indices),
-		mUVs(uvs)
+	Mesh::Mesh(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<glm::vec4> &tangents, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices) : mName(rName),
+																																																										   mVertices(vertices),
+																																																										   mNormals(normals),
+																																																										   mTangents(tangents),
+																																																										   mIndices(indices),
+																																																										   mUVs(uvs)
 	{
 		assert(vertices.size() == normals.size() && vertices.size() == uvs.size() && vertices.size() == tangents.size());
 		CalculateBounds();
@@ -250,9 +244,9 @@ namespace FastCG
 			uint32_t i2 = mIndices[i + 1];
 			uint32_t i3 = mIndices[i + 2];
 
-			const auto& v1 = mVertices[i1];
-			const auto& v2 = mVertices[i2];
-			const auto& v3 = mVertices[i3];
+			const auto &v1 = mVertices[i1];
+			const auto &v2 = mVertices[i2];
+			const auto &v3 = mVertices[i3];
 
 			auto n = glm::cross(v2 - v1, v3 - v1);
 			mNormals[i1] += n;
@@ -260,7 +254,7 @@ namespace FastCG
 			mNormals[i3] += n;
 		}
 
-		for (auto& rNormal : mNormals)
+		for (auto &rNormal : mNormals)
 		{
 			rNormal = glm::normalize(rNormal);
 		}
@@ -295,13 +289,13 @@ namespace FastCG
 			auto i2 = mIndices[i + 1];
 			auto i3 = mIndices[i + 2];
 
-			auto& v1 = mVertices[i1];
-			auto& v2 = mVertices[i2];
-			auto& v3 = mVertices[i3];
+			auto &v1 = mVertices[i1];
+			auto &v2 = mVertices[i2];
+			auto &v3 = mVertices[i3];
 
-			auto& w1 = mUVs[i1];
-			auto& w2 = mUVs[i2];
-			auto& w3 = mUVs[i3];
+			auto &w1 = mUVs[i1];
+			auto &w2 = mUVs[i2];
+			auto &w3 = mUVs[i3];
 
 			auto x1 = v2.x - v1.x;
 			auto x2 = v3.x - v1.x;
@@ -321,12 +315,12 @@ namespace FastCG
 			auto r = 1.0f / (s1 * t2 - s2 * t1);
 
 			glm::vec3 sdir((t2 * x1 - t1 * x2) * r,
-				(t2 * y1 - t1 * y2) * r,
-				(t2 * z1 - t1 * z2) * r);
+						   (t2 * y1 - t1 * y2) * r,
+						   (t2 * z1 - t1 * z2) * r);
 
 			glm::vec3 tdir((s1 * x2 - s2 * x1) * r,
-				(s1 * y2 - s2 * y1) * r,
-				(s1 * z2 - s2 * z1) * r);
+						   (s1 * y2 - s2 * y1) * r,
+						   (s1 * z2 - s2 * z1) * r);
 
 			tangents1[i1] += sdir;
 			tangents1[i2] += sdir;
@@ -339,8 +333,8 @@ namespace FastCG
 
 		for (size_t i = 0; i < mVertices.size(); i++)
 		{
-			auto& normal = mNormals[i];
-			auto& tangent = tangents1[i];
+			auto &normal = mNormals[i];
+			auto &tangent = tangents1[i];
 
 			// gram-schmidt orthogonalization
 			mTangents[i] = glm::vec4(glm::normalize(tangent - normal * glm::dot(normal, tangent)), 0.0f);
@@ -360,7 +354,7 @@ namespace FastCG
 		mBounds.min.x = mBounds.min.y = mBounds.min.z = 1e10f;
 		mBounds.max.x = mBounds.max.y = mBounds.max.z = -1e10f;
 
-		for (const auto& rVertex : mVertices)
+		for (const auto &rVertex : mVertices)
 		{
 			mBounds.min.x = MathF::Min(mBounds.min.x, rVertex.x);
 			mBounds.min.y = MathF::Min(mBounds.min.y, rVertex.y);

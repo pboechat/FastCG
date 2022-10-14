@@ -20,7 +20,6 @@ namespace FastCG
 
 	protected:
 		virtual void OnUpdate(float time, float deltaTime) = 0;
-
 	};
 
 }

@@ -27,14 +27,13 @@ namespace FastCG
 	class ModelImporter
 	{
 	public:
-		static void SetBasePath(const std::string& basePath);
-		static GameObject* Import(const std::string& rFileName, ModelImporterOptions options = (ModelImporterOptions)ModelImporterOption::MIO_NONE);
+		static void SetBasePath(const std::string &basePath);
+		static GameObject *Import(const std::string &rFileName, ModelImporterOptions options = (ModelImporterOptions)ModelImporterOption::MIO_NONE);
 		static void Dispose();
 
 	private:
 		ModelImporter() = delete;
 		~ModelImporter() = delete;
-
 	};
 
 }

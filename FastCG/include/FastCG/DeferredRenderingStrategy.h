@@ -17,15 +17,15 @@ namespace FastCG
 	class DeferredRenderingStrategy : public RenderingPathStrategy
 	{
 	public:
-		DeferredRenderingStrategy(const uint32_t& rScreenWidth,
-			const uint32_t& rScreenHeight,
-			const glm::vec4& rAmbientLight,
-			const std::vector<DirectionalLight*>& rDirectionalLights,
-			const std::vector<PointLight*>& rPointLights,
-			const std::vector<LineRenderer*>& rLineRenderers,
-			const std::vector<PointsRenderer*>& rPointsRenderer,
-			const std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches,
-			RenderingStatistics& rRenderingStatistics);
+		DeferredRenderingStrategy(const uint32_t &rScreenWidth,
+								  const uint32_t &rScreenHeight,
+								  const glm::vec4 &rAmbientLight,
+								  const std::vector<DirectionalLight *> &rDirectionalLights,
+								  const std::vector<PointLight *> &rPointLights,
+								  const std::vector<LineRenderer *> &rLineRenderers,
+								  const std::vector<PointsRenderer *> &rPointsRenderer,
+								  const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
+								  RenderingStatistics &rRenderingStatistics);
 
 		virtual ~DeferredRenderingStrategy();
 
@@ -89,7 +89,7 @@ namespace FastCG
 			mSSAOBlurEnabled = ssaoBlurEnabled;
 		}
 
-		virtual void Render(const Camera* pCamera);
+		virtual void Render(const Camera *pCamera);
 
 	private:
 		const static uint32_t NUMBER_OF_RANDOM_SAMPLES;
@@ -102,35 +102,35 @@ namespace FastCG
 		const static uint32_t NOISE_TEXTURE_SIZE;
 
 		float mAspectRatio;
-		uint32_t mGBufferFBOId{ ~0u };
-		uint32_t mSSAOFBOId{ ~0u };
-		uint32_t mSSAOBlurFBOId{ ~0u };
-		uint32_t mNormalTextureId{ ~0u };
-		uint32_t mDiffuseTextureId{ ~0u };
-		uint32_t mSpecularTextureId{ ~0u };
-		uint32_t mTangentTextureId{ ~0u };
-		uint32_t mExtraDataTextureId{ ~0u };
-		uint32_t mDepthTextureId{ ~0u };
-		uint32_t mSSAOTextureId{ ~0u };
-		uint32_t mSSAOBlurTextureId{ ~0u };
-		uint32_t mFinalOutputTextureId{ ~0u };
-		std::shared_ptr<Shader> mpStencilPassShader{ nullptr };
-		std::shared_ptr<Shader> mpDirectionalLightPassShader{ nullptr };
-		std::shared_ptr<Shader> mpPointLightPassShader{ nullptr };
-		std::shared_ptr<Shader> mpSSAOHighFrequencyPassShader{ nullptr };
-		std::shared_ptr<Shader> mpSSAOBlurPassShader{ nullptr };
-		std::shared_ptr<Shader> mpLineStripShader{ nullptr };
-		std::shared_ptr<Shader> mpPointsShader{ nullptr };
-		std::shared_ptr<Shader> mpDepthToScreenShader{ nullptr };
-		std::shared_ptr<Texture> mpNoiseTexture{ nullptr };
-		std::unique_ptr<Mesh> mpQuadMesh{ nullptr };
-		std::unique_ptr<Mesh> mpSphereMesh{ nullptr };
-		bool mDisplayGBufferEnabled{ false };
-		bool mDisplaySSAOTextureEnabled{ false };
-		bool mShowPointLightsEnabled{ false };
+		uint32_t mGBufferFBOId{~0u};
+		uint32_t mSSAOFBOId{~0u};
+		uint32_t mSSAOBlurFBOId{~0u};
+		uint32_t mNormalTextureId{~0u};
+		uint32_t mDiffuseTextureId{~0u};
+		uint32_t mSpecularTextureId{~0u};
+		uint32_t mTangentTextureId{~0u};
+		uint32_t mExtraDataTextureId{~0u};
+		uint32_t mDepthTextureId{~0u};
+		uint32_t mSSAOTextureId{~0u};
+		uint32_t mSSAOBlurTextureId{~0u};
+		uint32_t mFinalOutputTextureId{~0u};
+		std::shared_ptr<Shader> mpStencilPassShader{nullptr};
+		std::shared_ptr<Shader> mpDirectionalLightPassShader{nullptr};
+		std::shared_ptr<Shader> mpPointLightPassShader{nullptr};
+		std::shared_ptr<Shader> mpSSAOHighFrequencyPassShader{nullptr};
+		std::shared_ptr<Shader> mpSSAOBlurPassShader{nullptr};
+		std::shared_ptr<Shader> mpLineStripShader{nullptr};
+		std::shared_ptr<Shader> mpPointsShader{nullptr};
+		std::shared_ptr<Shader> mpDepthToScreenShader{nullptr};
+		std::shared_ptr<Texture> mpNoiseTexture{nullptr};
+		std::unique_ptr<Mesh> mpQuadMesh{nullptr};
+		std::unique_ptr<Mesh> mpSphereMesh{nullptr};
+		bool mDisplayGBufferEnabled{false};
+		bool mDisplaySSAOTextureEnabled{false};
+		bool mShowPointLightsEnabled{false};
 		float mSSAORadius;
 		float mSSAODistanceScale;
-		bool mSSAOBlurEnabled{ true };
+		bool mSSAOBlurEnabled{true};
 		std::vector<glm::vec3> mRandomSamples;
 
 		void BuildAuxiliaryMeshes();
@@ -138,8 +138,7 @@ namespace FastCG
 		void GenerateNoiseTexture();
 		void GenerateRandomSamplesInAHemisphere();
 		void AllocateTexturesAndFBOs();
-		void RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection);
-
+		void RenderUnlitGeometries(const glm::mat4 &view, const glm::mat4 &projection);
 	};
 
 }

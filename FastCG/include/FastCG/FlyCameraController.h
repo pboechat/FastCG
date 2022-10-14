@@ -39,11 +39,10 @@ namespace FastCG
 		void OnUpdate(float time, float deltaTime) override;
 
 	private:
-		glm::vec2 mLastMousePosition{ 0, 0 };
-		bool mRightMouseButtonPressed{ false };
-		float mWalkSpeed{ 1 };
-		float mTurnSpeed{ 1 };
-
+		glm::vec2 mLastMousePosition{0, 0};
+		bool mRightMouseButtonPressed{false};
+		float mWalkSpeed{1};
+		float mTurnSpeed{1};
 	};
 
 }

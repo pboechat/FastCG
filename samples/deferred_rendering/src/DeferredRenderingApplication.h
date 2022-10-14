@@ -17,12 +17,11 @@ protected:
 	void OnStart() override;
 
 private:
-	std::shared_ptr<Texture> mpCheckersColorMapTexture{ nullptr };
-	std::shared_ptr<Material> mpFloorMaterial{ nullptr };
-	std::shared_ptr<Mesh> mpFloorMesh{ nullptr };
-	std::shared_ptr<Material> mpSphereMaterial{ nullptr };
-	std::shared_ptr<Mesh> mpSphereMesh{ nullptr };
-
+	std::shared_ptr<Texture> mpCheckersColorMapTexture{nullptr};
+	std::shared_ptr<Material> mpFloorMaterial{nullptr};
+	std::shared_ptr<Mesh> mpFloorMesh{nullptr};
+	std::shared_ptr<Material> mpSphereMaterial{nullptr};
+	std::shared_ptr<Mesh> mpSphereMesh{nullptr};
 };
 
 #endif

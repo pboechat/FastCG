@@ -11,13 +11,12 @@ namespace FastCG
 	class TextureImporter
 	{
 	public:
-		static void SetBasePath(const std::string& basePath);
-		static std::shared_ptr<Texture> Import(const std::string& rFilePath);
+		static void SetBasePath(const std::string &basePath);
+		static std::shared_ptr<Texture> Import(const std::string &rFilePath);
 
 	private:
 		TextureImporter() = delete;
 		~TextureImporter() = delete;
-
 	};
 
 }

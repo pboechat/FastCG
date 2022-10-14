@@ -12,8 +12,8 @@ namespace FastCG
 	class ShaderRegistry
 	{
 	public:
-		static void LoadShadersFromDisk(const std::string& rShadersDirectory);
-		static std::shared_ptr<Shader> Find(const std::string& rShaderName);
+		static void LoadShadersFromDisk(const std::string &rShadersDirectory);
+		static std::shared_ptr<Shader> Find(const std::string &rShaderName);
 		static void Unload();
 
 	private:
@@ -22,8 +22,7 @@ namespace FastCG
 		ShaderRegistry() = delete;
 		~ShaderRegistry() = delete;
 
-		static bool ExtractShaderInfo(const std::string& rShaderFileName, std::string& rShaderName, ShaderType& rShaderType);
-
+		static bool ExtractShaderInfo(const std::string &rShaderFileName, std::string &rShaderName, ShaderType &rShaderType);
 	};
 
 }

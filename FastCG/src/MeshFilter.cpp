@@ -5,7 +5,7 @@ namespace FastCG
 {
 	IMPLEMENT_COMPONENT(MeshFilter, Component);
 
-	void MeshFilter::SetMaterial(const std::shared_ptr<Material>& pMaterial)
+	void MeshFilter::SetMaterial(const std::shared_ptr<Material> &pMaterial)
 	{
 		Application::GetInstance()->BeforeMeshFilterChange(this);
 		mpMaterial = pMaterial;

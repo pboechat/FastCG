@@ -15,13 +15,13 @@ namespace FastCG
 
 	void FlyCameraController::OnUpdate(float time, float deltaTime)
 	{
-		auto* mainCamera = Application::GetInstance()->GetMainCamera();
+		auto *mainCamera = Application::GetInstance()->GetMainCamera();
 		if (mainCamera == nullptr)
 		{
 			return;
 		}
 
-		auto* pTransform = mainCamera->GetGameObject()->GetTransform();
+		auto *pTransform = mainCamera->GetGameObject()->GetTransform();
 
 		if (Input::GetMouseButton(MouseButton::RIGHT_BUTTON) == MouseButtonState::PRESSED)
 		{

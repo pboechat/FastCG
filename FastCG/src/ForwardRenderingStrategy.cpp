@@ -4,28 +4,27 @@
 
 namespace FastCG
 {
-	ForwardRenderingStrategy::ForwardRenderingStrategy(const uint32_t& rScreenWidth,
-		const uint32_t& rScreenHeight,
-		const glm::vec4& rAmbientLight,
-		const std::vector<DirectionalLight*>& rDirectionalLights,
-		const std::vector<PointLight*>& rPointLights,
-		const std::vector<LineRenderer*>& rLineRenderers,
-		const std::vector<PointsRenderer*>& rPointsRenderer,
-		const std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches,
-		RenderingStatistics& rRenderingStatistics) :
-		RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics)
+	ForwardRenderingStrategy::ForwardRenderingStrategy(const uint32_t &rScreenWidth,
+													   const uint32_t &rScreenHeight,
+													   const glm::vec4 &rAmbientLight,
+													   const std::vector<DirectionalLight *> &rDirectionalLights,
+													   const std::vector<PointLight *> &rPointLights,
+													   const std::vector<LineRenderer *> &rLineRenderers,
+													   const std::vector<PointsRenderer *> &rPointsRenderer,
+													   const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
+													   RenderingStatistics &rRenderingStatistics) : RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics)
 	{
 		mpLineStripShader = ShaderRegistry::Find("LineStrip");
 		mpPointsShader = ShaderRegistry::Find("Points");
 	}
 
-	void ForwardRenderingStrategy::Render(const Camera* pCamera)
+	void ForwardRenderingStrategy::Render(const Camera *pCamera)
 	{
 #ifdef _DEBUG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Forward Rendering");
 #endif
-		auto& rView = pCamera->GetView();
-		auto& rProjection = pCamera->GetProjection();
+		auto &rView = pCamera->GetView();
+		auto &rProjection = pCamera->GetProjection();
 
 		mrRenderingStatistics.Reset();
 
@@ -48,9 +47,9 @@ namespace FastCG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Geometry Passes");
 #endif
 
-		for (const auto& pRenderingGroup : mrRenderBatches)
+		for (const auto &pRenderingGroup : mrRenderBatches)
 		{
-			const auto& pMaterial = pRenderingGroup->pMaterial;
+			const auto &pMaterial = pRenderingGroup->pMaterial;
 
 			if (pMaterial->HasDepth())
 			{
@@ -75,27 +74,27 @@ namespace FastCG
 				glCullFace(GL_BACK);
 			}
 
-			auto& rMeshFilters = pRenderingGroup->meshFilters;
+			auto &rMeshFilters = pRenderingGroup->meshFilters;
 			auto pShader = pMaterial->GetShader();
 			pShader->Bind();
 			pShader->SetMat4("_View", rView);
 			pShader->SetMat4("_Projection", rProjection);
 			pMaterial->SetUpParameters();
 
-			for (auto* pMeshFilter : rMeshFilters)
+			for (auto *pMeshFilter : rMeshFilters)
 			{
 				if (!pMeshFilter->GetGameObject()->IsActive())
 				{
 					continue;
 				}
 
-				auto* pRenderer = pMeshFilter->GetGameObject()->GetRenderer();
+				auto *pRenderer = pMeshFilter->GetGameObject()->GetRenderer();
 				if (pRenderer == nullptr)
 				{
 					continue;
 				}
 
-				const auto& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
+				const auto &rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
 				auto modelView = rView * rModel;
 				pShader->SetMat4("_Model", rModel);
 				pShader->SetMat4("_ModelView", modelView);
@@ -126,7 +125,7 @@ namespace FastCG
 							hasSetupMultiPass = true;
 						}
 
-						auto* pDirectionalLight = mrDirectionalLights[i];
+						auto *pDirectionalLight = mrDirectionalLights[i];
 						pShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
@@ -147,7 +146,7 @@ namespace FastCG
 							hasSetupMultiPass = true;
 						}
 
-						auto* pPointLight = mrPointLights[i];
+						auto *pPointLight = mrPointLights[i];
 						pShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
@@ -191,14 +190,14 @@ namespace FastCG
 			mpLineStripShader->SetMat4("_View", rView);
 			mpLineStripShader->SetMat4("_Projection", rProjection);
 
-			for (auto* pLineRenderer : mrLineRenderers)
+			for (auto *pLineRenderer : mrLineRenderers)
 			{
 				if (!pLineRenderer->GetGameObject()->IsActive())
 				{
 					continue;
 				}
 
-				const auto& rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
+				const auto &rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
 				auto modelView = rView * rModel;
 				mpLineStripShader->SetMat4("_Model", rModel);
 				mpLineStripShader->SetMat4("_ModelView", modelView);
@@ -233,20 +232,20 @@ namespace FastCG
 			mpPointsShader->SetMat4("_View", rView);
 			mpPointsShader->SetMat4("_Projection", rProjection);
 
-			for (auto* pPointsRenderer : mrPointsRenderer)
+			for (auto *pPointsRenderer : mrPointsRenderer)
 			{
 				if (!pPointsRenderer->GetGameObject()->IsActive())
 				{
 					continue;
 				}
 
-				const auto& rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
+				const auto &rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
 				auto modelView = rView * rModel;
 				mpPointsShader->SetMat4("_Model", rModel);
 				mpPointsShader->SetMat4("_ModelView", modelView);
 				mpPointsShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpPointsShader->SetMat4("_ModelViewProjection", rProjection * modelView);
-				auto* pPoints = pPointsRenderer->GetPoints();
+				auto *pPoints = pPointsRenderer->GetPoints();
 
 				if (pPoints != 0)
 				{

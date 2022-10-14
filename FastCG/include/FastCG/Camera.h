@@ -29,13 +29,13 @@ namespace FastCG
 		}
 
 		inline void SetUp(float fieldOfView = 60,
-			float frustumNear = 0.3f,
-			float frustumFar = 1000,
-			float frustumBottom = 0,
-			float frustumTop = 0,
-			float frustumLeft = 0,
-			float frustumRight = 0,
-			ProjectionMode projectionMode = ProjectionMode::PM_PERSPECTIVE)
+						  float frustumNear = 0.3f,
+						  float frustumFar = 1000,
+						  float frustumBottom = 0,
+						  float frustumTop = 0,
+						  float frustumLeft = 0,
+						  float frustumRight = 0,
+						  ProjectionMode projectionMode = ProjectionMode::PM_PERSPECTIVE)
 		{
 			mFieldOfView = fieldOfView;
 			mFrustumNear = frustumNear;
@@ -80,7 +80,7 @@ namespace FastCG
 			return glm::inverse(GetGameObject()->GetTransform()->GetModel());
 		}
 
-		inline void operator=(const Camera& rOther)
+		inline void operator=(const Camera &rOther)
 		{
 			mFieldOfView = rOther.mFieldOfView;
 			mFrustumNear = rOther.mFrustumNear;
@@ -108,7 +108,6 @@ namespace FastCG
 		float mAspectRatio;
 		ProjectionMode mProjectionMode;
 		bool mSSAOEnabled;
-
 	};
 
 }

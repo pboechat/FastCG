@@ -15,7 +15,6 @@ namespace FastCG
 		{
 			return GetGameObject()->GetTransform()->GetPosition();
 		}
-
 	};
 
 }

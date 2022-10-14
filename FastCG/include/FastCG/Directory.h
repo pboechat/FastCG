@@ -9,13 +9,12 @@ namespace FastCG
 	class Directory
 	{
 	public:
-		static bool Exists(const std::string& rDirectoryPath);
-		static std::vector<std::string> ListFiles(const std::string& rDirectoryPath);
+		static bool Exists(const std::string &rDirectoryPath);
+		static std::vector<std::string> ListFiles(const std::string &rDirectoryPath);
 
 	private:
 		Directory() = delete;
 		~Directory() = delete;
-
 	};
 
 }

@@ -11,22 +11,21 @@ namespace FastCG
 	class Exception : public std::exception
 	{
 	public:
-		Exception(const std::string& rReason) :
-			mReason(rReason)
+		Exception(const std::string &rReason) : mReason(rReason)
 		{
 		}
 
-		virtual const char* what() const
+		virtual const char *what() const
 		{
 			return mReason.c_str();
 		}
 
-		inline void SetFunction(const std::string& rFunction)
+		inline void SetFunction(const std::string &rFunction)
 		{
 			mFunction = rFunction;
 		}
 
-		inline void SetFile(const std::string& rFile)
+		inline void SetFile(const std::string &rFile)
 		{
 			mFile = rFile;
 		}
@@ -36,12 +35,12 @@ namespace FastCG
 			mLine = line;
 		}
 
-		inline const std::string& GetFunction() const
+		inline const std::string &GetFunction() const
 		{
 			return mFunction;
 		}
 
-		inline const std::string& GetFile() const
+		inline const std::string &GetFile() const
 		{
 			return mFile;
 		}
@@ -51,7 +50,7 @@ namespace FastCG
 			return mLine;
 		}
 
-		inline const std::string& GetReason() const
+		inline const std::string &GetReason() const
 		{
 			return mReason;
 		}
@@ -68,13 +67,11 @@ namespace FastCG
 		std::string mReason;
 		std::string mFunction;
 		std::string mFile;
-		size_t mLine{ 0 };
+		size_t mLine{0};
 
-		Exception() :
-			mReason(""), mFunction(""), mFile(""), mLine(0)
+		Exception() : mReason(""), mFunction(""), mFile(""), mLine(0)
 		{
 		}
-
 	};
 
 #ifdef _DEBUG
@@ -85,18 +82,18 @@ namespace FastCG
 #error "FASTCG_BREAK_TO_DEBUGGER() is not implemented on the current platform"
 #endif
 
-#define FASTCG_THROW_EXCEPTION(exceptionType, format, ...) \
-{ \
-	char __buffer[4096]; \
-	constexpr auto __bufferLength = sizeof(__buffer) / sizeof(char); \
-	sprintf_s(__buffer, __bufferLength, format, ##__VA_ARGS__); \
-	exceptionType __exception(__buffer); \
-	__exception.SetFunction(__FUNCTION__); \
-	__exception.SetFile(__FILE__); \
-	__exception.SetLine(__LINE__); \
-	FASTCG_BREAK_TO_DEBUGGER(); \
-	throw __exception; \
-}
+#define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)               \
+	{                                                                    \
+		char __buffer[4096];                                             \
+		constexpr auto __bufferLength = sizeof(__buffer) / sizeof(char); \
+		sprintf_s(__buffer, __bufferLength, format, ##__VA_ARGS__);      \
+		exceptionType __exception(__buffer);                             \
+		__exception.SetFunction(__FUNCTION__);                           \
+		__exception.SetFile(__FILE__);                                   \
+		__exception.SetLine(__LINE__);                                   \
+		FASTCG_BREAK_TO_DEBUGGER();                                      \
+		throw __exception;                                               \
+	}
 #else
 #define FASTCG_BREAK_TO_DEBUGGER()
 #define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)

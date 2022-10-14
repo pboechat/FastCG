@@ -20,7 +20,6 @@ protected:
 
 	std::vector<std::shared_ptr<Mesh>> mMeshes;
 	std::shared_ptr<Material> mpDefaultMaterial;
-
 };
 
 #endif

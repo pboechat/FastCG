@@ -18,10 +18,10 @@ void Controls::OnUpdate(float time, float deltaTime)
 		return;
 	}
 
-	Application::GetInstance()->DrawText("Press 'F1' to toggle bump mapping", 10, 10, glm::vec4{ 0, 1, 0, 1 });
+	Application::GetInstance()->DrawText("Press 'F1' to toggle bump mapping", 10, 10, glm::vec4{0, 1, 0, 1});
 
 	IsKeyPressed(KeyCode::F1, mPressedKeyMask, 0, [&]()
-		{
+				 {
 			for (auto& pMaterial : mMaterials)
 			{
 				const auto& pShader = pMaterial->GetShader();
@@ -47,10 +47,9 @@ void Controls::OnUpdate(float time, float deltaTime)
 						pMaterial->SetShader(ShaderRegistry::Find("BumpedSpecular"));
 					}
 				}
-			}
-		});
+			} });
 
-	for (auto* pSceneLight : mSceneLights)
+	for (auto *pSceneLight : mSceneLights)
 	{
 		pSceneLight->GetTransform()->RotateAroundLocal(deltaTime * 100, glm::vec3(0, 1, 0));
 	}

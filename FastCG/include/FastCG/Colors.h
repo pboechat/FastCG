@@ -31,7 +31,6 @@ namespace FastCG
 	private:
 		Colors() = delete;
 		~Colors() = delete;
-
 	};
 
 }

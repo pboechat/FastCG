@@ -31,29 +31,27 @@ namespace FastCG
 		size_t numNormals;
 		size_t numUvs;
 		size_t numIndices;
-
 	};
 
 	struct ImportContext
 	{
 		std::string basePath;
 		std::vector<std::unique_ptr<char[]>> fileData;
-
 	};
 
-	std::string GetOptimizedModelFilePath(const std::string& rFilePath)
+	std::string GetOptimizedModelFilePath(const std::string &rFilePath)
 	{
 		return File::GetBasePath(rFilePath) + File::GetFileNameWithoutExtension(rFilePath) + ".model";
 	}
 
-	void FileReaderCallback(void* context,
-		const char* filename,
-		int isMtl,
-		const char* objFilename,
-		char** buffer,
-		size_t* length)
+	void FileReaderCallback(void *context,
+							const char *filename,
+							int isMtl,
+							const char *objFilename,
+							char **buffer,
+							size_t *length)
 	{
-		auto* importContext = (ImportContext*)context;
+		auto *importContext = (ImportContext *)context;
 		auto data = FileReader::ReadText(importContext->basePath + "/" + filename, *length);
 		*buffer = data.get();
 		importContext->fileData.emplace_back(std::move(data));
@@ -61,15 +59,15 @@ namespace FastCG
 
 	using MeshCatalog = std::map<size_t, std::shared_ptr<Mesh>>;
 
-	void BuildMeshCatalog(const std::string& rName,
-		const tinyobj_attrib_t& attributes,
-		const tinyobj_shape_t* pShapes,
-		size_t numShapes,
-		MeshCatalog& rMeshCatalog)
+	void BuildMeshCatalog(const std::string &rName,
+						  const tinyobj_attrib_t &attributes,
+						  const tinyobj_shape_t *pShapes,
+						  size_t numShapes,
+						  MeshCatalog &rMeshCatalog)
 	{
 		for (size_t shapeIdx = 0; shapeIdx < numShapes; shapeIdx++)
 		{
-			auto& shape = pShapes[shapeIdx];
+			auto &shape = pShapes[shapeIdx];
 
 			std::vector<glm::vec3> vertices;
 			std::vector<glm::vec3> normals;
@@ -88,34 +86,34 @@ namespace FastCG
 				int vertIdx = 0;
 				while (vertIdx++ < numVertices)
 				{
-					auto& face = attributes.faces[faceIdx++];
+					auto &face = attributes.faces[faceIdx++];
 					if (face.v_idx != (int)0x80000000)
 					{
-						auto* pVertices = attributes.vertices + (intptr_t)(face.v_idx * 3);
-						vertices.emplace_back(glm::vec3{ pVertices[0], pVertices[1], pVertices[2] });
+						auto *pVertices = attributes.vertices + (intptr_t)(face.v_idx * 3);
+						vertices.emplace_back(glm::vec3{pVertices[0], pVertices[1], pVertices[2]});
 					}
 					else
 					{
-						vertices.emplace_back(glm::vec3{ 0, 0, 0 });
+						vertices.emplace_back(glm::vec3{0, 0, 0});
 					}
 					if (face.vn_idx != (int)0x80000000)
 					{
-						auto* pNormals = attributes.normals + (intptr_t)(face.vn_idx * 3);
-						normals.emplace_back(glm::vec3{ pNormals[0], pNormals[1], pNormals[2] });
+						auto *pNormals = attributes.normals + (intptr_t)(face.vn_idx * 3);
+						normals.emplace_back(glm::vec3{pNormals[0], pNormals[1], pNormals[2]});
 					}
 					else
 					{
-						normals.emplace_back(glm::vec3{ 0, 0, 0 });
+						normals.emplace_back(glm::vec3{0, 0, 0});
 						regenNormals = true;
 					}
 					if (face.vt_idx != (int)0x80000000)
 					{
-						auto* pUvs = attributes.texcoords + (intptr_t)(face.vt_idx * 2);
-						uvs.emplace_back(glm::vec2{ pUvs[0], pUvs[1] });
+						auto *pUvs = attributes.texcoords + (intptr_t)(face.vt_idx * 2);
+						uvs.emplace_back(glm::vec2{pUvs[0], pUvs[1]});
 					}
 					else
 					{
-						uvs.emplace_back(glm::vec2{ 0, 0 });
+						uvs.emplace_back(glm::vec2{0, 0});
 					}
 					indices.emplace_back(idx++);
 				}
@@ -135,18 +133,18 @@ namespace FastCG
 
 	using MaterialCatalog = std::map<uint32_t, std::shared_ptr<Material>>;
 
-	void BuildMaterialCatalog(const std::string& rBasePath,
-		const tinyobj_material_t* pMaterials,
-		size_t numMaterials,
-		MaterialCatalog& rMaterialCatalog)
+	void BuildMaterialCatalog(const std::string &rBasePath,
+							  const tinyobj_material_t *pMaterials,
+							  size_t numMaterials,
+							  MaterialCatalog &rMaterialCatalog)
 	{
 		for (size_t materialIdx = 0; materialIdx < numMaterials; materialIdx++)
 		{
-			auto& material = pMaterials[materialIdx];
+			auto &material = pMaterials[materialIdx];
 
-			auto diffuseColor = glm::vec4{ material.diffuse[0], material.diffuse[1], material.diffuse[2], 1.0 };
-			auto specularColor = glm::vec4{ material.specular[0], material.specular[1], material.specular[2], 1.0 };
-			auto emissiveColor = glm::vec4{ material.emission[0], material.emission[1], material.emission[2], 1.0 };
+			auto diffuseColor = glm::vec4{material.diffuse[0], material.diffuse[1], material.diffuse[2], 1.0};
+			auto specularColor = glm::vec4{material.specular[0], material.specular[1], material.specular[2], 1.0};
+			auto emissiveColor = glm::vec4{material.emission[0], material.emission[1], material.emission[2], 1.0};
 			auto shininess = material.shininess;
 
 			std::shared_ptr<Texture> pColorMapTexture = nullptr;
@@ -211,21 +209,21 @@ namespace FastCG
 		}
 	}
 
-	GameObject* BuildGameObjectFromObj(const std::string& rModelName,
-		const tinyobj_attrib_t& attributes,
-		const tinyobj_shape_t* pShapes,
-		size_t numShapes,
-		const MaterialCatalog& rMaterialCatalog,
-		const MeshCatalog& rMeshCatalog)
+	GameObject *BuildGameObjectFromObj(const std::string &rModelName,
+									   const tinyobj_attrib_t &attributes,
+									   const tinyobj_shape_t *pShapes,
+									   size_t numShapes,
+									   const MaterialCatalog &rMaterialCatalog,
+									   const MeshCatalog &rMeshCatalog)
 	{
-		auto* pModelGameObject = GameObject::Instantiate(rModelName);
-		auto* pModelTransform = pModelGameObject->GetTransform();
+		auto *pModelGameObject = GameObject::Instantiate(rModelName);
+		auto *pModelTransform = pModelGameObject->GetTransform();
 		for (size_t shapeIdx = 0; shapeIdx < numShapes; shapeIdx++)
 		{
-			auto* pShapeGameObject = GameObject::Instantiate(rModelName + " (" + std::to_string(shapeIdx) + ")");
+			auto *pShapeGameObject = GameObject::Instantiate(rModelName + " (" + std::to_string(shapeIdx) + ")");
 			pShapeGameObject->GetTransform()->SetParent(pModelTransform);
-			auto* pMeshRenderer = MeshRenderer::Instantiate(pShapeGameObject);
-			auto* pMeshFilter = MeshFilter::Instantiate(pShapeGameObject);
+			auto *pMeshRenderer = MeshRenderer::Instantiate(pShapeGameObject);
+			auto *pMeshFilter = MeshFilter::Instantiate(pShapeGameObject);
 
 			{
 				auto it = rMeshCatalog.find(shapeIdx);
@@ -234,7 +232,7 @@ namespace FastCG
 			}
 
 			// doesn't support multi materials at the moment
-			auto& shape = pShapes[shapeIdx];
+			auto &shape = pShapes[shapeIdx];
 			auto materialIdx = attributes.material_ids[shapeIdx];
 			std::shared_ptr<Material> pMaterial = nullptr;
 			if (materialIdx > 0)
@@ -255,50 +253,49 @@ namespace FastCG
 		return pModelGameObject;
 	}
 
-	void CombineMeshes(const GameObject* pGameObject,
-		std::vector<glm::vec3>& rVertices,
-		std::vector<glm::vec3>& rNormals,
-		std::vector<glm::vec2>& rUVs,
-		std::vector<uint32_t>& rIndices
-	)
+	void CombineMeshes(const GameObject *pGameObject,
+					   std::vector<glm::vec3> &rVertices,
+					   std::vector<glm::vec3> &rNormals,
+					   std::vector<glm::vec2> &rUVs,
+					   std::vector<uint32_t> &rIndices)
 	{
-		auto* pMeshRenderer = static_cast<MeshRenderer*>(pGameObject->GetComponent(MeshRenderer::TYPE));
+		auto *pMeshRenderer = static_cast<MeshRenderer *>(pGameObject->GetComponent(MeshRenderer::TYPE));
 		if (pMeshRenderer != nullptr)
 		{
-			auto& rModel = pGameObject->GetTransform()->GetModel();
+			auto &rModel = pGameObject->GetTransform()->GetModel();
 
-			auto& rMeshes = pMeshRenderer->GetMeshes();
-			for (const auto& pMesh : rMeshes)
+			auto &rMeshes = pMeshRenderer->GetMeshes();
+			for (const auto &pMesh : rMeshes)
 			{
 				auto indicesOffset = (uint32_t)rVertices.size();
-				const auto& rMeshVertices = pMesh->GetVertices();
-				for (auto& vertex : rMeshVertices)
+				const auto &rMeshVertices = pMesh->GetVertices();
+				for (auto &vertex : rMeshVertices)
 				{
 					rVertices.emplace_back(glm::vec3(rModel * glm::vec4(vertex, 1)));
 				}
 
-				const auto& rMeshNormals = pMesh->GetNormals();
+				const auto &rMeshNormals = pMesh->GetNormals();
 				rNormals.insert(rNormals.end(), rMeshNormals.begin(), rMeshNormals.end());
 
-				const auto& rMeshUVs = pMesh->GetUVs();
+				const auto &rMeshUVs = pMesh->GetUVs();
 				rUVs.insert(rUVs.end(), rMeshUVs.begin(), rMeshUVs.end());
 
-				const auto& rMeshIndices = pMesh->GetIndices();
-				for (auto& index : rMeshIndices)
+				const auto &rMeshIndices = pMesh->GetIndices();
+				for (auto &index : rMeshIndices)
 				{
 					rIndices.emplace_back(indicesOffset + index);
 				}
 			}
 		}
 
-		const auto& rChildren = pGameObject->GetTransform()->GetChildren();
-		for (auto* child : rChildren)
+		const auto &rChildren = pGameObject->GetTransform()->GetChildren();
+		for (auto *child : rChildren)
 		{
 			CombineMeshes(child->GetGameObject(), rVertices, rNormals, rUVs, rIndices);
 		}
 	}
 
-	void ExportOptimizedModelFile(const std::string& rOptimizedModelFileName, const GameObject* pGameObject)
+	void ExportOptimizedModelFile(const std::string &rOptimizedModelFileName, const GameObject *pGameObject)
 	{
 		std::vector<glm::vec3> vertices;
 		std::vector<glm::vec3> normals;
@@ -325,24 +322,24 @@ namespace FastCG
 		FileWriter::WriteBinary(rOptimizedModelFileName, outStream.GetData(), outStream.GetSize());
 	}
 
-	GameObject* ImportModelFromObjFile(const std::string& rBasePath, const std::string& rFilePath)
+	GameObject *ImportModelFromObjFile(const std::string &rBasePath, const std::string &rFilePath)
 	{
 		tinyobj_attrib_t attributes;
-		tinyobj_shape_t* pShapes;
-		tinyobj_material_t* pMaterials;
+		tinyobj_shape_t *pShapes;
+		tinyobj_material_t *pMaterials;
 		size_t numShapes, numMaterials;
 
-		ImportContext importContext{ rBasePath };
+		ImportContext importContext{rBasePath};
 
 		if (tinyobj_parse_obj(&attributes,
-			&pShapes,
-			&numShapes,
-			&pMaterials,
-			&numMaterials,
-			rFilePath.c_str(),
-			&FileReaderCallback,
-			(void*)&importContext,
-			TINYOBJ_FLAG_TRIANGULATE) != TINYOBJ_SUCCESS)
+							  &pShapes,
+							  &numShapes,
+							  &pMaterials,
+							  &numMaterials,
+							  rFilePath.c_str(),
+							  &FileReaderCallback,
+							  (void *)&importContext,
+							  TINYOBJ_FLAG_TRIANGULATE) != TINYOBJ_SUCCESS)
 		{
 			return nullptr;
 		}
@@ -354,7 +351,7 @@ namespace FastCG
 		BuildMeshCatalog(rFilePath, attributes, pShapes, numShapes, meshCatalog);
 
 		auto modelName = File::GetFileNameWithoutExtension(rFilePath);
-		auto* pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog, meshCatalog);
+		auto *pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog, meshCatalog);
 
 		tinyobj_attrib_free(&attributes);
 		tinyobj_shapes_free(pShapes, numShapes);
@@ -363,7 +360,7 @@ namespace FastCG
 		return pModelGameObject;
 	}
 
-	GameObject* ImportModelFromOptimizedFile(const std::string& rOptimizedModelFilePath)
+	GameObject *ImportModelFromOptimizedFile(const std::string &rOptimizedModelFilePath)
 	{
 		size_t dataSize;
 		auto data = FileReader::ReadBinary(rOptimizedModelFilePath, dataSize);
@@ -417,9 +414,9 @@ namespace FastCG
 
 		gManagedMaterials.emplace_back(pMaterial);
 
-		auto* pGameObject = GameObject::Instantiate(File::GetFileNameWithoutExtension(rOptimizedModelFilePath));
-		auto* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
-		auto* pMeshFilter = MeshFilter::Instantiate(pGameObject);
+		auto *pGameObject = GameObject::Instantiate(File::GetFileNameWithoutExtension(rOptimizedModelFilePath));
+		auto *pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
+		auto *pMeshFilter = MeshFilter::Instantiate(pGameObject);
 
 		pMeshFilter->SetMaterial(pMaterial);
 		pMeshRenderer->AddMesh(pMesh);
@@ -427,21 +424,21 @@ namespace FastCG
 		return pGameObject;
 	}
 
-	void ModelImporter::SetBasePath(const std::string& basePath)
+	void ModelImporter::SetBasePath(const std::string &basePath)
 	{
 		gBasePath = basePath;
 	}
 
-	GameObject* ModelImporter::Import(const std::string& rFilePath, ModelImporterOptions options)
+	GameObject *ModelImporter::Import(const std::string &rFilePath, ModelImporterOptions options)
 	{
-		auto optimizedFilePath = gBasePath + "/" +GetOptimizedModelFilePath(rFilePath);
+		auto optimizedFilePath = gBasePath + "/" + GetOptimizedModelFilePath(rFilePath);
 		if (File::Exists(optimizedFilePath))
 		{
 			return ImportModelFromOptimizedFile(optimizedFilePath);
 		}
 		else
 		{
-			auto* pModelGameObject = ImportModelFromObjFile(gBasePath, rFilePath);
+			auto *pModelGameObject = ImportModelFromObjFile(gBasePath, rFilePath);
 			if ((options & (uint8_t)ModelImporterOption::MIO_EXPORT_OPTIMIZED_MODEL_FILE) != 0)
 			{
 				ExportOptimizedModelFile(optimizedFilePath, pModelGameObject);

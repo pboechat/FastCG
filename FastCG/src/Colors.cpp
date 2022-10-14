@@ -21,7 +21,7 @@ namespace FastCG
 	const glm::vec4 Colors::NAVY(0.0f, 0.0f, 0.5f, 1.0f);
 	const glm::vec4 Colors::FUCHSIA(1.0f, 0.0f, 1.0f, 1.0f);
 	const glm::vec4 Colors::PURPLE(0.5f, 0.0f, 0.5f, 1.0f);
-	const glm::vec4 Colors::COMMON_LIGHT_COLORS[] = { WHITE, RED, MAROON, YELLOW, OLIVE, LIME, GREEN, AQUA, TEAL, BLUE, NAVY, FUCHSIA, PURPLE };
+	const glm::vec4 Colors::COMMON_LIGHT_COLORS[] = {WHITE, RED, MAROON, YELLOW, OLIVE, LIME, GREEN, AQUA, TEAL, BLUE, NAVY, FUCHSIA, PURPLE};
 	const size_t Colors::NUMBER_OF_COMMON_LIGHT_COLORS = std::extent<decltype(COMMON_LIGHT_COLORS)>::value;
 
 }

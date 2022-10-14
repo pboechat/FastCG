@@ -13,12 +13,12 @@ namespace FastCG
 		DECLARE_COMPONENT(LineRenderer, Renderer);
 
 	public:
-		inline void SetLineStrip(LineStrip* pLineStrip)
+		inline void SetLineStrip(LineStrip *pLineStrip)
 		{
 			mpLineStrip = pLineStrip;
 		}
 
-		inline const LineStrip* GetLineStrip()
+		inline const LineStrip *GetLineStrip()
 		{
 			return mpLineStrip;
 		}
@@ -32,8 +32,7 @@ namespace FastCG
 		void OnRender() override;
 
 	private:
-		LineStrip* mpLineStrip;
-
+		LineStrip *mpLineStrip;
 	};
 
 }

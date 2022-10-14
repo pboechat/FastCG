@@ -13,19 +13,18 @@
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 
-BumpMappingApplication::BumpMappingApplication() :
-	Application({ "bump_mapping", 1024, 768, 60, RenderingPath::RP_FORWARD_RENDERING })
+BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 1024, 768, 60, RenderingPath::RP_FORWARD_RENDERING})
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
 }
 
-void GetMaterialsRecursively(const GameObject* pGameObject, std::vector<std::shared_ptr<Material>>& rMaterials)
+void GetMaterialsRecursively(const GameObject *pGameObject, std::vector<std::shared_ptr<Material>> &rMaterials)
 {
-	for (auto* pChild : pGameObject->GetTransform()->GetChildren())
+	for (auto *pChild : pGameObject->GetTransform()->GetChildren())
 	{
-		const auto* pChildGameObject = pChild->GetGameObject();
-		auto* pMeshFilter = static_cast<MeshFilter*>(pChildGameObject->GetComponent(MeshFilter::TYPE));
+		const auto *pChildGameObject = pChild->GetGameObject();
+		auto *pMeshFilter = static_cast<MeshFilter *>(pChildGameObject->GetComponent(MeshFilter::TYPE));
 		if (pMeshFilter == nullptr)
 		{
 			continue;
@@ -35,16 +34,16 @@ void GetMaterialsRecursively(const GameObject* pGameObject, std::vector<std::sha
 	}
 }
 
-void CreateSceneLights(std::vector<GameObject*>& rSceneLights)
+void CreateSceneLights(std::vector<GameObject *> &rSceneLights)
 {
-	auto* pSceneLights = GameObject::Instantiate();
+	auto *pSceneLights = GameObject::Instantiate();
 
-	auto* pLightGameObject = GameObject::Instantiate();
+	auto *pLightGameObject = GameObject::Instantiate();
 	pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
 	pLightGameObject->GetTransform()->SetPosition(glm::vec3(2, 2, 0));
 	rSceneLights.emplace_back(pLightGameObject);
 
-	auto* pPointLight = PointLight::Instantiate(pLightGameObject);
+	auto *pPointLight = PointLight::Instantiate(pLightGameObject);
 	pPointLight->SetDiffuseColor(Colors::WHITE);
 	pPointLight->SetSpecularColor(Colors::WHITE);
 	pPointLight->SetIntensity(1);
@@ -62,9 +61,9 @@ void CreateSceneLights(std::vector<GameObject*>& rSceneLights)
 	pPointLight->SetQuadraticAttenuation(0.25f);
 }
 
-void LoadModel(std::vector<std::shared_ptr<Material>>& rModelMaterials)
+void LoadModel(std::vector<std::shared_ptr<Material>> &rModelMaterials)
 {
-	auto* pModel = ModelImporter::Import("objs/Doomsday.obj");
+	auto *pModel = ModelImporter::Import("objs/Doomsday.obj");
 	if (pModel == nullptr)
 	{
 		FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
@@ -72,8 +71,8 @@ void LoadModel(std::vector<std::shared_ptr<Material>>& rModelMaterials)
 
 	GetMaterialsRecursively(pModel, rModelMaterials);
 
-	const auto& bounds = pModel->GetBounds();
-	auto* pTransform = pModel->GetTransform();
+	const auto &bounds = pModel->GetBounds();
+	auto *pTransform = pModel->GetTransform();
 	float scale = 0;
 	scale = bounds.max.x - bounds.min.x;
 	scale = MathF::Max(bounds.max.y - bounds.min.y, scale);
@@ -89,7 +88,7 @@ void BumpMappingApplication::OnStart()
 {
 	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
 
-	std::vector<GameObject*> sceneLights;
+	std::vector<GameObject *> sceneLights;
 	CreateSceneLights(sceneLights);
 
 	std::vector<std::shared_ptr<Material>> modelMaterials;
@@ -97,25 +96,25 @@ void BumpMappingApplication::OnStart()
 
 	CreateGround();
 
-	auto* pGameObject = GameObject::Instantiate();
+	auto *pGameObject = GameObject::Instantiate();
 
-	auto* pControls = Controls::Instantiate(pGameObject);
+	auto *pControls = Controls::Instantiate(pGameObject);
 	pControls->SetSceneLights(sceneLights);
 	pControls->SetModelMaterials(modelMaterials);
 
-	auto* pPlayerGameObject = GameObject::Instantiate();
+	auto *pPlayerGameObject = GameObject::Instantiate();
 
-	auto* pFlyCameraController = FlyCameraController::Instantiate(pPlayerGameObject);
+	auto *pFlyCameraController = FlyCameraController::Instantiate(pPlayerGameObject);
 	pFlyCameraController->SetWalkSpeed(5);
 	pFlyCameraController->SetTurnSpeed(5);
 }
 
 void BumpMappingApplication::CreateGround()
 {
-	auto* pGround = GameObject::Instantiate();
+	auto *pGround = GameObject::Instantiate();
 
 	mpGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
-	auto* pMeshRenderer = MeshRenderer::Instantiate(pGround);
+	auto *pMeshRenderer = MeshRenderer::Instantiate(pGround);
 	pMeshRenderer->AddMesh(mpGroundMesh);
 
 	mpGroundColorMapTexture = TextureImporter::Import("textures/GroundColorMap.png");
@@ -130,6 +129,6 @@ void BumpMappingApplication::CreateGround()
 	mpGroundMaterial->SetVec4("specularColor", Colors::WHITE);
 	mpGroundMaterial->SetFloat("shininess", 30);
 
-	auto* pMeshFilter = MeshFilter::Instantiate(pGround);
+	auto *pMeshFilter = MeshFilter::Instantiate(pGround);
 	pMeshFilter->SetMaterial(mpGroundMaterial);
 }

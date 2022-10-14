@@ -10,7 +10,7 @@
 
 namespace FastCG
 {
-	std::string File::GetBasePath(const std::string& rFilePath)
+	std::string File::GetBasePath(const std::string &rFilePath)
 	{
 		std::vector<std::string> tokens;
 		StringUtils::Tokenize(rFilePath, "/", tokens);
@@ -22,14 +22,14 @@ namespace FastCG
 		return path;
 	}
 
-	std::string File::GetFileName(const std::string& rFilePath)
+	std::string File::GetFileName(const std::string &rFilePath)
 	{
 		std::vector<std::string> rTokens;
 		StringUtils::Tokenize(rFilePath, "/", rTokens);
 		return rTokens.back();
 	}
 
-	std::string File::GetFileNameWithoutExtension(const std::string& rFilePath)
+	std::string File::GetFileNameWithoutExtension(const std::string &rFilePath)
 	{
 		std::string fileName = GetFileName(rFilePath);
 		size_t position;
@@ -43,7 +43,7 @@ namespace FastCG
 		}
 	}
 
-	bool File::Exists(const std::string& rFilePath)
+	bool File::Exists(const std::string &rFilePath)
 	{
 #ifdef _WIN32
 		unsigned long fileAttributes = GetFileAttributes(rFilePath.c_str());

@@ -7,8 +7,8 @@ namespace FastCG
 {
 	struct AABB
 	{
-		glm::vec3 min{ 0, 0, 0 };
-		glm::vec3 max{ 0, 0, 0 };
+		glm::vec3 min{0, 0, 0};
+		glm::vec3 max{0, 0, 0};
 
 		inline glm::vec3 getExtent() const
 		{
@@ -20,12 +20,11 @@ namespace FastCG
 			return min + getExtent() * 0.5f;
 		}
 
-		void Expand(const AABB& other)
+		void Expand(const AABB &other)
 		{
 			max = glm::max(max, other.max);
 			min = glm::min(min, other.min);
 		}
-
 	};
 
 }

@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	std::unique_ptr<Mesh> StandardGeometries::CreateXYPlane(const std::string& rName, float width, float height, uint32_t xSegments, uint32_t ySegments, const glm::vec3& rCenter)
+	std::unique_ptr<Mesh> StandardGeometries::CreateXYPlane(const std::string &rName, float width, float height, uint32_t xSegments, uint32_t ySegments, const glm::vec3 &rCenter)
 	{
 		std::vector<glm::vec3> vertices;
 		std::vector<glm::vec3> normals;
@@ -52,12 +52,12 @@ namespace FastCG
 			}
 		}
 
-		auto* pMesh = new Mesh(rName, vertices, normals, uvs, indexes);
+		auto *pMesh = new Mesh(rName, vertices, normals, uvs, indexes);
 		pMesh->CalculateTangents();
 		return std::unique_ptr<Mesh>(pMesh);
 	}
 
-	std::unique_ptr<Mesh> StandardGeometries::CreateXZPlane(const std::string& rName, float width, float depth, uint32_t xSegments, uint32_t zSegments, const glm::vec3& rCenter)
+	std::unique_ptr<Mesh> StandardGeometries::CreateXZPlane(const std::string &rName, float width, float depth, uint32_t xSegments, uint32_t zSegments, const glm::vec3 &rCenter)
 	{
 		std::vector<glm::vec3> vertices;
 		std::vector<glm::vec3> normals;
@@ -103,12 +103,12 @@ namespace FastCG
 			}
 		}
 
-		auto* pMesh = new Mesh(rName, vertices, normals, uvs, indexes);
+		auto *pMesh = new Mesh(rName, vertices, normals, uvs, indexes);
 		pMesh->CalculateTangents();
 		return std::unique_ptr<Mesh>(pMesh);
 	}
 
-	std::unique_ptr<Mesh> StandardGeometries::CreateSphere(const std::string& rName, float radius, uint32_t slices)
+	std::unique_ptr<Mesh> StandardGeometries::CreateSphere(const std::string &rName, float radius, uint32_t slices)
 	{
 		std::vector<glm::vec3> vertices;
 		std::vector<glm::vec3> normals;
@@ -182,7 +182,7 @@ namespace FastCG
 			}
 		}
 
-		auto* pMesh = new Mesh(rName, vertices, normals, uvs, indices);
+		auto *pMesh = new Mesh(rName, vertices, normals, uvs, indices);
 		pMesh->CalculateTangents();
 		return std::unique_ptr<Mesh>(pMesh);
 	}

@@ -30,7 +30,6 @@ namespace FastCG
 
 	protected:
 		virtual void OnRender() = 0;
-
 	};
 
 }

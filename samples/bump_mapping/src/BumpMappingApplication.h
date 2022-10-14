@@ -20,13 +20,12 @@ protected:
 	void OnStart() override;
 
 private:
-	std::shared_ptr<Mesh> mpGroundMesh{ nullptr };
-	std::shared_ptr<Material> mpGroundMaterial{ nullptr };
-	std::shared_ptr<Texture> mpGroundColorMapTexture{ nullptr };
-	std::shared_ptr<Texture> mpGroundBumpMapTexture{ nullptr };
+	std::shared_ptr<Mesh> mpGroundMesh{nullptr};
+	std::shared_ptr<Material> mpGroundMaterial{nullptr};
+	std::shared_ptr<Texture> mpGroundColorMapTexture{nullptr};
+	std::shared_ptr<Texture> mpGroundBumpMapTexture{nullptr};
 
 	void CreateGround();
-
 };
 
 #endif

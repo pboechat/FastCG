@@ -18,7 +18,6 @@ namespace FastCG
 #error "Thread::Sleep() not implemented on current platform"
 #endif
 		}
-
 	};
 
 }

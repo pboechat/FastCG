@@ -18,9 +18,8 @@ namespace FastCG
 	constexpr uint32_t NUM_CHARS = 96;
 	constexpr uint32_t BITMAP_SIDE = 512;
 
-	Font::Font(const std::string& rFileName, uint32_t size) :
-		mFileName(rFileName),
-		mSize(size)
+	Font::Font(const std::string &rFileName, uint32_t size) : mFileName(rFileName),
+															  mSize(size)
 	{
 		AllocateResources();
 	}
@@ -55,17 +54,16 @@ namespace FastCG
 					TextureFilter::TF_LINEAR_FILTER,
 					TextureWrapMode::TW_CLAMP,
 					true,
-					bitmap.get()
-					);
+					bitmap.get());
 			}
 		}
 
 		mpFontShader = ShaderRegistry::Find("Font");
 
-		mpBillboard = std::unique_ptr<Mesh>(new Mesh(mFileName + " Billboard", { 0, 1, 3, 0, 3, 2 }));
+		mpBillboard = std::unique_ptr<Mesh>(new Mesh(mFileName + " Billboard", {0, 1, 3, 0, 3, 2}));
 	}
 
-	void Font::DrawString(const std::string& rText, uint32_t x, uint32_t y, const glm::vec4& rColor)
+	void Font::DrawString(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor)
 	{
 		auto projection = glm::ortho(0.0f, (float)Application::GetInstance()->GetScreenWidth(), 0.0f, (float)Application::GetInstance()->GetScreenHeight(), 0.0f, 1.0f);
 
@@ -82,10 +80,10 @@ namespace FastCG
 		auto nY = (float)y;
 		auto baseLine = 2 * y - mSize;
 		mpFontShader->Bind();
-		mpFontShader->SetVec2("_ScreenSize", glm::vec2{ (float)Application::GetInstance()->GetScreenWidth(), (float)Application::GetInstance()->GetScreenHeight() });
+		mpFontShader->SetVec2("_ScreenSize", glm::vec2{(float)Application::GetInstance()->GetScreenWidth(), (float)Application::GetInstance()->GetScreenHeight()});
 		mpFontShader->SetVec4("_Color", rColor);
 		mpFontShader->SetTexture("_Map", mpCharMap, 0);
-		for (const auto& c : rText)
+		for (const auto &c : rText)
 		{
 			if (c < 32 || c > 128)
 			{
@@ -95,8 +93,8 @@ namespace FastCG
 			stbtt_aligned_quad quad;
 			stbtt_GetBakedQuad(mCharData.get(), BITMAP_SIDE, BITMAP_SIDE, c - 32, &nX, &nY, &quad, 1);
 
-			mpFontShader->SetVec4("_ScreenCoords", glm::vec4{ quad.x0, baseLine - quad.y1, quad.x1 - quad.x0, quad.y1 - quad.y0 });
-			mpFontShader->SetVec4("_MapCoords", glm::vec4{ quad.s0, quad.t1, quad.s1 - quad.s0, quad.t0 - quad.t1 });
+			mpFontShader->SetVec4("_ScreenCoords", glm::vec4{quad.x0, baseLine - quad.y1, quad.x1 - quad.x0, quad.y1 - quad.y0});
+			mpFontShader->SetVec4("_MapCoords", glm::vec4{quad.s0, quad.t1, quad.s1 - quad.s0, quad.t0 - quad.t1});
 			mpBillboard->Draw();
 		}
 		mpFontShader->Unbind();

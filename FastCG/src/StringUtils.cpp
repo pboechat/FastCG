@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	void StringUtils::Tokenize(const std::string& rString, const std::string& rDelimiter, std::vector<std::string>& rTokens)
+	void StringUtils::Tokenize(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens)
 	{
 		size_t currentPosition = 0;
 		size_t nextPosition = std::string::npos;
@@ -23,23 +23,23 @@ namespace FastCG
 		}
 	}
 
-	void StringUtils::LeftTrim(std::string& rString)
+	void StringUtils::LeftTrim(std::string &rString)
 	{
 		rString.erase(rString.begin(), std::find_if(rString.begin(), rString.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
 	}
 
-	void StringUtils::RightTrim(std::string& rString)
+	void StringUtils::RightTrim(std::string &rString)
 	{
 		rString.erase(std::find_if(rString.rbegin(), rString.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), rString.end());
 	}
 
-	void StringUtils::Trim(std::string& rString)
+	void StringUtils::Trim(std::string &rString)
 	{
 		RightTrim(rString);
 		LeftTrim(rString);
 	}
 
-	void StringUtils::Replace(std::string& rString, const std::string& rFrom, const std::string& rTo)
+	void StringUtils::Replace(std::string &rString, const std::string &rFrom, const std::string &rTo)
 	{
 		size_t startPosition;
 		while ((startPosition = rString.find(rFrom)) != std::string::npos)
@@ -48,7 +48,7 @@ namespace FastCG
 		}
 	}
 
-	bool StringUtils::StartsWith(const std::string& rString1, const std::string& rString2)
+	bool StringUtils::StartsWith(const std::string &rString1, const std::string &rString2)
 	{
 		auto size = rString2.size();
 		if (rString1.size() < size)

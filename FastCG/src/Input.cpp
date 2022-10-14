@@ -7,7 +7,7 @@
 
 namespace FastCG
 {
-	Input* Input::s_mpInstance = nullptr;
+	Input *Input::s_mpInstance = nullptr;
 
 	Input::Input()
 	{
@@ -34,7 +34,7 @@ namespace FastCG
 		return s_mpInstance->mFrontBuffer.GetMouseButton(button);
 	}
 
-	const glm::vec2& Input::GetMousePosition()
+	const glm::vec2 &Input::GetMousePosition()
 	{
 		return s_mpInstance->mFrontBuffer.GetMousePosition();
 	}
@@ -54,7 +54,7 @@ namespace FastCG
 		mBackBuffer.SetMouseButton(button, state);
 	}
 
-	void Input::SetMousePosition(const glm::vec2& rPosition)
+	void Input::SetMousePosition(const glm::vec2 &rPosition)
 	{
 		mBackBuffer.SetMousePosition(rPosition);
 	}
@@ -101,7 +101,7 @@ namespace FastCG
 		}
 	}
 
-	const glm::vec2& Input::InputBuffer::GetMousePosition() const
+	const glm::vec2 &Input::InputBuffer::GetMousePosition() const
 	{
 		return mMousePosition;
 	}
@@ -132,7 +132,7 @@ namespace FastCG
 		}
 	}
 
-	void Input::InputBuffer::SetMousePosition(const glm::vec2& rPosition)
+	void Input::InputBuffer::SetMousePosition(const glm::vec2 &rPosition)
 	{
 		mMousePosition = rPosition;
 	}
@@ -147,7 +147,7 @@ namespace FastCG
 		mMouseWheelDelta = MathI::Clamp(mMouseWheelDelta - 1, MINIMUM_MOUSE_WHEEL_DELTA, MAXIMUM_MOUSE_WHEEL_DELTA);
 	}
 
-	void Input::InputBuffer::Copy(InputBuffer& rOther)
+	void Input::InputBuffer::Copy(InputBuffer &rOther)
 	{
 		memcpy(mpKeys, rOther.mpKeys, sizeof(mpKeys));
 		mLeftMouseButton = rOther.mLeftMouseButton;

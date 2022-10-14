@@ -10,7 +10,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-float CalculateLightBoundingSphereScale(const FastCG::PointLight* pPointLight)
+float CalculateLightBoundingSphereScale(const FastCG::PointLight *pPointLight)
 {
 	auto diffuseColor = pPointLight->GetDiffuseColor();
 	auto maxChannel = FastCG::MathF::Max(FastCG::MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
@@ -28,18 +28,17 @@ namespace FastCG
 	const uint32_t DeferredRenderingStrategy::NOISE_TEXTURE_HEIGHT = 4;
 	const uint32_t DeferredRenderingStrategy::NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
 
-	DeferredRenderingStrategy::DeferredRenderingStrategy(const uint32_t& rScreenWidth,
-		const uint32_t& rScreenHeight,
-		const glm::vec4& rAmbientLight,
-		const std::vector<DirectionalLight*>& rDirectionalLights,
-		const std::vector<PointLight*>& rPointLights,
-		const std::vector<LineRenderer*>& rLineRenderers,
-		const std::vector<PointsRenderer*>& rPointsRenderer,
-		const std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches,
-		RenderingStatistics& rRenderingStatistics) :
-		RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics),
-		mSSAORadius(DEFAULT_SSAO_RADIUS),
-		mSSAODistanceScale(DEFAULT_SSAO_DISTANCE_SCALE)
+	DeferredRenderingStrategy::DeferredRenderingStrategy(const uint32_t &rScreenWidth,
+														 const uint32_t &rScreenHeight,
+														 const glm::vec4 &rAmbientLight,
+														 const std::vector<DirectionalLight *> &rDirectionalLights,
+														 const std::vector<PointLight *> &rPointLights,
+														 const std::vector<LineRenderer *> &rLineRenderers,
+														 const std::vector<PointsRenderer *> &rPointsRenderer,
+														 const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
+														 RenderingStatistics &rRenderingStatistics) : RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics),
+																									  mSSAORadius(DEFAULT_SSAO_RADIUS),
+																									  mSSAODistanceScale(DEFAULT_SSAO_DISTANCE_SCALE)
 	{
 		mAspectRatio = mrScreenWidth / (float)mrScreenHeight;
 
@@ -152,8 +151,7 @@ namespace FastCG
 			TextureFilter::TF_POINT_FILTER,
 			TextureWrapMode::TW_REPEAT,
 			false,
-			&pNoises[0][0]
-			);
+			&pNoises[0][0]);
 	}
 
 	void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
@@ -370,7 +368,7 @@ namespace FastCG
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-	void DeferredRenderingStrategy::Render(const Camera* pCamera)
+	void DeferredRenderingStrategy::Render(const Camera *pCamera)
 	{
 #ifdef _DEBUG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Deferred Rendering");
@@ -409,13 +407,13 @@ namespace FastCG
 		// no transparency in this deferred rendering implementation
 		glDisable(GL_BLEND);
 
-		auto& rView = pCamera->GetView();
-		auto& rProjection = pCamera->GetProjection();
-		auto& rInverseProjection = glm::inverse(rProjection);
+		auto &rView = pCamera->GetView();
+		auto &rProjection = pCamera->GetProjection();
+		auto &rInverseProjection = glm::inverse(rProjection);
 		float tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * pCamera->GetFieldOfView()) / 2.0f);
 
 		mrRenderingStatistics.Reset();
-		for (const auto& pRenderBatch : mrRenderBatches)
+		for (const auto &pRenderBatch : mrRenderBatches)
 		{
 			auto pMaterial = pRenderBatch->pMaterial;
 
@@ -442,25 +440,25 @@ namespace FastCG
 				glCullFace(GL_BACK);
 			}
 
-			auto& rMeshFilters = pRenderBatch->meshFilters;
-			const auto& pShader = pMaterial->GetShader();
+			auto &rMeshFilters = pRenderBatch->meshFilters;
+			const auto &pShader = pMaterial->GetShader();
 			pShader->Bind();
 			pMaterial->SetUpParameters();
 
-			for (auto* pMeshFilter : rMeshFilters)
+			for (auto *pMeshFilter : rMeshFilters)
 			{
 				if (!pMeshFilter->GetGameObject()->IsActive())
 				{
 					continue;
 				}
 
-				auto* pRenderer = pMeshFilter->GetGameObject()->GetRenderer();
+				auto *pRenderer = pMeshFilter->GetGameObject()->GetRenderer();
 				if (pRenderer == nullptr)
 				{
 					continue;
 				}
 
-				auto& rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
+				auto &rModel = pRenderer->GetGameObject()->GetTransform()->GetModel();
 				auto modelView = rView * rModel;
 				auto modelViewProjection = rProjection * modelView;
 				pShader->SetMat4("_ModelView", modelView);
@@ -699,7 +697,7 @@ namespace FastCG
 					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Light Passes");
 #endif
 
-					for (auto* pPointLight : mrPointLights)
+					for (auto *pPointLight : mrPointLights)
 					{
 						glStencilMask(0xFF);
 						const GLint emptyStencil = 0;
@@ -719,7 +717,7 @@ namespace FastCG
 
 						glDisable(GL_CULL_FACE);
 
-						auto& rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
+						auto &rModel = pPointLight->GetGameObject()->GetTransform()->GetModel();
 						auto lightBoundingSphereScale = CalculateLightBoundingSphereScale(pPointLight);
 						glm::vec3 scaleVector(lightBoundingSphereScale, lightBoundingSphereScale, lightBoundingSphereScale);
 						auto modelViewProjection = rProjection * (rView * glm::scale(rModel, scaleVector));
@@ -824,7 +822,7 @@ namespace FastCG
 					mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
 					mpDirectionalLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
 					auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
-					for (auto* pDirectionalLight : mrDirectionalLights)
+					for (auto *pDirectionalLight : mrDirectionalLights)
 					{
 						auto lightDirection = glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1)));
 						mpDirectionalLightPassShader->SetVec3("_Light0Position", lightDirection);
@@ -870,7 +868,7 @@ namespace FastCG
 #endif
 	}
 
-	void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4& view, const glm::mat4& projection)
+	void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4 &view, const glm::mat4 &projection)
 	{
 		if (!mrLineRenderers.empty())
 		{
@@ -888,14 +886,14 @@ namespace FastCG
 			mpLineStripShader->SetMat4("_View", view);
 			mpLineStripShader->SetMat4("_Projection", projection);
 
-			for (auto* pLineRenderer : mrLineRenderers)
+			for (auto *pLineRenderer : mrLineRenderers)
 			{
 				if (!pLineRenderer->GetGameObject()->IsActive())
 				{
 					continue;
 				}
 
-				const auto& rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
+				const auto &rModel = pLineRenderer->GetGameObject()->GetTransform()->GetModel();
 				auto modelView = view * rModel;
 				mpLineStripShader->SetMat4("_Model", rModel);
 				mpLineStripShader->SetMat4("_ModelView", modelView);
@@ -930,20 +928,20 @@ namespace FastCG
 			mpPointsShader->SetMat4("_View", view);
 			mpPointsShader->SetMat4("_Projection", projection);
 
-			for (auto* pPointsRenderer : mrPointsRenderer)
+			for (auto *pPointsRenderer : mrPointsRenderer)
 			{
 				if (!pPointsRenderer->GetGameObject()->IsActive())
 				{
 					continue;
 				}
 
-				const auto& rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
+				const auto &rModel = pPointsRenderer->GetGameObject()->GetTransform()->GetModel();
 				auto modelView = view * rModel;
 				mpPointsShader->SetMat4("_Model", rModel);
 				mpPointsShader->SetMat4("_ModelView", modelView);
 				mpPointsShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpPointsShader->SetMat4("_ModelViewProjection", projection * modelView);
-				auto* pPoints = pPointsRenderer->GetPoints();
+				auto *pPoints = pPointsRenderer->GetPoints();
 
 				if (pPoints != 0)
 				{

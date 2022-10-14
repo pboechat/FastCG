@@ -13,8 +13,7 @@
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 
-SSAOApplication::SSAOApplication() :
-	Application({ "ssao", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING })
+SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING})
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -22,14 +21,14 @@ SSAOApplication::SSAOApplication() :
 
 void LoadModel()
 {
-	auto* pModel = ModelImporter::Import("objs/Doomsday.obj");
+	auto *pModel = ModelImporter::Import("objs/Doomsday.obj");
 	if (pModel == nullptr)
 	{
 		FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
 	}
 
-	const auto& bounds = pModel->GetBounds();
-	auto* pTransform = pModel->GetTransform();
+	const auto &bounds = pModel->GetBounds();
+	auto *pTransform = pModel->GetTransform();
 	float scale = 0;
 	scale = bounds.max.x - bounds.min.x;
 	scale = MathF::Max(bounds.max.y - bounds.min.y, scale);
@@ -52,10 +51,10 @@ void SSAOApplication::OnStart()
 	pDeferredRenderingStrategy->SetSSAORadius(1);
 
 	{
-		auto* pGameObject = GameObject::Instantiate();
+		auto *pGameObject = GameObject::Instantiate();
 		pGameObject->GetTransform()->SetPosition(glm::vec3(1, 1, 0));
 
-		auto* pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
+		auto *pDirectionalLight = DirectionalLight::Instantiate(pGameObject);
 		pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 		pDirectionalLight->SetIntensity(1);
 	}
@@ -66,24 +65,24 @@ void SSAOApplication::OnStart()
 	mpDefaultMaterial->SetFloat("shininess", 1);
 
 	{
-		auto* pGameObject = GameObject::Instantiate();
+		auto *pGameObject = GameObject::Instantiate();
 
-		auto* pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
+		auto *pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
 		mMeshes.emplace_back(StandardGeometries::CreateXZPlane("Ground", 5, 5));
 		pMeshRenderer->AddMesh(mMeshes.back());
 
-		auto* pMeshFilter = MeshFilter::Instantiate(pGameObject);
+		auto *pMeshFilter = MeshFilter::Instantiate(pGameObject);
 		pMeshFilter->SetMaterial(mpDefaultMaterial);
 	}
 
 	LoadModel();
-	
+
 	{
-		auto* pGameObject = GameObject::Instantiate();
+		auto *pGameObject = GameObject::Instantiate();
 
-		auto* pControls = Controls::Instantiate(pGameObject);
+		auto *pControls = Controls::Instantiate(pGameObject);
 
-		auto* pFlyCameraController = FlyCameraController::Instantiate(pGameObject);
+		auto *pFlyCameraController = FlyCameraController::Instantiate(pGameObject);
 		pFlyCameraController->SetWalkSpeed(5.0f);
 		pFlyCameraController->SetTurnSpeed(5.0f);
 	}

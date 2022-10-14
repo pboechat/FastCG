@@ -68,21 +68,20 @@ namespace FastCG
 		}
 	}
 
-	Texture::Texture(const std::string& rName,
-		uint32_t width,
-		uint32_t height,
-		TextureFormat format,
-		TextureDataType dataType,
-		TextureFilter filter,
-		TextureWrapMode wrapMode,
-		bool generateMipmaps,
-		void* pData) :
-		mWidth(width),
-		mHeight(height),
-		mFormat(format),
-		mDataType(dataType),
-		mFilter(filter),
-		mWrapMode(wrapMode)
+	Texture::Texture(const std::string &rName,
+					 uint32_t width,
+					 uint32_t height,
+					 TextureFormat format,
+					 TextureDataType dataType,
+					 TextureFilter filter,
+					 TextureWrapMode wrapMode,
+					 bool generateMipmaps,
+					 void *pData) : mWidth(width),
+									mHeight(height),
+									mFormat(format),
+									mDataType(dataType),
+									mFilter(filter),
+									mWrapMode(wrapMode)
 	{
 		AllocateResources(rName, pData, generateMipmaps);
 	}
@@ -92,7 +91,7 @@ namespace FastCG
 		DeallocateResources();
 	}
 
-	void Texture::AllocateResources(const std::string& rName, void* pData, bool generateMipmaps)
+	void Texture::AllocateResources(const std::string &rName, void *pData, bool generateMipmaps)
 	{
 		auto filter = GetOpenGLFilter(mFilter);
 		auto wrapMode = GetOpenGLWrapMode(mWrapMode);

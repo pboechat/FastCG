@@ -5,10 +5,9 @@
 
 namespace FastCG
 {
-	Points::Points(const std::string& rName, const std::vector<glm::vec3>& rVertices, float size, const glm::vec4& rColor) :
-		mName(rName),
-		mVertices(rVertices),
-		mSize(size)
+	Points::Points(const std::string &rName, const std::vector<glm::vec3> &rVertices, float size, const glm::vec4 &rColor) : mName(rName),
+																															 mVertices(rVertices),
+																															 mSize(size)
 	{
 		for (size_t i = 0; i < mVertices.size(); i++)
 		{
@@ -16,11 +15,10 @@ namespace FastCG
 		}
 	}
 
-	Points::Points(const std::string& rName, const std::vector<glm::vec3>& rVertices, float size, const std::vector<glm::vec4>& rColors) :
-		mName(rName),
-		mVertices(rVertices),
-		mSize(size),
-		mColors(rColors)
+	Points::Points(const std::string &rName, const std::vector<glm::vec3> &rVertices, float size, const std::vector<glm::vec4> &rColors) : mName(rName),
+																																		   mVertices(rVertices),
+																																		   mSize(size),
+																																		   mColors(rColors)
 	{
 	}
 

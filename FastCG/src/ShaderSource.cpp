@@ -5,7 +5,7 @@
 
 namespace FastCG
 {
-	std::string ShaderSource::Parse(const std::string& rFilePath)
+	std::string ShaderSource::Parse(const std::string &rFilePath)
 	{
 		auto basePath = File::GetBasePath(rFilePath);
 		size_t fileSize;

@@ -19,15 +19,14 @@ public:
 		mLastMouseButtonPressTime = 0;
 	}
 
-	void SetLights(const std::vector<PointLight*>& rLights);
+	void SetLights(const std::vector<PointLight *> &rLights);
 	void OnUpdate(float time, float deltaTime) override;
 
 private:
-	std::vector<PointLight*> mPointLights;
+	std::vector<PointLight *> mPointLights;
 	std::vector<glm::vec3> mDirections;
 	float mLastDirectionChangeTime;
 	float mLastMouseButtonPressTime;
-
 };
 
 #endif

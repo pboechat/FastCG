@@ -12,7 +12,7 @@ namespace FastCG
 
 	std::map<std::string, std::shared_ptr<Shader>> ShaderRegistry::mShadersByName;
 
-	bool ShaderRegistry::ExtractShaderInfo(const std::string& rShaderFileName, std::string& rShaderName, ShaderType& rShaderType)
+	bool ShaderRegistry::ExtractShaderInfo(const std::string &rShaderFileName, std::string &rShaderName, ShaderType &rShaderType)
 	{
 		rShaderName = rShaderFileName;
 		if (rShaderFileName.find(VERTEX_SHADER_FILE_EXTENSION) != std::string::npos)
@@ -33,9 +33,9 @@ namespace FastCG
 		}
 	}
 
-	void ShaderRegistry::LoadShadersFromDisk(const std::string& rShadersDirectory)
+	void ShaderRegistry::LoadShadersFromDisk(const std::string &rShadersDirectory)
 	{
-		for (auto& rShaderFile : Directory::ListFiles(rShadersDirectory))
+		for (auto &rShaderFile : Directory::ListFiles(rShadersDirectory))
 		{
 			std::string shaderName;
 			ShaderType shaderType;
@@ -49,7 +49,7 @@ namespace FastCG
 			if (it == mShadersByName.end())
 			{
 				pShader = std::make_shared<Shader>(shaderName);
-				mShadersByName.insert({ shaderName, pShader });
+				mShadersByName.insert({shaderName, pShader});
 			}
 			else
 			{
@@ -66,7 +66,7 @@ namespace FastCG
 		}
 	}
 
-	std::shared_ptr<Shader> ShaderRegistry::Find(const std::string& rShaderName)
+	std::shared_ptr<Shader> ShaderRegistry::Find(const std::string &rShaderName)
 	{
 		auto it = mShadersByName.find(rShaderName);
 		if (it == mShadersByName.end())

@@ -6,27 +6,29 @@
 
 #include <string>
 
-#define DECLARE_COMPONENT(className, baseClassName) \
-public: \
-	static const FastCG::ComponentType TYPE; \
-	inline virtual const FastCG::ComponentType& GetType() const { return TYPE; } \
-	static className* Instantiate(FastCG::GameObject* pGameObject)  \
-	{ \
-		className* pComponent = new className(pGameObject); \
-		pComponent->OnInstantiate(); \
-		FastCG::Component::AddToGameObject(pGameObject, pComponent); \
-		return pComponent; \
-	} \
-private: \
-	className(FastCG::GameObject* pGameObject) : baseClassName(pGameObject) {} \
+#define DECLARE_COMPONENT(className, baseClassName)                              \
+public:                                                                          \
+	static const FastCG::ComponentType TYPE;                                     \
+	inline virtual const FastCG::ComponentType &GetType() const { return TYPE; } \
+	static className *Instantiate(FastCG::GameObject *pGameObject)               \
+	{                                                                            \
+		className *pComponent = new className(pGameObject);                      \
+		pComponent->OnInstantiate();                                             \
+		FastCG::Component::AddToGameObject(pGameObject, pComponent);             \
+		return pComponent;                                                       \
+	}                                                                            \
+                                                                                 \
+private:                                                                         \
+	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject) {}   \
 	virtual ~className() = default
 
-#define DECLARE_ABSTRACT_COMPONENT(className, baseClassName) \
-public: \
-	static const FastCG::ComponentType TYPE; \
-	inline virtual const FastCG::ComponentType& GetType() const { return TYPE; } \
-protected: \
-	className(FastCG::GameObject* pGameObject) : baseClassName(pGameObject) {} \
+#define DECLARE_ABSTRACT_COMPONENT(className, baseClassName)                     \
+public:                                                                          \
+	static const FastCG::ComponentType TYPE;                                     \
+	inline virtual const FastCG::ComponentType &GetType() const { return TYPE; } \
+                                                                                 \
+protected:                                                                       \
+	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject) {}   \
 	~className() = default
 
 #define IMPLEMENT_COMPONENT(className, baseClassName) \
@@ -37,30 +39,29 @@ namespace FastCG
 	class ComponentType
 	{
 	public:
-		ComponentType(const std::string& rName, const ComponentType* pBaseType) :
-			mName(rName),
-			mpBaseType(pBaseType)
+		ComponentType(const std::string &rName, const ComponentType *pBaseType) : mName(rName),
+																				  mpBaseType(pBaseType)
 		{
 		}
 
-		inline const std::string& GetName() const
+		inline const std::string &GetName() const
 		{
 			return mName;
 		}
 
-		inline bool IsExactly(const ComponentType& rType) const
+		inline bool IsExactly(const ComponentType &rType) const
 		{
 			return &rType == this;
 		}
 
-		inline const ComponentType* GetBaseType() const
+		inline const ComponentType *GetBaseType() const
 		{
 			return mpBaseType;
 		}
 
-		bool IsDerived(const ComponentType& rType) const
+		bool IsDerived(const ComponentType &rType) const
 		{
-			const ComponentType* pSearch = this;
+			const ComponentType *pSearch = this;
 			while (pSearch)
 			{
 				if (pSearch == &rType)
@@ -76,8 +77,7 @@ namespace FastCG
 
 	private:
 		std::string mName;
-		const ComponentType* mpBaseType;
-
+		const ComponentType *mpBaseType;
 	};
 
 	class Component
@@ -87,7 +87,7 @@ namespace FastCG
 
 		virtual ~Component() = default;
 
-		inline virtual const ComponentType& GetType() const
+		inline virtual const ComponentType &GetType() const
 		{
 			return TYPE;
 		}
@@ -102,17 +102,17 @@ namespace FastCG
 			mEnabled = enabled;
 		}
 
-		inline GameObject* GetGameObject()
+		inline GameObject *GetGameObject()
 		{
 			return mpGameObject;
 		}
 
-		inline const GameObject* GetGameObject() const
+		inline const GameObject *GetGameObject() const
 		{
 			return mpGameObject;
 		}
 
-		static void Destroy(Component* pComponent)
+		static void Destroy(Component *pComponent)
 		{
 			pComponent->OnDestroy();
 			pComponent->RemoveFromParent();
@@ -120,13 +120,12 @@ namespace FastCG
 		}
 
 	protected:
-		static void AddToGameObject(GameObject* pGameObject, Component* pComponent)
+		static void AddToGameObject(GameObject *pGameObject, Component *pComponent)
 		{
 			pGameObject->AddComponent(pComponent);
 		}
 
-		Component(GameObject* pGameObject) :
-			mpGameObject(pGameObject)
+		Component(GameObject *pGameObject) : mpGameObject(pGameObject)
 		{
 		}
 
@@ -144,9 +143,8 @@ namespace FastCG
 		}
 
 	private:
-		GameObject* mpGameObject;
-		bool mEnabled{ true };
-
+		GameObject *mpGameObject;
+		bool mEnabled{true};
 	};
 
 }

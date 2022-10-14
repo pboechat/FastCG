@@ -7,7 +7,7 @@ namespace FastCG
 {
 	static std::map<std::string, std::shared_ptr<Font>> gFontsByName;
 
-	bool FontRegistry::ExtractFontInfo(const std::string& rFontFileName, std::string& rFontName)
+	bool FontRegistry::ExtractFontInfo(const std::string &rFontFileName, std::string &rFontName)
 	{
 		rFontName = rFontFileName;
 		if (rFontFileName.find(".ttf") != std::string::npos)
@@ -21,9 +21,9 @@ namespace FastCG
 		}
 	}
 
-	void FontRegistry::LoadFontsFromDisk(const std::string& rFontsDirectory)
+	void FontRegistry::LoadFontsFromDisk(const std::string &rFontsDirectory)
 	{
-		for (auto& rFontFile : Directory::ListFiles(rFontsDirectory))
+		for (auto &rFontFile : Directory::ListFiles(rFontsDirectory))
 		{
 			std::string fontName;
 			if (!ExtractFontInfo(rFontFile, fontName))
@@ -38,7 +38,7 @@ namespace FastCG
 		}
 	}
 
-	std::shared_ptr<Font> FontRegistry::Find(const std::string& rFontName)
+	std::shared_ptr<Font> FontRegistry::Find(const std::string &rFontName)
 	{
 		auto it = gFontsByName.find(rFontName);
 		if (it == gFontsByName.end())

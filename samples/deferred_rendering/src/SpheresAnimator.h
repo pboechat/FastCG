@@ -19,7 +19,7 @@ public:
 		mRotationAxis = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
 
-	inline void SetSpheres(std::vector<GameObject*> spheres)
+	inline void SetSpheres(std::vector<GameObject *> spheres)
 	{
 		mSpheres = spheres;
 	}
@@ -29,7 +29,7 @@ public:
 		mRotationSpeed = rotationSpeed;
 	}
 
-	inline void SetRotationAxis(const glm::vec3& rotationAxis)
+	inline void SetRotationAxis(const glm::vec3 &rotationAxis)
 	{
 		mRotationAxis = rotationAxis;
 	}
@@ -37,10 +37,9 @@ public:
 	void OnUpdate(float time, float deltaTime) override;
 
 private:
-	std::vector<GameObject*> mSpheres;
+	std::vector<GameObject *> mSpheres;
 	glm::vec3 mRotationAxis;
 	float mRotationSpeed;
-
 };
 
 #endif

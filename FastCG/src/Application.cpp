@@ -35,31 +35,31 @@ namespace FastCG
 	const std::string FONTS_FOLDER = "fonts";
 	const std::string DEFAULT_FONT_NAME = "verdana";
 
-	Application* Application::s_mpInstance = nullptr;
+	Application *Application::s_mpInstance = nullptr;
 
-#define FASTCG_REGISTER_COMPONENT(className, component) \
-	if (component->GetType().IsDerived(className::TYPE)) \
-	{ \
-		m##className##s.emplace_back(static_cast<className*>(component)); \
+#define FASTCG_REGISTER_COMPONENT(className, component)                    \
+	if (component->GetType().IsDerived(className::TYPE))                   \
+	{                                                                      \
+		m##className##s.emplace_back(static_cast<className *>(component)); \
 	}
 
-#define FASTCG_UNREGISTER_COMPONENT(className, component) \
-	if (component->GetType().IsDerived(className::TYPE)) \
-	{ \
+#define FASTCG_UNREGISTER_COMPONENT(className, component)                               \
+	if (component->GetType().IsDerived(className::TYPE))                                \
+	{                                                                                   \
 		auto it = std::find(m##className##s.begin(), m##className##s.end(), component); \
-		if (it == m##className##s.end()) \
-		{ \
-			FASTCG_THROW_EXCEPTION(Exception, "Error unregistering: %s", #className); \
-		} \
-		m##className##s.erase(it); \
+		if (it == m##className##s.end())                                                \
+		{                                                                               \
+			FASTCG_THROW_EXCEPTION(Exception, "Error unregistering: %s", #className);   \
+		}                                                                               \
+		m##className##s.erase(it);                                                      \
 	}
 
 #ifdef _WIN32
-#define FASTCG_MSG_BOX(title, fmt, ...) \
-	{ \
-		char msg[4096]; \
+#define FASTCG_MSG_BOX(title, fmt, ...)                                 \
+	{                                                                   \
+		char msg[4096];                                                 \
 		sprintf_s(msg, sizeof(msg) / sizeof(char), fmt, ##__VA_ARGS__); \
-		MessageBoxA(NULL, msg, title, MB_ICONWARNING); \
+		MessageBoxA(NULL, msg, title, MB_ICONWARNING);                  \
 	}
 #else
 #error "FASTCG_MSG_BOX() is not implemented on the current platform"
@@ -113,17 +113,16 @@ namespace FastCG
 	}
 #endif
 
-	Application::Application(const ApplicationSettings& settings) :
-		mWindowTitle(settings.windowTitle),
-		mScreenWidth(settings.screenWidth),
-		mScreenHeight(settings.screenHeight),
-		mRenderingPath(settings.renderingPath),
-		mAssetsPath(settings.assetsPath),
-		mClearColor(settings.clearColor),
-		mAmbientLight(settings.ambientLight),
-		mShowFPS(settings.showFPS),
-		mShowRenderingStatistics(settings.showRenderingStatistics),
-		mSecondsPerFrame(1.0 / (double)settings.frameRate)
+	Application::Application(const ApplicationSettings &settings) : mWindowTitle(settings.windowTitle),
+																	mScreenWidth(settings.screenWidth),
+																	mScreenHeight(settings.screenHeight),
+																	mRenderingPath(settings.renderingPath),
+																	mAssetsPath(settings.assetsPath),
+																	mClearColor(settings.clearColor),
+																	mAmbientLight(settings.ambientLight),
+																	mShowFPS(settings.showFPS),
+																	mShowRenderingStatistics(settings.showRenderingStatistics),
+																	mSecondsPerFrame(1.0 / (double)settings.frameRate)
 	{
 		s_mpInstance = this;
 	}
@@ -136,7 +135,7 @@ namespace FastCG
 		FontRegistry::Unload();
 
 		auto gameObjectsToDestroy = mGameObjects;
-		for (auto* pGameObject : gameObjectsToDestroy)
+		for (auto *pGameObject : gameObjectsToDestroy)
 		{
 			GameObject::Destroy(pGameObject);
 		}
@@ -160,13 +159,13 @@ namespace FastCG
 		s_mpInstance = nullptr;
 	}
 
-	void Application::RegisterGameObject(GameObject* pGameObject)
+	void Application::RegisterGameObject(GameObject *pGameObject)
 	{
 		assert(pGameObject != nullptr);
 		mGameObjects.emplace_back(pGameObject);
 	}
 
-	void Application::UnregisterGameObject(GameObject* pGameObject)
+	void Application::UnregisterGameObject(GameObject *pGameObject)
 	{
 		assert(pGameObject != nullptr);
 		auto it = std::find(mGameObjects.begin(), mGameObjects.end(), pGameObject);
@@ -174,7 +173,7 @@ namespace FastCG
 		mGameObjects.erase(it);
 	}
 
-	void Application::RegisterComponent(Component* pComponent)
+	void Application::RegisterComponent(Component *pComponent)
 	{
 		assert(pComponent != nullptr);
 
@@ -187,23 +186,23 @@ namespace FastCG
 
 		if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 		{
-			RegisterCamera(static_cast<Camera*>(pComponent));
+			RegisterCamera(static_cast<Camera *>(pComponent));
 		}
 		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
 		{
-			mpRenderBatchingStrategy->AddMeshFilter(static_cast<MeshFilter*>(pComponent));
+			mpRenderBatchingStrategy->AddMeshFilter(static_cast<MeshFilter *>(pComponent));
 		}
 
 		mComponents.emplace_back(pComponent);
 	}
 
-	void Application::RegisterCamera(Camera* pCamera)
+	void Application::RegisterCamera(Camera *pCamera)
 	{
 		mCameras.emplace_back(pCamera);
 		SetMainCamera(pCamera);
 	}
 
-	void Application::UnregisterComponent(Component* pComponent)
+	void Application::UnregisterComponent(Component *pComponent)
 	{
 		assert(pComponent != nullptr);
 
@@ -225,15 +224,15 @@ namespace FastCG
 		}
 		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
 		{
-			mpRenderBatchingStrategy->RemoveMeshFilter(static_cast<MeshFilter*>(pComponent));
+			mpRenderBatchingStrategy->RemoveMeshFilter(static_cast<MeshFilter *>(pComponent));
 		}
 	}
 
-	void Application::SetMainCamera(Camera* pCamera)
+	void Application::SetMainCamera(Camera *pCamera)
 	{
 		pCamera->SetEnabled(true);
 
-		for (auto* pOtherCamera : mCameras)
+		for (auto *pOtherCamera : mCameras)
 		{
 			if (pOtherCamera == pCamera)
 			{
@@ -247,7 +246,7 @@ namespace FastCG
 		mpMainCamera->SetAspectRatio(GetAspectRatio());
 	}
 
-	int Application::Run(int argc, char** argv)
+	int Application::Run(int argc, char **argv)
 	{
 		if (!ParseCommandLineArguments(argc, argv))
 		{
@@ -257,7 +256,8 @@ namespace FastCG
 
 		try
 		{
-			mpInput = std::unique_ptr<Input, DeleteInputCallback>(new Input(), [](Input* input) { delete input; });
+			mpInput = std::unique_ptr<Input, DeleteInputCallback>(new Input(), [](Input *input)
+																  { delete input; });
 
 			SetUpPresentation();
 			SetUpOpenGL();
@@ -287,7 +287,7 @@ namespace FastCG
 
 			mpInternalGameObject = GameObject::Instantiate();
 
-			auto* pCamera = Camera::Instantiate(mpInternalGameObject);
+			auto *pCamera = Camera::Instantiate(mpInternalGameObject);
 
 			mStartTimer.Start();
 			OnStart();
@@ -303,7 +303,7 @@ namespace FastCG
 
 			return 0;
 		}
-		catch (Exception& e)
+		catch (Exception &e)
 		{
 			FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
 			return -1;
@@ -362,7 +362,7 @@ namespace FastCG
 #endif
 	}
 
-	bool Application::ParseCommandLineArguments(int argc, char** argv)
+	bool Application::ParseCommandLineArguments(int argc, char **argv)
 	{
 		return true;
 	}
@@ -385,12 +385,12 @@ namespace FastCG
 		windowClass.cbClsExtra = 0;
 		windowClass.cbWndExtra = 0;
 		windowClass.hInstance = mHInstance;
-		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);	// default icon
-		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);		// default arrow
-		windowClass.hbrBackground = NULL;						// don't need background
-		windowClass.lpszMenuName = NULL;						// no menu
+		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION); // default icon
+		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);	 // default arrow
+		windowClass.hbrBackground = NULL;					 // don't need background
+		windowClass.lpszMenuName = NULL;					 // no menu
 		windowClass.lpszClassName = "FastCG_Window";
-		windowClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);		// windows logo small icon
+		windowClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO); // windows logo small icon
 
 		if (!RegisterClassEx(&windowClass))
 		{
@@ -401,42 +401,41 @@ namespace FastCG
 		auto dwStyle = WS_OVERLAPPEDWINDOW;
 		AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
 		mHWnd = CreateWindowEx(NULL,
-			"FastCG_Window",
-			mWindowTitle.c_str(),
-			dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-			0,
-			0,
-			windowRect.right - windowRect.left,
-			windowRect.bottom - windowRect.top,
-			NULL,
-			NULL,
-			mHInstance,
-			NULL
-		);
+							   "FastCG_Window",
+							   mWindowTitle.c_str(),
+							   dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+							   0,
+							   0,
+							   windowRect.right - windowRect.left,
+							   windowRect.bottom - windowRect.top,
+							   NULL,
+							   NULL,
+							   mHInstance,
+							   NULL);
 
 		if (mHWnd != 0)
 		{
 			mHDC = GetDC(mHWnd);
 
 			PIXELFORMATDESCRIPTOR pixelFormatDescr =
-			{
-				sizeof(PIXELFORMATDESCRIPTOR),
-				1,
-				PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-				PFD_TYPE_RGBA,
-				32,
-				0, 0, 0, 0, 0, 0,			// color bits (ignored)
-				0,							// no alpha buffer
-				0,							// alpha bits (ignored)
-				0,							// no accumulation buffer
-				0, 0, 0, 0,					// accum bits (ignored)
-				32,							// depth buffer
-				0,							// no stencil buffer
-				0,							// no auxiliary buffers
-				PFD_MAIN_PLANE,				// main layer
-				0,							// reserved
-				0, 0, 0,					// no layer, visible, damage masks
-			};
+				{
+					sizeof(PIXELFORMATDESCRIPTOR),
+					1,
+					PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+					PFD_TYPE_RGBA,
+					32,
+					0, 0, 0, 0, 0, 0, // color bits (ignored)
+					0,				  // no alpha buffer
+					0,				  // alpha bits (ignored)
+					0,				  // no accumulation buffer
+					0, 0, 0, 0,		  // accum bits (ignored)
+					32,				  // depth buffer
+					0,				  // no stencil buffer
+					0,				  // no auxiliary buffers
+					PFD_MAIN_PLANE,	  // main layer
+					0,				  // reserved
+					0, 0, 0,		  // no layer, visible, damage masks
+				};
 			auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
 			if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
 			{
@@ -456,8 +455,10 @@ namespace FastCG
 	}
 
 #ifdef _DEBUG
-#define CASE_RETURN_STRING(str) case str: return #str
-	const char* GetOpenGLDebugOutputMessageSourceString(GLenum source)
+#define CASE_RETURN_STRING(str) \
+	case str:                   \
+		return #str
+	const char *GetOpenGLDebugOutputMessageSourceString(GLenum source)
 	{
 		switch (source)
 		{
@@ -472,7 +473,7 @@ namespace FastCG
 		}
 	}
 
-	const char* GetOpenGLDebugOutputMessageTypeString(GLenum type)
+	const char *GetOpenGLDebugOutputMessageTypeString(GLenum type)
 	{
 		switch (type)
 		{
@@ -491,7 +492,7 @@ namespace FastCG
 		}
 	}
 
-	const char* GetOpenGLDebugOutputMessageSeverity(GLenum severity)
+	const char *GetOpenGLDebugOutputMessageSeverity(GLenum severity)
 	{
 		switch (severity)
 		{
@@ -505,7 +506,7 @@ namespace FastCG
 		}
 	}
 
-	void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
+	void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam)
 	{
 		printf_s(
 			"[%s] - %s - %s - %d - %s\n",
@@ -513,8 +514,7 @@ namespace FastCG
 			GetOpenGLDebugOutputMessageSourceString(source),
 			GetOpenGLDebugOutputMessageTypeString(type),
 			id,
-			message
-		);
+			message);
 	}
 #endif
 
@@ -551,15 +551,12 @@ namespace FastCG
 		}
 
 		const int attribs[] = {
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3
-			, WGL_CONTEXT_MINOR_VERSION_ARB, 2
-			, WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-			, WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3, WGL_CONTEXT_MINOR_VERSION_ARB, 2, WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #ifdef _DEBUG
-			| WGL_CONTEXT_DEBUG_BIT_ARB
+																																										   | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-			, 0
-		};
+			,
+			0};
 		mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
 		if (mHGLRC == 0)
 		{
@@ -592,7 +589,7 @@ namespace FastCG
 
 		mpInput->Swap();
 
-		for (auto* pGameObject : mGameObjects)
+		for (auto *pGameObject : mGameObjects)
 		{
 			if (pGameObject->GetTransform()->GetParent() != nullptr)
 			{
@@ -601,7 +598,7 @@ namespace FastCG
 			pGameObject->GetTransform()->Update();
 		}
 
-		for (auto* pBehaviour : mBehaviours)
+		for (auto *pBehaviour : mBehaviours)
 		{
 			pBehaviour->Update((float)mStartTimer.GetTime(), (float)deltaTime);
 		}
@@ -640,7 +637,7 @@ namespace FastCG
 
 		glViewport(0, 0, mScreenWidth, mScreenHeight);
 
-		for (auto& rDrawTextRequest : mDrawTextRequests)
+		for (auto &rDrawTextRequest : mDrawTextRequests)
 		{
 			mpStandardFont->DrawString(rDrawTextRequest.text, rDrawTextRequest.x, (mScreenHeight - rDrawTextRequest.y), rDrawTextRequest.color);
 		}
@@ -694,22 +691,22 @@ namespace FastCG
 		DrawAllTexts();
 	}
 
-	void Application::DrawText(const std::string& rText, uint32_t x, uint32_t y, const std::shared_ptr<Font>& pFont, const glm::vec4& rColor)
+	void Application::DrawText(const std::string &rText, uint32_t x, uint32_t y, const std::shared_ptr<Font> &pFont, const glm::vec4 &rColor)
 	{
-		mDrawTextRequests.emplace_back(DrawTextRequest{ rText, x, y, pFont, rColor });
+		mDrawTextRequests.emplace_back(DrawTextRequest{rText, x, y, pFont, rColor});
 	}
 
-	void Application::DrawText(const std::string& rText, uint32_t x, uint32_t y, const glm::vec4& rColor)
+	void Application::DrawText(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor)
 	{
-		mDrawTextRequests.emplace_back(DrawTextRequest{ rText, x, y, mpStandardFont, rColor });
+		mDrawTextRequests.emplace_back(DrawTextRequest{rText, x, y, mpStandardFont, rColor});
 	}
 
-	void Application::BeforeMeshFilterChange(MeshFilter* pMeshFilter)
+	void Application::BeforeMeshFilterChange(MeshFilter *pMeshFilter)
 	{
 		mpRenderBatchingStrategy->RemoveMeshFilter(pMeshFilter);
 	}
 
-	void Application::AfterMeshFilterChange(MeshFilter* pMeshFilter)
+	void Application::AfterMeshFilterChange(MeshFilter *pMeshFilter)
 	{
 		mpRenderBatchingStrategy->AddMeshFilter(pMeshFilter);
 	}

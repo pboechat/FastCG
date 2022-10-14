@@ -7,7 +7,7 @@
 
 namespace FastCG
 {
-	bool Directory::Exists(const std::string& rDirectoryPath)
+	bool Directory::Exists(const std::string &rDirectoryPath)
 	{
 #ifdef _WIN32
 		auto directoryAttributes = GetFileAttributes(rDirectoryPath.c_str());
@@ -17,7 +17,7 @@ namespace FastCG
 #endif
 	}
 
-	std::vector<std::string> Directory::ListFiles(const std::string& rDirectoryPath)
+	std::vector<std::string> Directory::ListFiles(const std::string &rDirectoryPath)
 	{
 #ifdef _WIN32
 		std::vector<std::string> files;

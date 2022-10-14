@@ -12,17 +12,15 @@ namespace FastCG
 	class RenderBatchingStrategy
 	{
 	public:
-		RenderBatchingStrategy(std::vector<std::unique_ptr<RenderBatch>>& rRenderBatches) :
-			mrRenderBatches(rRenderBatches)
+		RenderBatchingStrategy(std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches) : mrRenderBatches(rRenderBatches)
 		{
 		}
 
-		virtual void AddMeshFilter(MeshFilter* pMeshFilter) = 0;
-		virtual void RemoveMeshFilter(MeshFilter* pMeshFilter) = 0;
+		virtual void AddMeshFilter(MeshFilter *pMeshFilter) = 0;
+		virtual void RemoveMeshFilter(MeshFilter *pMeshFilter) = 0;
 
 	protected:
-		std::vector<std::unique_ptr<RenderBatch>>& mrRenderBatches;
-
+		std::vector<std::unique_ptr<RenderBatch>> &mrRenderBatches;
 	};
 
 }

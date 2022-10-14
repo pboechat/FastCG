@@ -16,36 +16,36 @@ namespace FastCG
 	class GameObject
 	{
 	public:
-		static GameObject* Instantiate();
-		static GameObject* Instantiate(const std::string& rName);
-		static void Destroy(GameObject* pGameObject);
+		static GameObject *Instantiate();
+		static GameObject *Instantiate(const std::string &rName);
+		static void Destroy(GameObject *pGameObject);
 
-		inline const std::string& GetName() const
+		inline const std::string &GetName() const
 		{
 			return mName;
 		}
 
-		inline void SetName(const std::string& rName)
+		inline void SetName(const std::string &rName)
 		{
 			mName = rName;
 		}
 
-		inline Transform* GetTransform()
+		inline Transform *GetTransform()
 		{
 			return mpTransform;
 		}
 
-		inline const Transform* GetTransform() const
+		inline const Transform *GetTransform() const
 		{
 			return mpTransform;
 		}
 
-		inline Renderer* GetRenderer()
+		inline Renderer *GetRenderer()
 		{
 			return mpRenderer;
 		}
 
-		inline const Renderer* GetRenderer() const
+		inline const Renderer *GetRenderer() const
 		{
 			return mpRenderer;
 		}
@@ -56,25 +56,24 @@ namespace FastCG
 		}
 
 		void SetActive(bool active);
-		Component* GetComponent(const ComponentType& rComponentType) const;
+		Component *GetComponent(const ComponentType &rComponentType) const;
 		AABB GetBounds() const;
 		friend class Component;
 
 	private:
 		std::string mName;
-		Transform* mpTransform;
-		Renderer* mpRenderer{ nullptr };
-		std::vector<Component*> mComponents;
-		bool mActive{ true };
+		Transform *mpTransform;
+		Renderer *mpRenderer{nullptr};
+		std::vector<Component *> mComponents;
+		bool mActive{true};
 
 		GameObject();
-		GameObject(const std::string& rName);
+		GameObject(const std::string &rName);
 		~GameObject();
 
-		void AddComponent(Component* pComponent);
-		void RemoveComponent(Component* pComponent);
+		void AddComponent(Component *pComponent);
+		void RemoveComponent(Component *pComponent);
 		void DestroyAllComponents();
-
 	};
 
 }

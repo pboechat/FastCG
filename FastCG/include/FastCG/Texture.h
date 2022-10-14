@@ -44,15 +44,15 @@ namespace FastCG
 	class Texture
 	{
 	public:
-		Texture(const std::string& rName,
-			uint32_t width,
-			uint32_t height,
-			TextureFormat format = TextureFormat::TF_RGB,
-			TextureDataType dataType = TextureDataType::DT_UNSIGNED_CHAR,
-			TextureFilter filter = TextureFilter::TF_LINEAR_FILTER,
-			TextureWrapMode wrapMode = TextureWrapMode::TW_CLAMP,
-			bool generateMipmaps = true,
-			void* pData = 0);
+		Texture(const std::string &rName,
+				uint32_t width,
+				uint32_t height,
+				TextureFormat format = TextureFormat::TF_RGB,
+				TextureDataType dataType = TextureDataType::DT_UNSIGNED_CHAR,
+				TextureFilter filter = TextureFilter::TF_LINEAR_FILTER,
+				TextureWrapMode wrapMode = TextureWrapMode::TW_CLAMP,
+				bool generateMipmaps = true,
+				void *pData = 0);
 		~Texture();
 
 		void Bind() const;
@@ -95,11 +95,10 @@ namespace FastCG
 		TextureDataType mDataType;
 		TextureFilter mFilter;
 		TextureWrapMode mWrapMode;
-		GLuint mTextureId{ ~0u };
+		GLuint mTextureId{~0u};
 
-		void AllocateResources(const std::string& rName, void* pData, bool generateMipmaps);
+		void AllocateResources(const std::string &rName, void *pData, bool generateMipmaps);
 		void DeallocateResources();
-
 	};
 
 }

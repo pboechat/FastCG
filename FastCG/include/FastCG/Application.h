@@ -49,25 +49,24 @@ namespace FastCG
 	struct ApplicationSettings
 	{
 		std::string windowTitle;
-		uint32_t screenWidth{ 1024 };
-		uint32_t screenHeight{ 768 };
-		uint32_t frameRate{ 60 };
-		RenderingPath renderingPath{ RenderingPath::RP_FORWARD_RENDERING };
-		std::string assetsPath{ "../assets" };
-		glm::vec4 clearColor{ Colors::BLACK };
-		glm::vec4 ambientLight{ Colors::BLACK };
-		bool showFPS{ false };
-		bool showRenderingStatistics{ false };
-
+		uint32_t screenWidth{1024};
+		uint32_t screenHeight{768};
+		uint32_t frameRate{60};
+		RenderingPath renderingPath{RenderingPath::RP_FORWARD_RENDERING};
+		std::string assetsPath{"../assets"};
+		glm::vec4 clearColor{Colors::BLACK};
+		glm::vec4 ambientLight{Colors::BLACK};
+		bool showFPS{false};
+		bool showRenderingStatistics{false};
 	};
 
 	class Application
 	{
 	public:
-		Application(const ApplicationSettings& settings);
+		Application(const ApplicationSettings &settings);
 		virtual ~Application();
 
-		inline static Application* GetInstance()
+		inline static Application *GetInstance()
 		{
 			return s_mpInstance;
 		}
@@ -87,19 +86,19 @@ namespace FastCG
 			return mScreenWidth / (float)mScreenHeight;
 		}
 
-		inline Camera* GetMainCamera()
+		inline Camera *GetMainCamera()
 		{
 			return mpMainCamera;
 		}
 
-		void SetMainCamera(Camera* pCamera);
+		void SetMainCamera(Camera *pCamera);
 
-		inline const glm::vec4& GetClearColor() const
+		inline const glm::vec4 &GetClearColor() const
 		{
 			return mClearColor;
 		}
 
-		inline void SetClearColor(const glm::vec4& clearColor)
+		inline void SetClearColor(const glm::vec4 &clearColor)
 		{
 			mClearColor = clearColor;
 		}
@@ -109,12 +108,12 @@ namespace FastCG
 			return mpRenderingPathStrategy;
 		}
 
-		int Run(int argc, char** argv);
+		int Run(int argc, char **argv);
 		void Exit();
-		void DrawText(const std::string& rText, uint32_t x, uint32_t y, const std::shared_ptr<Font>& pFont, const glm::vec4& rColor);
-		void DrawText(const std::string& rText, uint32_t x, uint32_t y, const glm::vec4& rColor);
-		void BeforeMeshFilterChange(MeshFilter* pMeshFilter);
-		void AfterMeshFilterChange(MeshFilter* pMeshFilter);
+		void DrawText(const std::string &rText, uint32_t x, uint32_t y, const std::shared_ptr<Font> &pFont, const glm::vec4 &rColor);
+		void DrawText(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor);
+		void BeforeMeshFilterChange(MeshFilter *pMeshFilter);
+		void AfterMeshFilterChange(MeshFilter *pMeshFilter);
 
 		friend class GameObject;
 #ifdef _WIN32
@@ -127,7 +126,7 @@ namespace FastCG
 		bool mShowFPS;
 		bool mShowRenderingStatistics;
 
-		virtual bool ParseCommandLineArguments(int argc, char** argv);
+		virtual bool ParseCommandLineArguments(int argc, char **argv);
 		virtual void OnRegisterComponent() {}
 		virtual void OnResize() {}
 		virtual void OnStart() {}
@@ -147,12 +146,11 @@ namespace FastCG
 			uint32_t y;
 			std::shared_ptr<Font> pFont;
 			glm::vec4 color;
-
 		};
 
-		typedef void(*DeleteInputCallback)(Input*);
+		typedef void (*DeleteInputCallback)(Input *);
 
-		static Application* s_mpInstance;
+		static Application *s_mpInstance;
 
 		std::string mWindowTitle;
 		uint32_t mScreenWidth;
@@ -160,35 +158,35 @@ namespace FastCG
 		RenderingPath mRenderingPath;
 		std::string mAssetsPath;
 		double mSecondsPerFrame;
-		bool mRunning{ false };
-		std::shared_ptr<Font> mpStandardFont{ nullptr };
-		std::shared_ptr<RenderingPathStrategy> mpRenderingPathStrategy{ nullptr };
-		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{ nullptr };
-		std::unique_ptr<Input, DeleteInputCallback> mpInput{ nullptr, nullptr };
+		bool mRunning{false};
+		std::shared_ptr<Font> mpStandardFont{nullptr};
+		std::shared_ptr<RenderingPathStrategy> mpRenderingPathStrategy{nullptr};
+		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{nullptr};
+		std::unique_ptr<Input, DeleteInputCallback> mpInput{nullptr, nullptr};
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
-		uint32_t mElapsedFrames{ 0 };
-		double mTotalElapsedTime{ 0 };
-		double mLastFrameTime{ 0 };
+		uint32_t mElapsedFrames{0};
+		double mTotalElapsedTime{0};
+		double mLastFrameTime{0};
 		RenderingStatistics mRenderingStatistics;
-		GameObject* mpInternalGameObject{ nullptr };
-		Camera* mpMainCamera{ nullptr };
-		std::vector<GameObject*> mGameObjects;
-		std::vector<Camera*> mCameras;
-		std::vector<DirectionalLight*> mDirectionalLights;
-		std::vector<PointLight*> mPointLights;
-		std::vector<MeshFilter*> mMeshFilters;
-		std::vector<Behaviour*> mBehaviours;
-		std::vector<LineRenderer*> mLineRenderers;
-		std::vector<PointsRenderer*> mPointsRenderers;
-		std::vector<Component*> mComponents;
+		GameObject *mpInternalGameObject{nullptr};
+		Camera *mpMainCamera{nullptr};
+		std::vector<GameObject *> mGameObjects;
+		std::vector<Camera *> mCameras;
+		std::vector<DirectionalLight *> mDirectionalLights;
+		std::vector<PointLight *> mPointLights;
+		std::vector<MeshFilter *> mMeshFilters;
+		std::vector<Behaviour *> mBehaviours;
+		std::vector<LineRenderer *> mLineRenderers;
+		std::vector<PointsRenderer *> mPointsRenderers;
+		std::vector<Component *> mComponents;
 		std::vector<std::unique_ptr<RenderBatch>> mRenderBatches;
 		std::vector<DrawTextRequest> mDrawTextRequests;
 #ifdef _WIN32
-		HINSTANCE mHInstance{ 0 };
-		HWND mHWnd{ 0 };
-		HDC mHDC{ 0 };
-		HGLRC mHGLRC{ 0 };
+		HINSTANCE mHInstance{0};
+		HWND mHWnd{0};
+		HDC mHDC{0};
+		HGLRC mHGLRC{0};
 #endif
 
 		void SetUpPresentation();
@@ -198,11 +196,11 @@ namespace FastCG
 		void TearDownOpenGL();
 		void DestroyOpenGLContext();
 		void RunMainLoop();
-		void RegisterGameObject(GameObject* pGameObject);
-		void UnregisterGameObject(GameObject* pGameObject);
-		void RegisterComponent(Component* pComponent);
-		void RegisterCamera(Camera* pCamera);
-		void UnregisterComponent(Component* pComponent);
+		void RegisterGameObject(GameObject *pGameObject);
+		void UnregisterGameObject(GameObject *pGameObject);
+		void RegisterComponent(Component *pComponent);
+		void RegisterCamera(Camera *pCamera);
+		void UnregisterComponent(Component *pComponent);
 		void DrawAllTexts();
 		void ShowFPS();
 		void ShowRenderingStatistics();
@@ -214,7 +212,6 @@ namespace FastCG
 		void MouseWheelCallback(int direction, int x, int y);
 		void MouseMoveCallback(int x, int y);
 		void KeyboardCallback(int key, bool pressed);
-
 	};
 
 }

@@ -28,8 +28,7 @@ const uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
 const float WALK_SPEED = 20.0f;
 const float TURN_SPEED = 20.0f;
 
-DeferredRenderingApplication::DeferredRenderingApplication() :
-	Application({ "deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING })
+DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING})
 {
 	mShowFPS = true;
 	mShowRenderingStatistics = true;
@@ -40,9 +39,9 @@ void DeferredRenderingApplication::OnStart()
 	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
 	GetMainCamera()->GetGameObject()->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
-	std::vector<PointLight*> pointLights;
-	GameObject* pPointLightGameObject;
-	PointLight* pPointLight;
+	std::vector<PointLight *> pointLights;
+	GameObject *pPointLightGameObject;
+	PointLight *pPointLight;
 
 	float depthIncrement = FLOOR_SIZE / (float)LIGHT_GRID_DEPTH;
 	float horizontalIncrement = FLOOR_SIZE / (float)LIGHT_GRID_WIDTH;
@@ -79,10 +78,10 @@ void DeferredRenderingApplication::OnStart()
 
 	mpFloorMesh = StandardGeometries::CreateXZPlane("Floor", (float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
-	auto* pFloorGameObject = GameObject::Instantiate();
-	auto* pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
+	auto *pFloorGameObject = GameObject::Instantiate();
+	auto *pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
 	pMeshRenderer->AddMesh(mpFloorMesh);
-	auto* pMeshFilter = MeshFilter::Instantiate(pFloorGameObject);
+	auto *pMeshFilter = MeshFilter::Instantiate(pFloorGameObject);
 	pMeshFilter->SetMaterial(mpFloorMaterial);
 
 	mpSphereMaterial = std::make_shared<Material>(ShaderRegistry::Find("SolidColor"));
@@ -92,12 +91,12 @@ void DeferredRenderingApplication::OnStart()
 
 	mpSphereMesh = StandardGeometries::CreateSphere("Sphere", SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
 
-	std::vector<GameObject*> spheres;
+	std::vector<GameObject *> spheres;
 	for (float z = 0; z < FLOOR_SIZE; z += 1)
 	{
 		for (float x = 0; x < FLOOR_SIZE; x += 1)
 		{
-			auto* pSphereGameObject = GameObject::Instantiate();
+			auto *pSphereGameObject = GameObject::Instantiate();
 			pMeshRenderer = MeshRenderer::Instantiate(pSphereGameObject);
 			pMeshRenderer->AddMesh(mpSphereMesh);
 			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
@@ -107,14 +106,14 @@ void DeferredRenderingApplication::OnStart()
 		}
 	}
 
-	auto* pGeneralBehavioursGameObject = GameObject::Instantiate();
+	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
 
-	auto* pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
+	auto *pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
 	pLightsAnimator->SetLights(pointLights);
 
-	auto* pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
+	auto *pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
 
-	auto* pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
+	auto *pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
 	pFlyCameraController->SetWalkSpeed(WALK_SPEED);
 	pFlyCameraController->SetTurnSpeed(TURN_SPEED);
 }

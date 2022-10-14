@@ -6,7 +6,7 @@ namespace FastCG
 
 	void MeshRenderer::OnRender()
 	{
-		for (auto& pMesh : mMeshes)
+		for (auto &pMesh : mMeshes)
 		{
 			pMesh->Draw();
 		}
