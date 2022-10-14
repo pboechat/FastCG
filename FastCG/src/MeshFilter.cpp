@@ -1,5 +1,5 @@
 #include <FastCG/MeshFilter.h>
-#include <FastCG/Application.h>
+#include <FastCG/BaseApplication.h>
 
 namespace FastCG
 {
@@ -7,9 +7,9 @@ namespace FastCG
 
 	void MeshFilter::SetMaterial(const std::shared_ptr<Material> &pMaterial)
 	{
-		Application::GetInstance()->BeforeMeshFilterChange(this);
+		BaseApplication::GetInstance()->BeforeMeshFilterChange(this);
 		mpMaterial = pMaterial;
-		Application::GetInstance()->AfterMeshFilterChange(this);
+		BaseApplication::GetInstance()->AfterMeshFilterChange(this);
 	}
 
 }

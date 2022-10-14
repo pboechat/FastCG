@@ -1,9 +1,6 @@
 #include <FastCG/Mesh.h>
 #include <FastCG/Material.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #include <vector>
 #include <sstream>
 #include <iostream>

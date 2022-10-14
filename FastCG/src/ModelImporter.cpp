@@ -119,7 +119,8 @@ namespace FastCG
 				}
 			}
 
-			auto pMesh = std::make_shared<Mesh>(rName + " (" + std::to_string(shapeIdx) + ")", vertices, normals, uvs, indices);
+			auto pMesh = std::make_shared<Mesh>();
+			pMesh->Initialize(rName + " (" + std::to_string(shapeIdx) + ")", vertices, normals, uvs, indices);
 			if (regenNormals)
 			{
 				pMesh->CalculateNormals();
@@ -404,7 +405,8 @@ namespace FastCG
 			FASTCG_THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
-		auto pMesh = std::make_shared<Mesh>(rOptimizedModelFilePath, vertices, normals, uvs, indices);
+		auto pMesh = std::make_shared<Mesh>();
+		pMesh->Initialize(rOptimizedModelFilePath, vertices, normals, uvs, indices);
 		gManagedMeshes.emplace_back(pMesh);
 
 		auto pMaterial = std::make_shared<Material>(ShaderRegistry::Find("SolidColor"));

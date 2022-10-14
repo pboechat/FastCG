@@ -33,7 +33,7 @@ namespace FastCG
 		}
 
 		i = 0;
-		std::vector<uint32_t> indexes((size_t)xSegments * ySegments * 6);
+		std::vector<uint32_t> indices((size_t)xSegments * ySegments * 6);
 
 		for (uint32_t y = 1; y <= ySegments; y++)
 		{
@@ -43,18 +43,19 @@ namespace FastCG
 				int i1 = ((y - 1) * (xSegments + 1)) + x;
 				int i2 = i1 + 1;
 				int i3 = i0 + 1;
-				indexes[i++] = i1;
-				indexes[i++] = i2;
-				indexes[i++] = i3;
-				indexes[i++] = i1;
-				indexes[i++] = i3;
-				indexes[i++] = i0;
+				indices[i++] = i1;
+				indices[i++] = i2;
+				indices[i++] = i3;
+				indices[i++] = i1;
+				indices[i++] = i3;
+				indices[i++] = i0;
 			}
 		}
 
-		auto *pMesh = new Mesh(rName, vertices, normals, uvs, indexes);
+		auto pMesh = std::make_unique<Mesh>();
+		pMesh->Initialize(rName, vertices, normals, uvs, indices);
 		pMesh->CalculateTangents();
-		return std::unique_ptr<Mesh>(pMesh);
+		return std::move(pMesh);
 	}
 
 	std::unique_ptr<Mesh> StandardGeometries::CreateXZPlane(const std::string &rName, float width, float depth, uint32_t xSegments, uint32_t zSegments, const glm::vec3 &rCenter)
@@ -84,7 +85,7 @@ namespace FastCG
 		}
 
 		i = 0;
-		std::vector<uint32_t> indexes((size_t)xSegments * zSegments * 6);
+		std::vector<uint32_t> indices((size_t)xSegments * zSegments * 6);
 
 		for (uint32_t z = 1; z <= zSegments; z++)
 		{
@@ -94,18 +95,19 @@ namespace FastCG
 				auto i1 = ((z - 1) * (xSegments + 1)) + x;
 				auto i2 = i1 + 1;
 				auto i3 = i0 + 1;
-				indexes[i++] = i2;
-				indexes[i++] = i1;
-				indexes[i++] = i0;
-				indexes[i++] = i2;
-				indexes[i++] = i0;
-				indexes[i++] = i3;
+				indices[i++] = i2;
+				indices[i++] = i1;
+				indices[i++] = i0;
+				indices[i++] = i2;
+				indices[i++] = i0;
+				indices[i++] = i3;
 			}
 		}
 
-		auto *pMesh = new Mesh(rName, vertices, normals, uvs, indexes);
+		auto pMesh = std::make_unique<Mesh>();
+		pMesh->Initialize(rName, vertices, normals, uvs, indices);
 		pMesh->CalculateTangents();
-		return std::unique_ptr<Mesh>(pMesh);
+		return std::move(pMesh);
 	}
 
 	std::unique_ptr<Mesh> StandardGeometries::CreateSphere(const std::string &rName, float radius, uint32_t slices)
@@ -182,9 +184,10 @@ namespace FastCG
 			}
 		}
 
-		auto *pMesh = new Mesh(rName, vertices, normals, uvs, indices);
+		auto pMesh = std::make_unique<Mesh>();
+		pMesh->Initialize(rName, vertices, normals, uvs, indices);
 		pMesh->CalculateTangents();
-		return std::unique_ptr<Mesh>(pMesh);
+		return std::move(pMesh);
 	}
 
 }

@@ -1,6 +1,8 @@
 #ifndef FASTCG_DEFERRED_RENDERING_STRATEGY_H
 #define FASTCG_DEFERRED_RENDERING_STRATEGY_H
 
+#ifdef FASTCG_OPENGL
+
 #include <FastCG/RenderingPathStrategy.h>
 #include <FastCG/Texture.h>
 #include <FastCG/Shader.h>
@@ -14,20 +16,12 @@
 
 namespace FastCG
 {
-	class DeferredRenderingStrategy : public RenderingPathStrategy
+	class OpenGLDeferredRenderingStrategy : public RenderingPathStrategy
 	{
 	public:
-		DeferredRenderingStrategy(const uint32_t &rScreenWidth,
-								  const uint32_t &rScreenHeight,
-								  const glm::vec4 &rAmbientLight,
-								  const std::vector<DirectionalLight *> &rDirectionalLights,
-								  const std::vector<PointLight *> &rPointLights,
-								  const std::vector<LineRenderer *> &rLineRenderers,
-								  const std::vector<PointsRenderer *> &rPointsRenderer,
-								  const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
-								  RenderingStatistics &rRenderingStatistics);
+		OpenGLDeferredRenderingStrategy(const RenderingPathStrategyArgs& rArgs);
 
-		virtual ~DeferredRenderingStrategy();
+		virtual ~OpenGLDeferredRenderingStrategy();
 
 		inline bool IsDisplayGBufferEnabled() const
 		{
@@ -89,7 +83,8 @@ namespace FastCG
 			mSSAOBlurEnabled = ssaoBlurEnabled;
 		}
 
-		virtual void Render(const Camera *pCamera);
+		void OnResourcesLoaded() override;
+		void Render(const Camera *pMainCamera) override;
 
 	private:
 		const static uint32_t NUMBER_OF_RANDOM_SAMPLES;
@@ -142,5 +137,7 @@ namespace FastCG
 	};
 
 }
+
+#endif
 
 #endif

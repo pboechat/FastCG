@@ -1,91 +1,91 @@
 #include <FastCG/MouseButton.h>
 #include <FastCG/MathT.h>
-#include <FastCG/Input.h>
+#include <FastCG/InputSystem.h>
 #include <FastCG/Exception.h>
 
 #include <memory>
 
 namespace FastCG
 {
-	Input *Input::s_mpInstance = nullptr;
+	InputSystem *InputSystem::s_mpInstance = nullptr;
 
-	Input::Input()
+	InputSystem::InputSystem()
 	{
 		if (s_mpInstance != nullptr)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "There can only be one Input instance");
+			FASTCG_THROW_EXCEPTION(Exception, "There can only be one InputSystem instance");
 		}
 
 		s_mpInstance = this;
 	}
 
-	Input::~Input()
+	InputSystem::~InputSystem()
 	{
 		s_mpInstance = nullptr;
 	}
 
-	bool Input::GetKey(int keyCode)
+	bool InputSystem::GetKey(int keyCode)
 	{
 		return s_mpInstance->mFrontBuffer.GetKey(keyCode);
 	}
 
-	MouseButtonState Input::GetMouseButton(MouseButton button)
+	MouseButtonState InputSystem::GetMouseButton(MouseButton button)
 	{
 		return s_mpInstance->mFrontBuffer.GetMouseButton(button);
 	}
 
-	const glm::vec2 &Input::GetMousePosition()
+	const glm::vec2 &InputSystem::GetMousePosition()
 	{
 		return s_mpInstance->mFrontBuffer.GetMousePosition();
 	}
 
-	int Input::GetMouseWheelDelta()
+	int InputSystem::GetMouseWheelDelta()
 	{
 		return s_mpInstance->mFrontBuffer.GetMouseWheelDelta();
 	}
 
-	void Input::SetKey(int keyCode, bool pressed)
+	void InputSystem::SetKey(int keyCode, bool pressed)
 	{
 		mBackBuffer.SetKey(keyCode, pressed);
 	}
 
-	void Input::SetMouseButton(MouseButton button, MouseButtonState state)
+	void InputSystem::SetMouseButton(MouseButton button, MouseButtonState state)
 	{
 		mBackBuffer.SetMouseButton(button, state);
 	}
 
-	void Input::SetMousePosition(const glm::vec2 &rPosition)
+	void InputSystem::SetMousePosition(const glm::vec2 &rPosition)
 	{
 		mBackBuffer.SetMousePosition(rPosition);
 	}
 
-	void Input::IncrementMouseWheelDelta()
+	void InputSystem::IncrementMouseWheelDelta()
 	{
 		mBackBuffer.IncrementMouseWheelDelta();
 	}
 
-	void Input::DecrementMouseWheelDelta()
+	void InputSystem::DecrementMouseWheelDelta()
 	{
 		mBackBuffer.DecrementMouseWheelDelta();
 	}
 
-	void Input::Swap()
+	void InputSystem::Swap()
 	{
 		mFrontBuffer.Copy(mBackBuffer);
 		mBackBuffer.Clear();
 	}
 
-	Input::InputBuffer::InputBuffer()
+	InputSystem::InputBuffer::InputBuffer()
 	{
 		memset(mpKeys, 0, sizeof(mpKeys));
 	}
 
-	bool Input::InputBuffer::GetKey(int keyCode) const
+	bool InputSystem::InputBuffer::GetKey(int keyCode) const
 	{
 		return mpKeys[keyCode];
 	}
 
-	MouseButtonState Input::InputBuffer::GetMouseButton(MouseButton button) const
+	MouseButtonState InputSystem::InputBuffer::GetMouseButton(MouseButton button) const
 	{
 		if (button == MouseButton::LEFT_BUTTON)
 		{
@@ -101,22 +101,22 @@ namespace FastCG
 		}
 	}
 
-	const glm::vec2 &Input::InputBuffer::GetMousePosition() const
+	const glm::vec2 &InputSystem::InputBuffer::GetMousePosition() const
 	{
 		return mMousePosition;
 	}
 
-	int Input::InputBuffer::GetMouseWheelDelta() const
+	int InputSystem::InputBuffer::GetMouseWheelDelta() const
 	{
 		return mMouseWheelDelta;
 	}
 
-	void Input::InputBuffer::SetKey(int keyCode, bool pressed)
+	void InputSystem::InputBuffer::SetKey(int keyCode, bool pressed)
 	{
 		mpKeys[keyCode] = pressed;
 	}
 
-	void Input::InputBuffer::SetMouseButton(MouseButton button, MouseButtonState state)
+	void InputSystem::InputBuffer::SetMouseButton(MouseButton button, MouseButtonState state)
 	{
 		if (button == MouseButton::LEFT_BUTTON)
 		{
@@ -132,22 +132,22 @@ namespace FastCG
 		}
 	}
 
-	void Input::InputBuffer::SetMousePosition(const glm::vec2 &rPosition)
+	void InputSystem::InputBuffer::SetMousePosition(const glm::vec2 &rPosition)
 	{
 		mMousePosition = rPosition;
 	}
 
-	void Input::InputBuffer::IncrementMouseWheelDelta()
+	void InputSystem::InputBuffer::IncrementMouseWheelDelta()
 	{
 		mMouseWheelDelta = MathI::Clamp(mMouseWheelDelta + 1, MINIMUM_MOUSE_WHEEL_DELTA, MAXIMUM_MOUSE_WHEEL_DELTA);
 	}
 
-	void Input::InputBuffer::DecrementMouseWheelDelta()
+	void InputSystem::InputBuffer::DecrementMouseWheelDelta()
 	{
 		mMouseWheelDelta = MathI::Clamp(mMouseWheelDelta - 1, MINIMUM_MOUSE_WHEEL_DELTA, MAXIMUM_MOUSE_WHEEL_DELTA);
 	}
 
-	void Input::InputBuffer::Copy(InputBuffer &rOther)
+	void InputSystem::InputBuffer::Copy(InputBuffer &rOther)
 	{
 		memcpy(mpKeys, rOther.mpKeys, sizeof(mpKeys));
 		mLeftMouseButton = rOther.mLeftMouseButton;
@@ -157,7 +157,7 @@ namespace FastCG
 		mMouseWheelDelta = rOther.mMouseWheelDelta;
 	}
 
-	void Input::InputBuffer::Clear()
+	void InputSystem::InputBuffer::Clear()
 	{
 		mMouseWheelDelta = 0;
 	}

@@ -2,23 +2,24 @@
 
 #include <FastCG/ShaderRegistry.h>
 #include <FastCG/Shader.h>
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/MathT.h>
 #include <FastCG/KeyCode.h>
 #include <FastCG/FontRegistry.h>
-#include <FastCG/Input.h>
+#include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 
 IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {
-	if (Input::GetKey(KeyCode::ESCAPE))
+	if (InputSystem::GetKey(KeyCode::ESCAPE))
 	{
 		Application::GetInstance()->Exit();
 		return;
 	}
 
-	Application::GetInstance()->DrawText("Press 'F1' to toggle bump mapping", 10, 10, glm::vec4{0, 1, 0, 1});
+	RenderingSystem::GetInstance()->DrawDebugText("Press 'F1' to toggle bump mapping", 10, 10, glm::vec4{0, 1, 0, 1});
 
 	IsKeyPressed(KeyCode::F1, mPressedKeyMask, 0, [&]()
 				 {

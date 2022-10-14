@@ -6,8 +6,6 @@
 
 namespace FastCG
 {
-	class GameObject;
-
 	class LineRenderer : public Renderer
 	{
 		DECLARE_COMPONENT(LineRenderer, Renderer);
@@ -23,16 +21,23 @@ namespace FastCG
 			return mpLineStrip;
 		}
 
-		void OnInstantiate() override
+		inline void OnInstantiate() override
 		{
-			mpLineStrip = 0;
 		}
 
 	protected:
-		void OnRender() override;
+		inline void OnRender() override
+		{
+			if (mpLineStrip == nullptr)
+			{
+				return;
+			}
+
+			mpLineStrip->Draw();
+		}
 
 	private:
-		LineStrip *mpLineStrip;
+		LineStrip *mpLineStrip{nullptr};
 	};
 
 }

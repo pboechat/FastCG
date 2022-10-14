@@ -1,10 +1,11 @@
 #include "LightsAnimator.h"
 
 #include <FastCG/Transform.h>
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/Random.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/MathT.h>
-#include <FastCG/Input.h>
+#include <FastCG/InputSystem.h>
 #include <FastCG/FontRegistry.h>
 #include <FastCG/Application.h>
 
@@ -29,7 +30,7 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 	sprintf_s(text, sizeof(text) / sizeof(char), "Animated Lights: %zu", mPointLights.size());
 
 	const uint32_t text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 4 + 9;
-	Application::GetInstance()->DrawText(text, 10, text3Height, glm::vec4{0, 1, 0, 1});
+	RenderingSystem::GetInstance()->DrawDebugText(text, 10, text3Height, glm::vec4{0, 1, 0, 1});
 
 	if (time - mLastDirectionChangeTime > 5.0f)
 	{
@@ -50,7 +51,7 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 		}
 	}
 
-	if (Input::GetMouseButton(MouseButton::MIDDLE_BUTTON) == MouseButtonState::PRESSED && time - mLastMouseButtonPressTime > 0.333f)
+	if (InputSystem::GetMouseButton(MouseButton::MIDDLE_BUTTON) == MouseButtonState::PRESSED && time - mLastMouseButtonPressTime > 0.333f)
 	{
 		for (auto *pPointLight : mPointLights)
 		{

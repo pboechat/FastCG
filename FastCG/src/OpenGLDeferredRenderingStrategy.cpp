@@ -1,55 +1,47 @@
+#ifdef FASTCG_OPENGL
+
 #include <FastCG/ShaderRegistry.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/Random.h>
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/MathT.h>
-#include <FastCG/DeferredRenderingStrategy.h>
+#include <FastCG/OpenGLDeferredRenderingStrategy.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
-float CalculateLightBoundingSphereScale(const FastCG::PointLight *pPointLight)
+namespace
 {
-	auto diffuseColor = pPointLight->GetDiffuseColor();
-	auto maxChannel = FastCG::MathF::Max(FastCG::MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
-	auto c = maxChannel * pPointLight->GetIntensity();
-	return (8.0f * FastCG::MathF::Sqrt(c) + 1.0f);
+	float CalculateLightBoundingSphereScale(const FastCG::PointLight *pPointLight)
+	{
+		auto diffuseColor = pPointLight->GetDiffuseColor();
+		auto maxChannel = FastCG::MathF::Max(FastCG::MathF::Max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+		auto c = maxChannel * pPointLight->GetIntensity();
+		return (8.0f * FastCG::MathF::Sqrt(c) + 1.0f);
+	}
+
 }
 
 namespace FastCG
 {
-	const uint32_t DeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
-	const uint32_t DeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
-	const float DeferredRenderingStrategy::DEFAULT_SSAO_RADIUS = 0.5f;
-	const float DeferredRenderingStrategy::DEFAULT_SSAO_DISTANCE_SCALE = 5.0f;
-	const uint32_t DeferredRenderingStrategy::NOISE_TEXTURE_WIDTH = 4;
-	const uint32_t DeferredRenderingStrategy::NOISE_TEXTURE_HEIGHT = 4;
-	const uint32_t DeferredRenderingStrategy::NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
+	const uint32_t OpenGLDeferredRenderingStrategy::NUMBER_OF_RANDOM_SAMPLES = 30;
+	const uint32_t OpenGLDeferredRenderingStrategy::LIGHT_MESH_DETAIL = 20;
+	const float OpenGLDeferredRenderingStrategy::DEFAULT_SSAO_RADIUS = 0.5f;
+	const float OpenGLDeferredRenderingStrategy::DEFAULT_SSAO_DISTANCE_SCALE = 5.0f;
+	const uint32_t OpenGLDeferredRenderingStrategy::NOISE_TEXTURE_WIDTH = 4;
+	const uint32_t OpenGLDeferredRenderingStrategy::NOISE_TEXTURE_HEIGHT = 4;
+	const uint32_t OpenGLDeferredRenderingStrategy::NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
 
-	DeferredRenderingStrategy::DeferredRenderingStrategy(const uint32_t &rScreenWidth,
-														 const uint32_t &rScreenHeight,
-														 const glm::vec4 &rAmbientLight,
-														 const std::vector<DirectionalLight *> &rDirectionalLights,
-														 const std::vector<PointLight *> &rPointLights,
-														 const std::vector<LineRenderer *> &rLineRenderers,
-														 const std::vector<PointsRenderer *> &rPointsRenderer,
-														 const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
-														 RenderingStatistics &rRenderingStatistics) : RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics),
-																									  mSSAORadius(DEFAULT_SSAO_RADIUS),
-																									  mSSAODistanceScale(DEFAULT_SSAO_DISTANCE_SCALE)
+	OpenGLDeferredRenderingStrategy::OpenGLDeferredRenderingStrategy(const RenderingPathStrategyArgs &rArgs) : RenderingPathStrategy(rArgs),
+																											   mSSAORadius(DEFAULT_SSAO_RADIUS),
+																											   mSSAODistanceScale(DEFAULT_SSAO_DISTANCE_SCALE)
 	{
-		mAspectRatio = mrScreenWidth / (float)mrScreenHeight;
-
-		FindShaders();
-		BuildAuxiliaryMeshes();
-		GenerateNoiseTexture();
-		GenerateRandomSamplesInAHemisphere();
-		AllocateTexturesAndFBOs();
+		mAspectRatio = mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
 	}
 
-	DeferredRenderingStrategy::~DeferredRenderingStrategy()
+	OpenGLDeferredRenderingStrategy::~OpenGLDeferredRenderingStrategy()
 	{
 		if (mGBufferFBOId != ~0u)
 		{
@@ -112,7 +104,16 @@ namespace FastCG
 		}
 	}
 
-	void DeferredRenderingStrategy::FindShaders()
+	void OpenGLDeferredRenderingStrategy::OnResourcesLoaded()
+	{
+		FindShaders();
+		BuildAuxiliaryMeshes();
+		GenerateNoiseTexture();
+		GenerateRandomSamplesInAHemisphere();
+		AllocateTexturesAndFBOs();
+	}
+
+	void OpenGLDeferredRenderingStrategy::FindShaders()
 	{
 		mpStencilPassShader = ShaderRegistry::Find("StencilPass");
 		mpDirectionalLightPassShader = ShaderRegistry::Find("DirectionalLightPass");
@@ -124,13 +125,13 @@ namespace FastCG
 		mpDepthToScreenShader = ShaderRegistry::Find("DepthToScreen");
 	}
 
-	void DeferredRenderingStrategy::BuildAuxiliaryMeshes()
+	void OpenGLDeferredRenderingStrategy::BuildAuxiliaryMeshes()
 	{
 		mpQuadMesh = StandardGeometries::CreateXYPlane("Deferred Rendering Fullscreen Quad", 2, 2, 1, 1, glm::vec3(0, 0, 0));
 		mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
 	}
 
-	void DeferredRenderingStrategy::GenerateNoiseTexture()
+	void OpenGLDeferredRenderingStrategy::GenerateNoiseTexture()
 	{
 		Random::SeedWithTime();
 		auto pNoises = std::make_unique<glm::vec3[]>(NOISE_TEXTURE_SIZE);
@@ -142,19 +143,19 @@ namespace FastCG
 				pNoises[i * NOISE_TEXTURE_WIDTH + j] = glm::normalize(noise);
 			}
 		}
-		mpNoiseTexture = std::make_unique<Texture>(
-			"NoiseTexture",
-			NOISE_TEXTURE_WIDTH,
-			NOISE_TEXTURE_HEIGHT,
-			TextureFormat::TF_RGB,
-			TextureDataType::DT_FLOAT,
-			TextureFilter::TF_POINT_FILTER,
-			TextureWrapMode::TW_REPEAT,
-			false,
-			&pNoises[0][0]);
+		mpNoiseTexture = std::make_unique<Texture>();
+		mpNoiseTexture->Initialize("NoiseTexture",
+								   NOISE_TEXTURE_WIDTH,
+								   NOISE_TEXTURE_HEIGHT,
+								   TextureFormat::TF_RGB,
+								   TextureDataType::DT_FLOAT,
+								   TextureFilter::TF_POINT_FILTER,
+								   TextureWrapMode::TW_REPEAT,
+								   false,
+								   &pNoises[0][0]);
 	}
 
-	void DeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
+	void OpenGLDeferredRenderingStrategy::GenerateRandomSamplesInAHemisphere()
 	{
 		Random::SeedWithTime();
 		for (uint32_t i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
@@ -168,7 +169,7 @@ namespace FastCG
 		}
 	}
 
-	void DeferredRenderingStrategy::AllocateTexturesAndFBOs()
+	void OpenGLDeferredRenderingStrategy::AllocateTexturesAndFBOs()
 	{
 		// create g-buffer fbo
 		glGenFramebuffers(1, &mGBufferFBOId);
@@ -192,7 +193,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mDiffuseTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTextureId, 0);
@@ -207,7 +208,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mNormalTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTextureId, 0);
@@ -222,7 +223,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mSpecularTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularTextureId, 0);
@@ -237,7 +238,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mTangentTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mTangentTextureId, 0);
@@ -252,7 +253,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mExtraDataTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mExtraDataTextureId, 0);
@@ -267,7 +268,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mFinalOutputTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, GL_TEXTURE_2D, mFinalOutputTextureId, 0);
@@ -282,7 +283,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mDepthTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mrScreenWidth, mrScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
@@ -317,7 +318,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mSSAOTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOTextureId, 0);
@@ -351,7 +352,7 @@ namespace FastCG
 			glObjectLabel(GL_TEXTURE, mSSAOBlurTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
 		}
 #endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mrScreenWidth, mrScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOBlurTextureId, 0);
@@ -368,7 +369,7 @@ namespace FastCG
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-	void DeferredRenderingStrategy::Render(const Camera *pCamera)
+	void OpenGLDeferredRenderingStrategy::Render(const Camera *pCamera)
 	{
 #ifdef _DEBUG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Deferred Rendering");
@@ -383,7 +384,7 @@ namespace FastCG
 		};
 		constexpr GLint numGeometryPassDrawBuffers = sizeof(pGeometryPassDrawBuffers) / sizeof(GLenum);
 
-		glViewport(0, 0, mrScreenWidth, mrScreenHeight);
+		glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
 
 		// geometry passes
 #ifdef _DEBUG
@@ -412,8 +413,8 @@ namespace FastCG
 		auto &rInverseProjection = glm::inverse(rProjection);
 		float tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * pCamera->GetFieldOfView()) / 2.0f);
 
-		mrRenderingStatistics.Reset();
-		for (const auto &pRenderBatch : mrRenderBatches)
+		mArgs.rRenderingStatistics.Reset();
+		for (const auto &pRenderBatch : mArgs.rRenderBatches)
 		{
 			auto pMaterial = pRenderBatch->pMaterial;
 
@@ -465,8 +466,8 @@ namespace FastCG
 				pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				pShader->SetMat4("_ModelViewProjection", modelViewProjection);
 				pRenderer->Render();
-				mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
-				mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
+				mArgs.rRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
+				mArgs.rRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			}
 
 			pShader->Unbind();
@@ -486,32 +487,33 @@ namespace FastCG
 
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
+			glClearColor(mArgs.rClearColor.x, mArgs.rClearColor.y, mArgs.rClearColor.z, mArgs.rClearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBufferFBOId);
 
-			auto tileWidth = mrScreenWidth / 3;
-			auto tileHeight = mrScreenHeight / 2;
+			auto tileWidth = mArgs.rScreenWidth / 3;
+			auto tileHeight = mArgs.rScreenHeight / 2;
 
 			// (0, 1)
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, tileHeight, tileWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, tileHeight, tileWidth, mArgs.rScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 			// (1, 1)
 			glReadBuffer(GL_COLOR_ATTACHMENT1);
-			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, tileWidth, tileHeight, tileWidth * 2, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, tileWidth, tileHeight, tileWidth * 2, mArgs.rScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 			// (2, 1)
 			glReadBuffer(GL_COLOR_ATTACHMENT2);
-			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, tileWidth * 2, tileHeight, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, tileWidth * 2, tileHeight, mArgs.rScreenWidth, mArgs.rScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 			// (0, 0)
 			glReadBuffer(GL_COLOR_ATTACHMENT3);
-			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, tileWidth, tileHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, 0, tileWidth, tileHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 			// (1, 0)
 			glReadBuffer(GL_COLOR_ATTACHMENT4);
-			glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, tileWidth, 0, tileWidth * 2, tileHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, tileWidth, 0, tileWidth * 2, tileHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 			// (2, 0)
 			glViewport(tileWidth * 2, 0, tileWidth, tileHeight);
@@ -527,7 +529,7 @@ namespace FastCG
 			mpDepthToScreenShader->Bind();
 			mpDepthToScreenShader->SetTexture("_Depth", 0);
 			mpQuadMesh->Draw();
-			mrRenderingStatistics.drawCalls++;
+			mArgs.rRenderingStatistics.drawCalls++;
 			mpDepthToScreenShader->Unbind();
 
 #ifdef _DEBUG
@@ -568,7 +570,7 @@ namespace FastCG
 				mpSSAOHighFrequencyPassShader->SetMat4("_InverseProjection", rInverseProjection);
 				mpSSAOHighFrequencyPassShader->SetFloat("_AspectRatio", mAspectRatio);
 				mpSSAOHighFrequencyPassShader->SetFloat("_TanHalfFov", tanHalfFov);
-				mpSSAOHighFrequencyPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+				mpSSAOHighFrequencyPassShader->SetVec2("_ScreenSize", glm::vec2(mArgs.rScreenWidth, mArgs.rScreenHeight));
 				mpSSAOHighFrequencyPassShader->SetTexture("_NormalMap", 0);
 				mpSSAOHighFrequencyPassShader->SetTexture("_Depth", 1);
 				mpSSAOHighFrequencyPassShader->SetTexture("_NoiseMap", mpNoiseTexture, 2);
@@ -576,7 +578,7 @@ namespace FastCG
 				mpSSAOHighFrequencyPassShader->SetFloat("_DistanceScale", mSSAODistanceScale);
 				mpSSAOHighFrequencyPassShader->SetVec3Array("_RandomSamples", NUMBER_OF_RANDOM_SAMPLES, &mRandomSamples[0]);
 				mpQuadMesh->Draw();
-				mrRenderingStatistics.drawCalls++;
+				mArgs.rRenderingStatistics.drawCalls++;
 				mpSSAOHighFrequencyPassShader->Unbind();
 
 #ifdef _DEBUG
@@ -604,7 +606,7 @@ namespace FastCG
 					mpSSAOBlurPassShader->Bind();
 					mpSSAOBlurPassShader->SetTexture("_AmbientOcclusionMap", 0);
 					mpQuadMesh->Draw();
-					mrRenderingStatistics.drawCalls++;
+					mArgs.rRenderingStatistics.drawCalls++;
 					mpSSAOBlurPassShader->Unbind();
 
 #ifdef _DEBUG
@@ -623,6 +625,7 @@ namespace FastCG
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
+				glClearColor(mArgs.rClearColor.x, mArgs.rClearColor.y, mArgs.rClearColor.z, mArgs.rClearColor.w);
 				glClear(GL_COLOR_BUFFER_BIT);
 
 				if (mSSAOBlurEnabled)
@@ -640,7 +643,7 @@ namespace FastCG
 					FASTCG_CHECK_OPENGL_ERROR();
 				}
 
-				glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+				glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 #ifdef _DEBUG
 				glPopDebugGroup();
@@ -691,13 +694,13 @@ namespace FastCG
 					glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
 				}
 
-				if (!mrPointLights.empty())
+				if (!mArgs.rPointLights.empty())
 				{
 #ifdef _DEBUG
 					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Light Passes");
 #endif
 
-					for (auto *pPointLight : mrPointLights)
+					for (auto *pPointLight : mArgs.rPointLights)
 					{
 						glStencilMask(0xFF);
 						const GLint emptyStencil = 0;
@@ -725,7 +728,7 @@ namespace FastCG
 						mpStencilPassShader->Bind();
 						mpStencilPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
 						mpSphereMesh->Draw();
-						mrRenderingStatistics.drawCalls++;
+						mArgs.rRenderingStatistics.drawCalls++;
 						mpStencilPassShader->Unbind();
 
 						FASTCG_CHECK_OPENGL_ERROR();
@@ -750,7 +753,7 @@ namespace FastCG
 						mpPointLightPassShader->SetMat4("_Projection", rProjection);
 						mpPointLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
 						mpPointLightPassShader->SetMat4("_ModelViewProjection", modelViewProjection);
-						mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+						mpPointLightPassShader->SetVec2("_ScreenSize", glm::vec2(mArgs.rScreenWidth, mArgs.rScreenHeight));
 						mpPointLightPassShader->SetTexture("_DiffuseMap", 0);
 						mpPointLightPassShader->SetTexture("_NormalMap", 1);
 						mpPointLightPassShader->SetTexture("_SpecularMap", 2);
@@ -759,7 +762,7 @@ namespace FastCG
 						mpPointLightPassShader->SetTexture("_Depth", 5);
 						mpPointLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
 						mpPointLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
-						mpPointLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
+						mpPointLightPassShader->SetVec4("_AmbientColor", mArgs.rAmbientLight);
 						auto lightPosition = glm::vec3(rView * glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1));
 						mpPointLightPassShader->SetVec3("_Light0Position", lightPosition);
 						mpPointLightPassShader->SetFloat("_Light0Type", 1);
@@ -778,7 +781,7 @@ namespace FastCG
 							mpPointLightPassShader->SetFloat("_Debug", 0.0f);
 						}
 						mpSphereMesh->Draw();
-						mrRenderingStatistics.drawCalls++;
+						mArgs.rRenderingStatistics.drawCalls++;
 						mpPointLightPassShader->Unbind();
 
 						FASTCG_CHECK_OPENGL_ERROR();
@@ -788,7 +791,7 @@ namespace FastCG
 #endif
 				}
 
-				if (!mrDirectionalLights.empty())
+				if (!mArgs.rDirectionalLights.empty())
 				{
 #ifdef _DEBUG
 					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Directional Light Passes");
@@ -811,7 +814,7 @@ namespace FastCG
 					mpDirectionalLightPassShader->Bind();
 					mpDirectionalLightPassShader->SetMat4("_Projection", rProjection);
 					mpDirectionalLightPassShader->SetMat4("_InverseProjection", rInverseProjection);
-					mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mrScreenWidth, mrScreenHeight));
+					mpDirectionalLightPassShader->SetVec2("_ScreenSize", glm::vec2(mArgs.rScreenWidth, mArgs.rScreenHeight));
 					mpDirectionalLightPassShader->SetTexture("_DiffuseMap", 0);
 					mpDirectionalLightPassShader->SetTexture("_NormalMap", 1);
 					mpDirectionalLightPassShader->SetTexture("_SpecularMap", 2);
@@ -820,9 +823,9 @@ namespace FastCG
 					mpDirectionalLightPassShader->SetTexture("_Depth", 5);
 					mpDirectionalLightPassShader->SetTexture("_AmbientOcclusionMap", 6);
 					mpDirectionalLightPassShader->SetFloat("_AmbientOcclusionFlag", ambientOcclusionFlag);
-					mpDirectionalLightPassShader->SetVec4("_AmbientColor", mrAmbientLight);
+					mpDirectionalLightPassShader->SetVec4("_AmbientColor", mArgs.rAmbientLight);
 					auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
-					for (auto *pDirectionalLight : mrDirectionalLights)
+					for (auto *pDirectionalLight : mArgs.rDirectionalLights)
 					{
 						auto lightDirection = glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1)));
 						mpDirectionalLightPassShader->SetVec3("_Light0Position", lightDirection);
@@ -831,7 +834,7 @@ namespace FastCG
 						mpDirectionalLightPassShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
 						mpDirectionalLightPassShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
 						mpQuadMesh->Draw();
-						mrRenderingStatistics.drawCalls++;
+						mArgs.rRenderingStatistics.drawCalls++;
 					}
 					mpDirectionalLightPassShader->Unbind();
 
@@ -849,7 +852,7 @@ namespace FastCG
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBufferFBOId);
 				glReadBuffer(GL_COLOR_ATTACHMENT7);
-				glBlitFramebuffer(0, 0, mrScreenWidth, mrScreenHeight, 0, 0, mrScreenWidth, mrScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+				glBlitFramebuffer(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 #ifdef _DEBUG
 				glPopDebugGroup();
@@ -868,9 +871,9 @@ namespace FastCG
 #endif
 	}
 
-	void DeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4 &view, const glm::mat4 &projection)
+	void OpenGLDeferredRenderingStrategy::RenderUnlitGeometries(const glm::mat4 &view, const glm::mat4 &projection)
 	{
-		if (!mrLineRenderers.empty())
+		if (!mArgs.rLineRenderers.empty())
 		{
 #ifdef _DEBUG
 			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Passes");
@@ -886,7 +889,7 @@ namespace FastCG
 			mpLineStripShader->SetMat4("_View", view);
 			mpLineStripShader->SetMat4("_Projection", projection);
 
-			for (auto *pLineRenderer : mrLineRenderers)
+			for (auto *pLineRenderer : mArgs.rLineRenderers)
 			{
 				if (!pLineRenderer->GetGameObject()->IsActive())
 				{
@@ -900,7 +903,7 @@ namespace FastCG
 				mpLineStripShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpLineStripShader->SetMat4("_ModelViewProjection", projection * modelView);
 				pLineRenderer->Render();
-				mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
+				mArgs.rRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 			}
 
 			mpLineStripShader->Unbind();
@@ -912,7 +915,7 @@ namespace FastCG
 			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
-		if (!mrPointsRenderer.empty())
+		if (!mArgs.rPointsRenderers.empty())
 		{
 #ifdef _DEBUG
 			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Passes");
@@ -928,7 +931,7 @@ namespace FastCG
 			mpPointsShader->SetMat4("_View", view);
 			mpPointsShader->SetMat4("_Projection", projection);
 
-			for (auto *pPointsRenderer : mrPointsRenderer)
+			for (auto *pPointsRenderer : mArgs.rPointsRenderers)
 			{
 				if (!pPointsRenderer->GetGameObject()->IsActive())
 				{
@@ -949,7 +952,7 @@ namespace FastCG
 				}
 
 				pPointsRenderer->Render();
-				mrRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
+				mArgs.rRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
 			}
 
 			mpPointsShader->Unbind();
@@ -963,3 +966,5 @@ namespace FastCG
 	}
 
 }
+
+#endif

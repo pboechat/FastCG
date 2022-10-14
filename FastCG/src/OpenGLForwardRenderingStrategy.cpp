@@ -1,24 +1,21 @@
+#ifdef FASTCG_OPENGL
+
 #include <FastCG/ShaderRegistry.h>
 #include <FastCG/OpenGLExceptions.h>
-#include <FastCG/ForwardRenderingStrategy.h>
+#include <FastCG/OpenGLForwardRenderingStrategy.h>
+
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 namespace FastCG
 {
-	ForwardRenderingStrategy::ForwardRenderingStrategy(const uint32_t &rScreenWidth,
-													   const uint32_t &rScreenHeight,
-													   const glm::vec4 &rAmbientLight,
-													   const std::vector<DirectionalLight *> &rDirectionalLights,
-													   const std::vector<PointLight *> &rPointLights,
-													   const std::vector<LineRenderer *> &rLineRenderers,
-													   const std::vector<PointsRenderer *> &rPointsRenderer,
-													   const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches,
-													   RenderingStatistics &rRenderingStatistics) : RenderingPathStrategy(rScreenWidth, rScreenHeight, rAmbientLight, rDirectionalLights, rPointLights, rLineRenderers, rPointsRenderer, rRenderBatches, rRenderingStatistics)
+	void OpenGLForwardRenderingStrategy::OnResourcesLoaded()
 	{
 		mpLineStripShader = ShaderRegistry::Find("LineStrip");
 		mpPointsShader = ShaderRegistry::Find("Points");
 	}
 
-	void ForwardRenderingStrategy::Render(const Camera *pCamera)
+	void OpenGLForwardRenderingStrategy::Render(const Camera *pCamera)
 	{
 #ifdef _DEBUG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Forward Rendering");
@@ -26,9 +23,9 @@ namespace FastCG
 		auto &rView = pCamera->GetView();
 		auto &rProjection = pCamera->GetProjection();
 
-		mrRenderingStatistics.Reset();
+		mArgs.rRenderingStatistics.Reset();
 
-		glViewport(0, 0, mrScreenWidth, mrScreenHeight);
+		glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
 
 #ifdef _DEBUG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Clear Backbuffer");
@@ -37,6 +34,7 @@ namespace FastCG
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 		glDepthMask(GL_TRUE);
+		glClearColor(mArgs.rClearColor.x, mArgs.rClearColor.y, mArgs.rClearColor.z, mArgs.rClearColor.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #ifdef _DEBUG
@@ -47,7 +45,7 @@ namespace FastCG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Geometry Passes");
 #endif
 
-		for (const auto &pRenderingGroup : mrRenderBatches)
+		for (const auto &pRenderingGroup : mArgs.rRenderBatches)
 		{
 			const auto &pMaterial = pRenderingGroup->pMaterial;
 
@@ -100,19 +98,19 @@ namespace FastCG
 				pShader->SetMat4("_ModelView", modelView);
 				pShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				pShader->SetMat4("_ModelViewProjection", rProjection * modelView);
-				pShader->SetVec4("_AmbientColor", mrAmbientLight);
-				if (pMaterial->IsUnlit() || (mrDirectionalLights.size() == 0 && mrPointLights.size() == 0))
+				pShader->SetVec4("_AmbientColor", mArgs.rAmbientLight);
+				if (pMaterial->IsUnlit() || (mArgs.rDirectionalLights.size() == 0 && mArgs.rPointLights.size() == 0))
 				{
 					pRenderer->Render();
-					mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
-					mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
+					mArgs.rRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
+					mArgs.rRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 				}
 				else
 				{
 					glDepthFunc(GL_LEQUAL);
 
 					bool hasSetupMultiPass = false;
-					for (size_t i = 0; i < mrDirectionalLights.size(); i++)
+					for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
 					{
 						if (i > 0 && !hasSetupMultiPass)
 						{
@@ -125,17 +123,17 @@ namespace FastCG
 							hasSetupMultiPass = true;
 						}
 
-						auto *pDirectionalLight = mrDirectionalLights[i];
+						auto *pDirectionalLight = mArgs.rDirectionalLights[i];
 						pShader->SetVec4("_Light0DiffuseColor", pDirectionalLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pDirectionalLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pDirectionalLight->GetIntensity());
 						pShader->SetVec3("_Light0Position", pDirectionalLight->GetDirection());
 						pShader->SetFloat("_Light0Type", -1);
 						pRenderer->Render();
-						mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
+						mArgs.rRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 					}
 
-					for (size_t i = 0; i < mrPointLights.size(); i++)
+					for (size_t i = 0; i < mArgs.rPointLights.size(); i++)
 					{
 						if (i > 0 && !hasSetupMultiPass)
 						{
@@ -146,7 +144,7 @@ namespace FastCG
 							hasSetupMultiPass = true;
 						}
 
-						auto *pPointLight = mrPointLights[i];
+						auto *pPointLight = mArgs.rPointLights[i];
 						pShader->SetVec4("_Light0DiffuseColor", pPointLight->GetDiffuseColor());
 						pShader->SetVec4("_Light0SpecularColor", pPointLight->GetSpecularColor());
 						pShader->SetFloat("_Light0Intensity", pPointLight->GetIntensity());
@@ -157,12 +155,12 @@ namespace FastCG
 						pShader->SetFloat("_Light0QuadraticAttenuation", pPointLight->GetQuadraticAttenuation());
 						pShader->SetFloat("_Light0Type", 1);
 						pRenderer->Render();
-						mrRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
+						mArgs.rRenderingStatistics.drawCalls += pRenderer->GetNumberOfDrawCalls();
 					}
 
 					glDisable(GL_BLEND);
 				}
-				mrRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
+				mArgs.rRenderingStatistics.numberOfTriangles += pRenderer->GetNumberOfTriangles();
 			}
 
 			pShader->Unbind();
@@ -174,7 +172,7 @@ namespace FastCG
 		glPopDebugGroup();
 #endif
 
-		if (!mrLineRenderers.empty())
+		if (!mArgs.rLineRenderers.empty())
 		{
 #ifdef _DEBUG
 			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Passes");
@@ -190,7 +188,7 @@ namespace FastCG
 			mpLineStripShader->SetMat4("_View", rView);
 			mpLineStripShader->SetMat4("_Projection", rProjection);
 
-			for (auto *pLineRenderer : mrLineRenderers)
+			for (auto *pLineRenderer : mArgs.rLineRenderers)
 			{
 				if (!pLineRenderer->GetGameObject()->IsActive())
 				{
@@ -204,7 +202,7 @@ namespace FastCG
 				mpLineStripShader->SetMat3("_ModelViewInverseTranspose", glm::transpose(glm::inverse(glm::mat3(modelView))));
 				mpLineStripShader->SetMat4("_ModelViewProjection", rProjection * modelView);
 				pLineRenderer->Render();
-				mrRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
+				mArgs.rRenderingStatistics.drawCalls += pLineRenderer->GetNumberOfDrawCalls();
 			}
 
 			mpLineStripShader->Unbind();
@@ -216,7 +214,7 @@ namespace FastCG
 			FASTCG_CHECK_OPENGL_ERROR();
 		}
 
-		if (!mrPointsRenderer.empty())
+		if (!mArgs.rPointsRenderers.empty())
 		{
 #ifdef _DEBUG
 			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Passes");
@@ -232,7 +230,7 @@ namespace FastCG
 			mpPointsShader->SetMat4("_View", rView);
 			mpPointsShader->SetMat4("_Projection", rProjection);
 
-			for (auto *pPointsRenderer : mrPointsRenderer)
+			for (auto *pPointsRenderer : mArgs.rPointsRenderers)
 			{
 				if (!pPointsRenderer->GetGameObject()->IsActive())
 				{
@@ -253,7 +251,7 @@ namespace FastCG
 				}
 
 				pPointsRenderer->Render();
-				mrRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
+				mArgs.rRenderingStatistics.drawCalls += pPointsRenderer->GetNumberOfDrawCalls();
 			}
 
 			mpPointsShader->Unbind();
@@ -271,3 +269,5 @@ namespace FastCG
 	}
 
 }
+
+#endif

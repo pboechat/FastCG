@@ -8,9 +8,6 @@
 
 #include <glm/glm.hpp>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #define STBTT_STATIC
 #include <stb_truetype.h>
 
@@ -30,7 +27,7 @@ namespace FastCG
 		{
 			return mSize;
 		}
-		void DrawString(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor);
+		void DrawDebugText(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor);
 
 	private:
 		std::string mFileName;

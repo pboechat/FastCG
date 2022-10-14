@@ -12,7 +12,7 @@ namespace FastCG
 		DECLARE_COMPONENT(FlyCameraController, Behaviour);
 
 	public:
-		void OnInstantiate() override
+		inline void OnInstantiate() override
 		{
 		}
 

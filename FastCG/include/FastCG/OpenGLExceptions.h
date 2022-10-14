@@ -1,6 +1,8 @@
 #ifndef FASTCG_OPENGL_EXCEPTIONS_H
 #define FASTCG_OPENGL_EXCEPTIONS_H
 
+#ifdef FASTCG_OPENGL
+
 #include <FastCG/Exception.h>
 
 #include <GL/glew.h>
@@ -45,5 +47,7 @@ namespace FastCG
 #endif
 
 }
+
+#endif
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef FASTCG_EXCEPTION_H
 #define FASTCG_EXCEPTION_H
 
+#include <FastCG/FastCG.h>
+
 #include <string>
 #include <sstream>
 #include <exception>
@@ -15,7 +17,7 @@ namespace FastCG
 		{
 		}
 
-		virtual const char *what() const
+		inline virtual const char *what() const
 		{
 			return mReason.c_str();
 		}
@@ -76,12 +78,6 @@ namespace FastCG
 
 #ifdef _DEBUG
 
-#ifdef _WIN32
-#define FASTCG_BREAK_TO_DEBUGGER() __debugbreak()
-#else
-#error "FASTCG_BREAK_TO_DEBUGGER() is not implemented on the current platform"
-#endif
-
 #define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)               \
 	{                                                                    \
 		char __buffer[4096];                                             \
@@ -95,7 +91,6 @@ namespace FastCG
 		throw __exception;                                               \
 	}
 #else
-#define FASTCG_BREAK_TO_DEBUGGER()
 #define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)
 #endif
 }

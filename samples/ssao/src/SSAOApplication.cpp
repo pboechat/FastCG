@@ -9,7 +9,6 @@
 #include <FastCG/MeshFilter.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyCameraController.h>
-#include <FastCG/DeferredRenderingStrategy.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 
@@ -44,11 +43,6 @@ void SSAOApplication::OnStart()
 {
 	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 1, 3));
 	GetMainCamera()->SetSSAOEnabled(true);
-
-	auto pDeferredRenderingStrategy = std::static_pointer_cast<DeferredRenderingStrategy>(Application::GetInstance()->GetRenderingStrategy());
-	pDeferredRenderingStrategy->SetSSAOBlurEnabled(true);
-	pDeferredRenderingStrategy->SetSSAODistanceScale(1);
-	pDeferredRenderingStrategy->SetSSAORadius(1);
 
 	{
 		auto *pGameObject = GameObject::Instantiate();

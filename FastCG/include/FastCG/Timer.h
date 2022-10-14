@@ -1,9 +1,10 @@
 #ifndef FASTCG_TIMER_H
 #define FASTCG_TIMER_H
 
+#include <FastCG/FastCG.h>
 #include <FastCG/Exception.h>
 
-#ifdef _WIN32
+#ifdef FASTCG_WINDOWS
 #include <Windows.h>
 #endif
 
@@ -14,7 +15,7 @@ namespace FastCG
 	public:
 		Timer()
 		{
-#ifdef _WIN32
+#ifdef FASTCG_WINDOWS
 			LARGE_INTEGER frequency;
 
 			if (QueryPerformanceFrequency(&frequency))
@@ -32,7 +33,7 @@ namespace FastCG
 
 		inline double GetTime()
 		{
-#ifdef _WIN32
+#ifdef FASTCG_WINDOWS
 			LARGE_INTEGER time;
 
 			if (QueryPerformanceCounter(&time))

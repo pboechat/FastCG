@@ -3,7 +3,7 @@
 #include <FastCG/Font.h>
 #include <FastCG/FileReader.h>
 #include <FastCG/Exception.h>
-#include <FastCG/Application.h>
+#include <FastCG/BaseApplication.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -45,27 +45,28 @@ namespace FastCG
 					FASTCG_THROW_EXCEPTION(Exception, "Failed to bake font bitmap: %s", mFileName.c_str());
 				}
 
-				mpCharMap = std::make_shared<Texture>(
-					mFileName,
-					BITMAP_SIDE,
-					BITMAP_SIDE,
-					TextureFormat::TF_R,
-					TextureDataType::DT_UNSIGNED_CHAR,
-					TextureFilter::TF_LINEAR_FILTER,
-					TextureWrapMode::TW_CLAMP,
-					true,
-					bitmap.get());
+				mpCharMap = std::make_shared<Texture>();
+				mpCharMap->Initialize(mFileName,
+									  BITMAP_SIDE,
+									  BITMAP_SIDE,
+									  TextureFormat::TF_R,
+									  TextureDataType::DT_UNSIGNED_CHAR,
+									  TextureFilter::TF_LINEAR_FILTER,
+									  TextureWrapMode::TW_CLAMP,
+									  true,
+									  bitmap.get());
 			}
 		}
 
 		mpFontShader = ShaderRegistry::Find("Font");
 
-		mpBillboard = std::unique_ptr<Mesh>(new Mesh(mFileName + " Billboard", {0, 1, 3, 0, 3, 2}));
+		mpBillboard = std::make_unique<Mesh>();
+		mpBillboard->Initialize(mFileName + " Billboard", {0, 1, 3, 0, 3, 2});
 	}
 
-	void Font::DrawString(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor)
+	void Font::DrawDebugText(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor)
 	{
-		auto projection = glm::ortho(0.0f, (float)Application::GetInstance()->GetScreenWidth(), 0.0f, (float)Application::GetInstance()->GetScreenHeight(), 0.0f, 1.0f);
+		auto projection = glm::ortho(0.0f, (float)BaseApplication::GetInstance()->GetScreenWidth(), 0.0f, (float)BaseApplication::GetInstance()->GetScreenHeight(), 0.0f, 1.0f);
 
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
@@ -80,7 +81,7 @@ namespace FastCG
 		auto nY = (float)y;
 		auto baseLine = 2 * y - mSize;
 		mpFontShader->Bind();
-		mpFontShader->SetVec2("_ScreenSize", glm::vec2{(float)Application::GetInstance()->GetScreenWidth(), (float)Application::GetInstance()->GetScreenHeight()});
+		mpFontShader->SetVec2("_ScreenSize", glm::vec2{(float)BaseApplication::GetInstance()->GetScreenWidth(), (float)BaseApplication::GetInstance()->GetScreenHeight()});
 		mpFontShader->SetVec4("_Color", rColor);
 		mpFontShader->SetTexture("_Map", mpCharMap, 0);
 		for (const auto &c : rText)

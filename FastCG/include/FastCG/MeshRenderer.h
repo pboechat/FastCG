@@ -49,7 +49,13 @@ namespace FastCG
 		}
 
 	protected:
-		void OnRender() override;
+		inline void OnRender() override
+		{
+			for (auto &pMesh : mMeshes)
+			{
+				pMesh->Draw();
+			}
+		}
 
 	private:
 		std::vector<std::shared_ptr<Mesh>> mMeshes;

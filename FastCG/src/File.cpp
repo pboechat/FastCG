@@ -1,8 +1,9 @@
 #include <FastCG/StringUtils.h>
 #include <FastCG/File.h>
+#include <FastCG/FastCG.h>
 #include <FastCG/Exception.h>
 
-#ifdef _WIN32
+#ifdef FASTCG_WINDOWS
 #include <Windows.h>
 #endif
 
@@ -45,7 +46,7 @@ namespace FastCG
 
 	bool File::Exists(const std::string &rFilePath)
 	{
-#ifdef _WIN32
+#ifdef FASTCG_WINDOWS
 		unsigned long fileAttributes = GetFileAttributes(rFilePath.c_str());
 		return (fileAttributes != INVALID_FILE_ATTRIBUTES);
 #else

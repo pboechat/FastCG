@@ -12,6 +12,10 @@ source_group("src" FILES ${SOURCES})
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
+if(RENDERING_SYSTEM STREQUAL "OpenGL")
+    add_definitions(-DFASTCG_OPENGL)
+endif()
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BIN}")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")

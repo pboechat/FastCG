@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 
 project(FastCG)
 
+set(RENDERING_SYSTEM "OpenGL")
+
 set(HOME ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 set(BIN ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(LIBS ${CMAKE_CURRENT_SOURCE_DIR}/libs)

@@ -10,7 +10,7 @@ namespace FastCG
 		DECLARE_COMPONENT(PointLight, Light);
 
 	public:
-		void OnInstantiate() override
+		inline void OnInstantiate() override
 		{
 			Light::OnInstantiate();
 

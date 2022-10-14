@@ -1,17 +1,19 @@
 #ifndef FASTCG_KEYCODE_H
 #define FASTCG_KEYCODE_H
 
+#include <FastCG/FastCG.h>
 #include <FastCG/Exception.h>
 
-#include <Windows.h>
+#ifdef FASTCG_WINDOWS
 #include <WinUser.h>
+#endif
 
 namespace FastCG
 {
 	class KeyCode
 	{
 	public:
-#ifdef _WIN32
+#ifdef FASTCG_WINDOWS
 		static const int BACKSPACE = VK_BACK;
 		static const int RETURN = VK_RETURN;
 		static const int ESCAPE = VK_ESCAPE;

@@ -1,5 +1,5 @@
-#ifndef SSAOAPPLICATION_H
-#define SSAOAPPLICATION_H
+#ifndef SSAO_APPLICATION_H
+#define SSAO_APPLICATION_H
 
 #include <FastCG/Mesh.h>
 #include <FastCG/Material.h>

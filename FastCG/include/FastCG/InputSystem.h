@@ -2,13 +2,13 @@
 #define FASTCG_INPUT_H
 
 #include <FastCG/MouseButton.h>
-#include <FastCG/Application.h>
+#include <FastCG/BaseApplication.h>
 
 #include <glm/glm.hpp>
 
 namespace FastCG
 {
-	class Input
+	class InputSystem
 	{
 	public:
 		static const int NUMBER_OF_KEYS = 128;
@@ -21,7 +21,7 @@ namespace FastCG
 		static const glm::vec2 &GetMousePosition();
 		static int GetMouseWheelDelta();
 
-		friend class Application;
+		friend class BaseApplication;
 
 	private:
 		class InputBuffer
@@ -50,13 +50,13 @@ namespace FastCG
 			int mMouseWheelDelta{0};
 		};
 
-		static Input *s_mpInstance;
+		static InputSystem *s_mpInstance;
 
 		InputBuffer mFrontBuffer;
 		InputBuffer mBackBuffer;
 
-		Input();
-		~Input();
+		InputSystem();
+		~InputSystem();
 
 		void SetKey(int keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);
@@ -70,7 +70,7 @@ namespace FastCG
 	void IsKeyPressed(int keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
 	{
 		MaskType elementMask = 1 << element;
-		if (Input::GetKey(keyCode))
+		if (InputSystem::GetKey(keyCode))
 		{
 			if ((pressedElementsMask & elementMask) == 0)
 			{
