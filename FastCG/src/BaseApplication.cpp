@@ -4,7 +4,7 @@
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/ModelImporter.h>
-#include <FastCG/MaterialGroupsBatchingStrategy.h>
+#include <FastCG/MaterialBasedMeshBatchingStrategy.h>
 #include <FastCG/KeyCode.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/FontRegistry.h>
@@ -42,6 +42,24 @@ namespace FastCG
 		}                                                                               \
 		m##className##s.erase(it);                                                      \
 	}
+
+#define FASTCG_IMPLEMENT_SYSTEM(className, argsClassName) \
+	static className *s_p##className = nullptr;           \
+	void className::Create(const argsClassName &rArgs)    \
+	{                                                     \
+		s_p##className = new className(rArgs);            \
+	}                                                     \
+	void className::Destroy()                             \
+	{                                                     \
+		delete s_p##className;                            \
+	}                                                     \
+	className *className::GetInstance()                   \
+	{                                                     \
+		return s_p##className;                            \
+	}
+
+	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
+	FASTCG_IMPLEMENT_SYSTEM(InputSystem, InputSystemArgs);
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
 																			mWindowTitle(settings.windowTitle),
@@ -85,7 +103,7 @@ namespace FastCG
 		assert(mPointsRenderers.empty());
 		assert(mComponents.empty());
 
-		mRenderBatches.clear();
+		mMeshBatches.clear();
 
 		ModelImporter::Dispose();
 
@@ -123,7 +141,7 @@ namespace FastCG
 		}
 		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
 		{
-			mpRenderBatchingStrategy->AddMeshFilter(static_cast<MeshFilter *>(pComponent));
+			mpMeshBatchingStrategy->AddMeshFilter(static_cast<MeshFilter *>(pComponent));
 		}
 
 		mComponents.emplace_back(pComponent);
@@ -157,7 +175,7 @@ namespace FastCG
 		}
 		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
 		{
-			mpRenderBatchingStrategy->RemoveMeshFilter(static_cast<MeshFilter *>(pComponent));
+			mpMeshBatchingStrategy->RemoveMeshFilter(static_cast<MeshFilter *>(pComponent));
 		}
 	}
 
@@ -189,52 +207,7 @@ namespace FastCG
 
 		try
 		{
-			mpInputSystem = std::unique_ptr<InputSystem, DeleteInputSystemCallback>(new InputSystem(), [](InputSystem *inputSystem)
-																					{ delete inputSystem; });
-			mpBaseRenderingSystem = std::unique_ptr<BaseRenderingSystem, DeleteBaseRenderingSystemCallback>(new RenderingSystem({mSettings.renderingPath,
-																																 mScreenWidth,
-																																 mScreenHeight,
-																																 mClearColor,
-																																 mAmbientLight,
-																																 mDirectionalLights,
-																																 mPointLights,
-																																 mLineRenderers,
-																																 mPointsRenderers,
-																																 mRenderBatches,
-																																 mRenderingStatistics}),
-																											[](BaseRenderingSystem *baseRenderingSystem)
-																											{ delete baseRenderingSystem; });
-
-			InitializePresentation();
-
-			mpBaseRenderingSystem->Initialize();
-
-			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + SHADERS_FOLDER);
-
-			switch (mSettings.renderingPath)
-			{
-			case RenderingPath::RP_FORWARD_RENDERING:
-				ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + FORWARD_RENDERING_SHADERS_FOLDER);
-				break;
-			case RenderingPath::RP_DEFERRED_RENDERING:
-				ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + DEFERRED_RENDERING_SHADERS_FOLDER);
-				break;
-			default:
-				break;
-			}
-
-			FontRegistry::LoadFontsFromDisk(mAssetsPath + "/" + FONTS_FOLDER);
-
-			TextureImporter::SetBasePath(mAssetsPath);
-
-			ModelImporter::SetBasePath(mAssetsPath);
-
-			mpRenderBatchingStrategy = std::make_unique<MaterialGroupsBatchingStrategy>(mRenderBatches);
-
-			mpBaseRenderingSystem->Start();
-
-			mpInternalGameObject = GameObject::Instantiate();
-			Camera::Instantiate(mpInternalGameObject);
+			Initialize();
 
 			mStartTimer.Start();
 			OnStart();
@@ -245,9 +218,7 @@ namespace FastCG
 			mStartTimer.End();
 			OnEnd();
 
-			mpBaseRenderingSystem->Finalize();
-
-			FinalizePresentation();
+			Finalize();
 
 			return 0;
 		}
@@ -256,6 +227,67 @@ namespace FastCG
 			FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
 			return -1;
 		}
+	}
+
+	void BaseApplication::Initialize()
+	{
+		InputSystem::Create({});
+		RenderingSystem::Create({mSettings.renderingPath,
+								 mScreenWidth,
+								 mScreenHeight,
+								 mClearColor,
+								 mAmbientLight,
+								 mDirectionalLights,
+								 mPointLights,
+								 mLineRenderers,
+								 mPointsRenderers,
+								 mMeshBatches,
+								 mRenderingStatistics});
+
+		InitializePresentation();
+
+		RenderingSystem::GetInstance()->Initialize();
+
+		ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + SHADERS_FOLDER);
+
+		switch (mSettings.renderingPath)
+		{
+		case RenderingPath::RP_FORWARD_RENDERING:
+			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + FORWARD_RENDERING_SHADERS_FOLDER);
+			break;
+		case RenderingPath::RP_DEFERRED_RENDERING:
+			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + DEFERRED_RENDERING_SHADERS_FOLDER);
+			break;
+		default:
+			break;
+		}
+
+		FontRegistry::LoadFontsFromDisk(mAssetsPath + "/" + FONTS_FOLDER);
+
+		TextureImporter::SetBasePath(mAssetsPath);
+
+		ModelImporter::SetBasePath(mAssetsPath);
+
+		mpMeshBatchingStrategy = std::make_unique<MaterialBasedMeshBatchingStrategy>(mMeshBatches);
+
+		RenderingSystem::GetInstance()->Start();
+
+		mpInternalGameObject = GameObject::Instantiate();
+		Camera::Instantiate(mpInternalGameObject);
+
+		OnInitialize();
+	}
+
+	void BaseApplication::Finalize()
+	{
+		OnFinalize();
+
+		RenderingSystem::GetInstance()->Finalize();
+
+		FinalizePresentation();
+
+		RenderingSystem::Destroy();
+		InputSystem::Destroy();
 	}
 
 	bool BaseApplication::ParseCommandLineArguments(int argc, char **argv)
@@ -276,7 +308,7 @@ namespace FastCG
 			deltaTime = 0;
 		}
 
-		mpInputSystem->Swap();
+		InputSystem::GetInstance()->Swap();
 
 		for (auto *pGameObject : mGameObjects)
 		{
@@ -324,7 +356,7 @@ namespace FastCG
 		char fpsText[128];
 
 		sprintf_s(fpsText, FASTCG_ARRAYSIZE(fpsText), "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
-		mpBaseRenderingSystem->DrawDebugText(fpsText, mScreenWidth - 240, 17, Colors::LIME);
+		RenderingSystem::GetInstance()->DrawDebugText(fpsText, mScreenWidth - 240, 17, Colors::LIME);
 	}
 
 	void BaseApplication::ShowRenderingStatistics()
@@ -332,30 +364,31 @@ namespace FastCG
 		char renderStatsText[128];
 
 		sprintf_s(renderStatsText, FASTCG_ARRAYSIZE(renderStatsText), "Draw Calls: %zu", mRenderingStatistics.drawCalls);
-		mpBaseRenderingSystem->DrawDebugText(renderStatsText, mScreenWidth - 240, 34, Colors::LIME);
+		RenderingSystem::GetInstance()->DrawDebugText(renderStatsText, mScreenWidth - 240, 34, Colors::LIME);
 
 		sprintf_s(renderStatsText, FASTCG_ARRAYSIZE(renderStatsText), "No. Triangles: %zu", mRenderingStatistics.numberOfTriangles);
-		mpBaseRenderingSystem->DrawDebugText(renderStatsText, mScreenWidth - 240, 51, Colors::LIME);
+		RenderingSystem::GetInstance()->DrawDebugText(renderStatsText, mScreenWidth - 240, 51, Colors::LIME);
 	}
 
 	void BaseApplication::Render()
 	{
-		mpBaseRenderingSystem->Render(mpMainCamera);
+		RenderingSystem::GetInstance()->Render(mpMainCamera);
+		RenderingSystem::GetInstance()->DrawDebugTexts();
 	}
 
 	void BaseApplication::BeforeMeshFilterChange(MeshFilter *pMeshFilter)
 	{
-		mpRenderBatchingStrategy->RemoveMeshFilter(pMeshFilter);
+		mpMeshBatchingStrategy->RemoveMeshFilter(pMeshFilter);
 	}
 
 	void BaseApplication::AfterMeshFilterChange(MeshFilter *pMeshFilter)
 	{
-		mpRenderBatchingStrategy->AddMeshFilter(pMeshFilter);
+		mpMeshBatchingStrategy->AddMeshFilter(pMeshFilter);
 	}
 
 	void BaseApplication::MouseButtonCallback(MouseButton button, MouseButtonState state, int x, int y)
 	{
-		mpInputSystem->SetMouseButton(button, state);
+		InputSystem::GetInstance()->SetMouseButton(button, state);
 		OnMouseButton(button, state, x, y);
 	}
 
@@ -363,24 +396,24 @@ namespace FastCG
 	{
 		if (direction == 1)
 		{
-			mpInputSystem->IncrementMouseWheelDelta();
+			InputSystem::GetInstance()->IncrementMouseWheelDelta();
 		}
 		else if (direction == -1)
 		{
-			mpInputSystem->DecrementMouseWheelDelta();
+			InputSystem::GetInstance()->DecrementMouseWheelDelta();
 		}
 		OnMouseWheel(direction, x, y);
 	}
 
 	void BaseApplication::MouseMoveCallback(int x, int y)
 	{
-		mpInputSystem->SetMousePosition(glm::vec2((float)x, (float)(mScreenHeight - y)));
+		InputSystem::GetInstance()->SetMousePosition(glm::vec2((float)x, (float)(mScreenHeight - y)));
 		OnMouseMove(x, y);
 	}
 
 	void BaseApplication::KeyboardCallback(int keyCode, bool pressed)
 	{
-		mpInputSystem->SetKey(keyCode, pressed);
+		InputSystem::GetInstance()->SetKey(keyCode, pressed);
 		if (pressed)
 		{
 			OnKeyPress(keyCode);
@@ -390,5 +423,4 @@ namespace FastCG
 			OnKeyRelease(keyCode);
 		}
 	}
-
 }

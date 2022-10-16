@@ -2,7 +2,7 @@
 #define FASTCG_BASE_RENDERING_SYSTEM_H
 
 #include <FastCG/RenderingStatistics.h>
-#include <FastCG/RenderBatch.h>
+#include <FastCG/MeshBatch.h>
 #include <FastCG/PointsRenderer.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/LineRenderer.h>
@@ -32,7 +32,7 @@ namespace FastCG
         const std::vector<PointLight *> &rPointLights;
         const std::vector<LineRenderer *> &rLineRenderers;
         const std::vector<PointsRenderer *> &rPointsRenderers;
-        const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches;
+        const std::vector<std::unique_ptr<MeshBatch>> &rMeshBatches;
         RenderingStatistics &rRenderingStatistics;
     };
 
@@ -41,16 +41,8 @@ namespace FastCG
     public:
         static constexpr const char *const DEFAULT_FONT_NAME = "verdana";
 
-        inline static BaseRenderingSystem *GetInstance()
-        {
-            return s_mpInstance;
-        }
-
-        inline void Render(const Camera *pMainCamera)
-        {
-            OnRender(pMainCamera);
-            DrawDebugTexts();
-        }
+        virtual void Render(const Camera *pMainCamera) = 0;
+        virtual void DrawDebugTexts() = 0;
 
         inline void Initialize()
         {
@@ -95,20 +87,16 @@ namespace FastCG
         BaseRenderingSystem(const RenderingSystemArgs &rArgs);
         virtual ~BaseRenderingSystem();
 
-        virtual void OnRender(const Camera *pMainCamera) = 0;
         virtual void OnInitialize() = 0;
         virtual void OnStart() = 0;
         virtual void OnFinalize() = 0;
-        virtual void BeforeDrawDebugTexts() {}
-        virtual void AfterDrawDebugTexts() {}
+        void DrawDebugTextsWithStandardFont() const;
 
     private:
         static BaseRenderingSystem *s_mpInstance;
 
         std::shared_ptr<Font> mpStandardFont{nullptr};
         std::vector<DrawDebugTextRequest> mDrawDebugTextRequests;
-
-        void DrawDebugTexts();
     };
 
 }

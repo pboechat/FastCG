@@ -5,7 +5,7 @@
 #include <FastCG/Shader.h>
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/Renderer.h>
-#include <FastCG/RenderBatchingStrategy.h>
+#include <FastCG/MeshBatchingStrategy.h>
 #include <FastCG/PointsRenderer.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/MouseButton.h>
@@ -26,11 +26,17 @@
 #include <vector>
 #include <cstdint>
 
+#define FASTCG_DECLARE_SYSTEM(className, argsClassName) \
+public:                                                 \
+	static className *GetInstance();                    \
+                                                        \
+private:                                                \
+	static void Create(const argsClassName &rArgs);     \
+	static void Destroy()
+
 namespace FastCG
 {
 	class ModelImporter;
-	class InputSystem;
-	class BaseRenderingSystem;
 
 	enum class RenderingPath : uint8_t
 	{
@@ -152,11 +158,10 @@ namespace FastCG
 		{
 			Update();
 		}
+		virtual void OnInitialize() {}
+		virtual void OnFinalize() {}
 
 	private:
-		typedef void (*DeleteInputSystemCallback)(InputSystem *);
-		typedef void (*DeleteBaseRenderingSystemCallback)(BaseRenderingSystem *);
-
 		static BaseApplication *s_mpInstance;
 
 		std::string mWindowTitle;
@@ -164,9 +169,7 @@ namespace FastCG
 		uint32_t mScreenHeight;
 		std::string mAssetsPath;
 		double mSecondsPerFrame;
-		std::unique_ptr<InputSystem, DeleteInputSystemCallback> mpInputSystem{nullptr, nullptr};
-		std::unique_ptr<BaseRenderingSystem, DeleteBaseRenderingSystemCallback> mpBaseRenderingSystem{nullptr, nullptr};
-		std::unique_ptr<RenderBatchingStrategy> mpRenderBatchingStrategy{nullptr};
+		std::unique_ptr<MeshBatchingStrategy> mpMeshBatchingStrategy{nullptr};
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
 		uint32_t mElapsedFrames{0};
@@ -184,7 +187,7 @@ namespace FastCG
 		std::vector<LineRenderer *> mLineRenderers;
 		std::vector<PointsRenderer *> mPointsRenderers;
 		std::vector<Component *> mComponents;
-		std::vector<std::unique_ptr<RenderBatch>> mRenderBatches;
+		std::vector<std::unique_ptr<MeshBatch>> mMeshBatches;
 
 		void RegisterGameObject(GameObject *pGameObject);
 		void UnregisterGameObject(GameObject *pGameObject);
@@ -194,8 +197,10 @@ namespace FastCG
 		void DrawAllTexts();
 		void ShowFPS();
 		void ShowRenderingStatistics();
+		void Initialize();
 		void Update();
 		void Render();
+		void Finalize();
 	};
 
 }

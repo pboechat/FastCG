@@ -1,8 +1,8 @@
 #ifdef FASTCG_OPENGL
 
 #include <FastCG/ShaderRegistry.h>
-#include <FastCG/OpenGLExceptions.h>
 #include <FastCG/OpenGLForwardRenderingStrategy.h>
+#include <FastCG/OpenGLExceptions.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -42,12 +42,12 @@ namespace FastCG
 #endif
 
 #ifdef _DEBUG
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Geometry Passes");
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Mesh Pass");
 #endif
 
-		for (const auto &pRenderingGroup : mArgs.rRenderBatches)
+		for (const auto &rMeshBatch : mArgs.rMeshBatches)
 		{
-			const auto &pMaterial = pRenderingGroup->pMaterial;
+			const auto &pMaterial = rMeshBatch->pMaterial;
 
 			if (pMaterial->HasDepth())
 			{
@@ -72,7 +72,7 @@ namespace FastCG
 				glCullFace(GL_BACK);
 			}
 
-			auto &rMeshFilters = pRenderingGroup->meshFilters;
+			auto &rMeshFilters = rMeshBatch->meshFilters;
 			auto pShader = pMaterial->GetShader();
 			pShader->Bind();
 			pShader->SetMat4("_View", rView);
@@ -175,7 +175,7 @@ namespace FastCG
 		if (!mArgs.rLineRenderers.empty())
 		{
 #ifdef _DEBUG
-			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Passes");
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Pass");
 #endif
 
 			glDisable(GL_DEPTH_TEST);
@@ -217,7 +217,7 @@ namespace FastCG
 		if (!mArgs.rPointsRenderers.empty())
 		{
 #ifdef _DEBUG
-			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Passes");
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Points Pass");
 #endif
 
 			glDisable(GL_DEPTH_TEST);

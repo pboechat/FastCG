@@ -1,4 +1,4 @@
-#include <FastCG/MaterialGroupsBatchingStrategy.h>
+#include <FastCG/MaterialBasedMeshBatchingStrategy.h>
 #include <FastCG/Material.h>
 
 #include <cassert>
@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	void MaterialGroupsBatchingStrategy::AddMeshFilter(MeshFilter* pMeshFilter)
+	void MaterialBasedMeshBatchingStrategy::AddMeshFilter(MeshFilter *pMeshFilter)
 	{
 		auto pMaterial = pMeshFilter->GetMaterial();
 		if (pMaterial == nullptr)
@@ -16,11 +16,11 @@ namespace FastCG
 
 		bool added = false;
 
-		for (const auto& pRenderBatch : mrRenderBatches)
+		for (const auto &pMeshBatch : mrMeshBatches)
 		{
-			if (pRenderBatch->pMaterial == pMaterial)
+			if (pMeshBatch->pMaterial == pMaterial)
 			{
-				auto& rMeshFilters = pRenderBatch->meshFilters;
+				auto &rMeshFilters = pMeshBatch->meshFilters;
 				auto it = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
 				assert(it == rMeshFilters.end());
 				rMeshFilters.emplace_back(pMeshFilter);
@@ -34,13 +34,13 @@ namespace FastCG
 			return;
 		}
 
-		auto* pNewRenderBatch = new RenderBatch();
-		pNewRenderBatch->pMaterial = pMaterial;
-		pNewRenderBatch->meshFilters.emplace_back(pMeshFilter);
-		mrRenderBatches.emplace_back(pNewRenderBatch);
+		auto pNewMeshBatch = std::make_unique<MeshBatch>();
+		pNewMeshBatch->pMaterial = pMaterial;
+		pNewMeshBatch->meshFilters.emplace_back(pMeshFilter);
+		mrMeshBatches.emplace_back(std::move(pNewMeshBatch));
 	}
 
-	void MaterialGroupsBatchingStrategy::RemoveMeshFilter(MeshFilter* pMeshFilter)
+	void MaterialBasedMeshBatchingStrategy::RemoveMeshFilter(MeshFilter *pMeshFilter)
 	{
 		auto pMaterial = pMeshFilter->GetMaterial();
 		if (pMaterial == nullptr)
@@ -48,14 +48,14 @@ namespace FastCG
 			return;
 		}
 
-		auto it = mrRenderBatches.begin();
+		auto it = mrMeshBatches.begin();
 		bool removed = false;
 
-		while (it != mrRenderBatches.end())
+		while (it != mrMeshBatches.end())
 		{
 			if ((*it)->pMaterial == pMaterial)
 			{
-				auto& rMeshFilters = (*it)->meshFilters;
+				auto &rMeshFilters = (*it)->meshFilters;
 				auto it2 = std::find(rMeshFilters.begin(), rMeshFilters.end(), pMeshFilter);
 				assert(it2 != rMeshFilters.end());
 				rMeshFilters.erase(it2);
@@ -69,7 +69,7 @@ namespace FastCG
 
 		if ((*it)->meshFilters.size() == 0)
 		{
-			mrRenderBatches.erase(it);
+			mrMeshBatches.erase(it);
 		}
 	}
 

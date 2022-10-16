@@ -2,9 +2,9 @@
 #define FASTCG_RENDERING_PATH_STRATEGY_H
 
 #include <FastCG/RenderingStatistics.h>
-#include <FastCG/RenderBatch.h>
 #include <FastCG/PointsRenderer.h>
 #include <FastCG/PointLight.h>
+#include <FastCG/MeshBatch.h>
 #include <FastCG/LineRenderer.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Camera.h>
@@ -26,7 +26,7 @@ namespace FastCG
 		const std::vector<PointLight *> &rPointLights;
 		const std::vector<LineRenderer *> &rLineRenderers;
 		const std::vector<PointsRenderer *> &rPointsRenderers;
-		const std::vector<std::unique_ptr<RenderBatch>> &rRenderBatches;
+		const std::vector<std::unique_ptr<MeshBatch>> &rMeshBatches;
 		RenderingStatistics &rRenderingStatistics;
 	};
 

@@ -8,8 +8,14 @@
 
 namespace FastCG
 {
+	struct InputSystemArgs
+	{
+	};
+
 	class InputSystem
 	{
+		FASTCG_DECLARE_SYSTEM(InputSystem, InputSystemArgs);
+
 	public:
 		static const int NUMBER_OF_KEYS = 128;
 		static const int MINIMUM_MOUSE_WHEEL_DELTA = -128;
@@ -50,13 +56,11 @@ namespace FastCG
 			int mMouseWheelDelta{0};
 		};
 
-		static InputSystem *s_mpInstance;
-
 		InputBuffer mFrontBuffer;
 		InputBuffer mBackBuffer;
 
-		InputSystem();
-		~InputSystem();
+		InputSystem(const InputSystemArgs &rArgs) {}
+		virtual ~InputSystem() = default;
 
 		void SetKey(int keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);

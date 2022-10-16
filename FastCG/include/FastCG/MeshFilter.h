@@ -13,20 +13,15 @@ namespace FastCG
 		DECLARE_COMPONENT(MeshFilter, Component);
 
 	public:
-		inline std::shared_ptr<Material> GetMaterial()
+		inline const std::shared_ptr<Material> &GetMaterial() const
 		{
 			return mpMaterial;
 		}
 
 		void SetMaterial(const std::shared_ptr<Material> &pMaterial);
 
-		void OnInstantiate() override
-		{
-			mpMaterial = 0;
-		}
-
 	private:
-		std::shared_ptr<Material> mpMaterial;
+		std::shared_ptr<Material> mpMaterial{nullptr};
 	};
 
 }

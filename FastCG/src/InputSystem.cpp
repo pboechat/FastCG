@@ -7,41 +7,24 @@
 
 namespace FastCG
 {
-	InputSystem *InputSystem::s_mpInstance = nullptr;
-
-	InputSystem::InputSystem()
-	{
-		if (s_mpInstance != nullptr)
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "There can only be one InputSystem instance");
-		}
-
-		s_mpInstance = this;
-	}
-
-	InputSystem::~InputSystem()
-	{
-		s_mpInstance = nullptr;
-	}
-
 	bool InputSystem::GetKey(int keyCode)
 	{
-		return s_mpInstance->mFrontBuffer.GetKey(keyCode);
+		return GetInstance()->mFrontBuffer.GetKey(keyCode);
 	}
 
 	MouseButtonState InputSystem::GetMouseButton(MouseButton button)
 	{
-		return s_mpInstance->mFrontBuffer.GetMouseButton(button);
+		return GetInstance()->mFrontBuffer.GetMouseButton(button);
 	}
 
 	const glm::vec2 &InputSystem::GetMousePosition()
 	{
-		return s_mpInstance->mFrontBuffer.GetMousePosition();
+		return GetInstance()->mFrontBuffer.GetMousePosition();
 	}
 
 	int InputSystem::GetMouseWheelDelta()
 	{
-		return s_mpInstance->mFrontBuffer.GetMouseWheelDelta();
+		return GetInstance()->mFrontBuffer.GetMouseWheelDelta();
 	}
 
 	void InputSystem::SetKey(int keyCode, bool pressed)

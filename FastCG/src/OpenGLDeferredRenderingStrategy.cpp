@@ -3,9 +3,9 @@
 #include <FastCG/ShaderRegistry.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/Random.h>
+#include <FastCG/OpenGLDeferredRenderingStrategy.h>
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/MathT.h>
-#include <FastCG/OpenGLDeferredRenderingStrategy.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -375,26 +375,26 @@ namespace FastCG
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Deferred Rendering");
 #endif
 
-		static const GLenum pGeometryPassDrawBuffers[] = {
+		static const GLenum pMeshPassDrawBuffers[] = {
 			GL_COLOR_ATTACHMENT0,
 			GL_COLOR_ATTACHMENT1,
 			GL_COLOR_ATTACHMENT2,
 			GL_COLOR_ATTACHMENT3,
 			GL_COLOR_ATTACHMENT4,
 		};
-		constexpr GLint numGeometryPassDrawBuffers = sizeof(pGeometryPassDrawBuffers) / sizeof(GLenum);
+		constexpr GLint numMeshPassDrawBuffers = sizeof(pMeshPassDrawBuffers) / sizeof(GLenum);
 
 		glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
 
 		// geometry passes
 #ifdef _DEBUG
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Geometry Passes");
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Mesh Pass");
 #endif
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
-		glDrawBuffers(numGeometryPassDrawBuffers, pGeometryPassDrawBuffers);
+		glDrawBuffers(numMeshPassDrawBuffers, pMeshPassDrawBuffers);
 
-		for (GLint bufferIdx = 0; bufferIdx < numGeometryPassDrawBuffers; bufferIdx++)
+		for (GLint bufferIdx = 0; bufferIdx < numMeshPassDrawBuffers; bufferIdx++)
 		{
 			glClearBufferfv(GL_COLOR, bufferIdx, &Colors::NONE[0]);
 		}
@@ -414,9 +414,9 @@ namespace FastCG
 		float tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * pCamera->GetFieldOfView()) / 2.0f);
 
 		mArgs.rRenderingStatistics.Reset();
-		for (const auto &pRenderBatch : mArgs.rRenderBatches)
+		for (const auto &rMeshBatch : mArgs.rMeshBatches)
 		{
-			auto pMaterial = pRenderBatch->pMaterial;
+			auto pMaterial = rMeshBatch->pMaterial;
 
 			if (pMaterial->HasDepth())
 			{
@@ -441,7 +441,7 @@ namespace FastCG
 				glCullFace(GL_BACK);
 			}
 
-			auto &rMeshFilters = pRenderBatch->meshFilters;
+			auto &rMeshFilters = rMeshBatch->meshFilters;
 			const auto &pShader = pMaterial->GetShader();
 			pShader->Bind();
 			pMaterial->SetUpParameters();
@@ -697,7 +697,7 @@ namespace FastCG
 				if (!mArgs.rPointLights.empty())
 				{
 #ifdef _DEBUG
-					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Light Passes");
+					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Light Pass");
 #endif
 
 					for (auto *pPointLight : mArgs.rPointLights)
@@ -794,7 +794,7 @@ namespace FastCG
 				if (!mArgs.rDirectionalLights.empty())
 				{
 #ifdef _DEBUG
-					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Directional Light Passes");
+					glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Directional Light Pass");
 #endif
 
 					glDrawBuffer(GL_COLOR_ATTACHMENT7);
@@ -876,7 +876,7 @@ namespace FastCG
 		if (!mArgs.rLineRenderers.empty())
 		{
 #ifdef _DEBUG
-			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Passes");
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Line Pass");
 #endif
 
 			glDisable(GL_DEPTH_TEST);
@@ -918,7 +918,7 @@ namespace FastCG
 		if (!mArgs.rPointsRenderers.empty())
 		{
 #ifdef _DEBUG
-			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Point Passes");
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Points Pass");
 #endif
 
 			glDisable(GL_DEPTH_TEST);

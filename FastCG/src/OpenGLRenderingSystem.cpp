@@ -9,6 +9,12 @@
 #include <FastCG/OpenGLDeferredRenderingStrategy.h>
 #include <FastCG/Exception.h>
 
+#ifdef FASTCG_WINDOWS
+#include <GL/wglew.h>
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 namespace
 {
 #ifdef _DEBUG
@@ -89,7 +95,7 @@ namespace FastCG
             mArgs.rPointLights,
             mArgs.rLineRenderers,
             mArgs.rPointsRenderers,
-            mArgs.rRenderBatches,
+            mArgs.rMeshBatches,
             mArgs.rRenderingStatistics};
 
         switch (mArgs.renderingPath)
@@ -151,7 +157,7 @@ namespace FastCG
 
         const int attribs[] = {
             WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-            WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 3,
             WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #ifdef _DEBUG
@@ -189,7 +195,7 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLRenderingSystem::OnRender(const Camera *pMainCamera)
+    void OpenGLRenderingSystem::Render(const Camera *pMainCamera)
     {
 #ifdef FASTCG_WINDOWS
         if (mHGLRC == 0)
@@ -206,17 +212,16 @@ namespace FastCG
         mpRenderingPathStrategy->Render(pMainCamera);
     }
 
-    void OpenGLRenderingSystem::BeforeDrawDebugTexts()
+    void OpenGLRenderingSystem::DrawDebugTexts()
     {
 #ifdef _DEBUG
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Text Pass");
 #endif
 
         glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
-    }
 
-    void OpenGLRenderingSystem::AfterDrawDebugTexts()
-    {
+        DrawDebugTextsWithStandardFont();
+
 #ifdef _DEBUG
         glPopDebugGroup();
 #endif

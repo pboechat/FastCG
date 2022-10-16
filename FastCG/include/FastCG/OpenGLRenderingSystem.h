@@ -9,10 +9,7 @@
 
 #include <memory>
 
-#include <GL/gl.h>
-#include <GL/glew.h>
 #ifdef FASTCG_WINDOWS
-#include <GL/wglew.h>
 #include <Windows.h>
 #endif
 
@@ -22,16 +19,16 @@ namespace FastCG
 
     class OpenGLRenderingSystem : public BaseRenderingSystem
     {
-    public:
-        inline static OpenGLRenderingSystem *GetInstance()
-        {
-            return static_cast<OpenGLRenderingSystem *>(BaseRenderingSystem::GetInstance());
-        }
+        FASTCG_DECLARE_SYSTEM(OpenGLRenderingSystem, RenderingSystemArgs);
 
+    public:
         inline RenderingPathStrategy *GetRenderingPathStrategy() const
         {
             return mpRenderingPathStrategy.get();
         }
+
+        void Render(const Camera *pMainCamera) override;
+        void DrawDebugTexts() override;
 
         friend class BaseApplication;
 
@@ -39,12 +36,9 @@ namespace FastCG
         OpenGLRenderingSystem(const RenderingSystemArgs &rArgs);
         virtual ~OpenGLRenderingSystem() = default;
 
-        void OnRender(const Camera *pMainCamera) override;
         void OnInitialize() override;
         void OnStart() override;
         void OnFinalize() override;
-        void BeforeDrawDebugTexts() override;
-        void AfterDrawDebugTexts() override;
 
     private:
 #ifdef FASTCG_WINDOWS
