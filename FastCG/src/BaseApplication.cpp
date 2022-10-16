@@ -243,11 +243,24 @@ namespace FastCG
 								 mPointsRenderers,
 								 mMeshBatches,
 								 mRenderingStatistics});
+		mpMeshBatchingStrategy = std::make_unique<MaterialBasedMeshBatchingStrategy>(mMeshBatches);
 
 		InitializePresentation();
 
 		RenderingSystem::GetInstance()->Initialize();
 
+		InitializeAssets();
+
+		RenderingSystem::GetInstance()->OnAssetsInitialized();
+
+		mpInternalGameObject = GameObject::Instantiate();
+		Camera::Instantiate(mpInternalGameObject);
+
+		OnInitialize();
+	}
+
+	void BaseApplication::InitializeAssets()
+	{
 		ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + SHADERS_FOLDER);
 
 		switch (mSettings.renderingPath)
@@ -267,15 +280,6 @@ namespace FastCG
 		TextureImporter::SetBasePath(mAssetsPath);
 
 		ModelImporter::SetBasePath(mAssetsPath);
-
-		mpMeshBatchingStrategy = std::make_unique<MaterialBasedMeshBatchingStrategy>(mMeshBatches);
-
-		RenderingSystem::GetInstance()->Start();
-
-		mpInternalGameObject = GameObject::Instantiate();
-		Camera::Instantiate(mpInternalGameObject);
-
-		OnInitialize();
 	}
 
 	void BaseApplication::Finalize()
@@ -295,7 +299,7 @@ namespace FastCG
 		return true;
 	}
 
-	void BaseApplication::Update()
+	void BaseApplication::RunMainLoopIteration()
 	{
 		auto currTime = mStartTimer.GetTime();
 		double deltaTime;
@@ -334,7 +338,8 @@ namespace FastCG
 			ShowRenderingStatistics();
 		}
 
-		Render();
+		RenderingSystem::GetInstance()->Render(mpMainCamera);
+		RenderingSystem::GetInstance()->DrawDebugTexts();
 
 		mLastFrameTime = currTime;
 
@@ -368,12 +373,6 @@ namespace FastCG
 
 		sprintf_s(renderStatsText, FASTCG_ARRAYSIZE(renderStatsText), "No. Triangles: %zu", mRenderingStatistics.numberOfTriangles);
 		RenderingSystem::GetInstance()->DrawDebugText(renderStatsText, mScreenWidth - 240, 51, Colors::LIME);
-	}
-
-	void BaseApplication::Render()
-	{
-		RenderingSystem::GetInstance()->Render(mpMainCamera);
-		RenderingSystem::GetInstance()->DrawDebugTexts();
 	}
 
 	void BaseApplication::BeforeMeshFilterChange(MeshFilter *pMeshFilter)

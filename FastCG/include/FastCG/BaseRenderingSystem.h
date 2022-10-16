@@ -49,7 +49,7 @@ namespace FastCG
             OnInitialize();
         }
 
-        inline void Start()
+        inline void OnAssetsInitialized()
         {
             mpStandardFont = FontRegistry::Find(DEFAULT_FONT_NAME);
             OnStart();

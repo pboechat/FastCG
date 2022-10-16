@@ -137,6 +137,7 @@ namespace FastCG
 		virtual void OnKeyRelease(int keyCode) {}
 		virtual void OnPrintUsage() {}
 		virtual void RunMainLoop() = 0;
+		void RunMainLoopIteration();
 		virtual void InitializePresentation() = 0;
 		virtual void FinalizePresentation() = 0;
 		virtual void Present() = 0;
@@ -154,10 +155,6 @@ namespace FastCG
 		void MouseWheelCallback(int direction, int x, int y);
 		void MouseMoveCallback(int x, int y);
 		void KeyboardCallback(int keyCode, bool pressed);
-		inline void RunMainLoopIteration()
-		{
-			Update();
-		}
 		virtual void OnInitialize() {}
 		virtual void OnFinalize() {}
 
@@ -198,8 +195,7 @@ namespace FastCG
 		void ShowFPS();
 		void ShowRenderingStatistics();
 		void Initialize();
-		void Update();
-		void Render();
+		void InitializeAssets();
 		void Finalize();
 	};
 
