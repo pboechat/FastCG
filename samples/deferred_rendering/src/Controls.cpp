@@ -2,9 +2,9 @@
 
 #if defined _DEBUG && defined FASTCG_OPENGL
 #include <FastCG/OpenGLDeferredRenderingPathStrategy.h>
+#endif
 #include <FastCG/KeyCode.h>
 #include <FastCG/InputSystem.h>
-#endif
 #include <FastCG/Application.h>
 
 using namespace FastCG;
