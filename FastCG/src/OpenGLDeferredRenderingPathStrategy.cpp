@@ -462,6 +462,7 @@ namespace FastCG
 		constexpr GLint numMeshPassDrawBuffers = sizeof(pMeshPassDrawBuffers) / sizeof(GLenum);
 
 		glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+		glDisable(GL_SCISSOR_TEST);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBufferFBOId);
 		glDrawBuffers(numMeshPassDrawBuffers, pMeshPassDrawBuffers);

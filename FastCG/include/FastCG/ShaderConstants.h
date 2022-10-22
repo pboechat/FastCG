@@ -5,6 +5,8 @@
 
 #include <glm/glm.hpp>
 
+#include <cstdint>
+
 namespace FastCG
 {
     namespace ForwardRenderingPath
@@ -80,6 +82,11 @@ namespace FastCG
         float radius{0.05f};
         float distanceScale{50.0f};
         float padding[2];
+    };
+
+    struct ImGuiConstants
+    {
+        glm::mat4 projection;
     };
 }
 

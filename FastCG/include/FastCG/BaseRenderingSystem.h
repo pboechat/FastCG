@@ -9,6 +9,7 @@
 #include <FastCG/BaseMaterial.h>
 
 #include <glm/glm.hpp>
+#include <imgui.h>
 
 #include <vector>
 #include <unordered_map>
@@ -47,8 +48,10 @@ namespace FastCG
 
         // Template interface
         void Render(const Camera *pMainCamera);
+        void RenderImGui(const ImDrawData *pImDrawData);
         void Initialize();
         void PostInitialize();
+        void Resize();
         void Finalize();
         Material *CreateMaterial(const MeshArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);

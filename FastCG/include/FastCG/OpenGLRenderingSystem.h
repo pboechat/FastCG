@@ -3,6 +3,7 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/ShaderConstants.h>
 #include <FastCG/OpenGLTexture.h>
 #include <FastCG/OpenGLShader.h>
 #include <FastCG/OpenGLMesh.h>
@@ -34,8 +35,10 @@ namespace FastCG
         }
 
         void Render(const Camera *pMainCamera);
+        void RenderImGui(const ImDrawData *pImDrawData);
         void Initialize();
         void PostInitialize();
+        void Resize() {}
         void Finalize();
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
@@ -67,6 +70,13 @@ namespace FastCG
         std::vector<OpenGLMesh *> mMeshes;
         std::vector<OpenGLShader *> mShaders;
         std::vector<OpenGLTexture *> mTextures;
+        ImGuiConstants mImGuiConstants{};
+        GLint mImGuiColorMapLocation{-1};
+        const OpenGLShader *mpImGuiShader{nullptr};
+        GLuint mImGuiConstantsBufferId{~0u};
+        GLuint mImGuiVertexArrayId{~0u};
+        GLuint mImGuiVerticesBufferId{~0u};
+        GLuint mImGuiIndicesBufferId{~0u};
 
         void CreateOpenGLContext();
         void DestroyOpenGLContext();

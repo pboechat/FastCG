@@ -51,7 +51,7 @@ namespace FastCG
 			}
 		}
 
-		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, indices, true, false, true});
+		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, {}, indices, true, false, true});
 	}
 
 	Mesh *StandardGeometries::CreateXZPlane(const std::string &rName, float width, float depth, uint32_t xSegments, uint32_t zSegments, const glm::vec3 &rCenter)
@@ -100,7 +100,7 @@ namespace FastCG
 			}
 		}
 
-		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, indices, true, false, true});
+		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, {}, indices, true, false, true});
 	}
 
 	Mesh *StandardGeometries::CreateSphere(const std::string &rName, float radius, uint32_t slices)
@@ -177,7 +177,7 @@ namespace FastCG
 			}
 		}
 
-		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, indices, true, false, true});
+		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, {}, indices, true, false, true});
 	}
 
 }

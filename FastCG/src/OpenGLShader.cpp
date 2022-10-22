@@ -113,12 +113,6 @@ namespace FastCG
             glAttachShader(mProgramId, shaderId);
         }
 
-        glBindAttribLocation(mProgramId, VERTICES_ATTRIBUTE_INDEX, "position");
-        glBindAttribLocation(mProgramId, NORMALS_ATTRIBUTE_INDEX, "normal");
-        glBindAttribLocation(mProgramId, UVS_ATTRIBUTE_INDEX, "uv");
-        glBindAttribLocation(mProgramId, TANGENTS_ATTRIBUTE_INDEX, "tangent");
-        glBindAttribLocation(mProgramId, COLORS_ATTRIBUTE_INDEX, "color");
-
         glLinkProgram(mProgramId);
         CheckProgramStatus(mProgramId, GL_LINK_STATUS, GetName());
 

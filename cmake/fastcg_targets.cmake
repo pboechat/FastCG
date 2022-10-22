@@ -66,7 +66,7 @@ function(_fastcg_prepare_assets)
 endfunction()
 
 function(_fastcg_add_definitions)
-    if(WIN32)
+    if(FASTCG_PLATFORM STREQUAL "Windows")
         add_definitions(-DFASTCG_WINDOWS)
     endif()
     if(FASTCG_RENDERING_SYSTEM STREQUAL "OpenGL")

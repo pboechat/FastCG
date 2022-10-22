@@ -18,6 +18,7 @@ namespace FastCG
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 		std::vector<glm::vec4> tangents;
+		std::vector<glm::vec4> colors;
 		std::vector<uint32_t> indices;
 		bool calculateBounds{true};
 		bool calculateNormals{false};
@@ -31,37 +32,42 @@ namespace FastCG
 
 		inline size_t GetNumberOfTriangles() const
 		{
-			return mArgs.indices.size() / 3;
+			return mIndices.size() / 3;
 		}
 
 		inline const std::string &GetName() const
 		{
-			return mArgs.name;
+			return mName;
 		}
 
 		inline const std::vector<glm::vec3> &GetVertices() const
 		{
-			return mArgs.vertices;
+			return mVertices;
 		}
 
 		inline const std::vector<glm::vec3> &GetNormals() const
 		{
-			return mArgs.normals;
+			return mNormals;
 		}
 
 		inline const std::vector<glm::vec2> &GetUVs() const
 		{
-			return mArgs.uvs;
+			return mUVs;
 		}
 
 		inline const std::vector<glm::vec4> &GetTangents() const
 		{
-			return mArgs.tangents;
+			return mTangents;
+		}
+
+		inline const std::vector<glm::vec4> &GetColors() const
+		{
+			return mColors;
 		}
 
 		inline const std::vector<uint32_t> &GetIndices() const
 		{
-			return mArgs.indices;
+			return mIndices;
 		}
 
 		inline const AABB &GetBounds() const
@@ -70,20 +76,24 @@ namespace FastCG
 		}
 
 	protected:
-		const MeshArgs mArgs;
+		const std::string mName;
+		std::vector<glm::vec3> mVertices;
+		std::vector<glm::vec3> mNormals;
+		std::vector<glm::vec2> mUVs;
+		std::vector<glm::vec4> mTangents;
+		std::vector<glm::vec4> mColors;
+		std::vector<uint32_t> mIndices;
 		AABB mBounds;
 
-		BaseMesh(const MeshArgs &rArgs) : mArgs{rArgs.name,
-												rArgs.vertices,
-												rArgs.calculateNormals ? CalculateNormals(rArgs.vertices, rArgs.indices) : rArgs.normals,
-												rArgs.uvs,
-												rArgs.calculateTangents ? CalculateTangents(rArgs.vertices, rArgs.normals, rArgs.uvs, rArgs.indices) : rArgs.tangents,
-												rArgs.indices,
-												rArgs.calculateBounds,
-												rArgs.calculateNormals,
-												rArgs.calculateTangents}
+		BaseMesh(const MeshArgs &rArgs) : mName(rArgs.name),
+										  mVertices(rArgs.vertices),
+										  mNormals(rArgs.calculateNormals ? CalculateNormals(rArgs.vertices, rArgs.indices) : rArgs.normals),
+										  mUVs(rArgs.uvs),
+										  mTangents(rArgs.calculateTangents ? CalculateTangents(rArgs.vertices, rArgs.normals, rArgs.uvs, rArgs.indices) : rArgs.tangents),
+										  mColors(rArgs.colors),
+										  mIndices(rArgs.indices)
 		{
-			if (mArgs.calculateBounds)
+			if (rArgs.calculateBounds)
 			{
 				CalculateBounds();
 			}

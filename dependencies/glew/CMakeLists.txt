@@ -4,22 +4,8 @@ project(glew)
 
 find_package(OpenGL REQUIRED)
 
-file(GLOB HEADERS 
-	"${PROJECT_SOURCE_DIR}/include/**/*.h" 
-	"${PROJECT_SOURCE_DIR}/include/*.h" 
-	"${PROJECT_SOURCE_DIR}/include/**/*.hpp" 
-	"${PROJECT_SOURCE_DIR}/include/*.hpp" 
-	"${PROJECT_SOURCE_DIR}/src/**/*.h" 
-	"${PROJECT_SOURCE_DIR}/src/*.h" 
-	"${PROJECT_SOURCE_DIR}/src/**/*.hpp"
-	"${PROJECT_SOURCE_DIR}/src/*.hpp"
-)
-file(GLOB SOURCES 
-	"${PROJECT_SOURCE_DIR}/src/**/*.cpp" 
-	"${PROJECT_SOURCE_DIR}/src/*.cpp" 
-	"${PROJECT_SOURCE_DIR}/src/**/*.c"
-	"${PROJECT_SOURCE_DIR}/src/*.c"
-)
+list(APPEND HEADERS "${PROJECT_SOURCE_DIR}/include/GL/glew.h" "${PROJECT_SOURCE_DIR}/include/GL/glxew.h" "${PROJECT_SOURCE_DIR}/include/GL/wglew.h")
+list(APPEND SOURCES "${PROJECT_SOURCE_DIR}/src/glew.c")
 
 set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include 
 	CACHE INTERNAL "${PROJECT_NAME}: includes" FORCE)

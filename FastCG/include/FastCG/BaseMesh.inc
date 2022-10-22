@@ -113,7 +113,7 @@ namespace FastCG
 
     void BaseMesh::CalculateBounds()
     {
-        if (mArgs.vertices.empty())
+        if (mVertices.empty())
         {
             return;
         }
@@ -121,7 +121,7 @@ namespace FastCG
         mBounds.min.x = mBounds.min.y = mBounds.min.z = 1e10f;
         mBounds.max.x = mBounds.max.y = mBounds.max.z = -1e10f;
 
-        for (const auto &rVertex : mArgs.vertices)
+        for (const auto &rVertex : mVertices)
         {
             mBounds.min.x = MathF::Min(mBounds.min.x, rVertex.x);
             mBounds.min.y = MathF::Min(mBounds.min.y, rVertex.y);

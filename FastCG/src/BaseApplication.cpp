@@ -19,6 +19,8 @@
 #include <FastCG/BaseApplication.h>
 #include <FastCG/AssetSystem.h>
 
+#include <imgui.h>
+
 #include <cstdio>
 #include <cassert>
 #include <algorithm>
@@ -75,7 +77,7 @@ namespace FastCG
 																			mClearColor(settings.clearColor),
 																			mAmbientLight(settings.ambientLight),
 																			mFrameRate(settings.frameRate),
-																			mSecondsPerFrame(1.0 / (double)settings.frameRate)
+																			mSecondsPerFrame(1 / (double)settings.frameRate)
 	{
 		if (smpInstance != nullptr)
 		{
@@ -223,6 +225,10 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
+		ImGui::CreateContext();
+		auto &io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
 		AssetSystem::Create({mSettings.assetBundles});
 		InputSystem::Create({});
 		mpRenderBatchStrategy = std::make_unique<MaterialBasedRenderBatchStrategy>();
@@ -240,12 +246,26 @@ namespace FastCG
 
 		RenderingSystem::GetInstance()->Initialize();
 
-		mpInternalGameObject = GameObject::Instantiate();
-		Camera::Instantiate(mpInternalGameObject);
+		int width, height;
+		unsigned char *pixels = nullptr;
+		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+		auto *pImGuiTexture = RenderingSystem::GetInstance()->CreateTexture({"ImGui",
+																			 (uint32_t)width,
+																			 (uint32_t)height,
+																			 TextureFormat::TF_RGBA,
+																			 TextureDataType::DT_UNSIGNED_CHAR,
+																			 TextureFilter::TF_LINEAR_FILTER,
+																			 TextureWrapMode::TW_CLAMP,
+																			 false,
+																			 pixels});
+		io.Fonts->SetTexID((void *)pImGuiTexture);
 
 		ShaderLoader::LoadShaders(mSettings.renderingPath);
 
 		RenderingSystem::GetInstance()->PostInitialize();
+
+		mpInternalGameObject = GameObject::Instantiate();
+		Camera::Instantiate(mpInternalGameObject);
 
 		OnInitialize();
 	}
@@ -261,6 +281,8 @@ namespace FastCG
 		RenderingSystem::Destroy();
 		InputSystem::Destroy();
 		AssetSystem::Destroy();
+
+		ImGui::DestroyContext();
 	}
 
 	bool BaseApplication::ParseCommandLineArguments(int argc, char **argv)
@@ -270,11 +292,11 @@ namespace FastCG
 
 	void BaseApplication::RunMainLoopIteration()
 	{
-		auto currTime = mStartTimer.GetTime();
+		auto startTime = mStartTimer.GetTime();
 		double deltaTime;
 		if (mLastFrameTime != 0)
 		{
-			deltaTime = currTime - mLastFrameTime;
+			deltaTime = startTime - mLastFrameTime;
 		}
 		else
 		{
@@ -282,6 +304,16 @@ namespace FastCG
 		}
 
 		InputSystem::GetInstance()->Swap();
+
+		auto &io = ImGui::GetIO();
+		io.DeltaTime = (float)deltaTime + 0.0000001f;
+		auto mousePos = InputSystem::GetMousePosition();
+		io.AddMousePosEvent((float)mousePos.x, (float)(mScreenHeight - mousePos.y));
+		io.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
+		io.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
+		io.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
+
+		ImGui::NewFrame();
 
 		for (auto *pGameObject : mGameObjects)
 		{
@@ -294,12 +326,23 @@ namespace FastCG
 
 		for (auto *pBehaviour : mBehaviours)
 		{
-			pBehaviour->Update((float)mStartTimer.GetTime(), (float)deltaTime);
+			pBehaviour->Update((float)startTime, (float)deltaTime);
 		}
 
 		RenderingSystem::GetInstance()->Render(mpMainCamera);
 
-		mLastFrameTime = currTime;
+		ImGui::Begin("Statistics");
+			ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
+			ImGui::Text("Draw Calls: %zu", mRenderingStatistics.drawCalls);
+			ImGui::Text("Triangles: %zu", mRenderingStatistics.numberOfTriangles);
+		ImGui::End();
+
+		ImGui::EndFrame();
+		ImGui::Render();
+
+		RenderingSystem::GetInstance()->RenderImGui(ImGui::GetDrawData());
+
+		mLastFrameTime = startTime;
 
 		mTotalElapsedTime += deltaTime;
 		mFrameCount++;
@@ -357,12 +400,16 @@ namespace FastCG
 
 	void BaseApplication::WindowResizeCallback(int width, int height)
 	{
-		mScreenWidth = width;
-		mScreenHeight = height;
+		mScreenWidth = (uint32_t)width;
+		mScreenHeight = (uint32_t)height;
+		auto &io = ImGui::GetIO();
+		io.DisplaySize.x = (float)width;
+		io.DisplaySize.y = (float)height;
 		if (mpMainCamera != nullptr)
 		{
 			mpMainCamera->SetAspectRatio(GetAspectRatio());
 		}
+		RenderingSystem::GetInstance()->Resize();
 		OnResize();
 	}
 }

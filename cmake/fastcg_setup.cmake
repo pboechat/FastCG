@@ -1,3 +1,7 @@
+if(WIN32)
+set(FASTCG_PLATFORM "Windows")
+endif()
+
 set(FASTCG_RENDERING_SYSTEM "OpenGL")
 
 set(FASTCG_DEPLOY ${CMAKE_CURRENT_SOURCE_DIR}/deploy)

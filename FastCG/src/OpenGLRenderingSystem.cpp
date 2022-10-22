@@ -5,6 +5,7 @@
 #endif
 #include <FastCG/OpenGLRenderingSystem.h>
 #include <FastCG/OpenGLForwardRenderingPathStrategy.h>
+#include <FastCG/OpenGLExceptions.h>
 #include <FastCG/OpenGLDeferredRenderingPathStrategy.h>
 #include <FastCG/Exception.h>
 #include <FastCG/AssetSystem.h>
@@ -14,6 +15,8 @@
 #endif
 #include <GL/glew.h>
 #include <GL/gl.h>
+
+static_assert(sizeof(ImDrawIdx) == sizeof(uint32_t), "Please configure ImGui to use 32-bit indices");
 
 namespace
 {
@@ -124,16 +127,93 @@ namespace FastCG
             break;
         }
 
+        glGenBuffers(1, &mImGuiVerticesBufferId);
+        glBindBuffer(GL_ARRAY_BUFFER, mImGuiVerticesBufferId);
+#ifdef _DEBUG
+        {
+            const char bufferLabel[] = "ImGui Vertices (GL_BUFFER)";
+            glObjectLabel(GL_BUFFER, mImGuiVerticesBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
+        }
+#endif
+        glBufferData(GL_ARRAY_BUFFER, 30000 * sizeof(ImDrawVert), nullptr, GL_STREAM_DRAW);
+
+        glGenBuffers(1, &mImGuiIndicesBufferId);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mImGuiIndicesBufferId);
+#ifdef _DEBUG
+        {
+            const char bufferLabel[] = "ImGui Indices (GL_BUFFER)";
+            glObjectLabel(GL_BUFFER, mImGuiIndicesBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
+        }
+#endif
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 90000 * sizeof(ImDrawIdx), nullptr, GL_STREAM_DRAW);
+
+        glGenBuffers(1, &mImGuiConstantsBufferId);
+        glBindBuffer(GL_UNIFORM_BUFFER, mImGuiConstantsBufferId);
+#ifdef _DEBUG
+        {
+            const char bufferLabel[] = "ImGui Constants (GL_BUFFER)";
+            glObjectLabel(GL_BUFFER, mImGuiConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
+        }
+#endif
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(ImGuiConstants), &mImGuiConstants, GL_STATIC_DRAW);
+
+        glGenVertexArrays(1, &mImGuiVertexArrayId);
+        glBindVertexArray(mImGuiVertexArrayId);
+#ifdef _DEBUG
+        {
+            const char vertexArrayLabel[] = "ImGui (GL_VERTEX_ARRAY)";
+            glObjectLabel(GL_VERTEX_ARRAY, mImGuiVertexArrayId, FASTCG_ARRAYSIZE(vertexArrayLabel), vertexArrayLabel);
+        }
+#endif
+
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, mImGuiVerticesBufferId);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, pos));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, uv));
+        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, col));
+
+        FASTCG_CHECK_OPENGL_ERROR();
+
         mpRenderingPathStrategy->Initialize();
     }
 
     void OpenGLRenderingSystem::PostInitialize()
     {
+        mpImGuiShader = FindShader("ImGui");
+        mImGuiColorMapLocation = mpImGuiShader->GetBindingLocation("uColorMap");
+
         mpRenderingPathStrategy->PostInitialize();
     }
 
     void OpenGLRenderingSystem::Finalize()
     {
+        if (mImGuiVertexArrayId != ~0u)
+        {
+            glDeleteVertexArrays(1, &mImGuiVertexArrayId);
+            mImGuiVertexArrayId = ~0u;
+        }
+
+        if (mImGuiConstantsBufferId != ~0u)
+        {
+            glDeleteBuffers(1, &mImGuiConstantsBufferId);
+            mImGuiConstantsBufferId = ~0u;
+        }
+
+        if (mImGuiIndicesBufferId != ~0u)
+        {
+            glDeleteBuffers(1, &mImGuiIndicesBufferId);
+            mImGuiIndicesBufferId = ~0u;
+        }
+
+        if (mImGuiVerticesBufferId != ~0u)
+        {
+            glDeleteBuffers(1, &mImGuiVerticesBufferId);
+            mImGuiVerticesBufferId = ~0u;
+        }
+
         mpRenderingPathStrategy->Finalize();
 
         DestroyOpenGLContext();
@@ -229,6 +309,82 @@ namespace FastCG
         }
 
         mpRenderingPathStrategy->Render(pMainCamera);
+    }
+
+    void OpenGLRenderingSystem::RenderImGui(const ImDrawData *pImDrawData)
+    {
+#ifdef _DEBUG
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "ImGui Passes");
+#endif
+
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_SCISSOR_TEST);
+
+        auto displayScale = pImDrawData->FramebufferScale;
+        auto displayPos = ImVec2(pImDrawData->DisplayPos.x * displayScale.x, pImDrawData->DisplayPos.y * displayScale.y);
+        auto displaySize = ImVec2(pImDrawData->DisplaySize.x * displayScale.x, pImDrawData->DisplaySize.y * displayScale.y);
+
+        glViewport((GLint)displayPos.x, (GLint)displayPos.y, (GLsizei)displaySize.x, (GLsizei)displaySize.y);
+
+        mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
+        glBindBuffer(GL_UNIFORM_BUFFER, mImGuiConstantsBufferId);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ImGuiConstants), &mImGuiConstants);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        mpImGuiShader->Bind();
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, mImGuiConstantsBufferId);
+
+        for (int n = 0; n < pImDrawData->CmdListsCount; n++)
+        {
+            const auto *cmdList = pImDrawData->CmdLists[n];
+
+            glBindBuffer(GL_ARRAY_BUFFER, mImGuiVerticesBufferId);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)cmdList->VtxBuffer.size_in_bytes(), cmdList->VtxBuffer.Data);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mImGuiIndicesBufferId);
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, (GLsizeiptr)cmdList->IdxBuffer.size_in_bytes(), cmdList->IdxBuffer.Data);
+
+            for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++)
+            {
+                const auto *pCmd = &cmdList->CmdBuffer[cmdIdx];
+                if (pCmd->UserCallback)
+                {
+                    pCmd->UserCallback(cmdList, pCmd);
+                }
+                else
+                {
+                    ImVec2 clipMin((pCmd->ClipRect.x - displayPos.x) * displayScale.x, (pCmd->ClipRect.y - displayPos.y) * displayScale.y);
+                    ImVec2 clipMax((pCmd->ClipRect.z - displayPos.x) * displayScale.x, (pCmd->ClipRect.w - displayPos.y) * displayScale.y);
+                    if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+                    {
+                        continue;
+                    }
+
+                    glScissor((GLint)clipMin.x, (GLint)(displaySize.y - clipMax.y), (GLsizei)(clipMax.x - clipMin.x), (GLsizei)(clipMax.y - clipMin.y));
+
+                    mpImGuiShader->BindTexture(mImGuiColorMapLocation, *((OpenGLTexture *)pCmd->GetTexID()), 0);
+
+                    glBindVertexArray(mImGuiVertexArrayId);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mImGuiIndicesBufferId);
+                    glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)pCmd->ElemCount, GL_UNSIGNED_INT, (void *)(intptr_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (GLint)pCmd->VtxOffset);
+                }
+            }
+        }
+
+        mpImGuiShader->Unbind();
+
+        FASTCG_CHECK_OPENGL_ERROR();
+
+#ifdef _DEBUG
+        glPopDebugGroup();
+#endif
     }
 
 }

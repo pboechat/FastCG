@@ -34,6 +34,7 @@ namespace FastCG
 			{
 
 				glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+				glDisable(GL_SCISSOR_TEST);
 
 				{
 #ifdef _DEBUG
