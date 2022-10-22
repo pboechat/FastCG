@@ -5,13 +5,11 @@
 
 #include <cstdint>
 
-using namespace FastCG;
-
-class Controls : public Behaviour
+class Controls : public FastCG::Behaviour
 {
-	DECLARE_COMPONENT(Controls, Behaviour);
+	DECLARE_COMPONENT(Controls, FastCG::Behaviour);
 
-public:
+protected:
 	void OnUpdate(float time, float deltaTime) override;
 
 private:

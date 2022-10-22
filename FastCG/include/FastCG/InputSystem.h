@@ -27,6 +27,24 @@ namespace FastCG
 		static const glm::vec2 &GetMousePosition();
 		static int GetMouseWheelDelta();
 
+		template <typename MaskType, typename ElementType, typename CallbackType>
+		static void IsKeyPressed(int keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
+		{
+			MaskType elementMask = 1 << element;
+			if (InputSystem::GetKey(keyCode))
+			{
+				if ((pressedElementsMask & elementMask) == 0)
+				{
+					callback();
+					pressedElementsMask |= elementMask;
+				}
+			}
+			else
+			{
+				pressedElementsMask &= ~elementMask;
+			}
+		}
+
 		friend class BaseApplication;
 
 	private:
@@ -60,7 +78,6 @@ namespace FastCG
 		InputBuffer mBackBuffer;
 
 		InputSystem(const InputSystemArgs &rArgs) {}
-		virtual ~InputSystem() = default;
 
 		void SetKey(int keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);
@@ -69,24 +86,6 @@ namespace FastCG
 		void DecrementMouseWheelDelta();
 		void Swap();
 	};
-
-	template <typename MaskType, typename ElementType, typename CallbackType>
-	void IsKeyPressed(int keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
-	{
-		MaskType elementMask = 1 << element;
-		if (InputSystem::GetKey(keyCode))
-		{
-			if ((pressedElementsMask & elementMask) == 0)
-			{
-				callback();
-				pressedElementsMask |= elementMask;
-			}
-		}
-		else
-		{
-			pressedElementsMask &= ~elementMask;
-		}
-	}
 
 }
 

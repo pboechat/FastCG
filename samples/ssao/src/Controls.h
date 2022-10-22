@@ -3,14 +3,11 @@
 
 #include <FastCG/Behaviour.h>
 
-#include <vector>
 #include <cstdint>
 
-using namespace FastCG;
-
-class Controls : public Behaviour
+class Controls : public FastCG::Behaviour
 {
-	DECLARE_COMPONENT(Controls, Behaviour);
+	DECLARE_COMPONENT(Controls, FastCG::Behaviour);
 
 protected:
 	void OnUpdate(float time, float deltaTime) override;

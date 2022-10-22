@@ -10,19 +10,28 @@
 
 namespace FastCG
 {
+    class OpenGLRenderingSystem;
+    class OpenGLMaterial;
+    class OpenGLForwardRenderingPathStrategy;
+    class OpenGLDeferredRenderingPathStrategy;
+
     class OpenGLTexture : public BaseTexture
     {
-    public:
-        virtual ~OpenGLTexture();
-
-        void OnInitialize(bool generateMipmaps, void *pData) override;
-        void Bind() const override;
-        void Unbind() const override;
-
     private:
         GLuint mTextureId{~0u};
 
-        void DeallocateResources();
+        OpenGLTexture(const TextureArgs &rArgs);
+        virtual ~OpenGLTexture();
+
+        inline operator GLuint() const
+        {
+            return mTextureId;
+        }
+
+        friend class OpenGLRenderingSystem;
+        friend class OpenGLMaterial;
+        friend class OpenGLForwardRenderingPathStrategy;
+        friend class OpenGLDeferredRenderingPathStrategy;
     };
 }
 

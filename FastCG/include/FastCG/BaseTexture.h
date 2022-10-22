@@ -38,70 +38,61 @@ namespace FastCG
 
 	};
 
+	struct TextureArgs
+	{
+		std::string name;
+		uint32_t width;
+		uint32_t height;
+		TextureFormat format{TextureFormat::TF_RGB};
+		TextureDataType dataType{TextureDataType::DT_UNSIGNED_CHAR};
+		TextureFilter filter{TextureFilter::TF_LINEAR_FILTER};
+		TextureWrapMode wrapMode{TextureWrapMode::TW_CLAMP};
+		bool generateMipmaps{true};
+		void *pData{nullptr};
+	};
+
 	class BaseTexture
 	{
 	public:
-		BaseTexture() = default;
-		virtual ~BaseTexture() = default;
-
-		void Initialize(const std::string &rName,
-						uint32_t width,
-						uint32_t height,
-						TextureFormat format = TextureFormat::TF_RGB,
-						TextureDataType dataType = TextureDataType::DT_UNSIGNED_CHAR,
-						TextureFilter filter = TextureFilter::TF_LINEAR_FILTER,
-						TextureWrapMode wrapMode = TextureWrapMode::TW_CLAMP,
-						bool generateMipmaps = true,
-						void *pData = 0);
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
-
 		inline const std::string &GetName() const
 		{
-			return mName;
+			return mArgs.name;
 		}
 
 		inline uint32_t GetHeight() const
 		{
-			return mHeight;
+			return mArgs.height;
 		}
 
 		inline uint32_t GetWidth() const
 		{
-			return mWidth;
+			return mArgs.width;
 		}
 
 		inline TextureFormat GetFormat() const
 		{
-			return mFormat;
+			return mArgs.format;
 		}
 
 		inline TextureDataType GetDataType() const
 		{
-			return mDataType;
+			return mArgs.dataType;
 		}
 
 		inline TextureFilter GetFilterMode() const
 		{
-			return mFilter;
+			return mArgs.filter;
 		}
 
 		inline TextureWrapMode GetWrapMode() const
 		{
-			return mWrapMode;
+			return mArgs.wrapMode;
 		}
 
 	protected:
-		virtual void OnInitialize(bool generateMipmaps, void *pData) = 0;
+		const TextureArgs mArgs;
 
-	private:
-		std::string mName;
-		uint32_t mWidth;
-		uint32_t mHeight;
-		TextureFormat mFormat;
-		TextureDataType mDataType;
-		TextureFilter mFilter;
-		TextureWrapMode mWrapMode;
+		BaseTexture(const TextureArgs &rArgs) : mArgs(rArgs) {}
 	};
 
 }

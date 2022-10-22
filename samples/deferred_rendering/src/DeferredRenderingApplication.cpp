@@ -5,33 +5,32 @@
 
 #include <FastCG/TextureImporter.h>
 #include <FastCG/StandardGeometries.h>
-#include <FastCG/ShaderRegistry.h>
+#include <FastCG/Renderable.h>
 #include <FastCG/Random.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/ModelImporter.h>
-#include <FastCG/MeshRenderer.h>
-#include <FastCG/MeshFilter.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyCameraController.h>
 #include <FastCG/DirectionalLight.h>
+#include <FastCG/Camera.h>
 #include <FastCG/Colors.h>
 
 #include <vector>
 #include <cstdint>
 
-const uint32_t FLOOR_SIZE = 10;
-const float SPHERE_RADIUS = FLOOR_SIZE * 0.025f;
-const uint32_t NUMBER_OF_SPHERE_SLICES = 30;
-const uint32_t LIGHT_GRID_WIDTH = 7;
-const uint32_t LIGHT_GRID_DEPTH = 7;
-const uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
-const float WALK_SPEED = 20.0f;
-const float TURN_SPEED = 20.0f;
+using namespace FastCG;
 
-DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING})
+constexpr uint32_t FLOOR_SIZE = 10;
+constexpr float SPHERE_RADIUS = FLOOR_SIZE * 0.025f;
+constexpr uint32_t NUMBER_OF_SPHERE_SLICES = 30;
+constexpr uint32_t LIGHT_GRID_WIDTH = 7;
+constexpr uint32_t LIGHT_GRID_DEPTH = 7;
+constexpr uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
+constexpr float WALK_SPEED = 20.0f;
+constexpr float TURN_SPEED = 20.0f;
+
+DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING, {"deferred_rendering"}})
 {
-	mShowFPS = true;
-	mShowRenderingStatistics = true;
 }
 
 void DeferredRenderingApplication::OnStart()
@@ -64,30 +63,27 @@ void DeferredRenderingApplication::OnStart()
 		}
 	}
 
-	mpCheckersColorMapTexture = TextureImporter::Import("textures/CheckersColorMap.png");
-	if (mpCheckersColorMapTexture == nullptr)
+	mpCheckersColorMap = TextureImporter::Import("textures/checkers.png");
+	if (mpCheckersColorMap == nullptr)
 	{
 		FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");
 	}
 
-	mpFloorMaterial = std::make_shared<Material>(ShaderRegistry::Find("Specular"));
-	mpFloorMaterial->SetTexture("colorMap", mpCheckersColorMapTexture);
-	mpFloorMaterial->SetVec4("diffuseColor", Colors::WHITE);
-	mpFloorMaterial->SetVec4("specularColor", Colors::WHITE);
-	mpFloorMaterial->SetFloat("shininess", 5.0f);
+	mpFloorMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Floor", RenderingSystem::GetInstance()->FindShader("Specular")});
+	mpFloorMaterial->SetColorMap(mpCheckersColorMap);
+	mpFloorMaterial->SetDiffuseColor(Colors::WHITE);
+	mpFloorMaterial->SetSpecularColor(Colors::WHITE);
+	mpFloorMaterial->SetShininess(5.0f);
 
 	mpFloorMesh = StandardGeometries::CreateXZPlane("Floor", (float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
 	auto *pFloorGameObject = GameObject::Instantiate();
-	auto *pMeshRenderer = MeshRenderer::Instantiate(pFloorGameObject);
-	pMeshRenderer->AddMesh(mpFloorMesh);
-	auto *pMeshFilter = MeshFilter::Instantiate(pFloorGameObject);
-	pMeshFilter->SetMaterial(mpFloorMaterial);
+	auto *pRenderable = Renderable::Instantiate(pFloorGameObject, mpFloorMaterial, mpFloorMesh);
 
-	mpSphereMaterial = std::make_shared<Material>(ShaderRegistry::Find("SolidColor"));
-	mpSphereMaterial->SetVec4("diffuseColor", Colors::WHITE);
-	mpSphereMaterial->SetVec4("specularColor", Colors::WHITE);
-	mpSphereMaterial->SetFloat("shininess", 30.0f);
+	mpSphereMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Sphere", RenderingSystem::GetInstance()->FindShader("SolidColor")});
+	mpSphereMaterial->SetDiffuseColor(Colors::WHITE);
+	mpSphereMaterial->SetSpecularColor(Colors::WHITE);
+	mpSphereMaterial->SetShininess(30.0f);
 
 	mpSphereMesh = StandardGeometries::CreateSphere("Sphere", SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
 
@@ -97,22 +93,16 @@ void DeferredRenderingApplication::OnStart()
 		for (float x = 0; x < FLOOR_SIZE; x += 1)
 		{
 			auto *pSphereGameObject = GameObject::Instantiate();
-			pMeshRenderer = MeshRenderer::Instantiate(pSphereGameObject);
-			pMeshRenderer->AddMesh(mpSphereMesh);
-			pMeshFilter = MeshFilter::Instantiate(pSphereGameObject);
-			pMeshFilter->SetMaterial(mpSphereMaterial);
+			pRenderable = Renderable::Instantiate(pSphereGameObject, mpSphereMaterial, mpSphereMesh);
 			pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 			spheres.emplace_back(pSphereGameObject);
 		}
 	}
 
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
-
 	auto *pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
 	pLightsAnimator->SetLights(pointLights);
-
 	auto *pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
-
 	auto *pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
 	pFlyCameraController->SetWalkSpeed(WALK_SPEED);
 	pFlyCameraController->SetTurnSpeed(TURN_SPEED);

@@ -74,12 +74,7 @@ namespace
 
 namespace FastCG
 {
-    OpenGLTexture::~OpenGLTexture()
-    {
-        DeallocateResources();
-    }
-
-    void OpenGLTexture::OnInitialize(bool generateMipmaps, void *pData)
+    OpenGLTexture::OpenGLTexture(const TextureArgs &rArgs) : BaseTexture(rArgs)
     {
         auto filter = GetOpenGLFilter(GetFilterMode());
         auto wrapMode = GetOpenGLWrapMode(GetWrapMode());
@@ -98,9 +93,9 @@ namespace FastCG
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, GetWidth(), GetHeight(), 0, format, dataType, pData);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, GetWidth(), GetHeight(), 0, format, dataType, mArgs.pData);
 
-        if (generateMipmaps)
+        if (mArgs.generateMipmaps)
         {
             glGenerateMipmap(GL_TEXTURE_2D);
         }
@@ -108,24 +103,12 @@ namespace FastCG
         FASTCG_CHECK_OPENGL_ERROR();
     }
 
-    void OpenGLTexture::DeallocateResources()
+    OpenGLTexture::~OpenGLTexture()
     {
         if (mTextureId != ~0u)
         {
             glDeleteTextures(1, &mTextureId);
         }
-    }
-
-    void OpenGLTexture::Bind() const
-    {
-        glBindTexture(GL_TEXTURE_2D, mTextureId);
-        FASTCG_CHECK_OPENGL_ERROR();
-    }
-
-    void OpenGLTexture::Unbind() const
-    {
-        glBindTexture(GL_TEXTURE_2D, 0);
-        FASTCG_CHECK_OPENGL_ERROR();
     }
 }
 

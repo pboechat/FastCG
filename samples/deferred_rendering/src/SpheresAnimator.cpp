@@ -2,6 +2,8 @@
 
 #include <FastCG/Transform.h>
 
+using namespace FastCG;
+
 IMPLEMENT_COMPONENT(SpheresAnimator, Behaviour);
 
 void SpheresAnimator::OnUpdate(float time, float deltaTime)

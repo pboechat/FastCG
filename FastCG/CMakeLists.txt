@@ -7,10 +7,8 @@ file(GLOB HEADERS
 	"${PROJECT_SOURCE_DIR}/include/*.h" 
 	"${PROJECT_SOURCE_DIR}/include/**/*.hpp" 
 	"${PROJECT_SOURCE_DIR}/include/*.hpp" 
-	"${PROJECT_SOURCE_DIR}/src/**/*.h" 
-	"${PROJECT_SOURCE_DIR}/src/*.h" 
-	"${PROJECT_SOURCE_DIR}/src/**/*.hpp"
-	"${PROJECT_SOURCE_DIR}/src/*.hpp"
+	"${PROJECT_SOURCE_DIR}/include/**/*.inc" 
+	"${PROJECT_SOURCE_DIR}/include/*.inc"
 )
 file(GLOB SOURCES 
 	"${PROJECT_SOURCE_DIR}/src/**/*.cpp" 
@@ -31,11 +29,7 @@ file(GLOB DEFERRED_SHADERS
 	"${PROJECT_SOURCE_DIR}/../assets/shaders/deferred/*.glsl" 
 )
 
-file(GLOB GENERAL_SHADERS 
-	"${PROJECT_SOURCE_DIR}/../assets/shaders/*.vert" 
-	"${PROJECT_SOURCE_DIR}/../assets/shaders/*.frag" 
-	"${PROJECT_SOURCE_DIR}/../assets/shaders/*.glsl" 
-)
+list(APPEND SHADERS FORWARD_SHADERS DEFERRED_SHADERS)
 
 set(SHADERS ${FORWARD_SHADERS} ${DEFERRED_SHADERS} ${GENERAL_SHADERS})
 
@@ -46,12 +40,6 @@ set(${PROJECT_NAME}_LIBRARIES_INTERNAL ${glew_LIBRARIES} glm stb tinyobj_loader_
 	
 set(${PROJECT_NAME}_LIBRARIES ${PROJECT_NAME} ${${PROJECT_NAME}_LIBRARIES_INTERNAL}
 	CACHE INTERNAL "${PROJECT_NAME}: libraries" FORCE)
-message("RENDERING_SYSTEM=${RENDERING_SYSTEM}")
-
-if(RENDERING_SYSTEM STREQUAL "OpenGL")
-    add_definitions(-DFASTCG_OPENGL)
-endif()
-add_definitions(-DGLEW_STATIC)
 
 include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 
@@ -61,8 +49,10 @@ source_group("shaders/deferred" FILES ${DEFERRED_SHADERS})
 source_group("shaders/forward" FILES ${FORWARD_SHADERS})
 source_group("shaders" FILES ${GENERAL_SHADERS})
 
-add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
-
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d" POSITION_INDEPENDENT_CODE CXX LINKER_LANGUAGE CXX)
-
+fastcg_add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
+add_definitions(-DGLEW_STATIC)
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+	POSITION_INDEPENDENT_CODE CXX 
+	LINKER_LANGUAGE CXX
+)
 target_link_libraries(${PROJECT_NAME} ${FastCG_LIBRARIES_INTERNAL})

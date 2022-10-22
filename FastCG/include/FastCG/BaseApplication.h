@@ -2,23 +2,11 @@
 #define FASTCG_BASE_APPLICATION_H
 
 #include <FastCG/Timer.h>
-#include <FastCG/Shader.h>
 #include <FastCG/RenderingStatistics.h>
-#include <FastCG/Renderer.h>
-#include <FastCG/MeshBatchingStrategy.h>
-#include <FastCG/PointsRenderer.h>
-#include <FastCG/PointLight.h>
+#include <FastCG/RenderingPath.h>
 #include <FastCG/MouseButton.h>
-#include <FastCG/MeshFilter.h>
-#include <FastCG/LineRenderer.h>
-#include <FastCG/Light.h>
-#include <FastCG/GameObject.h>
-#include <FastCG/Font.h>
 #include <FastCG/FastCG.h>
-#include <FastCG/DirectionalLight.h>
-#include <FastCG/Component.h>
-#include <FastCG/Camera.h>
-#include <FastCG/Behaviour.h>
+#include <FastCG/Colors.h>
 
 #include <glm/glm.hpp>
 
@@ -37,26 +25,27 @@ private:                                                \
 namespace FastCG
 {
 	class ModelImporter;
+	class RenderBatchStrategy;
+	class Renderable;
+	class PointLight;
+	class GameObject;
+	class DirectionalLight;
+	class Component;
+	class Camera;
+	class Behaviour;
 
-	enum class RenderingPath : uint8_t
-	{
-		RP_FORWARD_RENDERING = 0,
-		RP_DEFERRED_RENDERING,
-
-	};
+	constexpr uint32_t UNLOCKED_FRAMERATE = ~0u;
 
 	struct ApplicationSettings
 	{
-		std::string windowTitle;
+		std::string windowTitle{};
 		uint32_t screenWidth{1024};
 		uint32_t screenHeight{768};
 		uint32_t frameRate{60};
 		RenderingPath renderingPath{RenderingPath::RP_FORWARD_RENDERING};
-		std::string assetsPath{"../assets"};
+		std::vector<std::string> assetBundles{};
 		glm::vec4 clearColor{Colors::BLACK};
 		glm::vec4 ambientLight{Colors::BLACK};
-		bool showFPS{false};
-		bool showRenderingStatistics{false};
 	};
 
 	class BaseApplication
@@ -67,7 +56,7 @@ namespace FastCG
 
 		inline static BaseApplication *GetInstance()
 		{
-			return s_mpInstance;
+			return smpInstance;
 		}
 
 		inline const std::string &GetWindowTitle() const
@@ -107,13 +96,22 @@ namespace FastCG
 			mClearColor = clearColor;
 		}
 
+		inline uint32_t GetFrameRate() const
+		{
+			return mFrameRate;
+		}
+
+		inline void SetFrameRate(uint32_t frameRate)
+		{
+			mFrameRate = frameRate;
+			mSecondsPerFrame = 1 / (double)frameRate;
+		}
+
 		int Run(int argc, char **argv);
 		inline void Exit()
 		{
 			mRunning = false;
 		}
-		void BeforeMeshFilterChange(MeshFilter *pMeshFilter);
-		void AfterMeshFilterChange(MeshFilter *pMeshFilter);
 
 		friend class GameObject;
 
@@ -121,8 +119,7 @@ namespace FastCG
 		const ApplicationSettings mSettings;
 		glm::vec4 mClearColor;
 		glm::vec4 mAmbientLight;
-		bool mShowFPS;
-		bool mShowRenderingStatistics;
+		uint32_t mFrameRate;
 		bool mRunning{false};
 
 		virtual bool ParseCommandLineArguments(int argc, char **argv);
@@ -141,16 +138,7 @@ namespace FastCG
 		virtual void InitializePresentation() = 0;
 		virtual void FinalizePresentation() = 0;
 		virtual void Present() = 0;
-		inline void WindowResizeCallback(int width, int height)
-		{
-			mScreenWidth = width;
-			mScreenHeight = height;
-			if (mpMainCamera != nullptr)
-			{
-				mpMainCamera->SetAspectRatio(GetAspectRatio());
-			}
-			OnResize();
-		}
+		void WindowResizeCallback(int width, int height);
 		void MouseButtonCallback(MouseButton button, MouseButtonState state, int x, int y);
 		void MouseWheelCallback(int direction, int x, int y);
 		void MouseMoveCallback(int x, int y);
@@ -159,43 +147,35 @@ namespace FastCG
 		virtual void OnFinalize() {}
 
 	private:
-		static BaseApplication *s_mpInstance;
+		static BaseApplication *smpInstance;
 
 		std::string mWindowTitle;
 		uint32_t mScreenWidth;
 		uint32_t mScreenHeight;
-		std::string mAssetsPath;
 		double mSecondsPerFrame;
-		std::unique_ptr<MeshBatchingStrategy> mpMeshBatchingStrategy{nullptr};
+		std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy{nullptr};
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
-		uint32_t mElapsedFrames{0};
+		size_t mFrameCount{0};
 		double mTotalElapsedTime{0};
 		double mLastFrameTime{0};
 		RenderingStatistics mRenderingStatistics;
 		GameObject *mpInternalGameObject{nullptr};
 		Camera *mpMainCamera{nullptr};
 		std::vector<GameObject *> mGameObjects;
-		std::vector<Camera *> mCameras;
+		std::vector<Renderable *> mRenderables;
 		std::vector<DirectionalLight *> mDirectionalLights;
 		std::vector<PointLight *> mPointLights;
-		std::vector<MeshFilter *> mMeshFilters;
-		std::vector<Behaviour *> mBehaviours;
-		std::vector<LineRenderer *> mLineRenderers;
-		std::vector<PointsRenderer *> mPointsRenderers;
 		std::vector<Component *> mComponents;
-		std::vector<std::unique_ptr<MeshBatch>> mMeshBatches;
+		std::vector<Camera *> mCameras;
+		std::vector<Behaviour *> mBehaviours;
 
 		void RegisterGameObject(GameObject *pGameObject);
 		void UnregisterGameObject(GameObject *pGameObject);
 		void RegisterComponent(Component *pComponent);
 		void RegisterCamera(Camera *pCamera);
 		void UnregisterComponent(Component *pComponent);
-		void DrawAllTexts();
-		void ShowFPS();
-		void ShowRenderingStatistics();
 		void Initialize();
-		void InitializeAssets();
 		void Finalize();
 	};
 

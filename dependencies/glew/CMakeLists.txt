@@ -27,15 +27,14 @@ set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
 set(${PROJECT_NAME}_LIBRARIES ${PROJECT_NAME} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
 	CACHE INTERNAL "${PROJECT_NAME}: libraries" FORCE)
 
-add_definitions(-DGLEW_STATIC)
-
 include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 
 source_group("include" FILES ${HEADERS})
 source_group("src" FILES ${SOURCES})
 
-add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
-
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
-set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE C)
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
+fastcg_add_dependency_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+add_definitions(-DGLEW_STATIC)
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+	POSITION_INDEPENDENT_CODE C 
+	LINKER_LANGUAGE C
+)

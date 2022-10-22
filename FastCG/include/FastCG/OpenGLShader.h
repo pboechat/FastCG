@@ -3,153 +3,42 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLExceptions.h>
 #include <FastCG/BaseShader.h>
 
 #include <GL/glew.h>
-#include <GL/gl.h>
+#include <GL/GL.h>
 
-#include <map>
+#include <string>
 
 namespace FastCG
 {
+    class OpenGLRenderingSystem;
+    class OpenGLMaterial;
+    class OpenGLForwardRenderingPathStrategy;
+    class OpenGLDeferredRenderingPathStrategy;
+
     class OpenGLShader : public BaseShader
     {
-    public:
-        OpenGLShader(const std::string &rName) : BaseShader(rName) {}
-        virtual ~OpenGLShader();
-
-        inline GLuint GetProgramId()
-        {
-            return mProgramId;
-        }
-
-        inline void Bind() const override
-        {
-            glUseProgram(mProgramId);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void Unbind() const override
-        {
-            glUseProgram(0);
-        }
-
-        inline void BindAttributeLocation(const std::string &rAttribute, unsigned int location) const override
-        {
-            glBindAttribLocation(mProgramId, location, rAttribute.c_str());
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetInt(const std::string &rParameterName, int value) const
-        {
-            glUniform1i(GetUniformLocation(rParameterName), value);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetFloat(const std::string &rParameterName, float value) const
-        {
-            glUniform1f(GetUniformLocation(rParameterName), value);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetBool(const std::string &rParameterName, bool value) const
-        {
-            glUniform1i(GetUniformLocation(rParameterName), value);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec2(const std::string &rParameterName, float x, float y) const
-        {
-            glUniform2f(GetUniformLocation(rParameterName), x, y);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec2(const std::string &rParameterName, const glm::vec2 &rVector) const
-        {
-            glUniform2fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec3(const std::string &rParameterName, float x, float y, float z) const
-        {
-            glUniform3f(GetUniformLocation(rParameterName), x, y, z);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec3(const std::string &rParameterName, const glm::vec3 &rVector) const
-        {
-            glUniform3fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec3Array(const std::string &rParameterName, unsigned int arraySize, const glm::vec3 *pVectorArray) const
-        {
-            glUniform3fv(GetUniformLocation(rParameterName), arraySize, &pVectorArray[0][0]);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec4(const std::string &rParameterName, float x, float y, float z, float w) const
-        {
-            glUniform4f(GetUniformLocation(rParameterName), x, y, z, w);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetVec4(const std::string &rParameterName, const glm::vec4 &rVector) const
-        {
-            glUniform4fv(GetUniformLocation(rParameterName), 1, &rVector[0]);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetMat3(const std::string &rParameterName, const glm::mat3 &rMatrix) const
-        {
-            glUniformMatrix3fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetMat4(const std::string &rParameterName, const glm::mat4 &rMatrix) const
-        {
-            glUniformMatrix4fv(GetUniformLocation(rParameterName), 1, GL_FALSE, &rMatrix[0][0]);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetTexture(const std::string &rParameterName, const std::shared_ptr<Texture> &pTexture, int32_t textureUnit) const
-        {
-            assert(pTexture != nullptr);
-            glActiveTexture(GL_TEXTURE0 + textureUnit);
-            pTexture->Bind();
-            glUniform1i(GetUniformLocation(rParameterName), textureUnit);
-        }
-
-        inline void SetTexture(const std::string &rParameterName, unsigned int textureId, int32_t textureUnit) const
-        {
-            glActiveTexture(GL_TEXTURE0 + textureUnit);
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glUniform1i(GetUniformLocation(rParameterName), textureUnit);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-
-        inline void SetTexture(const std::string &rParameterName, int32_t textureUnit) const
-        {
-            glUniform1i(GetUniformLocation(rParameterName), textureUnit);
-            FASTCG_CHECK_OPENGL_ERROR();
-        }
-        void Compile(const std::string &rShaderFileName, ShaderType shaderType) override;
-        void Link() override;
-
     private:
         GLuint mProgramId{~0u};
-        std::map<ShaderType, GLuint> mShadersIds;
+        ShaderTypeValueArray<GLuint> mShadersIds{};
 
-        void DetachShaders();
-        void DeleteShaders();
+        OpenGLShader(const ShaderArgs &rName);
+        virtual ~OpenGLShader();
 
-        inline int GetUniformLocation(const std::string &rParameterName) const
+        inline GLint GetBindingLocation(const std::string &rName) const
         {
-            auto location = glGetUniformLocation(mProgramId, rParameterName.c_str());
-            FASTCG_CHECK_OPENGL_ERROR();
-            return location;
+            return glGetUniformLocation(mProgramId, rName.c_str());
         }
+
+        void Bind() const;
+        void Unbind() const;
+        void BindTexture(GLint bindingLocation, GLuint textureId, GLint textureUnit) const;
+
+        friend class OpenGLRenderingSystem;
+        friend class OpenGLMaterial;
+        friend class OpenGLForwardRenderingPathStrategy;
+        friend class OpenGLDeferredRenderingPathStrategy;
     };
 
 }

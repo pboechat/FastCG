@@ -8,15 +8,15 @@ namespace FastCG
 	class Random
 	{
 	public:
-		static float NextFloat();
+		inline static float NextFloat();
 		template <typename T>
-		static T Range(T min, T max)
+		inline static T Range(T min, T max)
 		{
 			return min + (int)(NextFloat() * (max - min));
 		}
-		static glm::vec4 NextColor();
-		static void Seed(unsigned int seed);
-		static void SeedWithTime();
+		inline static glm::vec4 NextColor();
+		inline static void Seed(unsigned int seed);
+		inline static void SeedWithTime();
 
 	private:
 		Random() = delete;
@@ -24,5 +24,7 @@ namespace FastCG
 	};
 
 }
+
+#include <FastCG/Random.inc>
 
 #endif

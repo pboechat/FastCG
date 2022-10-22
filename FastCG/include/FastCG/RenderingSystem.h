@@ -11,4 +11,13 @@ namespace FastCG
 #error "FASTCG: Undefined rendering system"
 #endif
 
+namespace FastCG
+{
+    using Material = RenderingSystem::Material;
+    using MaterialArgs = RenderingSystem::Material::MaterialArgs;
+    using Mesh = RenderingSystem::Mesh;
+    using Shader = RenderingSystem::Shader;
+    using Texture = RenderingSystem::Texture;
+}
+
 #endif

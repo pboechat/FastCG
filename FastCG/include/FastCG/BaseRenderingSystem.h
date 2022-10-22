@@ -2,25 +2,27 @@
 #define FASTCG_BASE_RENDERING_SYSTEM_H
 
 #include <FastCG/RenderingStatistics.h>
-#include <FastCG/MeshBatch.h>
-#include <FastCG/PointsRenderer.h>
-#include <FastCG/PointLight.h>
-#include <FastCG/LineRenderer.h>
-#include <FastCG/FontRegistry.h>
-#include <FastCG/Font.h>
-#include <FastCG/DirectionalLight.h>
-#include <FastCG/Camera.h>
-#include <FastCG/BaseApplication.h>
+#include <FastCG/RenderingPath.h>
+#include <FastCG/BaseTexture.h>
+#include <FastCG/BaseShader.h>
+#include <FastCG/BaseMesh.h>
+#include <FastCG/BaseMaterial.h>
 
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <unordered_map>
 #include <string>
-#include <memory>
 #include <cstdint>
 
 namespace FastCG
 {
+    struct RenderBatch;
+    class PointLight;
+    class DirectionalLight;
+    class Camera;
+    class BaseApplication;
+
     struct RenderingSystemArgs
     {
         RenderingPath renderingPath;
@@ -30,73 +32,36 @@ namespace FastCG
         const glm::vec4 &rAmbientLight;
         const std::vector<DirectionalLight *> &rDirectionalLights;
         const std::vector<PointLight *> &rPointLights;
-        const std::vector<LineRenderer *> &rLineRenderers;
-        const std::vector<PointsRenderer *> &rPointsRenderers;
-        const std::vector<std::unique_ptr<MeshBatch>> &rMeshBatches;
+        const std::vector<const RenderBatch *> &rRenderBatches;
         RenderingStatistics &rRenderingStatistics;
     };
 
+    template <class MaterialT, class MeshT, class ShaderT, class TextureT>
     class BaseRenderingSystem
     {
     public:
-        static constexpr const char *const DEFAULT_FONT_NAME = "verdana";
+        using Material = MaterialT;
+        using Mesh = MeshT;
+        using Shader = ShaderT;
+        using Texture = TextureT;
 
-        virtual void Render(const Camera *pMainCamera) = 0;
-        virtual void DrawDebugTexts() = 0;
-
-        inline void Initialize()
-        {
-            OnInitialize();
-        }
-
-        inline void OnAssetsInitialized()
-        {
-            mpStandardFont = FontRegistry::Find(DEFAULT_FONT_NAME);
-            OnStart();
-        }
-
-        inline void Finalize()
-        {
-            OnFinalize();
-        }
-
-        inline void DrawDebugText(const std::string &rText, uint32_t x, uint32_t y, const std::shared_ptr<Font> &pFont, const glm::vec4 &rColor)
-        {
-            mDrawDebugTextRequests.emplace_back(DrawDebugTextRequest{rText, x, y, pFont, rColor});
-        }
-
-        inline void DrawDebugText(const std::string &rText, uint32_t x, uint32_t y, const glm::vec4 &rColor)
-        {
-            mDrawDebugTextRequests.emplace_back(DrawDebugTextRequest{rText, x, y, mpStandardFont, rColor});
-        }
+        // Template interface
+        void Render(const Camera *pMainCamera);
+        void Initialize();
+        void PostInitialize();
+        void Finalize();
+        Material *CreateMaterial(const MeshArgs &rArgs);
+        Mesh *CreateMesh(const MeshArgs &rArgs);
+        Shader *CreateShader(const ShaderArgs &rArgs);
+        Texture *CreateTexture(const TextureArgs &rArgs);
+        const Shader *FindShader(const std::string &rName) const;
 
         friend class BaseApplication;
 
     protected:
-        struct DrawDebugTextRequest
-        {
-            std::string text;
-            uint32_t x;
-            uint32_t y;
-            std::shared_ptr<Font> pFont;
-            glm::vec4 color;
-        };
-
         const RenderingSystemArgs mArgs;
 
-        BaseRenderingSystem(const RenderingSystemArgs &rArgs);
-        virtual ~BaseRenderingSystem();
-
-        virtual void OnInitialize() = 0;
-        virtual void OnStart() = 0;
-        virtual void OnFinalize() = 0;
-        void DrawDebugTextsWithStandardFont() const;
-
-    private:
-        static BaseRenderingSystem *s_mpInstance;
-
-        std::shared_ptr<Font> mpStandardFont{nullptr};
-        std::vector<DrawDebugTextRequest> mDrawDebugTextRequests;
+        BaseRenderingSystem(const RenderingSystemArgs &rArgs) : mArgs(rArgs) {}
     };
 
 }

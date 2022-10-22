@@ -11,7 +11,7 @@ namespace FastCG
 	class ComponentType;
 	class Component;
 	class Transform;
-	class Renderer;
+	class Renderable;
 
 	class GameObject
 	{
@@ -40,14 +40,14 @@ namespace FastCG
 			return mpTransform;
 		}
 
-		inline Renderer *GetRenderer()
+		inline Renderable *GetRenderable()
 		{
-			return mpRenderer;
+			return mpRenderable;
 		}
 
-		inline const Renderer *GetRenderer() const
+		inline const Renderable *GetRenderable() const
 		{
-			return mpRenderer;
+			return mpRenderable;
 		}
 
 		inline bool IsActive() const
@@ -63,7 +63,7 @@ namespace FastCG
 	private:
 		std::string mName;
 		Transform *mpTransform;
-		Renderer *mpRenderer{nullptr};
+		Renderable *mpRenderable{nullptr};
 		std::vector<Component *> mComponents;
 		bool mActive{true};
 

@@ -2,24 +2,15 @@
 #define SPHERES_ANIMATOR_H
 
 #include <FastCG/Behaviour.h>
-#include <FastCG/Texture.h>
 
 #include <glm/glm.hpp>
 
-using namespace FastCG;
-
-class SpheresAnimator : public Behaviour
+class SpheresAnimator : public FastCG::Behaviour
 {
-	DECLARE_COMPONENT(SpheresAnimator, Behaviour);
+	DECLARE_COMPONENT(SpheresAnimator, FastCG::Behaviour);
 
 public:
-	void OnInstantiate() override
-	{
-		mRotationSpeed = 0.0f;
-		mRotationAxis = glm::vec3(0.0f, 0.0f, 0.0f);
-	}
-
-	inline void SetSpheres(std::vector<GameObject *> spheres)
+	inline void SetSpheres(std::vector<FastCG::GameObject *> spheres)
 	{
 		mSpheres = spheres;
 	}
@@ -34,12 +25,13 @@ public:
 		mRotationAxis = rotationAxis;
 	}
 
+protected:
 	void OnUpdate(float time, float deltaTime) override;
 
 private:
-	std::vector<GameObject *> mSpheres;
-	glm::vec3 mRotationAxis;
-	float mRotationSpeed;
+	std::vector<FastCG::GameObject *> mSpheres;
+	glm::vec3 mRotationAxis{0, 0, 0};
+	float mRotationSpeed{0};
 };
 
 #endif

@@ -1,8 +1,6 @@
 #ifndef FASTCG_MODEL_IMPORTER_H
 #define FASTCG_MODEL_IMPORTER_H
 
-#include <FastCG/Mesh.h>
-#include <FastCG/Material.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/AABB.h>
 
@@ -22,14 +20,12 @@ namespace FastCG
 
 	};
 
-	using ModelImporterOptions = std::underlying_type<ModelImporterOption>::type;
+	using ModelImporterOptionType = std::underlying_type<ModelImporterOption>::type;
 
 	class ModelImporter
 	{
 	public:
-		static void SetBasePath(const std::string &basePath);
-		static GameObject *Import(const std::string &rFileName, ModelImporterOptions options = (ModelImporterOptions)ModelImporterOption::MIO_NONE);
-		static void Dispose();
+		static GameObject *Import(const std::string &rFileName, ModelImporterOptionType options = (ModelImporterOptionType)ModelImporterOption::MIO_NONE);
 
 	private:
 		ModelImporter() = delete;

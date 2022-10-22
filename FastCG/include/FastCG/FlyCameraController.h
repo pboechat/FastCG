@@ -12,10 +12,6 @@ namespace FastCG
 		DECLARE_COMPONENT(FlyCameraController, Behaviour);
 
 	public:
-		inline void OnInstantiate() override
-		{
-		}
-
 		inline float GetWalkSpeed() const
 		{
 			return mWalkSpeed;

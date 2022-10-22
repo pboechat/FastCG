@@ -1,10 +1,8 @@
 #include <FastCG/Transform.h>
-#include <FastCG/Texture.h>
-#include <FastCG/ShaderRegistry.h>
+#include <FastCG/RenderingSystem.h>
+#include <FastCG/Renderable.h>
 #include <FastCG/TextureImporter.h>
 #include <FastCG/ModelImporter.h>
-#include <FastCG/MeshRenderer.h>
-#include <FastCG/MeshFilter.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FileWriter.h>
 #include <FastCG/FileReader.h>
@@ -12,19 +10,16 @@
 #include <FastCG/Exception.h>
 #include <FastCG/Colors.h>
 #include <FastCG/BinaryStream.h>
+#include <FastCG/AssetSystem.h>
 
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <tinyobj_loader_c.h>
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 namespace FastCG
 {
-	static std::string gBasePath;
-	static std::vector<std::shared_ptr<Material>> gManagedMaterials;
-	static std::vector<std::shared_ptr<Mesh>> gManagedMeshes;
-
 	struct OptimizedModelHeader
 	{
 		size_t numVertices;
@@ -35,7 +30,6 @@ namespace FastCG
 
 	struct ImportContext
 	{
-		std::string basePath;
 		std::vector<std::unique_ptr<char[]>> fileData;
 	};
 
@@ -52,12 +46,12 @@ namespace FastCG
 							size_t *length)
 	{
 		auto *importContext = (ImportContext *)context;
-		auto data = FileReader::ReadText(importContext->basePath + "/" + filename, *length);
+		auto data = FileReader::ReadText(AssetSystem::GetInstance()->Resolve(filename), *length);
 		*buffer = data.get();
 		importContext->fileData.emplace_back(std::move(data));
 	}
 
-	using MeshCatalog = std::map<size_t, std::shared_ptr<Mesh>>;
+	using MeshCatalog = std::unordered_map<size_t, Mesh *>;
 
 	void BuildMeshCatalog(const std::string &rName,
 						  const tinyobj_attrib_t &attributes,
@@ -119,22 +113,22 @@ namespace FastCG
 				}
 			}
 
-			auto pMesh = std::make_shared<Mesh>();
-			pMesh->Initialize(rName + " (" + std::to_string(shapeIdx) + ")", vertices, normals, uvs, indices);
-			if (regenNormals)
-			{
-				pMesh->CalculateNormals();
-			}
-			pMesh->CalculateTangents();
-
+			auto *pMesh = RenderingSystem::GetInstance()->CreateMesh({rName + " (" + std::to_string(shapeIdx) + ")",
+																	  vertices,
+																	  normals,
+																	  uvs,
+																	  {},
+																	  indices,
+																	  true,
+																	  regenNormals,
+																	  true});
 			rMeshCatalog.emplace(shapeIdx, pMesh);
-			gManagedMeshes.emplace_back(pMesh);
 		}
 	}
 
-	using MaterialCatalog = std::map<uint32_t, std::shared_ptr<Material>>;
+	using MaterialCatalog = std::unordered_map<uint32_t, Material *>;
 
-	void BuildMaterialCatalog(const std::string &rBasePath,
+	void BuildMaterialCatalog(const std::string &rName,
 							  const tinyobj_material_t *pMaterials,
 							  size_t numMaterials,
 							  MaterialCatalog &rMaterialCatalog)
@@ -148,29 +142,29 @@ namespace FastCG
 			auto emissiveColor = glm::vec4{material.emission[0], material.emission[1], material.emission[2], 1.0};
 			auto shininess = material.shininess;
 
-			std::shared_ptr<Texture> pColorMapTexture = nullptr;
+			Texture *pColorMapTexture = nullptr;
 			if (material.diffuse_texname != nullptr)
 			{
 				pColorMapTexture = TextureImporter::Import(material.diffuse_texname);
 			}
 
-			std::shared_ptr<Texture> pBumpMapTexture = nullptr;
+			Texture *pBumpMapTexture = nullptr;
 			if (material.bump_texname != nullptr)
 			{
 				pBumpMapTexture = TextureImporter::Import(material.bump_texname);
 			}
 
-			std::shared_ptr<Shader> pShader;
+			const Shader *pShader;
 			if (pBumpMapTexture != nullptr)
 			{
 				// TODO:
 				if (shininess != 0.0f)
 				{
-					pShader = ShaderRegistry::Find("BumpedSpecular");
+					pShader = RenderingSystem::GetInstance()->FindShader("BumpedSpecular");
 				}
 				else
 				{
-					pShader = ShaderRegistry::Find("BumpedDiffuse");
+					pShader = RenderingSystem::GetInstance()->FindShader("BumpedDiffuse");
 				}
 			}
 			else if (pColorMapTexture != nullptr)
@@ -178,35 +172,33 @@ namespace FastCG
 				// TODO:
 				if (shininess != 0.0f)
 				{
-					pShader = ShaderRegistry::Find("Specular");
+					pShader = RenderingSystem::GetInstance()->FindShader("Specular");
 				}
 				else
 				{
-					pShader = ShaderRegistry::Find("Diffuse");
+					pShader = RenderingSystem::GetInstance()->FindShader("Diffuse");
 				}
 			}
 			else
 			{
-				pShader = ShaderRegistry::Find("SolidColor");
+				pShader = RenderingSystem::GetInstance()->FindShader("SolidColor");
 			}
 
-			auto pManagedMaterial = std::make_shared<Material>(pShader);
-			pManagedMaterial->SetVec4("diffuseColor", diffuseColor);
-			pManagedMaterial->SetVec4("specularColor", specularColor);
-			pManagedMaterial->SetVec4("emissiveColor", emissiveColor);
-			pManagedMaterial->SetFloat("shininess", shininess);
+			auto *pManagedMaterial = RenderingSystem::GetInstance()->CreateMaterial({rName + " (" + std::to_string(materialIdx) + ")", pShader});
+			pManagedMaterial->SetDiffuseColor(diffuseColor);
+			pManagedMaterial->SetSpecularColor(specularColor);
+			pManagedMaterial->SetShininess(shininess);
 
 			if (pColorMapTexture != nullptr)
 			{
-				pManagedMaterial->SetTexture("colorMap", pColorMapTexture);
+				pManagedMaterial->SetColorMap(pColorMapTexture);
 			}
 			if (pBumpMapTexture != nullptr)
 			{
-				pManagedMaterial->SetTexture("bumpMap", pBumpMapTexture);
+				pManagedMaterial->SetBumpMap(pBumpMapTexture);
 			}
 
 			rMaterialCatalog.emplace((uint32_t)materialIdx, pManagedMaterial);
-			gManagedMaterials.emplace_back(pManagedMaterial);
 		}
 	}
 
@@ -223,19 +215,18 @@ namespace FastCG
 		{
 			auto *pShapeGameObject = GameObject::Instantiate(rModelName + " (" + std::to_string(shapeIdx) + ")");
 			pShapeGameObject->GetTransform()->SetParent(pModelTransform);
-			auto *pMeshRenderer = MeshRenderer::Instantiate(pShapeGameObject);
-			auto *pMeshFilter = MeshFilter::Instantiate(pShapeGameObject);
 
+			Mesh *pMesh = nullptr;
 			{
 				auto it = rMeshCatalog.find(shapeIdx);
 				assert(it != rMeshCatalog.end());
-				pMeshRenderer->AddMesh(it->second);
+				pMesh = it->second;
 			}
 
 			// doesn't support multi materials at the moment
 			auto &shape = pShapes[shapeIdx];
 			auto materialIdx = attributes.material_ids[shapeIdx];
-			std::shared_ptr<Material> pMaterial = nullptr;
+			Material *pMaterial = nullptr;
 			if (materialIdx > 0)
 			{
 				auto it = rMaterialCatalog.find((uint32_t)materialIdx);
@@ -246,10 +237,8 @@ namespace FastCG
 			{
 				pMaterial = rMaterialCatalog.begin()->second;
 			}
-			if (pMaterial != nullptr)
-			{
-				pMeshFilter->SetMaterial(pMaterial);
-			}
+
+			auto *pRenderable = Renderable::Instantiate(pShapeGameObject, pMaterial, pMesh);
 		}
 		return pModelGameObject;
 	}
@@ -260,32 +249,29 @@ namespace FastCG
 					   std::vector<glm::vec2> &rUVs,
 					   std::vector<uint32_t> &rIndices)
 	{
-		auto *pMeshRenderer = static_cast<MeshRenderer *>(pGameObject->GetComponent(MeshRenderer::TYPE));
-		if (pMeshRenderer != nullptr)
+		auto *pRenderable = static_cast<Renderable *>(pGameObject->GetComponent(Renderable::TYPE));
+		if (pRenderable != nullptr)
 		{
-			auto &rModel = pGameObject->GetTransform()->GetModel();
+			auto model = pGameObject->GetTransform()->GetModel();
 
-			auto &rMeshes = pMeshRenderer->GetMeshes();
-			for (const auto &pMesh : rMeshes)
+			const auto *pMesh = pRenderable->GetMesh();
+			auto indicesOffset = (uint32_t)rVertices.size();
+			const auto &rMeshVertices = pMesh->GetVertices();
+			for (auto &vertex : rMeshVertices)
 			{
-				auto indicesOffset = (uint32_t)rVertices.size();
-				const auto &rMeshVertices = pMesh->GetVertices();
-				for (auto &vertex : rMeshVertices)
-				{
-					rVertices.emplace_back(glm::vec3(rModel * glm::vec4(vertex, 1)));
-				}
+				rVertices.emplace_back(glm::vec3(model * glm::vec4(vertex, 1)));
+			}
 
-				const auto &rMeshNormals = pMesh->GetNormals();
-				rNormals.insert(rNormals.end(), rMeshNormals.begin(), rMeshNormals.end());
+			const auto &rMeshNormals = pMesh->GetNormals();
+			rNormals.insert(rNormals.end(), rMeshNormals.begin(), rMeshNormals.end());
 
-				const auto &rMeshUVs = pMesh->GetUVs();
-				rUVs.insert(rUVs.end(), rMeshUVs.begin(), rMeshUVs.end());
+			const auto &rMeshUVs = pMesh->GetUVs();
+			rUVs.insert(rUVs.end(), rMeshUVs.begin(), rMeshUVs.end());
 
-				const auto &rMeshIndices = pMesh->GetIndices();
-				for (auto &index : rMeshIndices)
-				{
-					rIndices.emplace_back(indicesOffset + index);
-				}
+			const auto &rMeshIndices = pMesh->GetIndices();
+			for (auto &index : rMeshIndices)
+			{
+				rIndices.emplace_back(indicesOffset + index);
 			}
 		}
 
@@ -323,14 +309,14 @@ namespace FastCG
 		FileWriter::WriteBinary(rOptimizedModelFileName, outStream.GetData(), outStream.GetSize());
 	}
 
-	GameObject *ImportModelFromObjFile(const std::string &rBasePath, const std::string &rFilePath)
+	GameObject *ImportModelFromObjFile(const std::string &rFilePath)
 	{
 		tinyobj_attrib_t attributes;
 		tinyobj_shape_t *pShapes;
 		tinyobj_material_t *pMaterials;
 		size_t numShapes, numMaterials;
 
-		ImportContext importContext{rBasePath};
+		ImportContext importContext{};
 
 		if (tinyobj_parse_obj(&attributes,
 							  &pShapes,
@@ -346,7 +332,7 @@ namespace FastCG
 		}
 
 		MaterialCatalog materialCatalog;
-		BuildMaterialCatalog(rBasePath, pMaterials, numMaterials, materialCatalog);
+		BuildMaterialCatalog(rFilePath, pMaterials, numMaterials, materialCatalog);
 
 		MeshCatalog meshCatalog;
 		BuildMeshCatalog(rFilePath, attributes, pShapes, numShapes, meshCatalog);
@@ -405,54 +391,45 @@ namespace FastCG
 			FASTCG_THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
 		}
 
-		auto pMesh = std::make_shared<Mesh>();
-		pMesh->Initialize(rOptimizedModelFilePath, vertices, normals, uvs, indices);
-		gManagedMeshes.emplace_back(pMesh);
+		auto *pMesh = RenderingSystem::GetInstance()->CreateMesh({rOptimizedModelFilePath,
+																  vertices,
+																  normals,
+																  uvs,
+																  {},
+																  indices,
+																  true,
+																  false,
+																  true});
+		const auto *pShader = RenderingSystem::GetInstance()->FindShader("SolidColor");
 
-		auto pMaterial = std::make_shared<Material>(ShaderRegistry::Find("SolidColor"));
-		pMaterial->SetVec4("diffuseColor", Colors::WHITE);
-		pMaterial->SetVec4("specularColor", Colors::BLACK);
-		pMaterial->SetFloat("shininess", 0);
+		auto modelName = File::GetFileNameWithoutExtension(rOptimizedModelFilePath);
+		auto *pMaterial = RenderingSystem::GetInstance()->CreateMaterial({modelName + " Optimized Material", pShader});
+		pMaterial->SetDiffuseColor(Colors::WHITE);
+		pMaterial->SetSpecularColor(Colors::BLACK);
+		pMaterial->SetShininess(0);
 
-		gManagedMaterials.emplace_back(pMaterial);
-
-		auto *pGameObject = GameObject::Instantiate(File::GetFileNameWithoutExtension(rOptimizedModelFilePath));
-		auto *pMeshRenderer = MeshRenderer::Instantiate(pGameObject);
-		auto *pMeshFilter = MeshFilter::Instantiate(pGameObject);
-
-		pMeshFilter->SetMaterial(pMaterial);
-		pMeshRenderer->AddMesh(pMesh);
+		auto *pGameObject = GameObject::Instantiate(modelName);
+		Renderable::Instantiate(pGameObject, pMaterial, pMesh);
 
 		return pGameObject;
 	}
 
-	void ModelImporter::SetBasePath(const std::string &basePath)
+	GameObject *ModelImporter::Import(const std::string &rFilePath, ModelImporterOptionType options)
 	{
-		gBasePath = basePath;
-	}
-
-	GameObject *ModelImporter::Import(const std::string &rFilePath, ModelImporterOptions options)
-	{
-		auto optimizedFilePath = gBasePath + "/" + GetOptimizedModelFilePath(rFilePath);
+		auto optimizedFilePath = AssetSystem::GetInstance()->Resolve(GetOptimizedModelFilePath(rFilePath));
 		if (File::Exists(optimizedFilePath))
 		{
 			return ImportModelFromOptimizedFile(optimizedFilePath);
 		}
 		else
 		{
-			auto *pModelGameObject = ImportModelFromObjFile(gBasePath, rFilePath);
+			auto *pModelGameObject = ImportModelFromObjFile(rFilePath);
 			if ((options & (uint8_t)ModelImporterOption::MIO_EXPORT_OPTIMIZED_MODEL_FILE) != 0)
 			{
 				ExportOptimizedModelFile(optimizedFilePath, pModelGameObject);
 			}
 			return pModelGameObject;
 		}
-	}
-
-	void ModelImporter::Dispose()
-	{
-		gManagedMaterials.clear();
-		gManagedMeshes.clear();
 	}
 
 }

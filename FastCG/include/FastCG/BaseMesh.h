@@ -11,59 +11,57 @@
 
 namespace FastCG
 {
+	struct MeshArgs
+	{
+		std::string name;
+		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> normals;
+		std::vector<glm::vec2> uvs;
+		std::vector<glm::vec4> tangents;
+		std::vector<uint32_t> indices;
+		bool calculateBounds{true};
+		bool calculateNormals{false};
+		bool calculateTangents{false};
+	};
+
 	class BaseMesh
 	{
 	public:
-		BaseMesh() = default;
-		virtual ~BaseMesh() = default;
-
-		void Initialize(const std::string &rName, const std::vector<uint32_t> &indices);
-		void Initialize(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<uint32_t> &indices);
-		void Initialize(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<uint32_t> &indices);
-		void Initialize(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices);
-		void Initialize(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices);
-		void Initialize(const std::string &rName, const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<glm::vec4> &tangents, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices);
-		void CalculateNormals();
 		void CalculateTangents();
 
 		inline size_t GetNumberOfTriangles() const
 		{
-			return mIndices.size() / 3;
+			return mArgs.indices.size() / 3;
 		}
 
 		inline const std::string &GetName() const
 		{
-			return mName;
+			return mArgs.name;
 		}
 
 		inline const std::vector<glm::vec3> &GetVertices() const
 		{
-			return mVertices;
+			return mArgs.vertices;
 		}
 
 		inline const std::vector<glm::vec3> &GetNormals() const
 		{
-			return mNormals;
+			return mArgs.normals;
 		}
 
 		inline const std::vector<glm::vec2> &GetUVs() const
 		{
-			return mUVs;
+			return mArgs.uvs;
 		}
 
 		inline const std::vector<glm::vec4> &GetTangents() const
 		{
-			return mTangents;
-		}
-
-		inline void SetTangents(const std::vector<glm::vec4> &rTangents)
-		{
-			mTangents = rTangents;
+			return mArgs.tangents;
 		}
 
 		inline const std::vector<uint32_t> &GetIndices() const
 		{
-			return mIndices;
+			return mArgs.indices;
 		}
 
 		inline const AABB &GetBounds() const
@@ -71,20 +69,34 @@ namespace FastCG
 			return mBounds;
 		}
 
-		virtual void Draw() = 0;
-
 	protected:
-		std::string mName;
-		std::vector<glm::vec3> mVertices;
-		std::vector<glm::vec3> mNormals;
-		std::vector<glm::vec2> mUVs;
-		std::vector<glm::vec4> mTangents;
-		std::vector<uint32_t> mIndices;
+		const MeshArgs mArgs;
 		AABB mBounds;
 
-		void CalculateBounds();
+		BaseMesh(const MeshArgs &rArgs) : mArgs{rArgs.name,
+												rArgs.vertices,
+												rArgs.calculateNormals ? CalculateNormals(rArgs.vertices, rArgs.indices) : rArgs.normals,
+												rArgs.uvs,
+												rArgs.calculateTangents ? CalculateTangents(rArgs.vertices, rArgs.normals, rArgs.uvs, rArgs.indices) : rArgs.tangents,
+												rArgs.indices,
+												rArgs.calculateBounds,
+												rArgs.calculateNormals,
+												rArgs.calculateTangents}
+		{
+			if (mArgs.calculateBounds)
+			{
+				CalculateBounds();
+			}
+		}
+		virtual ~BaseMesh() = default;
+
+		inline static std::vector<glm::vec3> CalculateNormals(const std::vector<glm::vec3> &vertices, const std::vector<uint32_t> &indices);
+		inline static std::vector<glm::vec4> CalculateTangents(const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices);
+		inline void CalculateBounds();
 	};
 
 }
+
+#include <FastCG/BaseMesh.inc>
 
 #endif

@@ -9,8 +9,8 @@ namespace FastCG
 	class Directory
 	{
 	public:
-		static bool Exists(const std::string &rDirectoryPath);
-		static std::vector<std::string> ListFiles(const std::string &rDirectoryPath);
+		inline static bool Exists(const std::string &rDirectoryPath);
+		inline static std::vector<std::string> List(const std::string &rDirectoryPath, bool recursive = false);
 
 	private:
 		Directory() = delete;
@@ -18,5 +18,7 @@ namespace FastCG
 	};
 
 }
+
+#include <FastCG/Directory.inc>
 
 #endif

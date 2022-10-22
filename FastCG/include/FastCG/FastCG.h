@@ -1,10 +1,6 @@
 #ifndef FASTCG_H
 #define FASTCG_H
 
-#ifdef _WIN32
-#define FASTCG_WINDOWS
-#endif
-
 #ifdef FASTCG_WINDOWS
 #include <Windows.h>
 #endif
@@ -16,7 +12,7 @@
 #ifdef FASTCG_WINDOWS
 #define FASTCG_MSG_BOX(title, fmt, ...)                            \
     {                                                              \
-        char msg[1024];                                            \
+        char msg[4096];                                            \
         sprintf_s(msg, FASTCG_ARRAYSIZE(msg), fmt, ##__VA_ARGS__); \
         MessageBoxA(NULL, msg, title, MB_ICONWARNING);             \
     }

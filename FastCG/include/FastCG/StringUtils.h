@@ -9,12 +9,12 @@ namespace FastCG
 	class StringUtils
 	{
 	public:
-		static void Tokenize(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens);
-		static void LeftTrim(std::string &rString);
-		static void RightTrim(std::string &rString);
-		static void Trim(std::string &rString);
-		static void Replace(std::string &rString, const std::string &rFrom, const std::string &rTo);
-		static bool StartsWith(const std::string &rString1, const std::string &rString2);
+		inline static void Tokenize(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens);
+		inline static void LeftTrim(std::string &rString);
+		inline static void RightTrim(std::string &rString);
+		inline static void Trim(std::string &rString);
+		inline static void Replace(std::string &rString, const std::string &rFrom, const std::string &rTo);
+		inline static bool StartsWith(const std::string &rString1, const std::string &rString2);
 
 	private:
 		StringUtils() = delete;
@@ -22,5 +22,7 @@ namespace FastCG
 	};
 
 }
+
+#include <FastCG/StringUtils.inc>
 
 #endif

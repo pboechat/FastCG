@@ -1,15 +1,11 @@
 #include "LightsAnimator.h"
 
 #include <FastCG/Transform.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Random.h>
 #include <FastCG/MouseButton.h>
-#include <FastCG/MathT.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/FontRegistry.h>
-#include <FastCG/Application.h>
 
-#include <cstdint>
+using namespace FastCG;
 
 IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
 
@@ -26,12 +22,6 @@ void LightsAnimator::SetLights(const std::vector<PointLight *> &rLights)
 
 void LightsAnimator::OnUpdate(float time, float deltaTime)
 {
-	char text[128];
-	sprintf_s(text, sizeof(text) / sizeof(char), "Animated Lights: %zu", mPointLights.size());
-
-	const uint32_t text3Height = (FontRegistry::STANDARD_FONT_SIZE + 3) * 4 + 9;
-	RenderingSystem::GetInstance()->DrawDebugText(text, 10, text3Height, glm::vec4{0, 1, 0, 1});
-
 	if (time - mLastDirectionChangeTime > 5.0f)
 	{
 		for (size_t i = 0; i < mPointLights.size(); i++)

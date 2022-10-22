@@ -1,13 +1,13 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLRenderingSystem.h>
-
 #ifdef FASTCG_WINDOWS
 #include <FastCG/WindowsApplication.h>
 #endif
-#include <FastCG/OpenGLForwardRenderingStrategy.h>
-#include <FastCG/OpenGLDeferredRenderingStrategy.h>
+#include <FastCG/OpenGLRenderingSystem.h>
+#include <FastCG/OpenGLForwardRenderingPathStrategy.h>
+#include <FastCG/OpenGLDeferredRenderingPathStrategy.h>
 #include <FastCG/Exception.h>
+#include <FastCG/AssetSystem.h>
 
 #ifdef FASTCG_WINDOWS
 #include <GL/wglew.h>
@@ -86,6 +86,21 @@ namespace FastCG
 {
     OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs)
     {
+    }
+
+    OpenGLRenderingSystem::~OpenGLRenderingSystem() = default;
+
+    void OpenGLRenderingSystem::Initialize()
+    {
+        CreateOpenGLContext();
+
+#ifdef _DEBUG
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallbackARB(OpenGLDebugCallback, nullptr);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
+#endif
+
         RenderingPathStrategyArgs rpsArgs{
             mArgs.rScreenWidth,
             mArgs.rScreenHeight,
@@ -93,44 +108,48 @@ namespace FastCG
             mArgs.rAmbientLight,
             mArgs.rDirectionalLights,
             mArgs.rPointLights,
-            mArgs.rLineRenderers,
-            mArgs.rPointsRenderers,
-            mArgs.rMeshBatches,
+            mArgs.rRenderBatches,
             mArgs.rRenderingStatistics};
 
         switch (mArgs.renderingPath)
         {
         case RenderingPath::RP_FORWARD_RENDERING:
-            mpRenderingPathStrategy = std::make_unique<OpenGLForwardRenderingStrategy>(rpsArgs);
+            mpRenderingPathStrategy = std::make_unique<OpenGLForwardRenderingPathStrategy>(rpsArgs);
             break;
         case RenderingPath::RP_DEFERRED_RENDERING:
-            mpRenderingPathStrategy = std::make_unique<OpenGLDeferredRenderingStrategy>(rpsArgs);
+            mpRenderingPathStrategy = std::make_unique<OpenGLDeferredRenderingPathStrategy>(rpsArgs);
             break;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path");
             break;
         }
+
+        mpRenderingPathStrategy->Initialize();
     }
 
-    void OpenGLRenderingSystem::OnInitialize()
+    void OpenGLRenderingSystem::PostInitialize()
     {
-        CreateOpenGLContext();
-
-#ifdef _DEBUG
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallbackARB(OpenGLDebugCallback, nullptr);
-#endif
+        mpRenderingPathStrategy->PostInitialize();
     }
 
-    void OpenGLRenderingSystem::OnStart()
+    void OpenGLRenderingSystem::Finalize()
     {
-        mpRenderingPathStrategy->OnResourcesLoaded();
-    }
+        mpRenderingPathStrategy->Finalize();
 
-    void OpenGLRenderingSystem::OnFinalize()
-    {
         DestroyOpenGLContext();
     }
+
+#define DECLARE_CREATE_METHOD(className, containerMember)                             \
+    className *OpenGLRenderingSystem::Create##className(const className##Args &rArgs) \
+    {                                                                                 \
+        containerMember.emplace_back(new className{rArgs});                           \
+        return containerMember.back();                                                \
+    }
+
+    DECLARE_CREATE_METHOD(Material, mMaterials)
+    DECLARE_CREATE_METHOD(Mesh, mMeshes)
+    DECLARE_CREATE_METHOD(Shader, mShaders)
+    DECLARE_CREATE_METHOD(Texture, mTextures)
 
     void OpenGLRenderingSystem::CreateOpenGLContext()
     {
@@ -156,7 +175,7 @@ namespace FastCG
         }
 
         const int attribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
             WGL_CONTEXT_MINOR_VERSION_ARB, 3,
             WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
@@ -210,21 +229,6 @@ namespace FastCG
         }
 
         mpRenderingPathStrategy->Render(pMainCamera);
-    }
-
-    void OpenGLRenderingSystem::DrawDebugTexts()
-    {
-#ifdef _DEBUG
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Text Pass");
-#endif
-
-        glViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
-
-        DrawDebugTextsWithStandardFont();
-
-#ifdef _DEBUG
-        glPopDebugGroup();
-#endif
     }
 
 }

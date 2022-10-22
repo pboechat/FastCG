@@ -2,20 +2,18 @@
 #define FASTCG_RENDERING_PATH_STRATEGY_H
 
 #include <FastCG/RenderingStatistics.h>
-#include <FastCG/PointsRenderer.h>
-#include <FastCG/PointLight.h>
-#include <FastCG/MeshBatch.h>
-#include <FastCG/LineRenderer.h>
-#include <FastCG/DirectionalLight.h>
-#include <FastCG/Camera.h>
+#include <FastCG/RenderBatch.h>
 
 #include <glm/glm.hpp>
 
 #include <vector>
-#include <memory>
 
 namespace FastCG
 {
+	class DirectionalLight;
+	class PointLight;
+	class Camera;
+
 	struct RenderingPathStrategyArgs
 	{
 		const uint32_t &rScreenWidth;
@@ -24,21 +22,19 @@ namespace FastCG
 		const glm::vec4 &rAmbientLight;
 		const std::vector<DirectionalLight *> &rDirectionalLights;
 		const std::vector<PointLight *> &rPointLights;
-		const std::vector<LineRenderer *> &rLineRenderers;
-		const std::vector<PointsRenderer *> &rPointsRenderers;
-		const std::vector<std::unique_ptr<MeshBatch>> &rMeshBatches;
+		const std::vector<const RenderBatch *> &rRenderBatches;
 		RenderingStatistics &rRenderingStatistics;
 	};
 
 	class RenderingPathStrategy
 	{
 	public:
-		RenderingPathStrategy(const RenderingPathStrategyArgs &rArgs) : mArgs(rArgs)
-		{
-		}
+		RenderingPathStrategy(const RenderingPathStrategyArgs &rArgs) : mArgs(rArgs) {}
 		virtual ~RenderingPathStrategy() = default;
 
-		virtual void OnResourcesLoaded() = 0;
+		virtual void Initialize() {}
+		virtual void PostInitialize() {}
+		virtual void Finalize() {}
 		virtual void Render(const Camera *pMainCamera) = 0;
 
 	protected:

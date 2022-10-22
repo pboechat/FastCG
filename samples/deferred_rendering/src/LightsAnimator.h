@@ -6,27 +6,23 @@
 
 #include <glm/glm.hpp>
 
-using namespace FastCG;
+#include <vector>
 
-class LightsAnimator : public Behaviour
+class LightsAnimator : public FastCG::Behaviour
 {
-	DECLARE_COMPONENT(LightsAnimator, Behaviour);
+	DECLARE_COMPONENT(LightsAnimator, FastCG::Behaviour);
 
 public:
-	void OnInstantiate() override
-	{
-		mLastDirectionChangeTime = 0;
-		mLastMouseButtonPressTime = 0;
-	}
+	void SetLights(const std::vector<FastCG::PointLight *> &rLights);
 
-	void SetLights(const std::vector<PointLight *> &rLights);
+protected:
 	void OnUpdate(float time, float deltaTime) override;
 
 private:
-	std::vector<PointLight *> mPointLights;
+	std::vector<FastCG::PointLight *> mPointLights;
 	std::vector<glm::vec3> mDirections;
-	float mLastDirectionChangeTime;
-	float mLastMouseButtonPressTime;
+	float mLastDirectionChangeTime{0};
+	float mLastMouseButtonPressTime{0};
 };
 
 #endif

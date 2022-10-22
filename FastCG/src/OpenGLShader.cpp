@@ -3,68 +3,37 @@
 #include <FastCG/ShaderSource.h>
 #include <FastCG/OpenGLShader.h>
 #include <FastCG/OpenGLExceptions.h>
+#include <FastCG/FastCG.h>
+
+#include <algorithm>
 
 namespace
 {
-    void CheckCompile(GLuint shaderObjectId, const std::string &rShaderName, const std::string &rShaderFileName)
-    {
-        GLint compileStatus;
-        glGetShaderiv(shaderObjectId, GL_COMPILE_STATUS, &compileStatus);
-
-        if (compileStatus == GL_TRUE)
-        {
-            return;
-        }
-
-        GLint infoLogLength;
-        glGetShaderiv(shaderObjectId, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-        std::string infoLog;
-        infoLog.reserve(infoLogLength);
-        glGetShaderInfoLog(shaderObjectId, infoLogLength, &infoLogLength, &infoLog[0]);
-
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGLShader (%s) info log ('%s'): %s", rShaderName.c_str(), rShaderFileName.c_str(), infoLog.c_str());
+#define DECLARE_CHECK_STATUS_FN(object)                                                                                          \
+    void Check##object##Status(GLuint objectId, GLenum status, const std::string &rIdentifier)                                   \
+    {                                                                                                                            \
+        GLint statusValue;                                                                                                       \
+        glGet##object##iv(objectId, status, &statusValue);                                                                       \
+        GLint infoLogLength;                                                                                                     \
+        glGet##object##iv(objectId, GL_INFO_LOG_LENGTH, &infoLogLength);                                                         \
+        if (infoLogLength > 0)                                                                                                   \
+        {                                                                                                                        \
+            std::string infoLog;                                                                                                 \
+            infoLog.reserve(infoLogLength);                                                                                      \
+            glGet##object##InfoLog(objectId, infoLogLength, &infoLogLength, &infoLog[0]);                                        \
+            if (statusValue == GL_TRUE)                                                                                          \
+            {                                                                                                                    \
+                FASTCG_MSG_BOX("OpenGLShader", #object " info log ('%s'): %s", rIdentifier.c_str(), infoLog.c_str())             \
+            }                                                                                                                    \
+            else                                                                                                                 \
+            {                                                                                                                    \
+                FASTCG_THROW_EXCEPTION(FastCG::Exception, #object " info log ('%s'): %s", rIdentifier.c_str(), infoLog.c_str()); \
+            }                                                                                                                    \
+        }                                                                                                                        \
     }
 
-    void CheckLink(GLuint programId, const std::string &rShaderName)
-    {
-        GLint linkStatus;
-        glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
-
-        if (linkStatus == GL_TRUE)
-        {
-            return;
-        }
-
-        GLint infoLogLength;
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-        std::string infoLog;
-        infoLog.reserve((size_t)infoLogLength);
-        glGetProgramInfoLog(programId, infoLogLength, &infoLogLength, &infoLog[0]);
-
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGLShader (%s) info log: %s", rShaderName.c_str(), infoLog.c_str());
-    }
-
-    void CheckValidate(GLuint programId, const std::string &rShaderName)
-    {
-        GLint validateStatus;
-        glGetProgramiv(programId, GL_VALIDATE_STATUS, &validateStatus);
-
-        if (validateStatus == GL_TRUE)
-        {
-            return;
-        }
-
-        GLint infoLogLength;
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-        std::string infoLog;
-        infoLog.reserve((size_t)infoLogLength);
-        glGetProgramInfoLog(programId, infoLogLength, &infoLogLength, &infoLog[0]);
-
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGLShader (%s) info log: %s", rShaderName.c_str(), infoLog.c_str());
-    }
+    DECLARE_CHECK_STATUS_FN(Shader)
+    DECLARE_CHECK_STATUS_FN(Program)
 
 #define CASE_RETURN_STRING(str) \
     case str:                   \
@@ -99,67 +68,69 @@ namespace
 
 namespace FastCG
 {
-    OpenGLShader::~OpenGLShader()
+    OpenGLShader::OpenGLShader(const ShaderArgs &rName) : BaseShader(rName)
     {
-        DetachShaders();
-        DeleteShaders();
-        mShadersIds.clear();
-
-        if (mProgramId != ~0u)
+        std::fill(mShadersIds.begin(), mShadersIds.end(), ~0u);
+        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::ST_MAX; i++)
         {
-            glDeleteProgram(mProgramId);
-        }
-    }
+            auto shaderType = (ShaderType)i;
+            const auto &shaderFileName = mArgs.shaderFileNames[i];
 
-    void OpenGLShader::Compile(const std::string &rShaderFileName, ShaderType shaderType)
-    {
-        auto shaderSource = ShaderSource::Parse(rShaderFileName);
-        auto glShaderType = GetOpenGLShaderType(shaderType);
-        auto shaderId = glCreateShader(glShaderType);
+            if (shaderFileName.empty())
+            {
+                continue;
+            }
 
-        if (shaderSource.empty())
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGLShader file not found: %s", rShaderFileName.c_str());
-        }
+            auto shaderSource = ShaderSource::Parse(shaderFileName);
+            auto glShaderType = GetOpenGLShaderType(shaderType);
+            auto shaderId = glCreateShader(glShaderType);
 
-        const auto *pShaderSource = shaderSource.c_str();
-        glShaderSource(shaderId, 1, (const char **)&pShaderSource, 0);
+            if (shaderSource.empty())
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "OpenGLShader file not found: %s", shaderFileName.c_str());
+            }
 
-        glCompileShader(shaderId);
-        CheckCompile(shaderId, GetName(), rShaderFileName);
+            const auto *pShaderSource = shaderSource.c_str();
+            glShaderSource(shaderId, 1, (const char **)&pShaderSource, 0);
 
-        mShadersIds.insert(std::make_pair(shaderType, shaderId));
+            glCompileShader(shaderId);
+            CheckShaderStatus(shaderId, GL_COMPILE_STATUS, shaderFileName);
 
-        FASTCG_CHECK_OPENGL_ERROR();
+            mShadersIds[i] = shaderId;
+
+            FASTCG_CHECK_OPENGL_ERROR();
 
 #ifdef _DEBUG
-        std::string shaderLabel = GetName() + " (" + GetOpenGLShaderTypeString(glShaderType) + ")";
-        glObjectLabel(GL_SHADER, shaderId, (GLsizei)shaderLabel.size(), shaderLabel.c_str());
+            std::string shaderLabel = GetName() + " (" + GetOpenGLShaderTypeString(glShaderType) + ")";
+            glObjectLabel(GL_SHADER, shaderId, (GLsizei)shaderLabel.size(), shaderLabel.c_str());
 #endif
-    }
-
-    void OpenGLShader::Link()
-    {
-        mProgramId = glCreateProgram();
-
-        auto it = mShadersIds.begin();
-        while (it != mShadersIds.end())
-        {
-            glAttachShader(mProgramId, it->second);
-            it++;
         }
 
-        BindAttributeLocation("position", VERTICES_ATTRIBUTE_INDEX);
-        BindAttributeLocation("normal", NORMALS_ATTRIBUTE_INDEX);
-        BindAttributeLocation("uv", UVS_ATTRIBUTE_INDEX);
-        BindAttributeLocation("tangent", TANGENTS_ATTRIBUTE_INDEX);
-        BindAttributeLocation("color", COLORS_ATTRIBUTE_INDEX);
+        mProgramId = glCreateProgram();
+
+        for (const auto &shaderId : mShadersIds)
+        {
+            glAttachShader(mProgramId, shaderId);
+        }
+
+        glBindAttribLocation(mProgramId, VERTICES_ATTRIBUTE_INDEX, "position");
+        glBindAttribLocation(mProgramId, NORMALS_ATTRIBUTE_INDEX, "normal");
+        glBindAttribLocation(mProgramId, UVS_ATTRIBUTE_INDEX, "uv");
+        glBindAttribLocation(mProgramId, TANGENTS_ATTRIBUTE_INDEX, "tangent");
+        glBindAttribLocation(mProgramId, COLORS_ATTRIBUTE_INDEX, "color");
 
         glLinkProgram(mProgramId);
-        CheckLink(mProgramId, GetName());
+        CheckProgramStatus(mProgramId, GL_LINK_STATUS, GetName());
 
+        for (const auto &shaderId : mShadersIds)
+        {
+            glDetachShader(mProgramId, shaderId);
+        }
+
+#ifdef _DEBUG
         glValidateProgram(mProgramId);
-        CheckValidate(mProgramId, GetName());
+        CheckProgramStatus(mProgramId, GL_VALIDATE_STATUS, GetName());
+#endif
 
 #ifdef _DEBUG
         std::string programLabel = GetName() + " (GL_PROGRAM)";
@@ -167,24 +138,34 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLShader::DetachShaders()
+    OpenGLShader::~OpenGLShader()
     {
-        auto it = mShadersIds.begin();
-        while (it != mShadersIds.end())
+        for (auto shaderId : mShadersIds)
         {
-            glDetachShader(mProgramId, it->second);
-            it++;
+            glDeleteShader(shaderId);
+        }
+
+        if (mProgramId != ~0u)
+        {
+            glDeleteProgram(mProgramId);
         }
     }
 
-    void OpenGLShader::DeleteShaders()
+    void OpenGLShader::Bind() const
     {
-        auto it = mShadersIds.begin();
-        while (it != mShadersIds.end())
-        {
-            glDeleteShader(it->second);
-            it++;
-        }
+        glUseProgram(mProgramId);
+    }
+
+    void OpenGLShader::Unbind() const
+    {
+        glUseProgram(0);
+    }
+
+    void OpenGLShader::BindTexture(GLint bindingLocation, GLuint textureId, GLint textureUnit) const
+    {
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glUniform1i(bindingLocation, textureUnit);
     }
 
 }

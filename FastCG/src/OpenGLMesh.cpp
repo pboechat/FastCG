@@ -1,78 +1,73 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Shader.h>
+#include <FastCG/OpenGLShader.h>
 #include <FastCG/OpenGLMesh.h>
 #include <FastCG/OpenGLExceptions.h>
 
 namespace FastCG
 {
-    OpenGLMesh::~OpenGLMesh()
+    OpenGLMesh::OpenGLMesh(const MeshArgs &rArgs) : BaseMesh(rArgs)
     {
-        DeallocateResources();
-    }
-
-    void OpenGLMesh::AllocateResources()
-    {
-        if (!mVertices.empty())
+        if (!mArgs.vertices.empty())
         {
             // create vertices buffer and upload data
             glGenBuffers(1, &mVerticesBufferId);
             glBindBuffer(GL_ARRAY_BUFFER, mVerticesBufferId);
 #ifdef _DEBUG
             {
-                std::string bufferLabel = mName + " Vertices (GL_BUFFER)";
+                std::string bufferLabel = mArgs.name + " Vertices (GL_BUFFER)";
                 glObjectLabel(GL_BUFFER, mVerticesBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
             }
 #endif
-            glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(glm::vec3), &mVertices[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, mArgs.vertices.size() * sizeof(glm::vec3), &mArgs.vertices[0], GL_STATIC_DRAW);
 
             FASTCG_CHECK_OPENGL_ERROR();
         }
 
-        if (!mNormals.empty())
+        if (!mArgs.normals.empty())
         {
             // create normals buffer and upload data
             glGenBuffers(1, &mNormalsBufferId);
             glBindBuffer(GL_ARRAY_BUFFER, mNormalsBufferId);
 #ifdef _DEBUG
             {
-                std::string bufferLabel = mName + " Normals (GL_BUFFER)";
+                std::string bufferLabel = mArgs.name + " Normals (GL_BUFFER)";
                 glObjectLabel(GL_BUFFER, mNormalsBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
             }
 #endif
-            glBufferData(GL_ARRAY_BUFFER, mNormals.size() * sizeof(glm::vec3), &mNormals[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, mArgs.normals.size() * sizeof(glm::vec3), &mArgs.normals[0], GL_STATIC_DRAW);
 
             FASTCG_CHECK_OPENGL_ERROR();
         }
 
-        if (!mUVs.empty())
+        if (!mArgs.uvs.empty())
         {
             // create uvs buffer and upload data
             glGenBuffers(1, &mUVsBufferId);
             glBindBuffer(GL_ARRAY_BUFFER, mUVsBufferId);
 #ifdef _DEBUG
             {
-                std::string bufferLabel = mName + " UVs (GL_BUFFER)";
+                std::string bufferLabel = mArgs.name + " UVs (GL_BUFFER)";
                 glObjectLabel(GL_BUFFER, mUVsBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
             }
 #endif
-            glBufferData(GL_ARRAY_BUFFER, mUVs.size() * sizeof(glm::vec2), &mUVs[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, mArgs.uvs.size() * sizeof(glm::vec2), &mArgs.uvs[0], GL_STATIC_DRAW);
 
             FASTCG_CHECK_OPENGL_ERROR();
         }
 
-        if (!mTangents.empty())
+        if (!mArgs.tangents.empty())
         {
             // create tangents buffer and upload data
             glGenBuffers(1, &mTangentsBufferId);
             glBindBuffer(GL_ARRAY_BUFFER, mTangentsBufferId);
 #ifdef _DEBUG
             {
-                std::string bufferLabel = mName + " Tangents (GL_BUFFER)";
+                std::string bufferLabel = mArgs.name + " Tangents (GL_BUFFER)";
                 glObjectLabel(GL_BUFFER, mTangentsBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
             }
 #endif
-            glBufferData(GL_ARRAY_BUFFER, mTangents.size() * sizeof(glm::vec4), &mTangents[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, mArgs.tangents.size() * sizeof(glm::vec4), &mArgs.tangents[0], GL_STATIC_DRAW);
 
             FASTCG_CHECK_OPENGL_ERROR();
         }
@@ -81,11 +76,11 @@ namespace FastCG
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndicesBufferId);
 #ifdef _DEBUG
         {
-            std::string bufferLabel = mName + " Indices (GL_BUFFER)";
+            std::string bufferLabel = mArgs.name + " Indices (GL_BUFFER)";
             glObjectLabel(GL_BUFFER, mIndicesBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
         }
 #endif
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(uint32_t), &mIndices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mArgs.indices.size() * sizeof(uint32_t), &mArgs.indices[0], GL_STATIC_DRAW);
 
         FASTCG_CHECK_OPENGL_ERROR();
 
@@ -94,53 +89,53 @@ namespace FastCG
         glBindVertexArray(mVertexArrayId);
 #ifdef _DEBUG
         {
-            std::string vertexArrayLabel = mName + " (GL_VERTEX_ARRAY)";
+            std::string vertexArrayLabel = mArgs.name + " (GL_VERTEX_ARRAY)";
             glObjectLabel(GL_VERTEX_ARRAY, mVertexArrayId, (GLsizei)vertexArrayLabel.size(), vertexArrayLabel.c_str());
         }
 #endif
 
-        if (!mVertices.empty())
+        if (!mArgs.vertices.empty())
         {
-            glEnableVertexAttribArray(Shader::VERTICES_ATTRIBUTE_INDEX);
+            glEnableVertexAttribArray(OpenGLShader::VERTICES_ATTRIBUTE_INDEX);
         }
-        if (!mNormals.empty())
+        if (!mArgs.normals.empty())
         {
-            glEnableVertexAttribArray(Shader::NORMALS_ATTRIBUTE_INDEX);
+            glEnableVertexAttribArray(OpenGLShader::NORMALS_ATTRIBUTE_INDEX);
         }
-        if (!mUVs.empty())
+        if (!mArgs.uvs.empty())
         {
-            glEnableVertexAttribArray(Shader::UVS_ATTRIBUTE_INDEX);
+            glEnableVertexAttribArray(OpenGLShader::UVS_ATTRIBUTE_INDEX);
         }
-        if (!mTangents.empty())
+        if (!mArgs.tangents.empty())
         {
-            glEnableVertexAttribArray(Shader::TANGENTS_ATTRIBUTE_INDEX);
+            glEnableVertexAttribArray(OpenGLShader::TANGENTS_ATTRIBUTE_INDEX);
         }
 
-        if (!mVertices.empty())
+        if (!mArgs.vertices.empty())
         {
             glBindBuffer(GL_ARRAY_BUFFER, mVerticesBufferId);
-            glVertexAttribPointer(Shader::VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glVertexAttribPointer(OpenGLShader::VERTICES_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
         }
-        if (!mNormals.empty())
+        if (!mArgs.normals.empty())
         {
             glBindBuffer(GL_ARRAY_BUFFER, mNormalsBufferId);
-            glVertexAttribPointer(Shader::NORMALS_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glVertexAttribPointer(OpenGLShader::NORMALS_ATTRIBUTE_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
         }
-        if (!mUVs.empty())
+        if (!mArgs.uvs.empty())
         {
             glBindBuffer(GL_ARRAY_BUFFER, mUVsBufferId);
-            glVertexAttribPointer(Shader::UVS_ATTRIBUTE_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            glVertexAttribPointer(OpenGLShader::UVS_ATTRIBUTE_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
         }
-        if (!mTangents.empty())
+        if (!mArgs.tangents.empty())
         {
             glBindBuffer(GL_ARRAY_BUFFER, mTangentsBufferId);
-            glVertexAttribPointer(Shader::TANGENTS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
+            glVertexAttribPointer(OpenGLShader::TANGENTS_ATTRIBUTE_INDEX, 4, GL_FLOAT, GL_FALSE, 0, 0);
         }
 
         FASTCG_CHECK_OPENGL_ERROR();
     }
 
-    void OpenGLMesh::DeallocateResources()
+    OpenGLMesh::~OpenGLMesh()
     {
         if (mIndicesBufferId != ~0u)
         {
@@ -168,16 +163,11 @@ namespace FastCG
         }
     }
 
-    void OpenGLMesh::Draw()
+    void OpenGLMesh::Draw() const
     {
-        if (mVertexArrayId == ~0u)
-        {
-            AllocateResources();
-        }
-
         glBindVertexArray(mVertexArrayId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndicesBufferId);
-        glDrawElements(GL_TRIANGLES, (GLsizei)mIndices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, (GLsizei)mArgs.indices.size(), GL_UNSIGNED_INT, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }

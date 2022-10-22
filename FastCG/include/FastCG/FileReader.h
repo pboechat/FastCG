@@ -9,8 +9,8 @@ namespace FastCG
 	class FileReader
 	{
 	public:
-		static std::unique_ptr<char[]> ReadText(const std::string &rFileName, size_t &rFileSize);
-		static std::unique_ptr<uint8_t[]> ReadBinary(const std::string &rFileName, size_t &rFileSize);
+		inline static std::unique_ptr<char[]> ReadText(const std::string &rFileName, size_t &rFileSize);
+		inline static std::unique_ptr<uint8_t[]> ReadBinary(const std::string &rFileName, size_t &rFileSize);
 
 	private:
 		FileReader() = delete;
@@ -18,5 +18,7 @@ namespace FastCG
 	};
 
 }
+
+#include <FastCG/FileReader.inc>
 
 #endif

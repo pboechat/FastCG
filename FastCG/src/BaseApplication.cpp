@@ -1,17 +1,23 @@
 #include <FastCG/Thread.h>
 #include <FastCG/TextureImporter.h>
-#include <FastCG/ShaderRegistry.h>
+#include <FastCG/ShaderLoader.h>
+#include <FastCG/Renderable.h>
 #include <FastCG/RenderingSystem.h>
+#include <FastCG/PointLight.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/ModelImporter.h>
-#include <FastCG/MaterialBasedMeshBatchingStrategy.h>
+#include <FastCG/MaterialBasedRenderBatchStrategy.h>
+#include <FastCG/Light.h>
 #include <FastCG/KeyCode.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/FontRegistry.h>
+#include <FastCG/GameObject.h>
 #include <FastCG/Exception.h>
-#include <FastCG/Colors.h>
+#include <FastCG/DirectionalLight.h>
+#include <FastCG/Component.h>
+#include <FastCG/Camera.h>
 #include <FastCG/Behaviour.h>
 #include <FastCG/BaseApplication.h>
+#include <FastCG/AssetSystem.h>
 
 #include <cstdio>
 #include <cassert>
@@ -24,7 +30,7 @@ namespace FastCG
 	const std::string DEFERRED_RENDERING_SHADERS_FOLDER = SHADERS_FOLDER + "/deferred";
 	const std::string FONTS_FOLDER = "fonts";
 
-	BaseApplication *BaseApplication::s_mpInstance = nullptr;
+	BaseApplication *BaseApplication::smpInstance = nullptr;
 
 #define FASTCG_REGISTER_COMPONENT(className, component)                    \
 	if (component->GetType().IsDerived(className::TYPE))                   \
@@ -44,47 +50,43 @@ namespace FastCG
 	}
 
 #define FASTCG_IMPLEMENT_SYSTEM(className, argsClassName) \
-	static className *s_p##className = nullptr;           \
+	static className *sp##className = nullptr;            \
 	void className::Create(const argsClassName &rArgs)    \
 	{                                                     \
-		s_p##className = new className(rArgs);            \
+		sp##className = new className(rArgs);             \
 	}                                                     \
 	void className::Destroy()                             \
 	{                                                     \
-		delete s_p##className;                            \
+		delete sp##className;                             \
 	}                                                     \
 	className *className::GetInstance()                   \
 	{                                                     \
-		return s_p##className;                            \
+		return sp##className;                             \
 	}
 
-	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
+	FASTCG_IMPLEMENT_SYSTEM(AssetSystem, AssetSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(InputSystem, InputSystemArgs);
+	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
 																			mWindowTitle(settings.windowTitle),
 																			mScreenWidth(settings.screenWidth),
 																			mScreenHeight(settings.screenHeight),
-																			mAssetsPath(settings.assetsPath),
 																			mClearColor(settings.clearColor),
 																			mAmbientLight(settings.ambientLight),
-																			mShowFPS(settings.showFPS),
-																			mShowRenderingStatistics(settings.showRenderingStatistics),
+																			mFrameRate(settings.frameRate),
 																			mSecondsPerFrame(1.0 / (double)settings.frameRate)
 	{
-		if (s_mpInstance != nullptr)
+		if (smpInstance != nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "There can only be one BaseApplication instance");
 		}
 
-		s_mpInstance = this;
+		smpInstance = this;
 	}
 
 	BaseApplication::~BaseApplication()
 	{
-		ShaderRegistry::Unload();
-		FontRegistry::Unload();
-
 		auto gameObjectsToDestroy = mGameObjects;
 		for (auto *pGameObject : gameObjectsToDestroy)
 		{
@@ -97,17 +99,11 @@ namespace FastCG
 		assert(mCameras.empty());
 		assert(mDirectionalLights.empty());
 		assert(mPointLights.empty());
-		assert(mMeshFilters.empty());
+		assert(mRenderables.empty());
 		assert(mBehaviours.empty());
-		assert(mLineRenderers.empty());
-		assert(mPointsRenderers.empty());
 		assert(mComponents.empty());
 
-		mMeshBatches.clear();
-
-		ModelImporter::Dispose();
-
-		s_mpInstance = nullptr;
+		smpInstance = nullptr;
 	}
 
 	void BaseApplication::RegisterGameObject(GameObject *pGameObject)
@@ -130,18 +126,16 @@ namespace FastCG
 
 		FASTCG_REGISTER_COMPONENT(DirectionalLight, pComponent);
 		FASTCG_REGISTER_COMPONENT(PointLight, pComponent);
-		FASTCG_REGISTER_COMPONENT(MeshFilter, pComponent);
-		FASTCG_REGISTER_COMPONENT(LineRenderer, pComponent);
-		FASTCG_REGISTER_COMPONENT(PointsRenderer, pComponent);
+		FASTCG_REGISTER_COMPONENT(Renderable, pComponent);
 		FASTCG_REGISTER_COMPONENT(Behaviour, pComponent);
 
 		if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
 		{
 			RegisterCamera(static_cast<Camera *>(pComponent));
 		}
-		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
+		else if (pComponent->GetType().IsExactly(Renderable::TYPE))
 		{
-			mpMeshBatchingStrategy->AddMeshFilter(static_cast<MeshFilter *>(pComponent));
+			mpRenderBatchStrategy->AddRenderable(static_cast<Renderable *>(pComponent));
 		}
 
 		mComponents.emplace_back(pComponent);
@@ -160,9 +154,7 @@ namespace FastCG
 		FASTCG_UNREGISTER_COMPONENT(Camera, pComponent);
 		FASTCG_UNREGISTER_COMPONENT(DirectionalLight, pComponent);
 		FASTCG_UNREGISTER_COMPONENT(PointLight, pComponent);
-		FASTCG_UNREGISTER_COMPONENT(LineRenderer, pComponent);
-		FASTCG_UNREGISTER_COMPONENT(PointsRenderer, pComponent);
-		FASTCG_UNREGISTER_COMPONENT(MeshFilter, pComponent);
+		FASTCG_UNREGISTER_COMPONENT(Renderable, pComponent);
 		FASTCG_UNREGISTER_COMPONENT(Behaviour, pComponent);
 		FASTCG_UNREGISTER_COMPONENT(Component, pComponent);
 
@@ -173,9 +165,9 @@ namespace FastCG
 				SetMainCamera(mCameras[0]);
 			}
 		}
-		else if (pComponent->GetType().IsExactly(MeshFilter::TYPE))
+		else if (pComponent->GetType().IsExactly(Renderable::TYPE))
 		{
-			mpMeshBatchingStrategy->RemoveMeshFilter(static_cast<MeshFilter *>(pComponent));
+			mpRenderBatchStrategy->RemoveRenderable(static_cast<Renderable *>(pComponent));
 		}
 	}
 
@@ -231,7 +223,9 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
+		AssetSystem::Create({mSettings.assetBundles});
 		InputSystem::Create({});
+		mpRenderBatchStrategy = std::make_unique<MaterialBasedRenderBatchStrategy>();
 		RenderingSystem::Create({mSettings.renderingPath,
 								 mScreenWidth,
 								 mScreenHeight,
@@ -239,47 +233,21 @@ namespace FastCG
 								 mAmbientLight,
 								 mDirectionalLights,
 								 mPointLights,
-								 mLineRenderers,
-								 mPointsRenderers,
-								 mMeshBatches,
+								 mpRenderBatchStrategy->GetRenderBatches(),
 								 mRenderingStatistics});
-		mpMeshBatchingStrategy = std::make_unique<MaterialBasedMeshBatchingStrategy>(mMeshBatches);
 
 		InitializePresentation();
 
 		RenderingSystem::GetInstance()->Initialize();
 
-		InitializeAssets();
-
-		RenderingSystem::GetInstance()->OnAssetsInitialized();
-
 		mpInternalGameObject = GameObject::Instantiate();
 		Camera::Instantiate(mpInternalGameObject);
 
+		ShaderLoader::LoadShaders(mSettings.renderingPath);
+
+		RenderingSystem::GetInstance()->PostInitialize();
+
 		OnInitialize();
-	}
-
-	void BaseApplication::InitializeAssets()
-	{
-		ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + SHADERS_FOLDER);
-
-		switch (mSettings.renderingPath)
-		{
-		case RenderingPath::RP_FORWARD_RENDERING:
-			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + FORWARD_RENDERING_SHADERS_FOLDER);
-			break;
-		case RenderingPath::RP_DEFERRED_RENDERING:
-			ShaderRegistry::LoadShadersFromDisk(mAssetsPath + "/" + DEFERRED_RENDERING_SHADERS_FOLDER);
-			break;
-		default:
-			break;
-		}
-
-		FontRegistry::LoadFontsFromDisk(mAssetsPath + "/" + FONTS_FOLDER);
-
-		TextureImporter::SetBasePath(mAssetsPath);
-
-		ModelImporter::SetBasePath(mAssetsPath);
 	}
 
 	void BaseApplication::Finalize()
@@ -292,6 +260,7 @@ namespace FastCG
 
 		RenderingSystem::Destroy();
 		InputSystem::Destroy();
+		AssetSystem::Destroy();
 	}
 
 	bool BaseApplication::ParseCommandLineArguments(int argc, char **argv)
@@ -328,61 +297,24 @@ namespace FastCG
 			pBehaviour->Update((float)mStartTimer.GetTime(), (float)deltaTime);
 		}
 
-		if (mShowFPS)
-		{
-			ShowFPS();
-		}
-
-		if (mShowRenderingStatistics)
-		{
-			ShowRenderingStatistics();
-		}
-
 		RenderingSystem::GetInstance()->Render(mpMainCamera);
-		RenderingSystem::GetInstance()->DrawDebugTexts();
 
 		mLastFrameTime = currTime;
 
 		mTotalElapsedTime += deltaTime;
-		mElapsedFrames++;
+		mFrameCount++;
 
 		Present();
 
-		auto idleTime = mSecondsPerFrame - deltaTime;
-		if (idleTime > 0)
+		if (mFrameRate != UNLOCKED_FRAMERATE)
 		{
-			Thread::Sleep(idleTime);
-			deltaTime += idleTime;
+			auto idleTime = mSecondsPerFrame - deltaTime;
+			if (idleTime > 0)
+			{
+				Thread::Sleep(idleTime);
+				deltaTime += idleTime;
+			}
 		}
-	}
-
-	void BaseApplication::ShowFPS()
-	{
-		char fpsText[128];
-
-		sprintf_s(fpsText, FASTCG_ARRAYSIZE(fpsText), "FPS: %.3f", mElapsedFrames / mTotalElapsedTime);
-		RenderingSystem::GetInstance()->DrawDebugText(fpsText, mScreenWidth - 240, 17, Colors::LIME);
-	}
-
-	void BaseApplication::ShowRenderingStatistics()
-	{
-		char renderStatsText[128];
-
-		sprintf_s(renderStatsText, FASTCG_ARRAYSIZE(renderStatsText), "Draw Calls: %zu", mRenderingStatistics.drawCalls);
-		RenderingSystem::GetInstance()->DrawDebugText(renderStatsText, mScreenWidth - 240, 34, Colors::LIME);
-
-		sprintf_s(renderStatsText, FASTCG_ARRAYSIZE(renderStatsText), "No. Triangles: %zu", mRenderingStatistics.numberOfTriangles);
-		RenderingSystem::GetInstance()->DrawDebugText(renderStatsText, mScreenWidth - 240, 51, Colors::LIME);
-	}
-
-	void BaseApplication::BeforeMeshFilterChange(MeshFilter *pMeshFilter)
-	{
-		mpMeshBatchingStrategy->RemoveMeshFilter(pMeshFilter);
-	}
-
-	void BaseApplication::AfterMeshFilterChange(MeshFilter *pMeshFilter)
-	{
-		mpMeshBatchingStrategy->AddMeshFilter(pMeshFilter);
 	}
 
 	void BaseApplication::MouseButtonCallback(MouseButton button, MouseButtonState state, int x, int y)
@@ -421,5 +353,16 @@ namespace FastCG
 		{
 			OnKeyRelease(keyCode);
 		}
+	}
+
+	void BaseApplication::WindowResizeCallback(int width, int height)
+	{
+		mScreenWidth = width;
+		mScreenHeight = height;
+		if (mpMainCamera != nullptr)
+		{
+			mpMainCamera->SetAspectRatio(GetAspectRatio());
+		}
+		OnResize();
 	}
 }

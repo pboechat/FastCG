@@ -1,6 +1,5 @@
 #include <FastCG/Transform.h>
-#include <FastCG/Renderer.h>
-#include <FastCG/MeshRenderer.h>
+#include <FastCG/Renderable.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/Exception.h>
 #include <FastCG/Component.h>
@@ -48,9 +47,9 @@ namespace FastCG
 			FASTCG_THROW_EXCEPTION(Exception, "Cannot add two components of the same type: %s", rComponentType.GetName().c_str());
 		}
 
-		if (rComponentType.IsDerived(Renderer::TYPE))
+		if (rComponentType.IsDerived(Renderable::TYPE))
 		{
-			mpRenderer = static_cast<Renderer *>(pComponent);
+			mpRenderable = static_cast<Renderable *>(pComponent);
 		}
 
 		BaseApplication::GetInstance()->RegisterComponent(pComponent);
@@ -60,9 +59,9 @@ namespace FastCG
 
 	void GameObject::RemoveComponent(Component *pComponent)
 	{
-		if (pComponent->GetType().IsDerived(Renderer::TYPE))
+		if (pComponent->GetType().IsDerived(Renderable::TYPE))
 		{
-			mpRenderer = nullptr;
+			mpRenderable = nullptr;
 		}
 
 		auto it = std::find(mComponents.begin(), mComponents.end(), pComponent);
@@ -123,13 +122,10 @@ namespace FastCG
 	AABB GameObject::GetBounds() const
 	{
 		AABB bounds;
-		auto *pMeshRenderer = static_cast<MeshRenderer *>(GetComponent(MeshRenderer::TYPE));
-		if (pMeshRenderer != nullptr)
+		auto *pRenderable = static_cast<Renderable *>(GetComponent(Renderable::TYPE));
+		if (pRenderable != nullptr)
 		{
-			for (const auto &pMesh : pMeshRenderer->GetMeshes())
-			{
-				bounds.Expand(pMesh->GetBounds());
-			}
+			bounds = pRenderable->GetMesh()->GetBounds();
 		}
 		for (auto *pChild : GetTransform()->GetChildren())
 		{

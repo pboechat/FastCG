@@ -10,13 +10,12 @@
 
 namespace FastCG
 {
+    class OpenGLRenderingSystem;
+    class OpenGLForwardRenderingPathStrategy;
+    class OpenGLDeferredRenderingPathStrategy;
+
     class OpenGLMesh : public BaseMesh
     {
-    public:
-        virtual ~OpenGLMesh();
-
-        void Draw() override;
-
     private:
         GLuint mVertexArrayId{~0u};
         GLuint mVerticesBufferId{~0u};
@@ -25,8 +24,14 @@ namespace FastCG
         GLuint mTangentsBufferId{~0u};
         GLuint mIndicesBufferId{~0u};
 
-        void AllocateResources();
-        void DeallocateResources();
+        OpenGLMesh(const MeshArgs &rArgs);
+        virtual ~OpenGLMesh();
+
+        void Draw() const;
+
+        friend class OpenGLRenderingSystem;
+        friend class OpenGLForwardRenderingPathStrategy;
+        friend class OpenGLDeferredRenderingPathStrategy;
     };
 
 }
