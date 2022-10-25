@@ -5,6 +5,7 @@
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/RenderingPath.h>
 #include <FastCG/MouseButton.h>
+#include <FastCG/Key.h>
 #include <FastCG/FastCG.h>
 #include <FastCG/Colors.h>
 
@@ -128,19 +129,17 @@ namespace FastCG
 		virtual void OnResize() {}
 		virtual void OnStart() {}
 		virtual void OnEnd() {}
-		virtual void OnMouseButton(MouseButton button, MouseButtonState state, int x, int y) {}
-		virtual void OnMouseWheel(int direction, int x, int y) {}
-		virtual void OnMouseMove(int x, int y) {}
-		virtual void OnKeyPress(int keyCode) {}
-		virtual void OnKeyRelease(int keyCode) {}
+		virtual void OnMouseButton(MouseButton button, MouseButtonState state) {}
+		virtual void OnMouseMove(uint32_t x, uint32_t y) {}
+		virtual void OnKeyPress(Key key) {}
+		virtual void OnKeyRelease(Key key) {}
 		virtual void OnPrintUsage() {}
 		virtual void RunMainLoop() = 0;
 		void RunMainLoopIteration();
-		void WindowResizeCallback(int width, int height);
-		void MouseButtonCallback(MouseButton button, MouseButtonState state, int x, int y);
-		void MouseWheelCallback(int direction, int x, int y);
-		void MouseMoveCallback(int x, int y);
-		void KeyboardCallback(int keyCode, bool pressed);
+		void WindowResizeCallback(uint32_t width, uint32_t height);
+		void MouseButtonCallback(MouseButton button, MouseButtonState state);
+		void MouseMoveCallback(uint32_t x, uint32_t y);
+		void KeyboardCallback(Key key, bool pressed);
 		virtual void OnInitialize() {}
 		virtual void OnFinalize() {}
 

@@ -8,7 +8,7 @@
 #include <FastCG/ModelImporter.h>
 #include <FastCG/MaterialBasedRenderBatchStrategy.h>
 #include <FastCG/Light.h>
-#include <FastCG/KeyCode.h>
+#include <FastCG/Key.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/Exception.h>
@@ -302,9 +302,11 @@ namespace FastCG
 		InputSystem::GetInstance()->Swap();
 
 		auto &io = ImGui::GetIO();
+		io.DisplaySize.x = (float)mScreenWidth;
+		io.DisplaySize.y = (float)mScreenHeight;
 		io.DeltaTime = (float)deltaTime + 0.0000001f;
 		auto mousePos = InputSystem::GetMousePosition();
-		io.AddMousePosEvent((float)mousePos.x, (float)(mScreenHeight - mousePos.y));
+		io.AddMousePosEvent((float)mousePos.x, (float)mousePos.y);
 		io.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
 		io.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
 		io.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
@@ -356,51 +358,40 @@ namespace FastCG
 		}
 	}
 
-	void BaseApplication::MouseButtonCallback(MouseButton button, MouseButtonState state, int x, int y)
+	void BaseApplication::MouseButtonCallback(MouseButton button, MouseButtonState state)
 	{
 		InputSystem::GetInstance()->SetMouseButton(button, state);
-		OnMouseButton(button, state, x, y);
+		OnMouseButton(button, state);
 	}
 
-	void BaseApplication::MouseWheelCallback(int direction, int x, int y)
+	void BaseApplication::MouseMoveCallback(uint32_t x, uint32_t y)
 	{
-		if (direction == 1)
-		{
-			InputSystem::GetInstance()->IncrementMouseWheelDelta();
-		}
-		else if (direction == -1)
-		{
-			InputSystem::GetInstance()->DecrementMouseWheelDelta();
-		}
-		OnMouseWheel(direction, x, y);
-	}
-
-	void BaseApplication::MouseMoveCallback(int x, int y)
-	{
-		InputSystem::GetInstance()->SetMousePosition(glm::vec2((float)x, (float)(mScreenHeight - y)));
+		InputSystem::GetInstance()->SetMousePosition(glm::uvec2(x, y));
 		OnMouseMove(x, y);
 	}
 
-	void BaseApplication::KeyboardCallback(int keyCode, bool pressed)
+	void BaseApplication::KeyboardCallback(Key key, bool pressed)
 	{
-		InputSystem::GetInstance()->SetKey(keyCode, pressed);
+		InputSystem::GetInstance()->SetKey(key, pressed);
 		if (pressed)
 		{
-			OnKeyPress(keyCode);
+			OnKeyPress(key);
 		}
 		else
 		{
-			OnKeyRelease(keyCode);
+			OnKeyRelease(key);
 		}
 	}
 
-	void BaseApplication::WindowResizeCallback(int width, int height)
+	void BaseApplication::WindowResizeCallback(uint32_t width, uint32_t height)
 	{
-		mScreenWidth = (uint32_t)width;
-		mScreenHeight = (uint32_t)height;
-		auto &io = ImGui::GetIO();
-		io.DisplaySize.x = (float)width;
-		io.DisplaySize.y = (float)height;
+		if (mScreenWidth == width && mScreenHeight == height)
+		{
+			return;
+		}
+
+		mScreenWidth = width;
+		mScreenHeight = height;
 		if (mpMainCamera != nullptr)
 		{
 			mpMainCamera->SetAspectRatio(GetAspectRatio());

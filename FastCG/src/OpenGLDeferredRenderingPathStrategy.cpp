@@ -413,7 +413,7 @@ namespace FastCG
 			glObjectLabel(GL_BUFFER, mSSAOHighFrequencyPassBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
 		}
 #endif
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassBufferId, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassBufferId, GL_DYNAMIC_DRAW);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 	}

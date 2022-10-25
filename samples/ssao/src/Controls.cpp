@@ -5,7 +5,7 @@
 #include <FastCG/OpenGLDeferredRenderingPathStrategy.h>
 #endif
 #include <FastCG/MathT.h>
-#include <FastCG/KeyCode.h>
+#include <FastCG/Key.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 
@@ -15,7 +15,7 @@ IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {
-	if (InputSystem::GetKey(KeyCodes::ESCAPE))
+	if (InputSystem::GetKey(Key::ESCAPE))
 	{
 		Application::GetInstance()->Exit();
 		return;
@@ -54,21 +54,21 @@ void Controls::OnUpdate(float time, float deltaTime)
 	RenderingSystem::GetInstance()->DrawDebugText((isSSAOBlurEnabled) ? "SSAO Blur: on" : "SSAO Blur: off", 10, text9Height, Colors::LIME);
 #endif
 
-	InputSystem::IsKeyPressed(KeyCodes::F1, mPressedKeyMask, 0, [&]()
+	InputSystem::IsKeyPressed(Key::F1, mPressedKeyMask, 0, [&]()
 							  { pMainCamera->SetSSAOEnabled(!pMainCamera->IsSSAOEnabled()); });
 #ifdef _DEBUG
-	InputSystem::IsKeyPressed(KeyCodes::F2, mPressedKeyMask, 1, [&]()
+	InputSystem::IsKeyPressed(Key::F2, mPressedKeyMask, 1, [&]()
 							  { pDeferredRenderingStrategy->SetDisplaySSAOTextureEnabled(!pDeferredRenderingStrategy->IsDisplaySSAOTextureEnabled()); });
 #endif
-	InputSystem::IsKeyPressed(KeyCodes::F3, mPressedKeyMask, 2, [&]()
+	InputSystem::IsKeyPressed(Key::F3, mPressedKeyMask, 2, [&]()
 							  { pDeferredRenderingStrategy->SetSSAOBlurEnabled(!pDeferredRenderingStrategy->IsSSAOBlurEnabled()); });
-	InputSystem::IsKeyPressed(KeyCodes::PLUS, mPressedKeyMask, 3, [&]()
+	InputSystem::IsKeyPressed(Key::PLUS, mPressedKeyMask, 3, [&]()
 							  { pDeferredRenderingStrategy->SetSSAORadius(MathF::Clamp(pDeferredRenderingStrategy->GetSSAORadius() + 1 * deltaTime, 0.01f, 10)); });
-	InputSystem::IsKeyPressed(KeyCodes::MINUS, mPressedKeyMask, 4, [&]()
+	InputSystem::IsKeyPressed(Key::MINUS, mPressedKeyMask, 4, [&]()
 							  { pDeferredRenderingStrategy->SetSSAORadius(MathF::Clamp(pDeferredRenderingStrategy->GetSSAORadius() - 1 * deltaTime, 0.01f, 10)); });
-	InputSystem::IsKeyPressed(KeyCodes::HOME, mPressedKeyMask, 5, [&]()
+	InputSystem::IsKeyPressed(Key::HOME, mPressedKeyMask, 5, [&]()
 							  { pDeferredRenderingStrategy->SetSSAODistanceScale(MathF::Clamp(pDeferredRenderingStrategy->GetSSAODistanceScale() + 33 * deltaTime, 0.1f, 100)); });
-	InputSystem::IsKeyPressed(KeyCodes::END, mPressedKeyMask, 6, [&]()
+	InputSystem::IsKeyPressed(Key::END, mPressedKeyMask, 6, [&]()
 							  { pDeferredRenderingStrategy->SetSSAODistanceScale(MathF::Clamp(pDeferredRenderingStrategy->GetSSAODistanceScale() - 33 * deltaTime, 0.1f, 100)); });
 #endif
 }

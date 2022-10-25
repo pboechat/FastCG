@@ -1,6 +1,6 @@
 #include "LightsAnimator.h"
 
-#include <FastCG/KeyCode.h>
+#include <FastCG/Key.h>
 #include <FastCG/Transform.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
@@ -13,7 +13,7 @@ IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
 
 void LightsAnimator::OnUpdate(float time, float deltaTime)
 {
-	if (InputSystem::GetKey(KeyCodes::ESCAPE))
+	if (InputSystem::GetKey(Key::ESCAPE))
 	{
 		Application::GetInstance()->Exit();
 		return;

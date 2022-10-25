@@ -7,7 +7,7 @@
 
 namespace FastCG
 {
-	bool InputSystem::GetKey(int keyCode)
+	bool InputSystem::GetKey(Key keyCode)
 	{
 		return GetInstance()->mFrontBuffer.GetKey(keyCode);
 	}
@@ -17,7 +17,7 @@ namespace FastCG
 		return GetInstance()->mFrontBuffer.GetMouseButton(button);
 	}
 
-	const glm::vec2 &InputSystem::GetMousePosition()
+	const glm::uvec2 &InputSystem::GetMousePosition()
 	{
 		return GetInstance()->mFrontBuffer.GetMousePosition();
 	}
@@ -27,7 +27,7 @@ namespace FastCG
 		return GetInstance()->mFrontBuffer.GetMouseWheelDelta();
 	}
 
-	void InputSystem::SetKey(int keyCode, bool pressed)
+	void InputSystem::SetKey(Key keyCode, bool pressed)
 	{
 		mBackBuffer.SetKey(keyCode, pressed);
 	}
@@ -37,7 +37,7 @@ namespace FastCG
 		mBackBuffer.SetMouseButton(button, state);
 	}
 
-	void InputSystem::SetMousePosition(const glm::vec2 &rPosition)
+	void InputSystem::SetMousePosition(const glm::uvec2 &rPosition)
 	{
 		mBackBuffer.SetMousePosition(rPosition);
 	}
@@ -63,9 +63,9 @@ namespace FastCG
 		memset(mpKeys, 0, sizeof(mpKeys));
 	}
 
-	bool InputSystem::InputBuffer::GetKey(int keyCode) const
+	bool InputSystem::InputBuffer::GetKey(Key keyCode) const
 	{
-		return mpKeys[keyCode];
+		return mpKeys[(KeyCodesInt)keyCode];
 	}
 
 	MouseButtonState InputSystem::InputBuffer::GetMouseButton(MouseButton button) const
@@ -84,7 +84,7 @@ namespace FastCG
 		}
 	}
 
-	const glm::vec2 &InputSystem::InputBuffer::GetMousePosition() const
+	const glm::uvec2 &InputSystem::InputBuffer::GetMousePosition() const
 	{
 		return mMousePosition;
 	}
@@ -94,9 +94,9 @@ namespace FastCG
 		return mMouseWheelDelta;
 	}
 
-	void InputSystem::InputBuffer::SetKey(int keyCode, bool pressed)
+	void InputSystem::InputBuffer::SetKey(Key keyCode, bool pressed)
 	{
-		mpKeys[keyCode] = pressed;
+		mpKeys[(KeyCodesInt)keyCode] = pressed;
 	}
 
 	void InputSystem::InputBuffer::SetMouseButton(MouseButton button, MouseButtonState state)
@@ -115,7 +115,7 @@ namespace FastCG
 		}
 	}
 
-	void InputSystem::InputBuffer::SetMousePosition(const glm::vec2 &rPosition)
+	void InputSystem::InputBuffer::SetMousePosition(const glm::uvec2 &rPosition)
 	{
 		mMousePosition = rPosition;
 	}

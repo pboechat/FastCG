@@ -19,7 +19,7 @@ namespace FastCG
             glObjectLabel(GL_BUFFER, mSceneConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
         }
 #endif
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneConstants), &mSceneConstants, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneConstants), &mSceneConstants, GL_DYNAMIC_DRAW);
 
         FASTCG_CHECK_OPENGL_ERROR();
 
@@ -31,7 +31,7 @@ namespace FastCG
             glObjectLabel(GL_BUFFER, mInstanceConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
         }
 #endif
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(InstanceConstants), &mInstanceConstants, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(InstanceConstants), &mInstanceConstants, GL_DYNAMIC_DRAW);
 
         FASTCG_CHECK_OPENGL_ERROR();
 
@@ -43,7 +43,7 @@ namespace FastCG
             glObjectLabel(GL_BUFFER, mLightingConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
         }
 #endif
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(LightingConstants), &mLightingConstants, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(LightingConstants), &mLightingConstants, GL_DYNAMIC_DRAW);
 
         FASTCG_CHECK_OPENGL_ERROR();
     }

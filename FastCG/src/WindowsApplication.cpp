@@ -2,11 +2,115 @@
 
 #ifdef FASTCG_WINDOWS
 
+#include <unordered_map>
+
+namespace
+{
+#define KEY(a, b)                    \
+	{                                \
+		(uint64_t) b, FastCG::Key::a \
+	}
+
+	std::unordered_map<uint64_t, FastCG::Key> gKeyLut = {
+		KEY(BACKSPACE, VK_BACK),
+		KEY(RETURN, VK_RETURN),
+		KEY(ESCAPE, VK_ESCAPE),
+		KEY(SPACE, VK_SPACE),
+		KEY(ASTERISK, VK_MULTIPLY),
+		KEY(PLUS, VK_ADD),
+		KEY(COMMA, VK_OEM_COMMA),
+		KEY(MINUS, VK_SUBTRACT),
+		KEY(DOT, VK_OEM_PERIOD),
+		KEY(SLASH, VK_DIVIDE),
+		KEY(NUMBER_0, VK_NUMPAD0),
+		KEY(NUMBER_1, VK_NUMPAD1),
+		KEY(NUMBER_2, VK_NUMPAD2),
+		KEY(NUMBER_3, VK_NUMPAD3),
+		KEY(NUMBER_4, VK_NUMPAD4),
+		KEY(NUMBER_5, VK_NUMPAD5),
+		KEY(NUMBER_6, VK_NUMPAD6),
+		KEY(NUMBER_7, VK_NUMPAD7),
+		KEY(NUMBER_8, VK_NUMPAD8),
+		KEY(NUMBER_9, VK_NUMPAD9),
+		KEY(COLON, 58),
+		KEY(SEMI_COLON, 59),
+		KEY(EQUALS, 61),
+		KEY(LEFT_ARROW, VK_LEFT),
+		KEY(UP_ARROW, VK_UP),
+		KEY(RIGHT_ARROW, VK_RIGHT),
+		KEY(DOWN_ARROW, VK_DOWN),
+		KEY(F1, VK_F1),
+		KEY(F2, VK_F2),
+		KEY(F3, VK_F3),
+		KEY(F4, VK_F4),
+		KEY(F5, VK_F5),
+		KEY(F6, VK_F6),
+		KEY(F7, VK_F7),
+		KEY(F8, VK_F8),
+		KEY(F9, VK_F9),
+		KEY(F10, VK_F10),
+		KEY(F11, VK_F11),
+		KEY(F12, VK_F12),
+		KEY(PAGE_UP, VK_PRIOR),
+		KEY(PAGE_DOWN, VK_NEXT),
+		KEY(END, VK_END),
+		KEY(HOME, VK_HOME),
+		KEY(INSERT, VK_INSERT),
+		KEY(SHIFT, VK_SHIFT),
+		KEY(RIGHT_SHIFT, 84),
+		KEY(CONTROL, VK_CONTROL),
+		KEY(RIGHT_CONTROL, 86),
+		KEY(ALT, 87),
+		KEY(RIGHT_ALT, 88),
+		KEY(OPEN_SQUARE_BRACKET, 91),
+		KEY(BACKSLASH, 92),
+		KEY(CLOSE_SQUARE_BRACKET, 93),
+		KEY(LETTER_A, 'A'),
+		KEY(LETTER_B, 'B'),
+		KEY(LETTER_C, 'C'),
+		KEY(LETTER_D, 'D'),
+		KEY(LETTER_E, 'E'),
+		KEY(LETTER_F, 'F'),
+		KEY(LETTER_G, 'G'),
+		KEY(LETTER_H, 'H'),
+		KEY(LETTER_I, 'I'),
+		KEY(LETTER_J, 'J'),
+		KEY(LETTER_K, 'K'),
+		KEY(LETTER_L, 'L'),
+		KEY(LETTER_M, 'M'),
+		KEY(LETTER_N, 'N'),
+		KEY(LETTER_O, 'O'),
+		KEY(LETTER_P, 'P'),
+		KEY(LETTER_Q, 'Q'),
+		KEY(LETTER_R, 'R'),
+		KEY(LETTER_S, 'S'),
+		KEY(LETTER_T, 'T'),
+		KEY(LETTER_U, 'U'),
+		KEY(LETTER_V, 'V'),
+		KEY(LETTER_W, 'W'),
+		KEY(LETTER_X, 'X'),
+		KEY(LETTER_Y, 'Y'),
+		KEY(LETTER_Z, 'Z'),
+		KEY(TILDE, 126),
+		KEY(DEL, VK_DELETE),
+	};
+
+	FastCG::Key TranslateKey(uint64_t key)
+	{
+		auto it = gKeyLut.find(key);
+		if (it == gKeyLut.end())
+		{
+			return FastCG::Key::UNKNOWN;
+		}
+		return it->second;
+	}
+}
+
 namespace FastCG
 {
 	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		switch (uMsg)
+		switch ()
 		{
 		case WM_DESTROY:
 		case WM_QUIT:
@@ -14,34 +118,32 @@ namespace FastCG
 			PostQuitMessage(0);
 			break;
 		case WM_SIZE:
-			WindowsApplication::GetInstance()->WindowResizeCallback(LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->WindowResizeCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
 			break;
 		case WM_LBUTTONDOWN:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED);
 			break;
 		case WM_RBUTTONDOWN:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED);
 			break;
 		case WM_MBUTTONDOWN:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED);
 			break;
 		case WM_LBUTTONUP:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_RBUTTONUP:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_MBUTTONUP:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_MOUSEMOVE:
-			WindowsApplication::GetInstance()->MouseMoveCallback(LOWORD(lParam), HIWORD(lParam));
+			WindowsApplication::GetInstance()->MouseMoveCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
 			break;
 		case WM_KEYDOWN:
-			WindowsApplication::GetInstance()->KeyboardCallback((int)wParam, true);
-			break;
 		case WM_KEYUP:
-			WindowsApplication::GetInstance()->KeyboardCallback((int)wParam, false);
+			WindowsApplication::GetInstance()->KeyboardCallback(TranslateKey(uint64_t)wParam), uMsg == WM_KEYDOWN);
 			break;
 		default:
 			break;

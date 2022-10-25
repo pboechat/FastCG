@@ -7,8 +7,8 @@
 #include "FastCG.glsl"
 #include "MaterialConstants.glsl"
 
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec2 vUV;
+layout(location = 0) in vec3 vNormal;
+layout(location = 1) in vec2 vUV;
 
 layout(location = 0) out vec4 oDiffuse;
 layout(location = 1) out vec4 oNormal;

@@ -181,7 +181,7 @@ namespace FastCG
             glObjectLabel(GL_BUFFER, mImGuiConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
         }
 #endif
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(ImGuiConstants), &mImGuiConstants, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(ImGuiConstants), &mImGuiConstants, GL_DYNAMIC_DRAW);
 
         glGenVertexArrays(1, &mImGuiVertexArrayId);
         glBindVertexArray(mImGuiVertexArrayId);
@@ -512,6 +512,7 @@ namespace FastCG
 #elif defined FASTCG_LINUX
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         auto &window = X11Application::GetInstance()->GetWindow();
+        glXSwapIntervalEXT(pDisplay, window, 0);
         glXSwapBuffers(pDisplay, window);
 #else
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"

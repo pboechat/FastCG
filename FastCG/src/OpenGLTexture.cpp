@@ -25,7 +25,7 @@ namespace
         switch (wrapMode)
         {
         case FastCG::TextureWrapMode::TW_CLAMP:
-            return GL_CLAMP;
+            return GL_CLAMP_TO_EDGE;
         case FastCG::TextureWrapMode::TW_REPEAT:
             return GL_REPEAT;
         default:

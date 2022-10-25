@@ -2,6 +2,7 @@
 #define FASTCG_INPUT_H
 
 #include <FastCG/MouseButton.h>
+#include <FastCG/Key.h>
 #include <FastCG/BaseApplication.h>
 
 #include <glm/glm.hpp>
@@ -17,18 +18,17 @@ namespace FastCG
 		FASTCG_DECLARE_SYSTEM(InputSystem, InputSystemArgs);
 
 	public:
-		static const int NUMBER_OF_KEYS = 128;
 		static const int MINIMUM_MOUSE_WHEEL_DELTA = -128;
 		static const int MOUSE_WHEEL_STEP = 1;
 		static const int MAXIMUM_MOUSE_WHEEL_DELTA = 128;
 
-		static bool GetKey(int keyCode);
+		static bool GetKey(Key keyCode);
 		static MouseButtonState GetMouseButton(MouseButton button);
-		static const glm::vec2 &GetMousePosition();
+		static const glm::uvec2 &GetMousePosition();
 		static int GetMouseWheelDelta();
 
 		template <typename MaskType, typename ElementType, typename CallbackType>
-		static void IsKeyPressed(int keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
+		static void IsKeyPressed(Key keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
 		{
 			MaskType elementMask = 1 << element;
 			if (InputSystem::GetKey(keyCode))
@@ -53,24 +53,24 @@ namespace FastCG
 		public:
 			InputBuffer();
 
-			bool GetKey(int keyCode) const;
+			bool GetKey(Key keyCode) const;
 			MouseButtonState GetMouseButton(MouseButton button) const;
-			const glm::vec2 &GetMousePosition() const;
+			const glm::uvec2 &GetMousePosition() const;
 			int GetMouseWheelDelta() const;
-			void SetKey(int keyCode, bool state);
+			void SetKey(Key keyCode, bool state);
 			void SetMouseButton(MouseButton button, MouseButtonState state);
-			void SetMousePosition(const glm::vec2 &rPosition);
+			void SetMousePosition(const glm::uvec2 &rPosition);
 			void IncrementMouseWheelDelta();
 			void DecrementMouseWheelDelta();
 			void Copy(InputBuffer &rOther);
 			void Clear();
 
 		private:
-			bool mpKeys[NUMBER_OF_KEYS];
+			bool mpKeys[std::numeric_limits<KeyCodesInt>::max()];
 			MouseButtonState mLeftMouseButton{MouseButtonState::RELEASED};
 			MouseButtonState mMiddleMouseButton{MouseButtonState::RELEASED};
 			MouseButtonState mRightMouseButton{MouseButtonState::RELEASED};
-			glm::vec2 mMousePosition;
+			glm::uvec2 mMousePosition;
 			int mMouseWheelDelta{0};
 		};
 
@@ -79,9 +79,9 @@ namespace FastCG
 
 		InputSystem(const InputSystemArgs &rArgs) {}
 
-		void SetKey(int keyCode, bool state);
+		void SetKey(Key keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);
-		void SetMousePosition(const glm::vec2 &rPosition);
+		void SetMousePosition(const glm::uvec2 &rPosition);
 		void IncrementMouseWheelDelta();
 		void DecrementMouseWheelDelta();
 		void Swap();

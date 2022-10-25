@@ -33,6 +33,7 @@ namespace FastCG
 
     private:
         Display *mpDisplay{nullptr};
+        Colormap mpColorMap{None};
         Window mWindow{None};
         Atom mDeleteWindowAtom{None};
 

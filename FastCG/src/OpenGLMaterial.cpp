@@ -19,7 +19,7 @@ namespace FastCG
             glObjectLabel(GL_BUFFER, mMaterialConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel.c_str());
         }
 #endif
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(MaterialConstants), &mMaterialConstants, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(MaterialConstants), &mMaterialConstants, GL_DYNAMIC_DRAW);
 
         mColorMapBindingLocation = mArgs.pShader->GetBindingLocation("uColorMap");
         mBumpMapBindingLocation = mArgs.pShader->GetBindingLocation("uBumpMap");
