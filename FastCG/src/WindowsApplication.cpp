@@ -142,7 +142,7 @@ namespace FastCG
 			app->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_MOUSEMOVE:
-			app->MouseMoveCallback((uint32_t)LOWORD(lParam), app->GetScreenHeight() - (uint32_t)HIWORD(lParam));
+			app->MouseMoveCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
 			break;
 		case WM_KEYDOWN:
 		case WM_KEYUP:
