@@ -338,7 +338,7 @@ namespace FastCG
                 continue;
             }
 
-            if (pVisualFormat->direct.alphaMask > 0)
+            if (pVisualFormat->direct.alphaMask == 0)
             {
                 mpFbConfig = fbConfigs[i];
                 mpVisualInfo = pVisualInfo;
