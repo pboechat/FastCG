@@ -1,5 +1,11 @@
 if(WIN32)
-set(FASTCG_PLATFORM "Windows")
+    set(FASTCG_PLATFORM "Windows")
+elseif(UNIX AND NOT APPLE)
+    set(FASTCG_PLATFORM "Linux")
+endif()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND FASTCG_PLATFORM STREQUAL "Linux")
+	add_definitions(-D_DEBUG=1)
 endif()
 
 set(FASTCG_RENDERING_SYSTEM "OpenGL")

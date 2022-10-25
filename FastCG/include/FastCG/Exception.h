@@ -17,7 +17,7 @@ namespace FastCG
 		{
 		}
 
-		inline virtual const char *what() const
+		inline virtual const char *what() const noexcept
 		{
 			return mReason.c_str();
 		}
@@ -82,7 +82,7 @@ namespace FastCG
 	{                                                                    \
 		char __buffer[4096];                                             \
 		constexpr auto __bufferLength = sizeof(__buffer) / sizeof(char); \
-		sprintf_s(__buffer, __bufferLength, format, ##__VA_ARGS__);      \
+		snprintf(__buffer, __bufferLength, format, ##__VA_ARGS__);       \
 		exceptionType __exception(__buffer);                             \
 		__exception.SetFunction(__FUNCTION__);                           \
 		__exception.SetFile(__FILE__);                                   \

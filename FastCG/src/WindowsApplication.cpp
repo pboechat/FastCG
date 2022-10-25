@@ -4,53 +4,53 @@
 
 namespace FastCG
 {
-    LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        switch (uMsg)
-        {
-        case WM_DESTROY:
-        case WM_QUIT:
-        case WM_CLOSE:
-            PostQuitMessage(0);
-            break;
-        case WM_SIZE:
-            WindowsApplication::GetInstance()->WindowResizeCallback(LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_LBUTTONDOWN:
-            WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_RBUTTONDOWN:
-            WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_MBUTTONDOWN:
-            WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_LBUTTONUP:
-            WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_RBUTTONUP:
-            WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_MBUTTONUP:
-            WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_MOUSEMOVE:
-            WindowsApplication::GetInstance()->MouseMoveCallback(LOWORD(lParam), HIWORD(lParam));
-            break;
-        case WM_KEYDOWN:
-            WindowsApplication::GetInstance()->KeyboardCallback((int)wParam, true);
-            break;
-        case WM_KEYUP:
-            WindowsApplication::GetInstance()->KeyboardCallback((int)wParam, false);
-            break;
-        default:
-            break;
-        }
+	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg)
+		{
+		case WM_DESTROY:
+		case WM_QUIT:
+		case WM_CLOSE:
+			PostQuitMessage(0);
+			break;
+		case WM_SIZE:
+			WindowsApplication::GetInstance()->WindowResizeCallback(LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_LBUTTONDOWN:
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_RBUTTONDOWN:
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_MBUTTONDOWN:
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED, LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_LBUTTONUP:
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_RBUTTONUP:
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_MBUTTONUP:
+			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED, LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_MOUSEMOVE:
+			WindowsApplication::GetInstance()->MouseMoveCallback(LOWORD(lParam), HIWORD(lParam));
+			break;
+		case WM_KEYDOWN:
+			WindowsApplication::GetInstance()->KeyboardCallback((int)wParam, true);
+			break;
+		case WM_KEYUP:
+			WindowsApplication::GetInstance()->KeyboardCallback((int)wParam, false);
+			break;
+		default:
+			break;
+		}
 
-        return DefWindowProc(hWnd, uMsg, wParam, lParam);
-    }
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+	}
 
-    void WindowsApplication::RunMainLoop()
+	void WindowsApplication::RunMainLoop()
 	{
 		MSG msg;
 		while (mRunning)
@@ -71,9 +71,68 @@ namespace FastCG
 		}
 	}
 
-    void WindowsApplication::InitializePresentation()
-    {
-        mHInstance = GetModuleHandle(NULL);
+	HDC WindowsApplication::GetDeviceContext()
+	{
+		if (mHDC != 0)
+		{
+			return mHDC;
+		}
+
+		CreateAndSetupDeviceContext();
+
+		return mHDC;
+	}
+
+	HWND WindowApplication::GetWindow()
+	{
+		if (mHWnd != 0)
+		{
+			return mHWnd;
+		}
+
+		CreateWindow();
+
+		return mHWnd;
+	}
+
+	void WindowApplication::CreateAndSetupDeviceContext()
+	{
+		auto hWnd = GetWindow();
+
+		mHDC = GetDC(hWnd);
+
+		PIXELFORMATDESCRIPTOR pixelFormatDescr =
+			{
+				sizeof(PIXELFORMATDESCRIPTOR),
+				1,
+				PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+				PFD_TYPE_RGBA,
+				32,
+				0, 0, 0, 0, 0, 0, // color bits (ignored)
+				0,				  // no alpha buffer
+				0,				  // alpha bits (ignored)
+				0,				  // no accumulation buffer
+				0, 0, 0, 0,		  // accum bits (ignored)
+				32,				  // depth buffer
+				0,				  // no stencil buffer
+				0,				  // no auxiliary buffers
+				PFD_MAIN_PLANE,	  // main layer
+				0,				  // reserved
+				0, 0, 0,		  // no layer, visible, damage masks
+			};
+		auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
+		if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
+		{
+			FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
+		}
+
+		ShowWindow(hWnd, SW_SHOW);
+		UpdateWindow(hWnd);
+	}
+
+	void WindowsApplication::CreateWindow()
+	{
+		mHInstance = GetModuleHandle(NULL);
 
 		RECT windowRect;
 		windowRect.left = (LONG)0;
@@ -116,53 +175,17 @@ namespace FastCG
 							   mHInstance,
 							   NULL);
 
-		if (mHWnd != 0)
-		{
-			mHDC = GetDC(mHWnd);
-
-			PIXELFORMATDESCRIPTOR pixelFormatDescr =
-				{
-					sizeof(PIXELFORMATDESCRIPTOR),
-					1,
-					PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-					PFD_TYPE_RGBA,
-					32,
-					0, 0, 0, 0, 0, 0, // color bits (ignored)
-					0,				  // no alpha buffer
-					0,				  // alpha bits (ignored)
-					0,				  // no accumulation buffer
-					0, 0, 0, 0,		  // accum bits (ignored)
-					32,				  // depth buffer
-					0,				  // no stencil buffer
-					0,				  // no auxiliary buffers
-					PFD_MAIN_PLANE,	  // main layer
-					0,				  // reserved
-					0, 0, 0,		  // no layer, visible, damage masks
-				};
-			auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
-			if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
-			{
-				FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
-			}
-
-			ShowWindow(mHWnd, SW_SHOW);
-			UpdateWindow(mHWnd);
-		}
-		else
+		if (mHwnd == 0)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Error creating window");
 		}
-    }
+	}
 
-    void WindowsApplication::FinalizePresentation()
-    {
-        ReleaseDC(mHWnd, mHDC);
-    }
-
-    void WindowsApplication::Present()
-    {
-		SwapBuffers(mHDC);
-    }
+	void WindowsApplication::DestroyDeviceContext()
+	{
+		ReleaseDC(mHWnd, mHDC);
+		mHDC = 0;
+	}
 }
 
 #endif

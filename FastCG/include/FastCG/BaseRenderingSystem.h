@@ -11,6 +11,11 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
+#ifdef FASTCG_LINUX
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif
+
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -49,10 +54,14 @@ namespace FastCG
         // Template interface
         void Render(const Camera *pMainCamera);
         void RenderImGui(const ImDrawData *pImDrawData);
+        void Present();
         void Initialize();
         void PostInitialize();
         void Resize();
         void Finalize();
+#ifdef FASTCG_LINUX
+        XVisualInfo *GetVisualInfo();
+#endif
         Material *CreateMaterial(const MeshArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
         Shader *CreateShader(const ShaderArgs &rArgs);

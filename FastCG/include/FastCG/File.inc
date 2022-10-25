@@ -2,8 +2,10 @@
 #include <FastCG/FastCG.h>
 #include <FastCG/Exception.h>
 
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 #include <Windows.h>
+#elif defined FASTCG_LINUX
+#include <sys/stat.h>
 #endif
 
 #include <vector>
@@ -45,9 +47,12 @@ namespace FastCG
 
 	bool File::Exists(const std::string &rFilePath)
 	{
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 		unsigned long fileAttributes = GetFileAttributes(rFilePath.c_str());
 		return (fileAttributes != INVALID_FILE_ATTRIBUTES);
+#elif defined FASTCG_LINUX
+		struct stat fileStat;
+		return stat(rFilePath.c_str(), &fileStat) == 0;
 #else
 #error "FastCG::File::Exists() not implemented on this platform"
 #endif

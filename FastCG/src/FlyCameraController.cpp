@@ -54,30 +54,30 @@ namespace FastCG
 			mRightMouseButtonPressed = false;
 		}
 
-		if (InputSystem::GetKey(KeyCode::PAGE_UP) || InputSystem::GetKey(KeyCode::LETTER_Q))
+		if (InputSystem::GetKey(KeyCodes::PAGE_UP) || InputSystem::GetKey(KeyCodes::LETTER_Q))
 		{
 			pTransform->SetRotation(pTransform->GetRotation() * glm::angleAxis(mTurnSpeed * deltaTime, glm::vec3(0, 0, 1)));
 		}
-		else if (InputSystem::GetKey(KeyCode::PAGE_DOWN) || InputSystem::GetKey(KeyCode::LETTER_E))
+		else if (InputSystem::GetKey(KeyCodes::PAGE_DOWN) || InputSystem::GetKey(KeyCodes::LETTER_E))
 		{
 			pTransform->SetRotation(pTransform->GetRotation() * glm::angleAxis(-mTurnSpeed * deltaTime, glm::vec3(0, 0, 1)));
 		}
 
 		auto position = pTransform->GetPosition();
-		if (InputSystem::GetKey(KeyCode::LEFT_ARROW) || InputSystem::GetKey(KeyCode::LETTER_A))
+		if (InputSystem::GetKey(KeyCodes::LEFT_ARROW) || InputSystem::GetKey(KeyCodes::LETTER_A))
 		{
 			pTransform->SetPosition(position + (pTransform->GetRotation() * glm::vec3(-1, 0, 0) * mWalkSpeed * deltaTime));
 		}
-		else if (InputSystem::GetKey(KeyCode::RIGHT_ARROW) || InputSystem::GetKey(KeyCode::LETTER_D))
+		else if (InputSystem::GetKey(KeyCodes::RIGHT_ARROW) || InputSystem::GetKey(KeyCodes::LETTER_D))
 		{
 			pTransform->SetPosition(position + (pTransform->GetRotation() * glm::vec3(1, 0, 0) * mWalkSpeed * deltaTime));
 		}
 
-		if (InputSystem::GetKey(KeyCode::UP_ARROW) || InputSystem::GetKey(KeyCode::LETTER_W))
+		if (InputSystem::GetKey(KeyCodes::UP_ARROW) || InputSystem::GetKey(KeyCodes::LETTER_W))
 		{
 			pTransform->SetPosition(position + (pTransform->GetRotation() * glm::vec3(0, 0, -1) * mWalkSpeed * deltaTime));
 		}
-		else if (InputSystem::GetKey(KeyCode::DOWN_ARROW) || InputSystem::GetKey(KeyCode::LETTER_S))
+		else if (InputSystem::GetKey(KeyCodes::DOWN_ARROW) || InputSystem::GetKey(KeyCodes::LETTER_S))
 		{
 			pTransform->SetPosition(position + (pTransform->GetRotation() * glm::vec3(0, 0, 1) * mWalkSpeed * deltaTime));
 		}

@@ -1,7 +1,9 @@
 #ifdef FASTCG_OPENGL
 
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 #include <FastCG/WindowsApplication.h>
+#elif defined FASTCG_LINUX
+#include <FastCG/X11Application.h>
 #endif
 #include <FastCG/OpenGLRenderingSystem.h>
 #include <FastCG/OpenGLForwardRenderingPathStrategy.h>
@@ -10,8 +12,10 @@
 #include <FastCG/Exception.h>
 #include <FastCG/AssetSystem.h>
 
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 #include <GL/wglew.h>
+#elif defined FASTCG_LINUX
+#include <GL/glxew.h>
 #endif
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -74,13 +78,21 @@ namespace
 
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam)
     {
-        printf_s(
+        printf(
             "[%s] - %s - %s - %d - %s\n",
             GetOpenGLDebugOutputMessageSeverity(severity),
             GetOpenGLDebugOutputMessageSourceString(source),
             GetOpenGLDebugOutputMessageTypeString(type),
             id,
             message);
+    }
+#endif
+
+#ifdef FASTCG_LINUX
+    int GLXContextErrorHandler(Display *dpy, XErrorEvent *ev)
+    {
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error creating GLX context (error_code: %d)", ev->error_code);
+        return 0;
     }
 #endif
 }
@@ -95,6 +107,14 @@ namespace FastCG
 
     void OpenGLRenderingSystem::Initialize()
     {
+        CreateOpenGLContext(true);
+
+        GLenum glewInitRes;
+        if ((glewInitRes = glewInit()) != GLEW_OK)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error intializing glew: %s", glewGetErrorString(glewInitRes));
+        }
+
         CreateOpenGLContext();
 
 #ifdef _DEBUG
@@ -217,7 +237,66 @@ namespace FastCG
         mpRenderingPathStrategy->Finalize();
 
         DestroyOpenGLContext();
+
+#if defined FASTCG_WINDOWS
+        WindowsApplication::GetInstance()->DestroyDeviceContext();
+#elif defined FASTCG_LINUX
+        X11Application::GetInstance()->CloseDisplay();
+#endif
     }
+
+#ifdef FASTCG_LINUX
+    XVisualInfo *OpenGLRenderingSystem::GetVisualInfo()
+    {
+        if (mpVisualInfo != nullptr)
+        {
+            return mpVisualInfo;
+        }
+
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+
+        int dummy;
+        if (!glXQueryExtension(pDisplay, &dummy, &dummy))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL not supported by X server");
+        }
+
+        static int sFbAttribs[] = {
+            GLX_RENDER_TYPE, GLX_RGBA_BIT,
+            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+            GLX_DOUBLEBUFFER, True,
+            GLX_RED_SIZE, 8,
+            GLX_GREEN_SIZE, 8,
+            GLX_BLUE_SIZE, 8,
+            GLX_ALPHA_SIZE, 8,
+            GLX_DEPTH_SIZE, 32,
+            None};
+
+        auto defaultScreen = DefaultScreen(pDisplay);
+
+        int numFbConfigs;
+        auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, sFbAttribs, &numFbConfigs);
+        for (int i = 0; i < numFbConfigs; i++)
+        {
+            auto *visualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
+            if (visualInfo == nullptr)
+            {
+                continue;
+            }
+
+            mpFbConfig = fbConfigs[i];
+            mpVisualInfo = visualInfo;
+            break;
+        }
+
+        if (mpFbConfig == nullptr)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "No matching FB config");
+        }
+
+        return mpVisualInfo;
+    }
+#endif
 
 #define DECLARE_CREATE_METHOD(className, containerMember)                             \
     className *OpenGLRenderingSystem::Create##className(const className##Args &rArgs) \
@@ -231,51 +310,123 @@ namespace FastCG
     DECLARE_CREATE_METHOD(Shader, mShaders)
     DECLARE_CREATE_METHOD(Texture, mTextures)
 
-    void OpenGLRenderingSystem::CreateOpenGLContext()
+    void OpenGLRenderingSystem::CreateOpenGLContext(bool temporary /* = false */)
     {
-#ifdef FASTCG_WINDOWS
-        auto hDC = WindowsApplication::GetInstance()->GetDeviceContextHandle();
-        auto tmpHGLRC = wglCreateContext(hDC);
-        if (tmpHGLRC == 0)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary GL context");
-        }
+#if defined FASTCG_WINDOWS
+        auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
 
-        if (!wglMakeCurrent(hDC, tmpHGLRC))
+        auto oldHGLRC = mHGLRC;
+        if (temporary)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error making the temporary GL context current");
-        }
-
-        {
-            GLenum glewInitRes;
-            if ((glewInitRes = glewInit()) != GLEW_OK)
+            mHGLRC = wglCreateContext(hDC);
+            if (mHGLRC == 0)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Error intializing glew: %s", glewGetErrorString(glewInitRes));
+                FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary WGL context");
+            }
+
+            if (!wglMakeCurrent(hDC, mHGLRC))
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Error making a temporary WGL context current");
+            }
+        }
+        else
+        {
+            const int attribs[] = {
+                WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+                WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+                WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+#ifdef _DEBUG
+                                           | WGL_CONTEXT_DEBUG_BIT_ARB
+#endif
+                ,
+                0};
+
+            mHGLRC = wglCreateContextAttribsARB(hDC, mHGLRC, attribs);
+            if (mHGLRC == 0)
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Error creating a final WGL context");
+            }
+
+            if (!wglMakeCurrent(hDC, mHGLRC))
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Error making a final WGL context current");
             }
         }
 
-        const int attribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-            WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        if (oldHGLRC != 0)
+        {
+            wglDeleteContext(oldHGLRC);
+        }
+#elif defined FASTCG_LINUX
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        static Window sTempWindow{None};
+        if (sTempWindow != None)
+        {
+            XDestroyWindow(pDisplay, sTempWindow);
+            XFlush(pDisplay);
+            sTempWindow = None;
+        }
+        auto *pOldRenderContext = mpRenderContext;
+        if (temporary)
+        {
+            auto defaultScreen = DefaultScreen(pDisplay);
+            sTempWindow = XCreateSimpleWindow(pDisplay, RootWindow(pDisplay, defaultScreen), 0, 0, 1, 1, 1, BlackPixel(pDisplay, defaultScreen), WhitePixel(pDisplay, defaultScreen));
+
+            XMapWindow(pDisplay, sTempWindow);
+
+            XWindowAttributes tempWindowAttribs;
+            XGetWindowAttributes(pDisplay, sTempWindow, &tempWindowAttribs);
+
+            XVisualInfo tempVisualInfo;
+            tempVisualInfo.visualid = XVisualIDFromVisual(tempWindowAttribs.visual);
+
+            int n;
+            XVisualInfo *pTempVisualInfo = XGetVisualInfo(pDisplay, VisualIDMask, &tempVisualInfo, &n);
+
+            auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
+            mpRenderContext = glXCreateContext(pDisplay, pTempVisualInfo, 0, true);
+            XSetErrorHandler(pOldErrorHandler);
+
+            XFree(pTempVisualInfo);
+
+            glXMakeCurrent(pDisplay, sTempWindow, mpRenderContext);
+        }
+        else
+        {
+            const int attribs[] = {
+                GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+                GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+                GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #ifdef _DEBUG
-                                       | WGL_CONTEXT_DEBUG_BIT_ARB
+                                           | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0};
-        mHGLRC = wglCreateContextAttribsARB(hDC, mHGLRC, attribs);
-        if (mHGLRC == 0)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Error creating the final GL context");
+                ,
+                0};
+
+            auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
+            mpRenderContext = glXCreateContextAttribsARB(pDisplay, mpFbConfig, 0, True, attribs);
+            XSetErrorHandler(pOldErrorHandler);
+
+            if (mpRenderContext == nullptr)
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Error creating a final GLX context");
+            }
+
+            XSync(pDisplay, False);
+
+            auto &rWindow = X11Application::GetInstance()->GetWindow();
+            if (!glXMakeContextCurrent(pDisplay, rWindow, rWindow, mpRenderContext))
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Error making a final GLX context current");
+            }
         }
 
-        if (!wglMakeCurrent(hDC, mHGLRC))
+        if (pOldRenderContext != nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error making GL context current");
+            glXDestroyContext(pDisplay, pOldRenderContext);
         }
-
-        wglDeleteContext(tmpHGLRC);
 #else
 #error FastCG::OpenGLRenderingSystem::CreateOpenGLContext() is not implemented on the current platform
 #endif
@@ -283,12 +434,14 @@ namespace FastCG
 
     void OpenGLRenderingSystem::DestroyOpenGLContext()
     {
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
         if (mHGLRC != 0)
         {
-            wglMakeCurrent(WindowsApplication::GetInstance()->GetDeviceContextHandle(), NULL);
+            wglMakeCurrent(WindowsApplication::GetInstance()->GetDeviceContext(), NULL);
             wglDeleteContext(mHGLRC);
         }
+#elif defined FASTCG_LINUX
+
 #else
 #error "FastCG::OpenGLRenderingSystem::~DestroyOpenGLContext() is not implemented on the current platform"
 #endif
@@ -309,6 +462,20 @@ namespace FastCG
         }
 
         mpRenderingPathStrategy->Render(pMainCamera);
+    }
+
+    void OpenGLRenderingSystem::Present()
+    {
+#if defined FASTCG_WINDOWS
+        auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
+        SwapBuffers(hDC);
+#elif defined FASTCG_LINUX
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        auto &window = X11Application::GetInstance()->GetWindow();
+        glXSwapBuffers(pDisplay, window);
+#else
+#error "OpenGLRenderingSystem::Present() not implemented on the current platform"
+#endif
     }
 
     void OpenGLRenderingSystem::RenderImGui(const ImDrawData *pImDrawData)

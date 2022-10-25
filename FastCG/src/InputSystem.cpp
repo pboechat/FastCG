@@ -3,7 +3,7 @@
 #include <FastCG/InputSystem.h>
 #include <FastCG/Exception.h>
 
-#include <memory>
+#include <cstring>
 
 namespace FastCG
 {

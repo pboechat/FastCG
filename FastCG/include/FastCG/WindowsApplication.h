@@ -1,8 +1,6 @@
 #ifndef FASTCG_WINDOWS_APPLICATION_H
 #define FASTCG_WINDOWS_APPLICATION_H
 
-#include <FastCG/FastCG.h>
-
 #ifdef FASTCG_WINDOWS
 
 #include <FastCG/BaseApplication.h>
@@ -21,23 +19,22 @@ namespace FastCG
             return static_cast<WindowsApplication *>(BaseApplication::GetInstance());
         }
 
-        inline HDC GetDeviceContextHandle() const
-        {
-            return mHDC;
-        }
+        HDC GetDeviceContext();
+        HWND GetWindow();
+        void DestroyDeviceContext();
 
         friend LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);
 
     protected:
         void RunMainLoop() override;
-        void InitializePresentation() override;
-        void FinalizePresentation() override;
-        void Present() override;
 
     private:
         HINSTANCE mHInstance{0};
         HWND mHWnd{0};
         HDC mHDC{0};
+
+        void CreateAndSetupDeviceContext();
+        void CreateWindow();
     };
 
 }

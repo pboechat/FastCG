@@ -13,7 +13,7 @@ IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {
-	if (InputSystem::GetKey(KeyCode::ESCAPE))
+	if (InputSystem::GetKey(KeyCodes::ESCAPE))
 	{
 		Application::GetInstance()->Exit();
 		return;
@@ -21,9 +21,9 @@ void Controls::OnUpdate(float time, float deltaTime)
 
 #if defined _DEBUG && defined FASTCG_OPENGL
 	auto *pDeferredRenderingStrategy = static_cast<OpenGLDeferredRenderingPathStrategy *>(RenderingSystem::GetInstance()->GetRenderingPathStrategy());
-	InputSystem::IsKeyPressed(KeyCode::F1, mPressedKeyMask, 0, [&]()
+	InputSystem::IsKeyPressed(KeyCodes::F1, mPressedKeyMask, 0, [&]()
 							  { pDeferredRenderingStrategy->SetDisplayGBufferEnabled(!pDeferredRenderingStrategy->IsDisplayGBufferEnabled()); });
-	InputSystem::IsKeyPressed(KeyCode::F2, mPressedKeyMask, 1, [&]()
+	InputSystem::IsKeyPressed(KeyCodes::F2, mPressedKeyMask, 1, [&]()
 							  { pDeferredRenderingStrategy->SetShowPointLightsEnabled(!pDeferredRenderingStrategy->IsShowPointLightsEnabled()); });
 #endif
 }

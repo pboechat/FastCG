@@ -12,13 +12,16 @@
 #include <FastCG/BaseRenderingSystem.h>
 #include <FastCG/BaseApplication.h>
 
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 #include <Windows.h>
+#elif defined FASTCG_LINUX
+#include <GL/glxew.h>
 #endif
 
 #include <vector>
 #include <memory>
 #include <cstring>
+#include <algorithm>
 
 namespace FastCG
 {
@@ -38,8 +41,12 @@ namespace FastCG
         void RenderImGui(const ImDrawData *pImDrawData);
         void Initialize();
         void PostInitialize();
+        void Present();
         void Resize() {}
         void Finalize();
+#ifdef FASTCG_LINUX
+        XVisualInfo *GetVisualInfo();
+#endif
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
@@ -62,8 +69,12 @@ namespace FastCG
         virtual ~OpenGLRenderingSystem();
 
     private:
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
         HGLRC mHGLRC{0};
+#elif defined FASTCG_LINUX
+        GLXFBConfig mpFbConfig{nullptr};
+        XVisualInfo *mpVisualInfo{nullptr};
+        GLXContext mpRenderContext{nullptr};
 #endif
         std::unique_ptr<RenderingPathStrategy> mpRenderingPathStrategy;
         std::vector<OpenGLMaterial *> mMaterials;
@@ -78,7 +89,7 @@ namespace FastCG
         GLuint mImGuiVerticesBufferId{~0u};
         GLuint mImGuiIndicesBufferId{~0u};
 
-        void CreateOpenGLContext();
+        void CreateOpenGLContext(bool temporary = false);
         void DestroyOpenGLContext();
     };
 

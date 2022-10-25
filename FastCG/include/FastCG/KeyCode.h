@@ -4,97 +4,182 @@
 #include <FastCG/FastCG.h>
 #include <FastCG/Exception.h>
 
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 #include <WinUser.h>
+#elif defined FASTCG_LINUX
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #endif
 
 namespace FastCG
 {
-	class KeyCode
+	class KeyCodes
 	{
 	public:
-#ifdef FASTCG_WINDOWS
-		static const int BACKSPACE = VK_BACK;
-		static const int RETURN = VK_RETURN;
-		static const int ESCAPE = VK_ESCAPE;
-		static const int SPACE = VK_SPACE;
-		static const int ASTERISK = VK_MULTIPLY;
-		static const int PLUS = VK_ADD;
-		static const int COMMA = VK_OEM_COMMA;
-		static const int MINUS = VK_SUBTRACT;
-		static const int DOT = VK_OEM_PERIOD;
-		static const int SLASH = VK_DIVIDE;
-		static const int NUMBER_0 = VK_NUMPAD0;
-		static const int NUMBER_1 = VK_NUMPAD1;
-		static const int NUMBER_2 = VK_NUMPAD2;
-		static const int NUMBER_3 = VK_NUMPAD3;
-		static const int NUMBER_4 = VK_NUMPAD4;
-		static const int NUMBER_5 = VK_NUMPAD5;
-		static const int NUMBER_6 = VK_NUMPAD6;
-		static const int NUMBER_7 = VK_NUMPAD7;
-		static const int NUMBER_8 = VK_NUMPAD8;
-		static const int NUMBER_9 = VK_NUMPAD9;
-		static const int COLON = 58;
-		static const int SEMI_COLON = 59;
-		static const int EQUALS = 61;
-		static const int LEFT_ARROW = VK_LEFT;
-		static const int UP_ARROW = VK_UP;
-		static const int RIGHT_ARROW = VK_RIGHT;
-		static const int DOWN_ARROW = VK_DOWN;
-		static const int F1 = VK_F1;
-		static const int F2 = VK_F2;
-		static const int F3 = VK_F3;
-		static const int F4 = VK_F4;
-		static const int F5 = VK_F5;
-		static const int F6 = VK_F6;
-		static const int F7 = VK_F7;
-		static const int F8 = VK_F8;
-		static const int F9 = VK_F9;
-		static const int F10 = VK_F10;
-		static const int F11 = VK_F11;
-		static const int F12 = VK_F12;
-		static const int PAGE_UP = VK_PRIOR;
-		static const int PAGE_DOWN = VK_NEXT;
-		static const int END = VK_END;
-		static const int HOME = VK_HOME;
-		static const int INSERT = VK_INSERT;
-		static const int SHIFT = VK_SHIFT;
-		static const int RIGHT_SHIFT = 84;
-		static const int CONTROL = VK_CONTROL;
-		static const int RIGHT_CONTROL = 86;
-		static const int ALT = 87;
-		static const int RIGHT_ALT = 88;
-		static const int OPEN_SQUARE_BRACKET = 91;
-		static const int BACKSLASH = 92;
-		static const int CLOSE_SQUARE_BRACKET = 93;
-		static const int LETTER_A = 'A';
-		static const int LETTER_B = 'B';
-		static const int LETTER_C = 'C';
-		static const int LETTER_D = 'D';
-		static const int LETTER_E = 'E';
-		static const int LETTER_F = 'F';
-		static const int LETTER_G = 'G';
-		static const int LETTER_H = 'H';
-		static const int LETTER_I = 'I';
-		static const int LETTER_J = 'J';
-		static const int LETTER_K = 'K';
-		static const int LETTER_L = 'L';
-		static const int LETTER_M = 'M';
-		static const int LETTER_N = 'N';
-		static const int LETTER_O = 'O';
-		static const int LETTER_P = 'P';
-		static const int LETTER_Q = 'Q';
-		static const int LETTER_R = 'R';
-		static const int LETTER_S = 'S';
-		static const int LETTER_T = 'T';
-		static const int LETTER_U = 'U';
-		static const int LETTER_V = 'V';
-		static const int LETTER_W = 'W';
-		static const int LETTER_X = 'X';
-		static const int LETTER_Y = 'Y';
-		static const int LETTER_Z = 'Z';
-		static const int TILDE = 126;
-		static const int DEL = VK_DELETE;
+#if defined FASTCG_WINDOWS
+		static constexpr int BACKSPACE = VK_BACK;
+		static constexpr int RETURN = VK_RETURN;
+		static constexpr int ESCAPE = VK_ESCAPE;
+		static constexpr int SPACE = VK_SPACE;
+		static constexpr int ASTERISK = VK_MULTIPLY;
+		static constexpr int PLUS = VK_ADD;
+		static constexpr int COMMA = VK_OEM_COMMA;
+		static constexpr int MINUS = VK_SUBTRACT;
+		static constexpr int DOT = VK_OEM_PERIOD;
+		static constexpr int SLASH = VK_DIVIDE;
+		static constexpr int NUMBER_0 = VK_NUMPAD0;
+		static constexpr int NUMBER_1 = VK_NUMPAD1;
+		static constexpr int NUMBER_2 = VK_NUMPAD2;
+		static constexpr int NUMBER_3 = VK_NUMPAD3;
+		static constexpr int NUMBER_4 = VK_NUMPAD4;
+		static constexpr int NUMBER_5 = VK_NUMPAD5;
+		static constexpr int NUMBER_6 = VK_NUMPAD6;
+		static constexpr int NUMBER_7 = VK_NUMPAD7;
+		static constexpr int NUMBER_8 = VK_NUMPAD8;
+		static constexpr int NUMBER_9 = VK_NUMPAD9;
+		static constexpr int COLON = 58;
+		static constexpr int SEMI_COLON = 59;
+		static constexpr int EQUALS = 61;
+		static constexpr int LEFT_ARROW = VK_LEFT;
+		static constexpr int UP_ARROW = VK_UP;
+		static constexpr int RIGHT_ARROW = VK_RIGHT;
+		static constexpr int DOWN_ARROW = VK_DOWN;
+		static constexpr int F1 = VK_F1;
+		static constexpr int F2 = VK_F2;
+		static constexpr int F3 = VK_F3;
+		static constexpr int F4 = VK_F4;
+		static constexpr int F5 = VK_F5;
+		static constexpr int F6 = VK_F6;
+		static constexpr int F7 = VK_F7;
+		static constexpr int F8 = VK_F8;
+		static constexpr int F9 = VK_F9;
+		static constexpr int F10 = VK_F10;
+		static constexpr int F11 = VK_F11;
+		static constexpr int F12 = VK_F12;
+		static constexpr int PAGE_UP = VK_PRIOR;
+		static constexpr int PAGE_DOWN = VK_NEXT;
+		static constexpr int END = VK_END;
+		static constexpr int HOME = VK_HOME;
+		static constexpr int INSERT = VK_INSERT;
+		static constexpr int SHIFT = VK_SHIFT;
+		static constexpr int RIGHT_SHIFT = 84;
+		static constexpr int CONTROL = VK_CONTROL;
+		static constexpr int RIGHT_CONTROL = 86;
+		static constexpr int ALT = 87;
+		static constexpr int RIGHT_ALT = 88;
+		static constexpr int OPEN_SQUARE_BRACKET = 91;
+		static constexpr int BACKSLASH = 92;
+		static constexpr int CLOSE_SQUARE_BRACKET = 93;
+		static constexpr int LETTER_A = 'A';
+		static constexpr int LETTER_B = 'B';
+		static constexpr int LETTER_C = 'C';
+		static constexpr int LETTER_D = 'D';
+		static constexpr int LETTER_E = 'E';
+		static constexpr int LETTER_F = 'F';
+		static constexpr int LETTER_G = 'G';
+		static constexpr int LETTER_H = 'H';
+		static constexpr int LETTER_I = 'I';
+		static constexpr int LETTER_J = 'J';
+		static constexpr int LETTER_K = 'K';
+		static constexpr int LETTER_L = 'L';
+		static constexpr int LETTER_M = 'M';
+		static constexpr int LETTER_N = 'N';
+		static constexpr int LETTER_O = 'O';
+		static constexpr int LETTER_P = 'P';
+		static constexpr int LETTER_Q = 'Q';
+		static constexpr int LETTER_R = 'R';
+		static constexpr int LETTER_S = 'S';
+		static constexpr int LETTER_T = 'T';
+		static constexpr int LETTER_U = 'U';
+		static constexpr int LETTER_V = 'V';
+		static constexpr int LETTER_W = 'W';
+		static constexpr int LETTER_X = 'X';
+		static constexpr int LETTER_Y = 'Y';
+		static constexpr int LETTER_Z = 'Z';
+		static constexpr int TILDE = 126;
+		static constexpr int DEL = VK_DELETE;
+#elif defined FASTCG_LINUX
+		static constexpr int BACKSPACE = XK_BackSpace;
+		static constexpr int RETURN = XK_Return;
+		static constexpr int ESCAPE = XK_Escape;
+		static constexpr int SPACE = XK_space;
+		static constexpr int ASTERISK = XK_asterisk;
+		static constexpr int PLUS = XK_plus;
+		static constexpr int COMMA = XK_comma;
+		static constexpr int MINUS = XK_minus;
+		static constexpr int DOT = XK_period;
+		static constexpr int SLASH = XK_slash;
+		static constexpr int NUMBER_0 = XK_KP_0;
+		static constexpr int NUMBER_1 = XK_KP_1;
+		static constexpr int NUMBER_2 = XK_KP_2;
+		static constexpr int NUMBER_3 = XK_KP_3;
+		static constexpr int NUMBER_4 = XK_KP_4;
+		static constexpr int NUMBER_5 = XK_KP_5;
+		static constexpr int NUMBER_6 = XK_KP_6;
+		static constexpr int NUMBER_7 = XK_KP_7;
+		static constexpr int NUMBER_8 = XK_KP_8;
+		static constexpr int NUMBER_9 = XK_KP_9;
+		static constexpr int COLON = XK_colon;
+		static constexpr int SEMI_COLON = XK_semicolon;
+		static constexpr int EQUALS = XK_equal;
+		static constexpr int LEFT_ARROW = XK_Left;
+		static constexpr int UP_ARROW = XK_Up;
+		static constexpr int RIGHT_ARROW = XK_Right;
+		static constexpr int DOWN_ARROW = XK_Down;
+		static constexpr int F1 = XK_F1;
+		static constexpr int F2 = XK_F2;
+		static constexpr int F3 = XK_F3;
+		static constexpr int F4 = XK_F4;
+		static constexpr int F5 = XK_F5;
+		static constexpr int F6 = XK_F6;
+		static constexpr int F7 = XK_F7;
+		static constexpr int F8 = XK_F8;
+		static constexpr int F9 = XK_F9;
+		static constexpr int F10 = XK_F10;
+		static constexpr int F11 = XK_F11;
+		static constexpr int F12 = XK_F12;
+		static constexpr int PAGE_UP = XK_Page_Up;
+		static constexpr int PAGE_DOWN = XK_Page_Down;
+		static constexpr int END = XK_End;
+		static constexpr int HOME = XK_Home;
+		static constexpr int INSERT = XK_Insert;
+		static constexpr int SHIFT = XK_Shift_L;
+		static constexpr int RIGHT_SHIFT = XK_Shift_R;
+		static constexpr int CONTROL = XK_Control_L;
+		static constexpr int RIGHT_CONTROL = XK_Control_R;
+		static constexpr int ALT = XK_Alt_L;
+		static constexpr int RIGHT_ALT = XK_Alt_R;
+		static constexpr int OPEN_SQUARE_BRACKET = XK_bracketleft;
+		static constexpr int BACKSLASH = XK_backslash;
+		static constexpr int CLOSE_SQUARE_BRACKET = XK_bracketright;
+		static constexpr int LETTER_A = XK_A;
+		static constexpr int LETTER_B = XK_B;
+		static constexpr int LETTER_C = XK_C;
+		static constexpr int LETTER_D = XK_D;
+		static constexpr int LETTER_E = XK_E;
+		static constexpr int LETTER_F = XK_F;
+		static constexpr int LETTER_G = XK_G;
+		static constexpr int LETTER_H = XK_H;
+		static constexpr int LETTER_I = XK_I;
+		static constexpr int LETTER_J = XK_J;
+		static constexpr int LETTER_K = XK_K;
+		static constexpr int LETTER_L = XK_L;
+		static constexpr int LETTER_M = XK_M;
+		static constexpr int LETTER_N = XK_N;
+		static constexpr int LETTER_O = XK_O;
+		static constexpr int LETTER_P = XK_P;
+		static constexpr int LETTER_Q = XK_Q;
+		static constexpr int LETTER_R = XK_R;
+		static constexpr int LETTER_S = XK_S;
+		static constexpr int LETTER_T = XK_T;
+		static constexpr int LETTER_U = XK_U;
+		static constexpr int LETTER_V = XK_V;
+		static constexpr int LETTER_W = XK_W;
+		static constexpr int LETTER_X = XK_X;
+		static constexpr int LETTER_Y = XK_Y;
+		static constexpr int LETTER_Z = XK_Z;
+		static constexpr int TILDE = XK_itilde;
+		static constexpr int DEL = XK_Delete;
 #else
 #error "FastCG::KeyCode constants not implemented on the current platform"
 #endif
@@ -245,8 +330,8 @@ namespace FastCG
 		static const int SPECIAL_ALT = 116;
 		static const int SPECIAL_RIGHT_ALT = 117;
 
-		KeyCode() = delete;
-		~KeyCode() = delete;
+		KeyCodes() = delete;
+		~KeyCodes() = delete;
 	};
 
 }

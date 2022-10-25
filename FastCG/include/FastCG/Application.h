@@ -1,13 +1,17 @@
 #ifndef FASTCG_APPLICATION_H
 #define FASTCG_APPLICATION_H
 
-#include <FastCG/FastCG.h>
-
-#ifdef FASTCG_WINDOWS
+#if defined FASTCG_WINDOWS
 #include <FastCG/WindowsApplication.h>
 namespace FastCG
 {
     using Application = WindowsApplication;
+}
+#elif defined FASTCG_LINUX
+#include <FastCG/X11Application.h>
+namespace FastCG
+{
+    using Application = X11Application;
 }
 #else
 #error "FASTCG: Unhandled platform"

@@ -12,6 +12,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <cstdint>
 
 #define FASTCG_DECLARE_SYSTEM(className, argsClassName) \
@@ -135,9 +136,6 @@ namespace FastCG
 		virtual void OnPrintUsage() {}
 		virtual void RunMainLoop() = 0;
 		void RunMainLoopIteration();
-		virtual void InitializePresentation() = 0;
-		virtual void FinalizePresentation() = 0;
-		virtual void Present() = 0;
 		void WindowResizeCallback(int width, int height);
 		void MouseButtonCallback(MouseButton button, MouseButtonState state, int x, int y);
 		void MouseWheelCallback(int direction, int x, int y);

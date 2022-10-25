@@ -242,8 +242,6 @@ namespace FastCG
 								 mpRenderBatchStrategy->GetRenderBatches(),
 								 mRenderingStatistics});
 
-		InitializePresentation();
-
 		RenderingSystem::GetInstance()->Initialize();
 
 		int width, height;
@@ -275,8 +273,6 @@ namespace FastCG
 		OnFinalize();
 
 		RenderingSystem::GetInstance()->Finalize();
-
-		FinalizePresentation();
 
 		RenderingSystem::Destroy();
 		InputSystem::Destroy();
@@ -332,9 +328,9 @@ namespace FastCG
 		RenderingSystem::GetInstance()->Render(mpMainCamera);
 
 		ImGui::Begin("Statistics");
-			ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
-			ImGui::Text("Draw Calls: %zu", mRenderingStatistics.drawCalls);
-			ImGui::Text("Triangles: %zu", mRenderingStatistics.numberOfTriangles);
+		ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
+		ImGui::Text("Draw Calls: %zu", mRenderingStatistics.drawCalls);
+		ImGui::Text("Triangles: %zu", mRenderingStatistics.numberOfTriangles);
 		ImGui::End();
 
 		ImGui::EndFrame();
@@ -347,7 +343,7 @@ namespace FastCG
 		mTotalElapsedTime += deltaTime;
 		mFrameCount++;
 
-		Present();
+		RenderingSystem::GetInstance()->Present();
 
 		if (mFrameRate != UNLOCKED_FRAMERATE)
 		{

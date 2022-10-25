@@ -10,7 +10,7 @@ IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {
-	if (InputSystem::GetKey(KeyCode::ESCAPE))
+	if (InputSystem::GetKey(KeyCodes::ESCAPE))
 	{
 		Application::GetInstance()->Exit();
 		return;
