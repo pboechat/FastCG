@@ -26,11 +26,30 @@ namespace FastCG
 		ShaderTypeValueArray<std::string> shaderFileNames;
 	};
 
+	template <ShaderType ShaderTypeT>
+	struct ShaderFileExtension;
+
+	template <>
+	struct ShaderFileExtension<ShaderType::ST_VERTEX>
+	{
+		static const char* value()
+		{
+			return ".vert";
+		}
+	};
+
+	template <>
+	struct ShaderFileExtension<ShaderType::ST_FRAGMENT>
+	{
+		static const char* value()
+		{
+			return ".frag";
+		}
+	};
+
 	class BaseShader
 	{
 	public:
-		static constexpr char VERTEX_SHADER_FILE_EXTENSION[] = ".vert";
-		static constexpr char FRAGMENT_SHADER_FILE_EXTENSION[] = ".frag";
 		static constexpr uint32_t VERTICES_ATTRIBUTE_INDEX = 0;
 		static constexpr uint32_t NORMALS_ATTRIBUTE_INDEX = 1;
 		static constexpr uint32_t UVS_ATTRIBUTE_INDEX = 2;

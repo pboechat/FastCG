@@ -72,8 +72,8 @@ namespace FastCG
 #if defined FASTCG_WINDOWS
         HGLRC mHGLRC{0};
 #elif defined FASTCG_LINUX
-        GLXFBConfig mpFbConfig{nullptr};
         XVisualInfo *mpVisualInfo{nullptr};
+        GLXFBConfig mpFbConfig{nullptr};
         GLXContext mpRenderContext{nullptr};
 #endif
         std::unique_ptr<RenderingPathStrategy> mpRenderingPathStrategy;
@@ -89,6 +89,9 @@ namespace FastCG
         GLuint mImGuiVerticesBufferId{~0u};
         GLuint mImGuiIndicesBufferId{~0u};
 
+#ifdef FASTCG_LINUX
+        void AcquireVisualInfoAndFbConfig();
+#endif
         void CreateOpenGLContext(bool temporary = false);
         void DestroyOpenGLContext();
     };

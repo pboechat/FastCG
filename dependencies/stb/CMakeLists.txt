@@ -11,6 +11,5 @@ file(GLOB HEADERS
 
 source_group("include" FILES ${HEADERS})
 
-add_library(${PROJECT_NAME} INTERFACE ${HEADERS})
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
+add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE include/)

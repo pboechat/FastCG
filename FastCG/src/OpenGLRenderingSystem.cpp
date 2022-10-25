@@ -20,6 +20,12 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
+#if defined FASTCG_LINUX
+#include <X11/extensions/Xrender.h>
+#endif
+
+#include <cassert>
+
 static_assert(sizeof(ImDrawIdx) == sizeof(uint32_t), "Please configure ImGui to use 32-bit indices");
 
 namespace
@@ -241,6 +247,12 @@ namespace FastCG
 #if defined FASTCG_WINDOWS
         WindowsApplication::GetInstance()->DestroyDeviceContext();
 #elif defined FASTCG_LINUX
+        if (mpVisualInfo != nullptr)
+        {
+            XFree(mpVisualInfo);
+            mpVisualInfo = nullptr;
+            mpFbConfig = nullptr;
+        }
         X11Application::GetInstance()->CloseDisplay();
 #endif
     }
@@ -253,6 +265,13 @@ namespace FastCG
             return mpVisualInfo;
         }
 
+        AcquireVisualInfoAndFbConfig();
+
+        return mpVisualInfo;
+    }
+
+    void OpenGLRenderingSystem::AcquireVisualInfoAndFbConfig()
+    {
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
 
         int dummy;
@@ -261,7 +280,7 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "OpenGL not supported by X server");
         }
 
-        static int sFbAttribs[] = {
+        const int fbAttribs[] = {
             GLX_RENDER_TYPE, GLX_RGBA_BIT,
             GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
             GLX_DOUBLEBUFFER, True,
@@ -269,32 +288,41 @@ namespace FastCG
             GLX_GREEN_SIZE, 8,
             GLX_BLUE_SIZE, 8,
             GLX_ALPHA_SIZE, 8,
-            GLX_DEPTH_SIZE, 32,
+            GLX_DEPTH_SIZE, 24,
             None};
 
         auto defaultScreen = DefaultScreen(pDisplay);
 
         int numFbConfigs;
-        auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, sFbAttribs, &numFbConfigs);
+        auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
         for (int i = 0; i < numFbConfigs; i++)
         {
-            auto *visualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
-            if (visualInfo == nullptr)
+            auto *pVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
+            if (pVisualInfo == nullptr)
             {
                 continue;
             }
 
-            mpFbConfig = fbConfigs[i];
-            mpVisualInfo = visualInfo;
-            break;
+            auto *pVisualFormat = XRenderFindVisualFormat(pDisplay, pVisualInfo->visual);
+            if (pVisualFormat == nullptr)
+            {
+                continue;
+            }
+
+            if (pVisualFormat->direct.alphaMask > 0)
+            {
+                mpFbConfig = fbConfigs[i];
+                mpVisualInfo = pVisualInfo;
+                break;
+            }
+
+            XFree(pVisualInfo);
         }
 
         if (mpFbConfig == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "No matching FB config");
         }
-
-        return mpVisualInfo;
     }
 #endif
 
@@ -364,7 +392,7 @@ namespace FastCG
         if (sTempWindow != None)
         {
             XDestroyWindow(pDisplay, sTempWindow);
-            XFlush(pDisplay);
+            XSync(pDisplay, False);
             sTempWindow = None;
         }
         auto *pOldRenderContext = mpRenderContext;
@@ -405,6 +433,11 @@ namespace FastCG
                 ,
                 0};
 
+            if (mpFbConfig == nullptr)
+            {
+                AcquireVisualInfoAndFbConfig();
+            }
+
             auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
             mpRenderContext = glXCreateContextAttribsARB(pDisplay, mpFbConfig, 0, True, attribs);
             XSetErrorHandler(pOldErrorHandler);
@@ -437,11 +470,19 @@ namespace FastCG
 #if defined FASTCG_WINDOWS
         if (mHGLRC != 0)
         {
-            wglMakeCurrent(WindowsApplication::GetInstance()->GetDeviceContext(), NULL);
+            wglMakeCurrent(WindowsApplication::GetInstance()->GetDeviceContext(), nullptr);
             wglDeleteContext(mHGLRC);
         }
 #elif defined FASTCG_LINUX
+        if (mpRenderContext != nullptr)
+        {
+            auto *pDisplay = X11Application::GetInstance()->GetDisplay();
 
+            glXMakeContextCurrent(pDisplay, None, None, nullptr);
+            glXDestroyContext(pDisplay, mpRenderContext);
+
+            mpRenderContext = nullptr;
+        }
 #else
 #error "FastCG::OpenGLRenderingSystem::~DestroyOpenGLContext() is not implemented on the current platform"
 #endif
@@ -449,11 +490,10 @@ namespace FastCG
 
     void OpenGLRenderingSystem::Render(const Camera *pMainCamera)
     {
-#ifdef FASTCG_WINDOWS
-        if (mHGLRC == 0)
-        {
-            return;
-        }
+#if defined FASTCG_WINDOWS
+        assert(mHGLRC != 0);
+#elif defined FASTCT_LINUX
+        assert(mpRenderContext != nullptr);
 #endif
 
         if (pMainCamera == nullptr)

@@ -15,7 +15,7 @@ namespace
         case FastCG::TextureFilter::TF_LINEAR_FILTER:
             return GL_LINEAR;
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled filter: %d", filter);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled filter: %d", (int)filter);
             return 0;
         }
     }
@@ -29,7 +29,7 @@ namespace
         case FastCG::TextureWrapMode::TW_REPEAT:
             return GL_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled wrapping mode: %d", wrapMode);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled wrapping mode: %d", (int)wrapMode);
             return 0;
         }
     }
@@ -51,7 +51,7 @@ namespace
         case FastCG::TextureFormat::TF_BGRA:
             return GL_BGRA;
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled internal format: %d", format);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled internal format: %d", (int)format);
             return 0;
         }
     }
@@ -65,7 +65,7 @@ namespace
         case FastCG::TextureDataType::DT_UNSIGNED_CHAR:
             return GL_UNSIGNED_BYTE;
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled data type: %d", dataType);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled data type: %d", (int)dataType);
             return 0;
         }
     }
