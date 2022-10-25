@@ -35,7 +35,7 @@ namespace FastCG
 
 				if (mousePosition != mLastMousePosition)
 				{
-					auto direction = mousePosition - mLastMousePosition;
+					glm::vec2 direction{mousePosition.x - (float)mLastMousePosition.x, mousePosition.y - (float)mLastMousePosition.y};
 
 					auto axis = glm::vec3(MathF::Abs(direction.y) > EPSILON ? direction.y : 0, MathF::Abs(direction.x) > EPSILON ? -direction.x : 0, 0);
 					pTransform->SetRotation(pTransform->GetRotation() * glm::angleAxis(mTurnSpeed * deltaTime, axis));

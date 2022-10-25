@@ -2,6 +2,8 @@
 
 #ifdef FASTCG_WINDOWS
 
+#include <FastCG/RenderingSystem.h>
+
 #include <unordered_map>
 
 namespace
@@ -110,7 +112,8 @@ namespace FastCG
 {
 	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		switch ()
+		auto *app = WindowsApplication::GetInstance();
+		switch (uMsg)
 		{
 		case WM_DESTROY:
 		case WM_QUIT:
@@ -118,32 +121,32 @@ namespace FastCG
 			PostQuitMessage(0);
 			break;
 		case WM_SIZE:
-			WindowsApplication::GetInstance()->WindowResizeCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
+			app->WindowResizeCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
 			break;
 		case WM_LBUTTONDOWN:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED);
+			app->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED);
 			break;
 		case WM_RBUTTONDOWN:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED);
+			app->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED);
 			break;
 		case WM_MBUTTONDOWN:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED);
+			app->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED);
 			break;
 		case WM_LBUTTONUP:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED);
+			app->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_RBUTTONUP:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED);
+			app->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_MBUTTONUP:
-			WindowsApplication::GetInstance()->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED);
+			app->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED);
 			break;
 		case WM_MOUSEMOVE:
-			WindowsApplication::GetInstance()->MouseMoveCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
+			app->MouseMoveCallback((uint32_t)LOWORD(lParam), app->GetScreenHeight() - (uint32_t)HIWORD(lParam));
 			break;
 		case WM_KEYDOWN:
 		case WM_KEYUP:
-			WindowsApplication::GetInstance()->KeyboardCallback(TranslateKey(uint64_t)wParam), uMsg == WM_KEYDOWN);
+			app->KeyboardCallback(TranslateKey((uint64_t)wParam), uMsg == WM_KEYDOWN);
 			break;
 		default:
 			break;
@@ -185,54 +188,31 @@ namespace FastCG
 		return mHDC;
 	}
 
-	HWND WindowApplication::GetWindow()
+	HWND WindowsApplication::GetWindow()
 	{
 		if (mHWnd != 0)
 		{
 			return mHWnd;
 		}
 
-		CreateWindow();
+		CreateWindow_();
 
 		return mHWnd;
 	}
 
-	void WindowApplication::CreateAndSetupDeviceContext()
+	void WindowsApplication::CreateAndSetupDeviceContext()
 	{
 		auto hWnd = GetWindow();
 
 		mHDC = GetDC(hWnd);
 
-		PIXELFORMATDESCRIPTOR pixelFormatDescr =
-			{
-				sizeof(PIXELFORMATDESCRIPTOR),
-				1,
-				PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-				PFD_TYPE_RGBA,
-				32,
-				0, 0, 0, 0, 0, 0, // color bits (ignored)
-				0,				  // no alpha buffer
-				0,				  // alpha bits (ignored)
-				0,				  // no accumulation buffer
-				0, 0, 0, 0,		  // accum bits (ignored)
-				32,				  // depth buffer
-				0,				  // no stencil buffer
-				0,				  // no auxiliary buffers
-				PFD_MAIN_PLANE,	  // main layer
-				0,				  // reserved
-				0, 0, 0,		  // no layer, visible, damage masks
-			};
-		auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
-		if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
-		}
+		RenderingSystem::GetInstance()->SetupPixelFormat();
 
 		ShowWindow(hWnd, SW_SHOW);
 		UpdateWindow(hWnd);
 	}
 
-	void WindowsApplication::CreateWindow()
+	void WindowsApplication::CreateWindow_()
 	{
 		mHInstance = GetModuleHandle(NULL);
 
@@ -277,7 +257,7 @@ namespace FastCG
 							   mHInstance,
 							   NULL);
 
-		if (mHwnd == 0)
+		if (mHWnd == 0)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Error creating window");
 		}

@@ -34,7 +34,7 @@ namespace FastCG
         HDC mHDC{0};
 
         void CreateAndSetupDeviceContext();
-        void CreateWindow();
+        void CreateWindow_();
     };
 
 }

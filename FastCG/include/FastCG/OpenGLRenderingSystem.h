@@ -44,7 +44,9 @@ namespace FastCG
         void Present();
         void Resize() {}
         void Finalize();
-#ifdef FASTCG_LINUX
+#if defined FASTCG_WINDOWS
+        void SetupPixelFormat() const;
+#elif defined FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
