@@ -6,36 +6,52 @@
 
 namespace FastCG
 {
+	enum class TextureType : uint8_t
+	{
+		TEXTURE_2D
+
+	};
+
 	enum class TextureWrapMode : uint8_t
 	{
-		TW_CLAMP = 0,
-		TW_REPEAT
+		CLAMP = 0,
+		REPEAT
 
 	};
 
 	enum class TextureFilter : uint8_t
 	{
-		TF_POINT_FILTER = 0,
-		TF_LINEAR_FILTER
+		POINT_FILTER = 0,
+		LINEAR_FILTER
 
 	};
 
 	enum class TextureFormat : uint8_t
 	{
-		TF_R = 0,
-		TF_RG,
-		TF_RGB,
-		TF_RGBA,
-		TF_BGR,
-		TF_BGRA
+		R = 0,
+		RG,
+		RGB,
+		RGBA,
+		BGR,
+		BGRA,
+		DEPTH_STENCIL
 
 	};
 
 	enum class TextureDataType : uint8_t
 	{
-		DT_FLOAT = 0,
-		DT_UNSIGNED_CHAR
+		FLOAT = 0,
+		UNSIGNED_CHAR,
+		UNSIGNED_INT
 
+	};
+
+	struct BitsPerPixel
+	{
+		uint8_t r;
+		uint8_t g;
+		uint8_t b;
+		uint8_t a;
 	};
 
 	struct TextureArgs
@@ -43,10 +59,12 @@ namespace FastCG
 		std::string name;
 		uint32_t width;
 		uint32_t height;
-		TextureFormat format{TextureFormat::TF_RGB};
-		TextureDataType dataType{TextureDataType::DT_UNSIGNED_CHAR};
-		TextureFilter filter{TextureFilter::TF_LINEAR_FILTER};
-		TextureWrapMode wrapMode{TextureWrapMode::TW_CLAMP};
+		TextureType type{TextureType::TEXTURE_2D};
+		TextureFormat format{TextureFormat::RGBA};
+		BitsPerPixel bitsPerPixel{8, 8, 8, 8};
+		TextureDataType dataType{TextureDataType::UNSIGNED_CHAR};
+		TextureFilter filter{TextureFilter::LINEAR_FILTER};
+		TextureWrapMode wrapMode{TextureWrapMode::CLAMP};
 		bool generateMipmaps{true};
 		void *pData{nullptr};
 	};
@@ -56,43 +74,72 @@ namespace FastCG
 	public:
 		inline const std::string &GetName() const
 		{
-			return mArgs.name;
+			return mName;
 		}
 
 		inline uint32_t GetHeight() const
 		{
-			return mArgs.height;
+			return mHeight;
 		}
 
 		inline uint32_t GetWidth() const
 		{
-			return mArgs.width;
+			return mWidth;
+		}
+
+		inline TextureType GetType() const
+		{
+			return mType;
 		}
 
 		inline TextureFormat GetFormat() const
 		{
-			return mArgs.format;
+			return mFormat;
+		}
+
+		inline const BitsPerPixel& GetBitsPerPixel() const
+		{
+			return mBitsPerPixel;
 		}
 
 		inline TextureDataType GetDataType() const
 		{
-			return mArgs.dataType;
+			return mDataType;
 		}
 
 		inline TextureFilter GetFilterMode() const
 		{
-			return mArgs.filter;
+			return mFilter;
 		}
 
 		inline TextureWrapMode GetWrapMode() const
 		{
-			return mArgs.wrapMode;
+			return mWrapMode;
 		}
 
 	protected:
-		const TextureArgs mArgs;
+		const std::string mName;
+		uint32_t mWidth;
+		uint32_t mHeight;
+		TextureType mType;
+		BitsPerPixel mBitsPerPixel;
+		TextureFormat mFormat;
+		TextureDataType mDataType;
+		TextureFilter mFilter;
+		TextureWrapMode mWrapMode;
 
-		BaseTexture(const TextureArgs &rArgs) : mArgs(rArgs) {}
+		BaseTexture(const TextureArgs &rArgs) : mName(rArgs.name),
+												mWidth(rArgs.width),
+												mHeight(rArgs.height),
+												mType(rArgs.type),
+												mFormat(rArgs.format),
+												mBitsPerPixel(rArgs.bitsPerPixel),
+												mDataType(rArgs.dataType),
+												mFilter(rArgs.filter),
+												mWrapMode(rArgs.wrapMode)
+		{
+		}
+		virtual ~BaseTexture() = default;
 	};
 
 }

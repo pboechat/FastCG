@@ -53,6 +53,10 @@ namespace FastCG
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
+        void DestroyMaterial(const OpenGLMaterial *pMaterial);
+        void DestroyMesh(const OpenGLMesh *pMesh);
+        void DestroyShader(const OpenGLShader *pShader);
+        void DestroyTexture(const OpenGLTexture *pTexture);
         inline const OpenGLShader *FindShader(const std::string &rName) const
         {
             auto it = std::find_if(mShaders.cbegin(), mShaders.cend(), [&rName](const auto &pShader)

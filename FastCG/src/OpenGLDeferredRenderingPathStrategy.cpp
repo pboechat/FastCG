@@ -85,49 +85,59 @@ namespace FastCG
 			glDeleteFramebuffers(1, &mSSAOBlurFBOId);
 		}
 
-		if (mDiffuseTextureId != ~0u)
+		if (mpDiffuseTexture != nullptr)
 		{
-			glDeleteTextures(1, &mDiffuseTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpDiffuseTexture);
 		}
 
-		if (mNormalTextureId != ~0u)
+		if (mpNormalTexture != nullptr)
 		{
-			glDeleteTextures(1, &mNormalTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpNormalTexture);
 		}
 
-		if (mSpecularTextureId != ~0u)
+		if (mpSpecularTexture != nullptr)
 		{
-			glDeleteTextures(1, &mSpecularTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpSpecularTexture);
 		}
 
-		if (mTangentTextureId != ~0u)
+		if (mpTangentTexture != nullptr)
 		{
-			glDeleteTextures(1, &mTangentTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpTangentTexture);
 		}
 
-		if (mExtraDataTextureId != ~0u)
+		if (mpExtraDataTexture != nullptr)
 		{
-			glDeleteTextures(1, &mExtraDataTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpExtraDataTexture);
 		}
 
-		if (mFinalTextureId != ~0u)
+		if (mpFinalTexture != nullptr)
 		{
-			glDeleteTextures(1, &mFinalTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpFinalTexture);
 		}
 
-		if (mDepthTextureId != ~0u)
+		if (mpDepthTexture != nullptr)
 		{
-			glDeleteTextures(1, &mDepthTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpDepthTexture);
 		}
 
-		if (mSSAOTextureId != ~0u)
+		if (mpNoiseTexture != nullptr)
 		{
-			glDeleteTextures(1, &mSSAOTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpNoiseTexture);
 		}
 
-		if (mSSAOBlurTextureId != ~0u)
+		if (mpEmptySSAOTexture != nullptr)
 		{
-			glDeleteTextures(1, &mSSAOBlurTextureId);
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpEmptySSAOTexture);
+		}
+
+		if (mpSSAOTexture != nullptr)
+		{
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpSSAOTexture);
+		}
+
+		if (mpSSAOBlurTexture != nullptr)
+		{
+			OpenGLRenderingSystem::GetInstance()->DestroyTexture(mpSSAOBlurTexture);
 		}
 	}
 
@@ -187,17 +197,29 @@ namespace FastCG
 			mpNoiseTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"Noise",
 																				  NOISE_TEXTURE_WIDTH,
 																				  NOISE_TEXTURE_HEIGHT,
-																				  TextureFormat::TF_RGB,
-																				  TextureDataType::DT_FLOAT,
-																				  TextureFilter::TF_POINT_FILTER,
-																				  TextureWrapMode::TW_REPEAT,
+																				  TextureType::TEXTURE_2D,
+																				  TextureFormat::RGB,
+																				  {8, 8, 8},
+																				  TextureDataType::FLOAT,
+																				  TextureFilter::POINT_FILTER,
+																				  TextureWrapMode::REPEAT,
 																				  false,
 																				  &pNoise[0][0]});
 		}
 
 		{
 			glm::vec4 data[] = {glm::vec4{1, 1, 1, 1}};
-			mpEmptySSAOTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"Empty SSAO", 1, 1, TextureFormat::TF_RGBA, TextureDataType::DT_FLOAT, TextureFilter::TF_POINT_FILTER, TextureWrapMode::TW_REPEAT, false, data});
+			mpEmptySSAOTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"Empty SSAO",
+																					  1,
+																					  1,
+																					  TextureType::TEXTURE_2D,
+																					  TextureFormat::RGBA,
+																					  {8, 8, 8, 8},
+																					  TextureDataType::FLOAT,
+																					  TextureFilter::POINT_FILTER,
+																					  TextureWrapMode::REPEAT,
+																					  false,
+																					  data});
 		}
 	}
 
@@ -217,109 +239,101 @@ namespace FastCG
 
 		// create g-buffer attachments
 
-		glGenTextures(1, &mDiffuseTextureId);
-		glBindTexture(GL_TEXTURE_2D, mDiffuseTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Diffuse (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mDiffuseTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTextureId, 0);
+		mpDiffuseTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Diffuse",
+																				mArgs.rScreenWidth,
+																				mArgs.rScreenHeight,
+																				TextureType::TEXTURE_2D,
+																				TextureFormat::RGBA,
+																				{32, 32, 32, 32},
+																				TextureDataType::FLOAT,
+																				TextureFilter::LINEAR_FILTER,
+																				TextureWrapMode::CLAMP,
+																				false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *mpDiffuseTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mNormalTextureId);
-		glBindTexture(GL_TEXTURE_2D, mNormalTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Normal (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mNormalTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTextureId, 0);
+		mpNormalTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
+																			   mArgs.rScreenWidth,
+																			   mArgs.rScreenHeight,
+																			   TextureType::TEXTURE_2D,
+																			   TextureFormat::RGBA,
+																			   {32, 32, 32, 32},
+																			   TextureDataType::FLOAT,
+																			   TextureFilter::LINEAR_FILTER,
+																			   TextureWrapMode::CLAMP,
+																			   false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, *mpNormalTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mSpecularTextureId);
-		glBindTexture(GL_TEXTURE_2D, mSpecularTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Specular (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mSpecularTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularTextureId, 0);
+		mpSpecularTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
+																				 mArgs.rScreenWidth,
+																				 mArgs.rScreenHeight,
+																				 TextureType::TEXTURE_2D,
+																				 TextureFormat::RGBA,
+																				 {32, 32, 32, 32},
+																				 TextureDataType::FLOAT,
+																				 TextureFilter::LINEAR_FILTER,
+																				 TextureWrapMode::CLAMP,
+																				 false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, *mpSpecularTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mTangentTextureId);
-		glBindTexture(GL_TEXTURE_2D, mTangentTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Tangent (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mTangentTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mTangentTextureId, 0);
+		mpTangentTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
+																				mArgs.rScreenWidth,
+																				mArgs.rScreenHeight,
+																				TextureType::TEXTURE_2D,
+																				TextureFormat::RGBA,
+																				{32, 32, 32, 32},
+																				TextureDataType::FLOAT,
+																				TextureFilter::LINEAR_FILTER,
+																				TextureWrapMode::CLAMP,
+																				false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, *mpTangentTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mExtraDataTextureId);
-		glBindTexture(GL_TEXTURE_2D, mExtraDataTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Extra Data (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mExtraDataTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, mExtraDataTextureId, 0);
+		mpExtraDataTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
+																				  mArgs.rScreenWidth,
+																				  mArgs.rScreenHeight,
+																				  TextureType::TEXTURE_2D,
+																				  TextureFormat::RGBA,
+																				  {32, 32, 32, 32},
+																				  TextureDataType::FLOAT,
+																				  TextureFilter::LINEAR_FILTER,
+																				  TextureWrapMode::CLAMP,
+																				  false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, *mpExtraDataTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mFinalTextureId);
-		glBindTexture(GL_TEXTURE_2D, mFinalTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Final (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mFinalTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, GL_TEXTURE_2D, mFinalTextureId, 0);
+		mpFinalTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Final",
+																			  mArgs.rScreenWidth,
+																			  mArgs.rScreenHeight,
+																			  TextureType::TEXTURE_2D,
+																			  TextureFormat::RGBA,
+																			  {32, 32, 32, 32},
+																			  TextureDataType::FLOAT,
+																			  TextureFilter::LINEAR_FILTER,
+																			  TextureWrapMode::CLAMP,
+																			  false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, GL_TEXTURE_2D, *mpFinalTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
-		glGenTextures(1, &mDepthTextureId);
-		glBindTexture(GL_TEXTURE_2D, mDepthTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "G-Buffer Depth (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mDepthTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthTextureId, 0);
+		mpDepthTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"G-Buffer Depth",
+																			  mArgs.rScreenWidth,
+																			  mArgs.rScreenHeight,
+																			  TextureType::TEXTURE_2D,
+																			  TextureFormat::DEPTH_STENCIL,
+																			  {24, 8},
+																			  TextureDataType::UNSIGNED_INT,
+																			  TextureFilter::POINT_FILTER,
+																			  TextureWrapMode::CLAMP,
+																			  false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, *mpDepthTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
@@ -342,18 +356,18 @@ namespace FastCG
 		FASTCG_CHECK_OPENGL_ERROR();
 
 		// create ssao attachments
-		glGenTextures(1, &mSSAOTextureId);
-		glBindTexture(GL_TEXTURE_2D, mSSAOTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "SSAO (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mSSAOTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOTextureId, 0);
+
+		mpSSAOTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"SSAO",
+																			 mArgs.rScreenWidth,
+																			 mArgs.rScreenHeight,
+																			 TextureType::TEXTURE_2D,
+																			 TextureFormat::RGBA,
+																			 {32, 32, 32, 32},
+																			 TextureDataType::FLOAT,
+																			 TextureFilter::LINEAR_FILTER,
+																			 TextureWrapMode::CLAMP,
+																			 false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *mpSSAOTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
@@ -376,18 +390,17 @@ namespace FastCG
 		FASTCG_CHECK_OPENGL_ERROR();
 
 		// create sso blur attachments
-		glGenTextures(1, &mSSAOBlurTextureId);
-		glBindTexture(GL_TEXTURE_2D, mSSAOBlurTextureId);
-#ifdef _DEBUG
-		{
-			const char attachmentLabel[] = "SSAO Blur (GL_TEXTURE)";
-			glObjectLabel(GL_TEXTURE, mSSAOBlurTextureId, sizeof(attachmentLabel) / sizeof(char), attachmentLabel);
-		}
-#endif
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mArgs.rScreenWidth, mArgs.rScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSAOBlurTextureId, 0);
+		mpSSAOBlurTexture = OpenGLRenderingSystem::GetInstance()->CreateTexture({"SSAO Blur",
+																				 mArgs.rScreenWidth,
+																				 mArgs.rScreenHeight,
+																				 TextureType::TEXTURE_2D,
+																				 TextureFormat::RGBA,
+																				 {32, 32, 32, 32},
+																				 TextureDataType::FLOAT,
+																				 TextureFilter::LINEAR_FILTER,
+																				 TextureWrapMode::CLAMP,
+																				 false});
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *mpSSAOBlurTexture, 0);
 
 		FASTCG_CHECK_OPENGL_ERROR();
 
@@ -587,7 +600,7 @@ namespace FastCG
 
 			mpDepthToScreenShader->Bind();
 
-			mpDepthToScreenShader->BindTexture(mpDepthToScreenDepthLocation, mDepthTextureId, 0);
+			mpDepthToScreenShader->BindTexture(mpDepthToScreenDepthLocation, *mpDepthTexture, 0);
 
 			mpQuadMesh->Draw();
 
@@ -628,8 +641,8 @@ namespace FastCG
 				glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX, mSSAOHighFrequencyPassBufferId);
 
 				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassNoiseMapLocation, *mpNoiseTexture, 0);
-				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassNormalMapLocation, mNormalTextureId, 1);
-				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassDepthLocation, mDepthTextureId, 2);
+				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassNormalMapLocation, *mpNormalTexture, 1);
+				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassDepthLocation, *mpDepthTexture, 2);
 
 				mpQuadMesh->Draw();
 
@@ -656,7 +669,7 @@ namespace FastCG
 
 					mpSSAOBlurPassShader->Bind();
 
-					mpSSAOBlurPassShader->BindTexture(mSSAOBlurPassAmbientOcclusionMapLocation, mSSAOTextureId, 0);
+					mpSSAOBlurPassShader->BindTexture(mSSAOBlurPassAmbientOcclusionMapLocation, *mpSSAOTexture, 0);
 
 					mpQuadMesh->Draw();
 
@@ -708,22 +721,22 @@ namespace FastCG
 			{
 				const auto BindLightPassSamplers = [&](const OpenGLShader *pShader, const LightPassSamplerLocations &samplerLocations)
 				{
-					pShader->BindTexture(samplerLocations.diffuseMap, mDiffuseTextureId, 0);
-					pShader->BindTexture(samplerLocations.normalMap, mNormalTextureId, 1);
-					pShader->BindTexture(samplerLocations.specularMap, mSpecularTextureId, 2);
-					pShader->BindTexture(samplerLocations.tangentMap, mTangentTextureId, 3);
-					pShader->BindTexture(samplerLocations.extraData, mExtraDataTextureId, 4);
-					pShader->BindTexture(samplerLocations.depth, mDepthTextureId, 5);
+					pShader->BindTexture(samplerLocations.diffuseMap, *mpDiffuseTexture, 0);
+					pShader->BindTexture(samplerLocations.normalMap, *mpNormalTexture, 1);
+					pShader->BindTexture(samplerLocations.specularMap, *mpSpecularTexture, 2);
+					pShader->BindTexture(samplerLocations.tangentMap, *mpTangentTexture, 3);
+					pShader->BindTexture(samplerLocations.extraData, *mpExtraDataTexture, 4);
+					pShader->BindTexture(samplerLocations.depth, *mpDepthTexture, 5);
 
 					if (pMainCamera->IsSSAOEnabled())
 					{
 						if (mSSAOBlurEnabled)
 						{
-							pShader->BindTexture(samplerLocations.ambientOcclusionMap, mSSAOBlurTextureId, 6);
+							pShader->BindTexture(samplerLocations.ambientOcclusionMap, *mpSSAOBlurTexture, 6);
 						}
 						else
 						{
-							pShader->BindTexture(samplerLocations.ambientOcclusionMap, mSSAOTextureId, 6);
+							pShader->BindTexture(samplerLocations.ambientOcclusionMap, *mpSSAOTexture, 6);
 						}
 					}
 					else

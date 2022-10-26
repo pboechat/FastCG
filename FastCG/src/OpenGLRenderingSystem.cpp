@@ -367,6 +367,25 @@ namespace FastCG
     DECLARE_CREATE_METHOD(Shader, mShaders)
     DECLARE_CREATE_METHOD(Texture, mTextures)
 
+#define DECLARE_DESTROY_METHOD(className, containerMember)                                   \
+    void OpenGLRenderingSystem::Destroy##className(const className *p##className)            \
+    {                                                                                        \
+        auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className); \
+        if (it != containerMember.cend())                                                    \
+        {                                                                                    \
+            containerMember.erase(it);                                                       \
+        }                                                                                    \
+        else                                                                                 \
+        {                                                                                    \
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy " #className);               \
+        }                                                                                    \
+    }
+
+    DECLARE_DESTROY_METHOD(Material, mMaterials)
+    DECLARE_DESTROY_METHOD(Mesh, mMeshes)
+    DECLARE_DESTROY_METHOD(Shader, mShaders)
+    DECLARE_DESTROY_METHOD(Texture, mTextures)
+
     void OpenGLRenderingSystem::CreateOpenGLContext(bool temporary /* = false */)
     {
 #if defined FASTCG_WINDOWS

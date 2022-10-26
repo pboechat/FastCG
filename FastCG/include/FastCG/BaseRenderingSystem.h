@@ -66,6 +66,10 @@ namespace FastCG
         Mesh *CreateMesh(const MeshArgs &rArgs);
         Shader *CreateShader(const ShaderArgs &rArgs);
         Texture *CreateTexture(const TextureArgs &rArgs);
+        void DestroyMaterial(const Material *pMaterial);
+        void DestroyMesh(const Mesh *pMesh);
+        void DestroyShader(const Shader *pShader);
+        void DestroyTexture(const Texture *pTexture);
         const Shader *FindShader(const std::string &rName) const;
 
         friend class BaseApplication;

@@ -250,10 +250,12 @@ namespace FastCG
 		auto *pImGuiTexture = RenderingSystem::GetInstance()->CreateTexture({"ImGui",
 																			 (uint32_t)width,
 																			 (uint32_t)height,
-																			 TextureFormat::TF_RGBA,
-																			 TextureDataType::DT_UNSIGNED_CHAR,
-																			 TextureFilter::TF_LINEAR_FILTER,
-																			 TextureWrapMode::TW_CLAMP,
+																			 TextureType::TEXTURE_2D,
+																			 TextureFormat::RGBA,
+																			 {32, 32, 32, 32},
+																			 TextureDataType::UNSIGNED_CHAR,
+																			 TextureFilter::LINEAR_FILTER,
+																			 TextureWrapMode::CLAMP,
 																			 false,
 																			 pixels});
 		io.Fonts->SetTexID((void *)pImGuiTexture);
