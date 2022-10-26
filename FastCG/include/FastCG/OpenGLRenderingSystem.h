@@ -8,6 +8,7 @@
 #include <FastCG/OpenGLShader.h>
 #include <FastCG/OpenGLMesh.h>
 #include <FastCG/OpenGLMaterial.h>
+#include <FastCG/OpenGLBuffer.h>
 #include <FastCG/FastCG.h>
 #include <FastCG/BaseRenderingSystem.h>
 #include <FastCG/BaseApplication.h>
@@ -27,7 +28,7 @@ namespace FastCG
 {
     class RenderingPathStrategy;
 
-    class OpenGLRenderingSystem : public BaseRenderingSystem<OpenGLMaterial, OpenGLMesh, OpenGLShader, OpenGLTexture>
+    class OpenGLRenderingSystem : public BaseRenderingSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLShader, OpenGLTexture>
     {
         FASTCG_DECLARE_SYSTEM(OpenGLRenderingSystem, RenderingSystemArgs);
 
@@ -49,10 +50,12 @@ namespace FastCG
 #elif defined FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
+        OpenGLBuffer *CreateBuffer(const BufferArgs &rArgs);
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
+        void DestroyBuffer(const OpenGLBuffer *pBuffer);
         void DestroyMaterial(const OpenGLMaterial *pMaterial);
         void DestroyMesh(const OpenGLMesh *pMesh);
         void DestroyShader(const OpenGLShader *pShader);
@@ -83,17 +86,18 @@ namespace FastCG
         GLXContext mpRenderContext{nullptr};
 #endif
         std::unique_ptr<RenderingPathStrategy> mpRenderingPathStrategy;
+        std::vector<OpenGLBuffer *> mBuffers;
         std::vector<OpenGLMaterial *> mMaterials;
         std::vector<OpenGLMesh *> mMeshes;
         std::vector<OpenGLShader *> mShaders;
         std::vector<OpenGLTexture *> mTextures;
-        ImGuiConstants mImGuiConstants{};
-        GLint mImGuiColorMapLocation{-1};
         const OpenGLShader *mpImGuiShader{nullptr};
-        GLuint mImGuiConstantsBufferId{~0u};
+        OpenGLBuffer *mpImGuiConstantsBuffer{nullptr};
+        OpenGLBuffer *mpImGuiVerticesBuffer{nullptr};
+        OpenGLBuffer *mpImGuiIndicesBuffer{nullptr};
+        GLint mImGuiColorMapLocation{-1};
         GLuint mImGuiVertexArrayId{~0u};
-        GLuint mImGuiVerticesBufferId{~0u};
-        GLuint mImGuiIndicesBufferId{~0u};
+        ImGuiConstants mImGuiConstants{};
 
 #ifdef FASTCG_LINUX
         void AcquireVisualInfoAndFbConfig();

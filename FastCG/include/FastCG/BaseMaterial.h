@@ -27,12 +27,12 @@ namespace FastCG
 
 		inline const std::string &GetName() const
 		{
-			return mArgs.name;
+			return mName;
 		}
 
 		inline const Shader *GetShader() const
 		{
-			return mArgs.pShader;
+			return mpShader;
 		}
 
 		inline void SetDiffuseColor(const glm::vec4 &diffuseColor)
@@ -91,16 +91,18 @@ namespace FastCG
 		}
 
 	protected:
-		const MaterialArgs mArgs;
+		const std::string mName;
+		const Shader *mpShader;
 		MaterialConstants mMaterialConstants{};
 		const Texture *mpColorMap{nullptr};
 		const Texture *mpBumpMap{nullptr};
 		bool mTwoSided{false};
 		bool mHasDepth{true};
 
-		BaseMaterial(const MaterialArgs &rArgs) : mArgs(rArgs)
+		BaseMaterial(const MaterialArgs &rArgs) : mName(rArgs.name),
+												  mpShader(rArgs.pShader)
 		{
-			assert(mArgs.pShader != nullptr);
+			assert(mpShader != nullptr);
 		}
 		virtual ~BaseMaterial() = default;
 	};

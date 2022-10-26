@@ -11,27 +11,22 @@
 namespace FastCG
 {
     class OpenGLRenderingSystem;
-    class OpenGLMaterial;
-    class OpenGLForwardRenderingPathStrategy;
-    class OpenGLDeferredRenderingPathStrategy;
 
     class OpenGLTexture : public BaseTexture
     {
+    public:
+        inline operator GLuint() const
+        {
+            return mTextureId;
+        }
+
     private:
         GLuint mTextureId{~0u};
 
         OpenGLTexture(const TextureArgs &rArgs);
         virtual ~OpenGLTexture();
 
-        inline operator GLuint() const
-        {
-            return mTextureId;
-        }
-
         friend class OpenGLRenderingSystem;
-        friend class OpenGLMaterial;
-        friend class OpenGLForwardRenderingPathStrategy;
-        friend class OpenGLDeferredRenderingPathStrategy;
     };
 }
 

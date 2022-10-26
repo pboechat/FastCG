@@ -153,35 +153,23 @@ namespace FastCG
             break;
         }
 
-        glGenBuffers(1, &mImGuiVerticesBufferId);
-        glBindBuffer(GL_ARRAY_BUFFER, mImGuiVerticesBufferId);
-#ifdef _DEBUG
-        {
-            const char bufferLabel[] = "ImGui Vertices (GL_BUFFER)";
-            glObjectLabel(GL_BUFFER, mImGuiVerticesBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
-        }
-#endif
-        glBufferData(GL_ARRAY_BUFFER, 30000 * sizeof(ImDrawVert), nullptr, GL_STREAM_DRAW);
+        mpImGuiConstantsBuffer = CreateBuffer({"ImGui Constants",
+                                               BufferType::UNIFORM,
+                                               BufferUsage::DYNAMIC,
+                                               sizeof(ImGuiConstants),
+                                               &mImGuiConstants});
 
-        glGenBuffers(1, &mImGuiIndicesBufferId);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mImGuiIndicesBufferId);
-#ifdef _DEBUG
-        {
-            const char bufferLabel[] = "ImGui Indices (GL_BUFFER)";
-            glObjectLabel(GL_BUFFER, mImGuiIndicesBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
-        }
-#endif
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 90000 * sizeof(ImDrawIdx), nullptr, GL_STREAM_DRAW);
+        mpImGuiVerticesBuffer = CreateBuffer({"ImGui Vertices",
+                                              BufferType::VERTEX_ATTRIBUTE,
+                                              BufferUsage::DYNAMIC,
+                                              30000 * sizeof(ImDrawVert),
+                                              nullptr});
 
-        glGenBuffers(1, &mImGuiConstantsBufferId);
-        glBindBuffer(GL_UNIFORM_BUFFER, mImGuiConstantsBufferId);
-#ifdef _DEBUG
-        {
-            const char bufferLabel[] = "ImGui Constants (GL_BUFFER)";
-            glObjectLabel(GL_BUFFER, mImGuiConstantsBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
-        }
-#endif
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(ImGuiConstants), &mImGuiConstants, GL_DYNAMIC_DRAW);
+        mpImGuiIndicesBuffer = CreateBuffer({"ImGui Indices",
+                                             BufferType::INDICES,
+                                             BufferUsage::DYNAMIC,
+                                             90000 * sizeof(ImDrawIdx),
+                                             nullptr});
 
         glGenVertexArrays(1, &mImGuiVertexArrayId);
         glBindVertexArray(mImGuiVertexArrayId);
@@ -196,7 +184,7 @@ namespace FastCG
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
-        glBindBuffer(GL_ARRAY_BUFFER, mImGuiVerticesBufferId);
+        mpImGuiVerticesBuffer->Bind();
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, pos));
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, uv));
         glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, col));
@@ -222,22 +210,22 @@ namespace FastCG
             mImGuiVertexArrayId = ~0u;
         }
 
-        if (mImGuiConstantsBufferId != ~0u)
+        if (mpImGuiConstantsBuffer != nullptr)
         {
-            glDeleteBuffers(1, &mImGuiConstantsBufferId);
-            mImGuiConstantsBufferId = ~0u;
+            DestroyBuffer(mpImGuiConstantsBuffer);
+            mpImGuiConstantsBuffer = nullptr;
         }
 
-        if (mImGuiIndicesBufferId != ~0u)
+        if (mpImGuiIndicesBuffer != nullptr)
         {
-            glDeleteBuffers(1, &mImGuiIndicesBufferId);
-            mImGuiIndicesBufferId = ~0u;
+            DestroyBuffer(mpImGuiIndicesBuffer);
+            mpImGuiIndicesBuffer = nullptr;
         }
 
-        if (mImGuiVerticesBufferId != ~0u)
+        if (mpImGuiVerticesBuffer != nullptr)
         {
-            glDeleteBuffers(1, &mImGuiVerticesBufferId);
-            mImGuiVerticesBufferId = ~0u;
+            DestroyBuffer(mpImGuiVerticesBuffer);
+            mpImGuiVerticesBuffer = nullptr;
         }
 
         mpRenderingPathStrategy->Finalize();
@@ -362,6 +350,7 @@ namespace FastCG
         return containerMember.back();                                                \
     }
 
+    DECLARE_CREATE_METHOD(Buffer, mBuffers)
     DECLARE_CREATE_METHOD(Material, mMaterials)
     DECLARE_CREATE_METHOD(Mesh, mMeshes)
     DECLARE_CREATE_METHOD(Shader, mShaders)
@@ -381,6 +370,7 @@ namespace FastCG
         }                                                                                    \
     }
 
+    DECLARE_DESTROY_METHOD(Buffer, mBuffers)
     DECLARE_DESTROY_METHOD(Material, mMaterials)
     DECLARE_DESTROY_METHOD(Mesh, mMeshes)
     DECLARE_DESTROY_METHOD(Shader, mShaders)
@@ -589,23 +579,19 @@ namespace FastCG
         glViewport((GLint)displayPos.x, (GLint)displayPos.y, (GLsizei)displaySize.x, (GLsizei)displaySize.y);
 
         mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
-        glBindBuffer(GL_UNIFORM_BUFFER, mImGuiConstantsBufferId);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ImGuiConstants), &mImGuiConstants);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        mpImGuiConstantsBuffer->SetSubData(0, sizeof(ImGuiConstants), &mImGuiConstants);
 
         mpImGuiShader->Bind();
 
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, mImGuiConstantsBufferId);
+        mpImGuiConstantsBuffer->BindBase(0);
 
         for (int n = 0; n < pImDrawData->CmdListsCount; n++)
         {
             const auto *cmdList = pImDrawData->CmdLists[n];
 
-            glBindBuffer(GL_ARRAY_BUFFER, mImGuiVerticesBufferId);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)cmdList->VtxBuffer.size_in_bytes(), cmdList->VtxBuffer.Data);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mImGuiIndicesBufferId);
-            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, (GLsizeiptr)cmdList->IdxBuffer.size_in_bytes(), cmdList->IdxBuffer.Data);
+            mpImGuiVerticesBuffer->SetSubData(0, cmdList->VtxBuffer.size_in_bytes(), cmdList->VtxBuffer.Data);
+            mpImGuiIndicesBuffer->SetSubData(0, cmdList->IdxBuffer.size_in_bytes(), cmdList->IdxBuffer.Data);
 
             for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++)
             {
@@ -628,7 +614,7 @@ namespace FastCG
                     mpImGuiShader->BindTexture(mImGuiColorMapLocation, *((OpenGLTexture *)pCmd->GetTexID()), 0);
 
                     glBindVertexArray(mImGuiVertexArrayId);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mImGuiIndicesBufferId);
+                    mpImGuiIndicesBuffer->Bind();
                     glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)pCmd->ElemCount, GL_UNSIGNED_INT, (void *)(intptr_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (GLint)pCmd->VtxOffset);
                 }
             }

@@ -66,7 +66,7 @@ namespace FastCG
 		TextureFilter filter{TextureFilter::LINEAR_FILTER};
 		TextureWrapMode wrapMode{TextureWrapMode::CLAMP};
 		bool generateMipmaps{true};
-		void *pData{nullptr};
+		const void *pData{nullptr};
 	};
 
 	class BaseTexture

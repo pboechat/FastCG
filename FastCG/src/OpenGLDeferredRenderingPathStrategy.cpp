@@ -418,25 +418,19 @@ namespace FastCG
 	{
 		OpenGLRenderingPathStrategy::CreateUniformBuffers();
 
-		glGenBuffers(1, &mSSAOHighFrequencyPassBufferId);
-		glBindBuffer(GL_UNIFORM_BUFFER, mSSAOHighFrequencyPassBufferId);
-#ifdef _DEBUG
-		{
-			const char bufferLabel[] = "SSAO High Frequency Pass Constants (GL_BUFFER)";
-			glObjectLabel(GL_BUFFER, mSSAOHighFrequencyPassBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel);
-		}
-#endif
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassBufferId, GL_DYNAMIC_DRAW);
-
-		FASTCG_CHECK_OPENGL_ERROR();
+		mpSSAOHighFrequencyPassConstantsBuffer = OpenGLRenderingSystem::GetInstance()->CreateBuffer({"SSAO High Frequency Pass Constants",
+																									 BufferType::UNIFORM,
+																									 BufferUsage::DYNAMIC,
+																									 sizeof(SSAOHighFrequencyPassConstants),
+																									 &mSSAOHighFrequencyPassConstants});
 	}
 
 	void OpenGLDeferredRenderingPathStrategy::DestroyUniformBuffers()
 	{
-		if (mSSAOHighFrequencyPassBufferId != ~0u)
+		if (mpSSAOHighFrequencyPassConstantsBuffer != nullptr)
 		{
-			glDeleteBuffers(1, &mSSAOHighFrequencyPassBufferId);
-			mSSAOHighFrequencyPassBufferId = ~0u;
+			OpenGLRenderingSystem::GetInstance()->DestroyBuffer(mpSSAOHighFrequencyPassConstantsBuffer);
+			mpSSAOHighFrequencyPassConstantsBuffer = nullptr;
 		}
 
 		OpenGLRenderingPathStrategy::DestroyUniformBuffers();
@@ -452,9 +446,7 @@ namespace FastCG
 
 	void OpenGLDeferredRenderingPathStrategy::UpdateSSAOHighFrequencyPassConstantsBuffer()
 	{
-		glBindBuffer(GL_UNIFORM_BUFFER, mSSAOHighFrequencyPassBufferId);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		mpSSAOHighFrequencyPassConstantsBuffer->SetSubData(0, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants);
 	}
 
 	void OpenGLDeferredRenderingPathStrategy::Render(const Camera *pMainCamera)
@@ -519,7 +511,7 @@ namespace FastCG
 
 					pMaterial->Bind();
 
-					glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX, mSceneConstantsBufferId);
+					mpSceneConstantsBuffer->BindBase(OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
 
 					for (const auto *pRenderable : pRenderBatch->renderables)
 					{
@@ -530,7 +522,7 @@ namespace FastCG
 
 						UpdateInstanceConstantsBuffer(pRenderable->GetGameObject()->GetTransform()->GetModel());
 
-						glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX, mInstanceConstantsBufferId);
+						mpInstanceConstantsBuffer->BindBase(OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX);
 
 						auto *pMesh = pRenderable->GetMesh();
 
@@ -634,11 +626,11 @@ namespace FastCG
 
 				mpSSAOHighFrequencyPassShader->Bind();
 
-				glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX, mSceneConstantsBufferId);
+				mpSceneConstantsBuffer->BindBase(OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
 
 				UpdateSSAOHighFrequencyPassConstantsBuffer();
 
-				glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX, mSSAOHighFrequencyPassBufferId);
+				mpSSAOHighFrequencyPassConstantsBuffer->BindBase(OpenGLShader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX);
 
 				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassNoiseMapLocation, *mpNoiseTexture, 0);
 				mpSSAOHighFrequencyPassShader->BindTexture(mSSAOHighFrequencyPassNormalMapLocation, *mpNormalTexture, 1);
@@ -803,7 +795,7 @@ namespace FastCG
 
 								mpStencilPassShader->Bind();
 
-								glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX, mInstanceConstantsBufferId);
+								mpInstanceConstantsBuffer->BindBase(OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX);
 
 								mpSphereMesh->Draw();
 
@@ -840,15 +832,15 @@ namespace FastCG
 
 								mpPointLightPassShader->Bind();
 
-								glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX, mSceneConstantsBufferId);
+								mpSceneConstantsBuffer->BindBase(OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
 
 								UpdateInstanceConstantsBuffer(model);
 
-								glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX, mInstanceConstantsBufferId);
+								mpInstanceConstantsBuffer->BindBase(OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX);
 
 								UpdateLightingConstantsBuffer(pPointLight);
 
-								glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX, mLightingConstantsBufferId);
+								mpLightingConstantsBuffer->BindBase(OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
 								BindLightPassSamplers(mpPointLightPassShader, mPointLightPassSamplerLocations);
 
@@ -908,7 +900,7 @@ namespace FastCG
 
 							UpdateLightingConstantsBuffer(pDirectionalLight, glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1))));
 
-							glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX, mLightingConstantsBufferId);
+							mpLightingConstantsBuffer->BindBase(OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
 							mpQuadMesh->Draw();
 
@@ -950,7 +942,6 @@ namespace FastCG
 		glPopDebugGroup();
 #endif
 	}
-
 }
 
 #endif

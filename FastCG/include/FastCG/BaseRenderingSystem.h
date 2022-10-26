@@ -7,6 +7,7 @@
 #include <FastCG/BaseShader.h>
 #include <FastCG/BaseMesh.h>
 #include <FastCG/BaseMaterial.h>
+#include <FastCG/BaseBuffer.h>
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -42,10 +43,11 @@ namespace FastCG
         RenderingStatistics &rRenderingStatistics;
     };
 
-    template <class MaterialT, class MeshT, class ShaderT, class TextureT>
+    template <class BufferT, class MaterialT, class MeshT, class ShaderT, class TextureT>
     class BaseRenderingSystem
     {
     public:
+        using Buffer = BufferT;
         using Material = MaterialT;
         using Mesh = MeshT;
         using Shader = ShaderT;
@@ -62,10 +64,12 @@ namespace FastCG
 #ifdef FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
+        Buffer *CreateBuffer(const BufferArgs &rArgs);
         Material *CreateMaterial(const MeshArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
         Shader *CreateShader(const ShaderArgs &rArgs);
         Texture *CreateTexture(const TextureArgs &rArgs);
+        void DestroyBuffer(const Buffer *pBuffer);
         void DestroyMaterial(const Material *pMaterial);
         void DestroyMesh(const Mesh *pMesh);
         void DestroyShader(const Shader *pShader);

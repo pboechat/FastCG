@@ -13,6 +13,7 @@ namespace FastCG
 
 namespace FastCG
 {
+    using Buffer = RenderingSystem::Buffer;
     using Material = RenderingSystem::Material;
     using MaterialArgs = RenderingSystem::Material::MaterialArgs;
     using Mesh = RenderingSystem::Mesh;

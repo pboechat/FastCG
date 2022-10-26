@@ -13,12 +13,19 @@
 namespace FastCG
 {
     class OpenGLRenderingSystem;
-    class OpenGLMaterial;
-    class OpenGLForwardRenderingPathStrategy;
-    class OpenGLDeferredRenderingPathStrategy;
 
     class OpenGLShader : public BaseShader
     {
+    public:
+        void Bind() const;
+        void Unbind() const;
+        void BindTexture(GLint bindingLocation, GLuint textureId, GLint textureUnit) const;
+
+        inline GLint GetBindingLocation(const std::string &rName) const
+        {
+            return glGetUniformLocation(mProgramId, rName.c_str());
+        }
+
     private:
         GLuint mProgramId{~0u};
         ShaderTypeValueArray<GLuint> mShadersIds{};
@@ -26,19 +33,7 @@ namespace FastCG
         OpenGLShader(const ShaderArgs &rName);
         virtual ~OpenGLShader();
 
-        inline GLint GetBindingLocation(const std::string &rName) const
-        {
-            return glGetUniformLocation(mProgramId, rName.c_str());
-        }
-
-        void Bind() const;
-        void Unbind() const;
-        void BindTexture(GLint bindingLocation, GLuint textureId, GLint textureUnit) const;
-
         friend class OpenGLRenderingSystem;
-        friend class OpenGLMaterial;
-        friend class OpenGLForwardRenderingPathStrategy;
-        friend class OpenGLDeferredRenderingPathStrategy;
     };
 
 }

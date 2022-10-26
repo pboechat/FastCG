@@ -69,7 +69,7 @@ namespace FastCG
 
 						pMaterial->Bind();
 
-						glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX, mSceneConstantsBufferId);
+						mpSceneConstantsBuffer->BindBase(OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
 
 						for (const auto *pRenderable : pRenderBatch->renderables)
 						{
@@ -80,7 +80,7 @@ namespace FastCG
 
 							UpdateInstanceConstantsBuffer(pRenderable->GetGameObject()->GetTransform()->GetModel());
 
-							glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX, mInstanceConstantsBufferId);
+							mpInstanceConstantsBuffer->BindBase(OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX);
 
 							const auto *pMesh = pRenderable->GetMesh();
 
@@ -125,7 +125,7 @@ namespace FastCG
 
 									UpdateLightingConstantsBuffer(pDirectionalLight, pDirectionalLight->GetDirection());
 
-									glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX, mLightingConstantsBufferId);
+									mpLightingConstantsBuffer->BindBase(OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
 									pMesh->Draw();
 
@@ -168,7 +168,7 @@ namespace FastCG
 
 									UpdateLightingConstantsBuffer(mArgs.rPointLights[i]);
 
-									glBindBufferBase(GL_UNIFORM_BUFFER, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX, mLightingConstantsBufferId);
+									mpLightingConstantsBuffer->BindBase(OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
 									pMesh->Draw();
 

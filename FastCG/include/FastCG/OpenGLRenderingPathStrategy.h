@@ -5,6 +5,7 @@
 
 #include <FastCG/RenderingPathStrategy.h>
 #include <FastCG/PointLight.h>
+#include <FastCG/OpenGLBuffer.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Camera.h>
 
@@ -30,9 +31,9 @@ namespace FastCG
         inline void Finalize() override;
 
     protected:
-        GLuint mSceneConstantsBufferId{~0u};
-        GLuint mInstanceConstantsBufferId{~0u};
-        GLuint mLightingConstantsBufferId{~0u};
+        OpenGLBuffer *mpSceneConstantsBuffer{nullptr};
+        OpenGLBuffer *mpInstanceConstantsBuffer{nullptr};
+        OpenGLBuffer *mpLightingConstantsBuffer{nullptr};
         SceneConstants mSceneConstants{};
         InstanceConstants mInstanceConstants{};
         LightingConstants mLightingConstants{};

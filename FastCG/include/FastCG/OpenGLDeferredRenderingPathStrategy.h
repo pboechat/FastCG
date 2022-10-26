@@ -113,7 +113,7 @@ namespace FastCG
 			GLint ambientOcclusionMap{-1};
 		};
 
-		GLuint mSSAOHighFrequencyPassBufferId{~0u};
+		OpenGLBuffer *mpSSAOHighFrequencyPassConstantsBuffer{nullptr};
 		SSAOHighFrequencyPassConstants mSSAOHighFrequencyPassConstants{};
 		float mAspectRatio;
 		GLuint mGBufferFBOId{~0u};

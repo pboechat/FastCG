@@ -5,6 +5,7 @@
 
 #include <FastCG/OpenGLTexture.h>
 #include <FastCG/OpenGLShader.h>
+#include <FastCG/OpenGLBuffer.h>
 #include <FastCG/BaseMaterial.h>
 
 #include <GL/glew.h>
@@ -13,25 +14,22 @@
 namespace FastCG
 {
     class OpenGLRenderingSystem;
-    class OpenGLForwardRenderingPathStrategy;
-    class OpenGLDeferredRenderingPathStrategy;
 
     class OpenGLMaterial : public BaseMaterial<OpenGLShader, OpenGLTexture>
     {
+    public:
+        void Bind() const;
+        void Unbind() const;
+
     private:
-        GLuint mMaterialConstantsBufferId{~0u};
+        OpenGLBuffer *mpMaterialConstantsBuffer{nullptr};
         GLint mColorMapBindingLocation{-1};
         GLint mBumpMapBindingLocation{-1};
 
         OpenGLMaterial(const MaterialArgs &rArgs);
         virtual ~OpenGLMaterial();
 
-        void Bind() const;
-        void Unbind() const;
-
         friend class OpenGLRenderingSystem;
-        friend class OpenGLForwardRenderingPathStrategy;
-        friend class OpenGLDeferredRenderingPathStrategy;
     };
 
 }
