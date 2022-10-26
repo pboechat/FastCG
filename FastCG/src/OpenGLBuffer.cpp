@@ -45,7 +45,7 @@ namespace FastCG
 #ifdef _DEBUG
         {
             auto bufferLabel = mName + " (GL_BUFFER)";
-            glObjectLabel(GL_BUFFER, mBufferId, FASTCG_ARRAYSIZE(bufferLabel), bufferLabel.c_str());
+            glObjectLabel(GL_BUFFER, mBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());
         }
 #endif
         if (rArgs.dataSize > 0)
