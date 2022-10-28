@@ -50,4 +50,16 @@
 #define FASTCG_BREAK_TO_DEBUGGER()
 #endif
 
+#if defined FASTCG_WINDOWS
+#define FASTCG_WARN_PUSH _Pragma("warning(push)")
+#define FASTCG_WARN_IGNORE_MACRO_ARGS _Pragma("warning(disable:4003)")
+#define FASTCG_WARN_POP _Pragma("warning(pop)")
+#elif defined FASTCG_LINUX
+#define FASTCG_WARN_PUSH _Pragma("GCC diagnostic push")
+#define FASTCG_WARN_IGNORE_MACRO_ARGS _Pragma("GCC diagnostic ignored \"-W\"")
+#define FASTCG_WARN_POP _Pragma("GCC diagnostic pop")
+#else
+#error "FASTCG_WARN_* macros are not implemented on the current platform"
+#endif
+
 #endif
