@@ -38,13 +38,13 @@ namespace FastCG
         using Shader = ShaderT;
         using Texture = TextureT;
 
-        static_assert(std::is_same_v<Material::Buffer, Buffer>, "Material::Buffer type must be the same as Buffer type");
-        static_assert(std::is_same_v<Material::Shader, Shader>, "Material::Shader type must be the same as Shader type");
-        static_assert(std::is_same_v<Material::Texture, Texture>, "Material::Texture type must be the same as Texture type");
-        static_assert(std::is_same_v<Mesh::Buffer, Buffer>, "Mesh::Buffer type must be the same as Buffer type");
-        static_assert(std::is_same_v<RenderingContext::Buffer, Buffer>, "RenderingContext::Buffer type must be the same as Buffer type");
-        static_assert(std::is_same_v<RenderingContext::Shader, Shader>, "RenderingContext::Shader type must be the same as Shader type");
-        static_assert(std::is_same_v<RenderingContext::Texture, Texture>, "RenderingContext::Texture type must be the same as Texture type");
+        static_assert(std::is_same<typename Material::Buffer, Buffer>::value, "Material::Buffer type must be the same as Buffer type");
+        static_assert(std::is_same<typename Material::Shader, Shader>::value, "Material::Shader type must be the same as Shader type");
+        static_assert(std::is_same<typename Material::Texture, Texture>::value, "Material::Texture type must be the same as Texture type");
+        static_assert(std::is_same<typename Mesh::Buffer, Buffer>::value, "Mesh::Buffer type must be the same as Buffer type");
+        static_assert(std::is_same<typename RenderingContext::Buffer, Buffer>::value, "RenderingContext::Buffer type must be the same as Buffer type");
+        static_assert(std::is_same<typename RenderingContext::Shader, Shader>::value, "RenderingContext::Shader type must be the same as Shader type");
+        static_assert(std::is_same<typename RenderingContext::Texture, Texture>::value, "RenderingContext::Texture type must be the same as Texture type");
 
         // Template interface
         const Texture *GetBackbuffer() const;

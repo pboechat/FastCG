@@ -318,8 +318,8 @@ namespace FastCG
 
 		ImGui::Begin("Statistics");
 		ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
-		ImGui::Text("Draw Calls: %zu", mRenderingStatistics.drawCalls);
-		ImGui::Text("Triangles: %zu", mRenderingStatistics.triangles);
+		ImGui::Text("Draw Calls: %u", mRenderingStatistics.drawCalls);
+		ImGui::Text("Triangles: %u", mRenderingStatistics.triangles);
 		ImGui::End();
 
 		ImGuiSystem::GetInstance()->EndFrame();

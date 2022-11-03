@@ -238,27 +238,26 @@ namespace FastCG
     }
 #endif
 
-#define FIRST_ARG_(A, ...) A
-#define SECOND_ARG_(A, B, ...) B
-#define FIRST_ARG(args) FIRST_ARG_ args
-#define SECOND_ARG(args) SECOND_ARG_ args
-
-#define DECLARE_CREATE_METHOD(className, containerMember, ...)                                                      \
-    OpenGL##className *OpenGLRenderingSystem::Create##className(FIRST_ARG((__VA_ARGS__)) SECOND_ARG((__VA_ARGS__))) \
-    {                                                                                                               \
-        containerMember.emplace_back(new OpenGL##className{SECOND_ARG((__VA_ARGS__)}));                             \
-        return containerMember.back();                                                                              \
+#define DECLARE_CREATE_METHOD(className, containerMember)         \
+    OpenGL##className *OpenGLRenderingSystem::Create##className() \
+    {                                                             \
+        containerMember.emplace_back(new OpenGL##className{});    \
+        return containerMember.back();                            \
     }
 
-    DECLARE_CREATE_METHOD(Buffer, mBuffers, const BufferArgs &, rArgs)
-    DECLARE_CREATE_METHOD(Material, mMaterials, const OpenGLMaterial::MaterialArgs &, rArgs)
-    DECLARE_CREATE_METHOD(Mesh, mMeshes, const MeshArgs &, rArgs)
-    FASTCG_WARN_PUSH
-    FASTCG_WARN_IGNORE_MACRO_ARGS
+#define DECLARE_CREATE_METHOD_WITH_ARGS(className, containerMember, argType, argName) \
+    OpenGL##className *OpenGLRenderingSystem::Create##className(argType argName)      \
+    {                                                                                 \
+        containerMember.emplace_back(new OpenGL##className{argName});                 \
+        return containerMember.back();                                                \
+    }
+
+    DECLARE_CREATE_METHOD_WITH_ARGS(Buffer, mBuffers, const BufferArgs &, rArgs)
+    DECLARE_CREATE_METHOD_WITH_ARGS(Material, mMaterials, const OpenGLMaterial::MaterialArgs &, rArgs)
+    DECLARE_CREATE_METHOD_WITH_ARGS(Mesh, mMeshes, const MeshArgs &, rArgs)
     DECLARE_CREATE_METHOD(RenderingContext, mRenderingContexts)
-    FASTCG_WARN_POP
-    DECLARE_CREATE_METHOD(Shader, mShaders, const ShaderArgs &, rArgs)
-    DECLARE_CREATE_METHOD(Texture, mTextures, const TextureArgs &, rArgs)
+    DECLARE_CREATE_METHOD_WITH_ARGS(Shader, mShaders, const ShaderArgs &, rArgs)
+    DECLARE_CREATE_METHOD_WITH_ARGS(Texture, mTextures, const TextureArgs &, rArgs)
 
 #define DECLARE_DESTROY_METHOD(className, containerMember)                                   \
     void OpenGLRenderingSystem::Destroy##className(const className *p##className)            \
