@@ -8,7 +8,7 @@ It features:
 
  - Support to multiple platforms:
     - Windows
-    - Linux (TODO)
+    - Linux
  - Multiple rendering system implementations:
     - OpenGL 4.3 (core profile)
     - Vulkan 1.3 (TODO)
