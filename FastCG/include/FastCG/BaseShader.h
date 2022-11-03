@@ -50,7 +50,7 @@ namespace FastCG
 	class BaseShader
 	{
 	public:
-		static constexpr uint32_t VERTICES_ATTRIBUTE_INDEX = 0;
+		static constexpr uint32_t POSITIONS_ATTRIBUTE_INDEX = 0;
 		static constexpr uint32_t NORMALS_ATTRIBUTE_INDEX = 1;
 		static constexpr uint32_t UVS_ATTRIBUTE_INDEX = 2;
 		static constexpr uint32_t TANGENTS_ATTRIBUTE_INDEX = 3;
@@ -58,6 +58,7 @@ namespace FastCG
 		static constexpr uint32_t SCENE_CONSTANTS_BINDING_INDEX = 0;
 		static constexpr uint32_t INSTANCE_CONTANTS_BINDING_INDEX = 1;
 		static constexpr uint32_t LIGHTING_CONSTANTS_BINDING_INDEX = 2;
+		static constexpr uint32_t MATERIAL_CONSTANTS_BINDING_INDEX = 0x10;
 		static constexpr uint32_t SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX = 0x10;
 
 		inline const std::string &GetName() const

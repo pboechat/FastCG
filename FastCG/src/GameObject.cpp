@@ -59,6 +59,8 @@ namespace FastCG
 
 	void GameObject::RemoveComponent(Component *pComponent)
 	{
+		assert(pComponent != nullptr);
+
 		if (pComponent->GetType().IsDerived(Renderable::TYPE))
 		{
 			mpRenderable = nullptr;

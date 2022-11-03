@@ -88,7 +88,7 @@ namespace
 
 }
 
-BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 1024, 768, UNLOCKED_FRAMERATE, RenderingPath::RP_FORWARD_RENDERING, {"bump_mapping"}})
+BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 1024, 768, UNLOCKED_FRAMERATE, RenderingPath::FORWARD_RENDERING, {"bump_mapping"}})
 {
 }
 

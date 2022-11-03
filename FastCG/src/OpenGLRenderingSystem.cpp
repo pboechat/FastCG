@@ -5,11 +5,11 @@
 #elif defined FASTCG_LINUX
 #include <FastCG/X11Application.h>
 #endif
+#include <FastCG/OpenGLUtils.h>
 #include <FastCG/OpenGLRenderingSystem.h>
-#include <FastCG/OpenGLForwardRenderingPathStrategy.h>
 #include <FastCG/OpenGLExceptions.h>
-#include <FastCG/OpenGLDeferredRenderingPathStrategy.h>
 #include <FastCG/Exception.h>
+#include <FastCG/FastCG.h>
 #include <FastCG/AssetSystem.h>
 
 #if defined FASTCG_WINDOWS
@@ -25,63 +25,34 @@
 #endif
 
 #include <cassert>
-
-static_assert(sizeof(ImDrawIdx) == sizeof(uint32_t), "Please configure ImGui to use 32-bit indices");
+#include <algorithm>
 
 namespace
 {
-#ifdef _DEBUG
-#define CASE_RETURN_STRING(str) \
-    case str:                   \
-        return #str
-    const char *GetOpenGLDebugOutputMessageSourceString(GLenum source)
+#ifdef FASTCG_LINUX
+    int GLXContextErrorHandler(Display *dpy, XErrorEvent *ev)
     {
-        switch (source)
-        {
-            CASE_RETURN_STRING(GL_DEBUG_SOURCE_API);
-            CASE_RETURN_STRING(GL_DEBUG_SOURCE_SHADER_COMPILER);
-            CASE_RETURN_STRING(GL_DEBUG_SOURCE_WINDOW_SYSTEM);
-            CASE_RETURN_STRING(GL_DEBUG_SOURCE_APPLICATION);
-            CASE_RETURN_STRING(GL_DEBUG_SOURCE_OTHER);
-        default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpengGL debug output message source");
-            return nullptr;
-        }
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error creating GLX context (error_code: %d)", ev->error_code);
+        return 0;
     }
+#endif
 
-    const char *GetOpenGLDebugOutputMessageTypeString(GLenum type)
+    // Source: https://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
+    void CRC(uint32_t &h, uint32_t ki)
     {
-        switch (type)
-        {
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_ERROR);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_PERFORMANCE);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_PORTABILITY);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_OTHER);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_MARKER);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_PUSH_GROUP);
-            CASE_RETURN_STRING(GL_DEBUG_TYPE_POP_GROUP);
-        default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpengGL debug output message type");
-            return nullptr;
-        }
+        auto highOrder = h & 0xf8000000; // extract high-order 5 bits from h
+                                         // 0xf8000000 is the hexadecimal representation
+                                         //   for the 32-bit number with the first five
+                                         //   bits = 1 and the other bits = 0
+        h = h << 5;                      // shift h left by 5 bits
+        h = h ^ (highOrder >> 27);       // move the highOrder 5 bits to the low-order
+                                         //   end and XOR into h
+        h = h ^ ki;                      // XOR h and ki
     }
+}
 
-    const char *GetOpenGLDebugOutputMessageSeverity(GLenum severity)
-    {
-        switch (severity)
-        {
-            CASE_RETURN_STRING(GL_DEBUG_SEVERITY_HIGH);
-            CASE_RETURN_STRING(GL_DEBUG_SEVERITY_MEDIUM);
-            CASE_RETURN_STRING(GL_DEBUG_SEVERITY_LOW);
-            CASE_RETURN_STRING(GL_DEBUG_SEVERITY_NOTIFICATION);
-        default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpengGL debug output message severity");
-            return nullptr;
-        }
-    }
-
+namespace FastCG
+{
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam)
     {
         printf(
@@ -92,20 +63,9 @@ namespace
             id,
             message);
     }
-#endif
 
-#ifdef FASTCG_LINUX
-    int GLXContextErrorHandler(Display *dpy, XErrorEvent *ev)
-    {
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error creating GLX context (error_code: %d)", ev->error_code);
-        return 0;
-    }
-#endif
-}
-
-namespace FastCG
-{
-    OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs)
+    OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs),
+                                                                                     mArgs(rArgs)
     {
     }
 
@@ -130,105 +90,40 @@ namespace FastCG
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
 #endif
 
-        RenderingPathStrategyArgs rpsArgs{
-            mArgs.rScreenWidth,
-            mArgs.rScreenHeight,
-            mArgs.rClearColor,
-            mArgs.rAmbientLight,
-            mArgs.rDirectionalLights,
-            mArgs.rPointLights,
-            mArgs.rRenderBatches,
-            mArgs.rRenderingStatistics};
-
-        switch (mArgs.renderingPath)
-        {
-        case RenderingPath::RP_FORWARD_RENDERING:
-            mpRenderingPathStrategy = std::make_unique<OpenGLForwardRenderingPathStrategy>(rpsArgs);
-            break;
-        case RenderingPath::RP_DEFERRED_RENDERING:
-            mpRenderingPathStrategy = std::make_unique<OpenGLDeferredRenderingPathStrategy>(rpsArgs);
-            break;
-        default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path");
-            break;
-        }
-
-        mpImGuiConstantsBuffer = CreateBuffer({"ImGui Constants",
-                                               BufferType::UNIFORM,
-                                               BufferUsage::DYNAMIC,
-                                               sizeof(ImGuiConstants),
-                                               &mImGuiConstants});
-
-        mpImGuiVerticesBuffer = CreateBuffer({"ImGui Vertices",
-                                              BufferType::VERTEX_ATTRIBUTE,
-                                              BufferUsage::DYNAMIC,
-                                              30000 * sizeof(ImDrawVert),
-                                              nullptr});
-
-        mpImGuiIndicesBuffer = CreateBuffer({"ImGui Indices",
-                                             BufferType::INDICES,
-                                             BufferUsage::DYNAMIC,
-                                             90000 * sizeof(ImDrawIdx),
-                                             nullptr});
-
-        glGenVertexArrays(1, &mImGuiVertexArrayId);
-        glBindVertexArray(mImGuiVertexArrayId);
-#ifdef _DEBUG
-        {
-            const char vertexArrayLabel[] = "ImGui (GL_VERTEX_ARRAY)";
-            glObjectLabel(GL_VERTEX_ARRAY, mImGuiVertexArrayId, FASTCG_ARRAYSIZE(vertexArrayLabel), vertexArrayLabel);
-        }
-#endif
-
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-
-        mpImGuiVerticesBuffer->Bind();
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, pos));
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, uv));
-        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (void *)offsetof(ImDrawVert, col));
-
-        FASTCG_CHECK_OPENGL_ERROR();
-
-        mpRenderingPathStrategy->Initialize();
+        // Create backbuffer handler (fake texture)
+        mpBackbuffer = CreateTexture({"Backbuffer",
+                                      1,
+                                      1,
+                                      TextureType::TEXTURE_2D,
+                                      TextureFormat::RGBA,
+                                      {32, 32, 32, 32},
+                                      TextureDataType::FLOAT,
+                                      TextureFilter::POINT_FILTER,
+                                      TextureWrapMode::CLAMP,
+                                      false});
     }
 
-    void OpenGLRenderingSystem::PostInitialize()
-    {
-        mpImGuiShader = FindShader("ImGui");
-        mImGuiColorMapLocation = mpImGuiShader->GetBindingLocation("uColorMap");
-
-        mpRenderingPathStrategy->PostInitialize();
-    }
+#define DESTROY_ALL(containerName)             \
+    for (const auto *pElement : containerName) \
+    {                                          \
+        delete pElement;                       \
+    }                                          \
+    containerName.clear()
 
     void OpenGLRenderingSystem::Finalize()
     {
-        if (mImGuiVertexArrayId != ~0u)
-        {
-            glDeleteVertexArrays(1, &mImGuiVertexArrayId);
-            mImGuiVertexArrayId = ~0u;
-        }
+        DESTROY_ALL(mMaterials);
+        DESTROY_ALL(mMeshes);
+        DESTROY_ALL(mShaders);
+        DESTROY_ALL(mBuffers);
+        DESTROY_ALL(mTextures);
+        DESTROY_ALL(mRenderingContexts);
 
-        if (mpImGuiConstantsBuffer != nullptr)
+        for (const auto &kvp : mVaoIds)
         {
-            DestroyBuffer(mpImGuiConstantsBuffer);
-            mpImGuiConstantsBuffer = nullptr;
+            glDeleteVertexArrays(1, &kvp.second);
         }
-
-        if (mpImGuiIndicesBuffer != nullptr)
-        {
-            DestroyBuffer(mpImGuiIndicesBuffer);
-            mpImGuiIndicesBuffer = nullptr;
-        }
-
-        if (mpImGuiVerticesBuffer != nullptr)
-        {
-            DestroyBuffer(mpImGuiVerticesBuffer);
-            mpImGuiVerticesBuffer = nullptr;
-        }
-
-        mpRenderingPathStrategy->Finalize();
+        mVaoIds.clear();
 
         DestroyOpenGLContext();
 
@@ -343,18 +238,27 @@ namespace FastCG
     }
 #endif
 
-#define DECLARE_CREATE_METHOD(className, containerMember)                             \
-    className *OpenGLRenderingSystem::Create##className(const className##Args &rArgs) \
-    {                                                                                 \
-        containerMember.emplace_back(new className{rArgs});                           \
-        return containerMember.back();                                                \
+#define FIRST_ARG_(A, ...) A
+#define SECOND_ARG_(A, B, ...) B
+#define FIRST_ARG(args) FIRST_ARG_ args
+#define SECOND_ARG(args) SECOND_ARG_ args
+
+#define DECLARE_CREATE_METHOD(className, containerMember, ...)                                                      \
+    OpenGL##className *OpenGLRenderingSystem::Create##className(FIRST_ARG((__VA_ARGS__)) SECOND_ARG((__VA_ARGS__))) \
+    {                                                                                                               \
+        containerMember.emplace_back(new OpenGL##className{SECOND_ARG((__VA_ARGS__)}));                             \
+        return containerMember.back();                                                                              \
     }
 
-    DECLARE_CREATE_METHOD(Buffer, mBuffers)
-    DECLARE_CREATE_METHOD(Material, mMaterials)
-    DECLARE_CREATE_METHOD(Mesh, mMeshes)
-    DECLARE_CREATE_METHOD(Shader, mShaders)
-    DECLARE_CREATE_METHOD(Texture, mTextures)
+    DECLARE_CREATE_METHOD(Buffer, mBuffers, const BufferArgs &, rArgs)
+    DECLARE_CREATE_METHOD(Material, mMaterials, const OpenGLMaterial::MaterialArgs &, rArgs)
+    DECLARE_CREATE_METHOD(Mesh, mMeshes, const MeshArgs &, rArgs)
+    FASTCG_WARN_PUSH
+    FASTCG_WARN_IGNORE_MACRO_ARGS
+    DECLARE_CREATE_METHOD(RenderingContext, mRenderingContexts)
+    FASTCG_WARN_POP
+    DECLARE_CREATE_METHOD(Shader, mShaders, const ShaderArgs &, rArgs)
+    DECLARE_CREATE_METHOD(Texture, mTextures, const TextureArgs &, rArgs)
 
 #define DECLARE_DESTROY_METHOD(className, containerMember)                                   \
     void OpenGLRenderingSystem::Destroy##className(const className *p##className)            \
@@ -373,8 +277,102 @@ namespace FastCG
     DECLARE_DESTROY_METHOD(Buffer, mBuffers)
     DECLARE_DESTROY_METHOD(Material, mMaterials)
     DECLARE_DESTROY_METHOD(Mesh, mMeshes)
+    DECLARE_DESTROY_METHOD(RenderingContext, mRenderingContexts)
     DECLARE_DESTROY_METHOD(Shader, mShaders)
     DECLARE_DESTROY_METHOD(Texture, mTextures)
+
+    GLuint OpenGLRenderingSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
+    {
+        assert(textureCount > 0);
+        assert(std::all_of(pTextures, pTextures + textureCount, [](const auto *pTexture)
+                           { return pTexture != nullptr; }));
+
+        uint32_t h = 0;
+        std::for_each(pTextures, pTextures + textureCount, [&h](const auto *pTexture)
+                      { CRC(h, *pTexture); });
+
+        auto it = mFboIds.find(h);
+        if (it != mFboIds.end())
+        {
+            return it->second;
+        }
+
+        GLuint fboId;
+        glGenFramebuffers(1, &fboId);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboId);
+#ifdef _DEBUG
+        {
+            auto framebufferLabel = std::string("FBO ") + std::to_string(mFboIds.size()) + " (GL_FRAMEBUFFER)";
+            glObjectLabel(GL_FRAMEBUFFER, fboId, (GLsizei)framebufferLabel.size(), framebufferLabel.c_str());
+        }
+#endif
+        std::for_each(pTextures, pTextures + textureCount, [i = 0](const auto *pTexture) mutable
+                      {
+            GLenum attachment;
+            if (pTexture->GetFormat() == TextureFormat::DEPTH_STENCIL)
+            {
+                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+            }
+            else
+            {
+                attachment = GL_COLOR_ATTACHMENT0 + (i++);
+            }
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GetOpenGLTarget(pTexture->GetType()), *pTexture, 0); });
+
+        auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE)
+        {
+            FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating FBO: 0x%x\n", status);
+        }
+
+        mFboIds.emplace(h, fboId);
+
+        return fboId;
+    }
+
+    GLuint OpenGLRenderingSystem::GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount)
+    {
+        assert(bufferCount > 0);
+        assert(std::all_of(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
+                           { 
+                            assert(pBuffer != nullptr); 
+                            const auto& rVbDescs = pBuffer->GetVertexBindingDescriptors(); 
+                            return pBuffer->GetType() == BufferType::VERTEX_ATTRIBUTE && 
+                                std::all_of(rVbDescs.cbegin(), rVbDescs.cend(), [](const auto& rVbDesc) { return rVbDesc.IsValid(); }); }));
+
+        uint32_t h = 0;
+        std::for_each(pBuffers, pBuffers + bufferCount, [&h](const auto *pBuffer)
+                      { CRC(h, *pBuffer); });
+
+        auto it = mVaoIds.find(h);
+        if (it != mVaoIds.end())
+        {
+            return it->second;
+        }
+
+        GLuint vaoId;
+        glGenVertexArrays(1, &vaoId);
+        glBindVertexArray(vaoId);
+#ifdef _DEBUG
+        {
+            auto vertexArrayLabel = std::string("VAO ") + std::to_string(mVaoIds.size()) + " (GL_VERTEX_ARRAY)";
+            glObjectLabel(GL_VERTEX_ARRAY, vaoId, (GLsizei)vertexArrayLabel.size(), vertexArrayLabel.c_str());
+        }
+#endif
+
+        std::for_each(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
+                      {
+                        glBindBuffer(GetOpenGLTarget(pBuffer->GetType()), *pBuffer);
+            for (const auto &rVbDesc : pBuffer->GetVertexBindingDescriptors())
+            {
+                glEnableVertexAttribArray(rVbDesc.binding);
+                glVertexAttribPointer(rVbDesc.binding, rVbDesc.size, GetOpenGLType(rVbDesc.type), (GLboolean)rVbDesc.normalized, rVbDesc.stride, (const GLvoid*)(uintptr_t)rVbDesc.offset);
+            } });
+
+        mVaoIds.emplace(h, vaoId);
+
+        return vaoId;
+    }
 
     void OpenGLRenderingSystem::CreateOpenGLContext(bool temporary /* = false */)
     {
@@ -526,22 +524,6 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLRenderingSystem::Render(const Camera *pMainCamera)
-    {
-#if defined FASTCG_WINDOWS
-        assert(mHGLRC != 0);
-#elif defined FASTCT_LINUX
-        assert(mpRenderContext != nullptr);
-#endif
-
-        if (pMainCamera == nullptr)
-        {
-            return;
-        }
-
-        mpRenderingPathStrategy->Render(pMainCamera);
-    }
-
     void OpenGLRenderingSystem::Present()
     {
 #if defined FASTCG_WINDOWS
@@ -556,79 +538,6 @@ namespace FastCG
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
 #endif
     }
-
-    void OpenGLRenderingSystem::RenderImGui(const ImDrawData *pImDrawData)
-    {
-#ifdef _DEBUG
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "ImGui Passes");
-#endif
-
-        glEnable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_DEPTH_TEST);
-        glDepthMask(GL_FALSE);
-        glDisable(GL_STENCIL_TEST);
-        glEnable(GL_SCISSOR_TEST);
-
-        auto displayScale = pImDrawData->FramebufferScale;
-        auto displayPos = ImVec2(pImDrawData->DisplayPos.x * displayScale.x, pImDrawData->DisplayPos.y * displayScale.y);
-        auto displaySize = ImVec2(pImDrawData->DisplaySize.x * displayScale.x, pImDrawData->DisplaySize.y * displayScale.y);
-
-        glViewport((GLint)displayPos.x, (GLint)displayPos.y, (GLsizei)displaySize.x, (GLsizei)displaySize.y);
-
-        mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
-
-        mpImGuiConstantsBuffer->SetSubData(0, sizeof(ImGuiConstants), &mImGuiConstants);
-
-        mpImGuiShader->Bind();
-
-        mpImGuiConstantsBuffer->BindBase(0);
-
-        for (int n = 0; n < pImDrawData->CmdListsCount; n++)
-        {
-            const auto *cmdList = pImDrawData->CmdLists[n];
-
-            mpImGuiVerticesBuffer->SetSubData(0, cmdList->VtxBuffer.size_in_bytes(), cmdList->VtxBuffer.Data);
-            mpImGuiIndicesBuffer->SetSubData(0, cmdList->IdxBuffer.size_in_bytes(), cmdList->IdxBuffer.Data);
-
-            for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++)
-            {
-                const auto *pCmd = &cmdList->CmdBuffer[cmdIdx];
-                if (pCmd->UserCallback)
-                {
-                    pCmd->UserCallback(cmdList, pCmd);
-                }
-                else
-                {
-                    ImVec2 clipMin((pCmd->ClipRect.x - displayPos.x) * displayScale.x, (pCmd->ClipRect.y - displayPos.y) * displayScale.y);
-                    ImVec2 clipMax((pCmd->ClipRect.z - displayPos.x) * displayScale.x, (pCmd->ClipRect.w - displayPos.y) * displayScale.y);
-                    if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
-                    {
-                        continue;
-                    }
-
-                    glScissor((GLint)clipMin.x, (GLint)(displaySize.y - clipMax.y), (GLsizei)(clipMax.x - clipMin.x), (GLsizei)(clipMax.y - clipMin.y));
-
-                    mpImGuiShader->BindTexture(mImGuiColorMapLocation, *((OpenGLTexture *)pCmd->GetTexID()), 0);
-
-                    glBindVertexArray(mImGuiVertexArrayId);
-                    mpImGuiIndicesBuffer->Bind();
-                    glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)pCmd->ElemCount, GL_UNSIGNED_INT, (void *)(intptr_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (GLint)pCmd->VtxOffset);
-                }
-            }
-        }
-
-        mpImGuiShader->Unbind();
-
-        FASTCG_CHECK_OPENGL_ERROR();
-
-#ifdef _DEBUG
-        glPopDebugGroup();
-#endif
-    }
-
 }
 
 #endif

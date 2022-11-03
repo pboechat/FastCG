@@ -15,17 +15,9 @@ namespace FastCG
 {
     class OpenGLRenderingSystem;
 
-    class OpenGLMaterial : public BaseMaterial<OpenGLShader, OpenGLTexture>
+    class OpenGLMaterial : public BaseMaterial<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
-    public:
-        void Bind() const;
-        void Unbind() const;
-
     private:
-        OpenGLBuffer *mpMaterialConstantsBuffer{nullptr};
-        GLint mColorMapBindingLocation{-1};
-        GLint mBumpMapBindingLocation{-1};
-
         OpenGLMaterial(const MaterialArgs &rArgs);
         virtual ~OpenGLMaterial();
 

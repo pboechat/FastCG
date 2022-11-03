@@ -29,7 +29,7 @@ constexpr uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
 constexpr float WALK_SPEED = 20.0f;
 constexpr float TURN_SPEED = 20.0f;
 
-DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, RenderingPath::RP_DEFERRED_RENDERING, {"deferred_rendering"}})
+DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, RenderingPath::DEFERRED_RENDERING, {"deferred_rendering"}})
 {
 }
 

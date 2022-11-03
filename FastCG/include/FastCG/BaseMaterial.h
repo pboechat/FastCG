@@ -10,17 +10,18 @@
 
 namespace FastCG
 {
-	template <typename ShaderT>
+	template <class ShaderT>
 	struct BaseMaterialArgs
 	{
 		std::string name;
 		const ShaderT *pShader;
 	};
 
-	template <typename ShaderT, typename TextureT>
+	template <class BufferT, class ShaderT, class TextureT>
 	class BaseMaterial
 	{
 	public:
+		using Buffer = BufferT;
 		using Shader = ShaderT;
 		using Texture = TextureT;
 		using MaterialArgs = BaseMaterialArgs<ShaderT>;
@@ -33,6 +34,16 @@ namespace FastCG
 		inline const Shader *GetShader() const
 		{
 			return mpShader;
+		}
+
+		inline const MaterialConstants &GetMaterialConstants() const
+		{
+			return mMaterialConstants;
+		}
+
+		inline const Buffer *GetMaterialConstantsBuffer() const
+		{
+			return mpMaterialConstantsBuffer;
 		}
 
 		inline void SetDiffuseColor(const glm::vec4 &diffuseColor)
@@ -65,9 +76,19 @@ namespace FastCG
 			mpColorMap = colorMap;
 		}
 
+		inline const Texture *GetColorMap() const
+		{
+			return mpColorMap;
+		}
+
 		inline void SetBumpMap(const Texture *bumpMap)
 		{
 			mpBumpMap = bumpMap;
+		}
+
+		inline const Texture *GetBumpMap() const
+		{
+			return mpBumpMap;
 		}
 
 		inline bool IsTwoSided() const
@@ -94,15 +115,18 @@ namespace FastCG
 		const std::string mName;
 		const Shader *mpShader;
 		MaterialConstants mMaterialConstants{};
+		const Buffer *mpMaterialConstantsBuffer{nullptr};
 		const Texture *mpColorMap{nullptr};
 		const Texture *mpBumpMap{nullptr};
 		bool mTwoSided{false};
 		bool mHasDepth{true};
 
-		BaseMaterial(const MaterialArgs &rArgs) : mName(rArgs.name),
-												  mpShader(rArgs.pShader)
+		BaseMaterial(const MaterialArgs &rArgs, const Buffer *pMaterialConstantsBuffer) : mName(rArgs.name),
+																						  mpShader(rArgs.pShader),
+																						  mpMaterialConstantsBuffer(pMaterialConstantsBuffer)
 		{
 			assert(mpShader != nullptr);
+			assert(pMaterialConstantsBuffer != nullptr);
 		}
 		virtual ~BaseMaterial() = default;
 	};

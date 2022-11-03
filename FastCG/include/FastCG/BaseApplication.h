@@ -16,20 +16,14 @@
 #include <memory>
 #include <cstdint>
 
-#define FASTCG_DECLARE_SYSTEM(className, argsClassName) \
-public:                                                 \
-	static className *GetInstance();                    \
-                                                        \
-private:                                                \
-	static void Create(const argsClassName &rArgs);     \
-	static void Destroy()
-
 namespace FastCG
 {
 	class ModelImporter;
 	class RenderBatchStrategy;
 	class Renderable;
 	class PointLight;
+	class ImGuiRenderer;
+	class IWorldRenderer;
 	class GameObject;
 	class DirectionalLight;
 	class Component;
@@ -44,7 +38,7 @@ namespace FastCG
 		uint32_t screenWidth{1024};
 		uint32_t screenHeight{768};
 		uint32_t frameRate{60};
-		RenderingPath renderingPath{RenderingPath::RP_FORWARD_RENDERING};
+		RenderingPath renderingPath{RenderingPath::FORWARD_RENDERING};
 		std::vector<std::string> assetBundles{};
 		glm::vec4 clearColor{Colors::BLACK};
 		glm::vec4 ambientLight{Colors::BLACK};
@@ -109,6 +103,16 @@ namespace FastCG
 			mSecondsPerFrame = 1 / (double)frameRate;
 		}
 
+		inline IWorldRenderer *GetWorldRenderer()
+		{
+			return mpWorldRenderer.get();
+		}
+
+		inline const IWorldRenderer *GetWorldRenderer() const
+		{
+			return mpWorldRenderer.get();
+		}
+
 		int Run(int argc, char **argv);
 		inline void Exit()
 		{
@@ -151,6 +155,8 @@ namespace FastCG
 		uint32_t mScreenHeight;
 		double mSecondsPerFrame;
 		std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy{nullptr};
+		std::unique_ptr<IWorldRenderer> mpWorldRenderer{nullptr};
+		std::unique_ptr<ImGuiRenderer> mpImGuiRenderer{nullptr};
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
 		size_t mFrameCount{0};

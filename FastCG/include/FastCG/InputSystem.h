@@ -1,9 +1,9 @@
 #ifndef FASTCG_INPUT_H
 #define FASTCG_INPUT_H
 
+#include <FastCG/System.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/Key.h>
-#include <FastCG/BaseApplication.h>
 
 #include <glm/glm.hpp>
 

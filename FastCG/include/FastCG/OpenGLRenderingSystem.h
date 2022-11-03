@@ -3,61 +3,59 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/System.h>
 #include <FastCG/ShaderConstants.h>
 #include <FastCG/OpenGLTexture.h>
 #include <FastCG/OpenGLShader.h>
+#include <FastCG/OpenGLRenderingContext.h>
 #include <FastCG/OpenGLMesh.h>
 #include <FastCG/OpenGLMaterial.h>
 #include <FastCG/OpenGLBuffer.h>
-#include <FastCG/FastCG.h>
 #include <FastCG/BaseRenderingSystem.h>
-#include <FastCG/BaseApplication.h>
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
 #elif defined FASTCG_LINUX
 #include <GL/glxew.h>
 #endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include <cstring>
 #include <algorithm>
 
 namespace FastCG
 {
-    class RenderingPathStrategy;
-
-    class OpenGLRenderingSystem : public BaseRenderingSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLShader, OpenGLTexture>
+    class OpenGLRenderingSystem : public BaseRenderingSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLRenderingContext, OpenGLShader, OpenGLTexture>
     {
         FASTCG_DECLARE_SYSTEM(OpenGLRenderingSystem, RenderingSystemArgs);
 
     public:
-        inline RenderingPathStrategy *GetRenderingPathStrategy() const
+        inline uint32_t GetScreenWidth() const
         {
-            return mpRenderingPathStrategy.get();
+            return mArgs.rScreenWidth;
         }
-
-        void Render(const Camera *pMainCamera);
-        void RenderImGui(const ImDrawData *pImDrawData);
-        void Initialize();
-        void PostInitialize();
-        void Present();
-        void Resize() {}
-        void Finalize();
-#if defined FASTCG_WINDOWS
-        void SetupPixelFormat() const;
-#elif defined FASTCG_LINUX
-        XVisualInfo *GetVisualInfo();
-#endif
+        inline uint32_t GetScreenHeight() const
+        {
+            return mArgs.rScreenHeight;
+        }
+        inline const OpenGLTexture *GetBackbuffer() const
+        {
+            return mpBackbuffer;
+        }
         OpenGLBuffer *CreateBuffer(const BufferArgs &rArgs);
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
+        OpenGLRenderingContext *CreateRenderingContext();
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const OpenGLBuffer *pBuffer);
         void DestroyMaterial(const OpenGLMaterial *pMaterial);
         void DestroyMesh(const OpenGLMesh *pMesh);
+        void DestroyRenderingContext(const OpenGLRenderingContext *pRenderingContext);
         void DestroyShader(const OpenGLShader *pShader);
         void DestroyTexture(const OpenGLTexture *pTexture);
         inline const OpenGLShader *FindShader(const std::string &rName) const
@@ -70,8 +68,13 @@ namespace FastCG
             }
             return *it;
         }
-
-        friend class BaseApplication;
+        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount);
+        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
+#if defined FASTCG_WINDOWS
+        void SetupPixelFormat() const;
+#elif defined FASTCG_LINUX
+        XVisualInfo *GetVisualInfo();
+#endif
 
     protected:
         OpenGLRenderingSystem(const RenderingSystemArgs &rArgs);
@@ -85,25 +88,28 @@ namespace FastCG
         GLXFBConfig mpFbConfig{nullptr};
         GLXContext mpRenderContext{nullptr};
 #endif
-        std::unique_ptr<RenderingPathStrategy> mpRenderingPathStrategy;
+        const RenderingSystemArgs mArgs;
         std::vector<OpenGLBuffer *> mBuffers;
         std::vector<OpenGLMaterial *> mMaterials;
         std::vector<OpenGLMesh *> mMeshes;
+        std::vector<OpenGLRenderingContext *> mRenderingContexts;
         std::vector<OpenGLShader *> mShaders;
         std::vector<OpenGLTexture *> mTextures;
-        const OpenGLShader *mpImGuiShader{nullptr};
-        OpenGLBuffer *mpImGuiConstantsBuffer{nullptr};
-        OpenGLBuffer *mpImGuiVerticesBuffer{nullptr};
-        OpenGLBuffer *mpImGuiIndicesBuffer{nullptr};
-        GLint mImGuiColorMapLocation{-1};
-        GLuint mImGuiVertexArrayId{~0u};
-        ImGuiConstants mImGuiConstants{};
+        const OpenGLTexture *mpBackbuffer;
+        std::unordered_map<uint32_t, GLuint> mFboIds;
+        std::unordered_map<uint32_t, GLuint> mVaoIds;
 
+        void Initialize();
+        void Resize() {}
+        void Present();
+        void Finalize();
 #ifdef FASTCG_LINUX
         void AcquireVisualInfoAndFbConfig();
 #endif
         void CreateOpenGLContext(bool temporary = false);
         void DestroyOpenGLContext();
+
+        friend class BaseApplication;
     };
 
 }

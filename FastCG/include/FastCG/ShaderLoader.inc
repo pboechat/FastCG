@@ -31,7 +31,7 @@ namespace FastCG
         rShaderName = File::GetFileNameWithoutExtension(rShaderFileName);
 
         shaderRenderingPathMask = 0;
-        for (RenderingPathInt i = 0; i < (RenderingPathInt)RenderingPath::RP_MAX; i++)
+        for (RenderingPathInt i = 0; i < (RenderingPathInt)RenderingPath::MAX; i++)
         {
             if (rShaderFileName.find(RENDERING_PATH_PATH_PATTERNS[i]) != std::string::npos)
             {
@@ -42,7 +42,7 @@ namespace FastCG
 
         if (shaderRenderingPathMask == 0)
         {
-            shaderRenderingPathMask = (1 << (RenderingPathInt)RenderingPath::RP_MAX) - 1;
+            shaderRenderingPathMask = (1 << (RenderingPathInt)RenderingPath::MAX) - 1;
         }
 
         if (rShaderFileName.find(ShaderFileExtension<ShaderType::ST_VERTEX>::value()) != std::string::npos)

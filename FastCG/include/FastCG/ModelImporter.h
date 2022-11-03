@@ -15,8 +15,7 @@ namespace FastCG
 {
 	enum class ModelImporterOption : uint8_t
 	{
-		MIO_NONE = 0,
-		MIO_EXPORT_OPTIMIZED_MODEL_FILE = 1 << 0,
+		NONE = 0,
 
 	};
 
@@ -25,7 +24,7 @@ namespace FastCG
 	class ModelImporter
 	{
 	public:
-		static GameObject *Import(const std::string &rFileName, ModelImporterOptionType options = (ModelImporterOptionType)ModelImporterOption::MIO_NONE);
+		static GameObject *Import(const std::string &rFileName, ModelImporterOptionType options = (ModelImporterOptionType)ModelImporterOption::NONE);
 
 	private:
 		ModelImporter() = delete;

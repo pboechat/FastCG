@@ -13,26 +13,9 @@ namespace FastCG
 {
     class OpenGLRenderingSystem;
 
-    class OpenGLMesh : public BaseMesh
+    class OpenGLMesh : public BaseMesh<OpenGLBuffer>
     {
-    public:
-        void SetVertices(const std::vector<glm::vec3> &vertices);
-        void SetNormals(const std::vector<glm::vec3> &normals);
-        void SetUVs(const std::vector<glm::vec2> &uvs);
-        void SetTangents(const std::vector<glm::vec4> &tangents);
-        void SetColors(const std::vector<glm::vec4> &colors);
-        void SetIndices(const std::vector<uint32_t> &indices);
-        void Draw() const;
-
     private:
-        GLuint mVertexArrayId{~0u};
-        OpenGLBuffer *mpVerticesBuffer{nullptr};
-        OpenGLBuffer *mpNormalsBuffer{nullptr};
-        OpenGLBuffer *mpUVsBuffer{nullptr};
-        OpenGLBuffer *mpTangentsBuffer{nullptr};
-        OpenGLBuffer *mpColorsBuffer{nullptr};
-        OpenGLBuffer *mpIndicesBuffer{nullptr};
-
         OpenGLMesh(const MeshArgs &rArgs);
         virtual ~OpenGLMesh();
 

@@ -1,3 +1,4 @@
+#include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Exception.h>
 
@@ -7,7 +8,7 @@ namespace FastCG
 {
 	Mesh *StandardGeometries::CreateXYPlane(const std::string &rName, float width, float height, uint32_t xSegments, uint32_t ySegments, const glm::vec3 &rCenter)
 	{
-		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> positions;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 		float xIncrement = width / (float)xSegments;
@@ -21,7 +22,7 @@ namespace FastCG
 
 			for (uint32_t x = 0; x <= xSegments; x++)
 			{
-				vertices.emplace_back(glm::vec3(hScan.x, hScan.y, hScan.z));
+				positions.emplace_back(glm::vec3(hScan.x, hScan.y, hScan.z));
 				normals.emplace_back(glm::vec3(0, 0, 1));
 				uvs.emplace_back(glm::vec2(x / (float)xSegments, y / (float)ySegments));
 				hScan += glm::vec3(xIncrement, 0, 0);
@@ -51,12 +52,20 @@ namespace FastCG
 			}
 		}
 
-		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, {}, indices, true, false, true});
+		auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
+
+		return RenderingSystem::GetInstance()->CreateMesh({rName,
+														   {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{Shader::POSITIONS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+															{"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{Shader::NORMALS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+															{"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{Shader::UVS_ATTRIBUTE_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
+															{"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{Shader::TANGENTS_ATTRIBUTE_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+														   {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
+														   MeshUtils::CalculateBounds(positions)});
 	}
 
 	Mesh *StandardGeometries::CreateXZPlane(const std::string &rName, float width, float depth, uint32_t xSegments, uint32_t zSegments, const glm::vec3 &rCenter)
 	{
-		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> positions;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 		float xIncrement = width / (float)xSegments;
@@ -70,7 +79,7 @@ namespace FastCG
 
 			for (uint32_t x = 0; x <= xSegments; x++)
 			{
-				vertices.emplace_back(glm::vec3(hScan.x, hScan.y, hScan.z));
+				positions.emplace_back(glm::vec3(hScan.x, hScan.y, hScan.z));
 				normals.emplace_back(glm::vec3(0, 1, 0));
 				uvs.emplace_back(glm::vec2(x / (float)xSegments, z / (float)zSegments));
 				hScan += glm::vec3(xIncrement, 0, 0);
@@ -100,12 +109,20 @@ namespace FastCG
 			}
 		}
 
-		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, {}, indices, true, false, true});
+		auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
+
+		return RenderingSystem::GetInstance()->CreateMesh({rName,
+														   {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{Shader::POSITIONS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+															{"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{Shader::NORMALS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+															{"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{Shader::UVS_ATTRIBUTE_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
+															{"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{Shader::TANGENTS_ATTRIBUTE_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+														   {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
+														   MeshUtils::CalculateBounds(positions)});
 	}
 
 	Mesh *StandardGeometries::CreateSphere(const std::string &rName, float radius, uint32_t slices)
 	{
-		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> positions;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 
@@ -153,7 +170,7 @@ namespace FastCG
 				auto y = radius * ny;
 				auto z = radius * nz;
 
-				vertices.emplace_back(glm::vec3(x, y, z));
+				positions.emplace_back(glm::vec3(x, y, z));
 				normals.emplace_back(glm::vec3(nx, ny, nz));
 				uvs.emplace_back(glm::vec2(u / (2 * MathF::PI), v / MathF::PI));
 
@@ -177,7 +194,15 @@ namespace FastCG
 			}
 		}
 
-		return RenderingSystem::GetInstance()->CreateMesh({rName, vertices, normals, uvs, {}, {}, indices, true, false, true});
+		auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
+
+		return RenderingSystem::GetInstance()->CreateMesh({rName,
+														   {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{Shader::POSITIONS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+															{"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{Shader::NORMALS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+															{"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{Shader::UVS_ATTRIBUTE_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
+															{"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{Shader::TANGENTS_ATTRIBUTE_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+														   {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
+														   MeshUtils::CalculateBounds(positions)});
 	}
 
 }

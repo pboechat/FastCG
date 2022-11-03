@@ -1,5 +1,6 @@
 #include <FastCG/Thread.h>
 #include <FastCG/TextureImporter.h>
+#include <FastCG/System.h>
 #include <FastCG/ShaderLoader.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/RenderingSystem.h>
@@ -9,10 +10,14 @@
 #include <FastCG/MaterialBasedRenderBatchStrategy.h>
 #include <FastCG/Light.h>
 #include <FastCG/Key.h>
+#include <FastCG/ImGuiSystem.h>
+#include <FastCG/ImGuiRenderer.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/GameObject.h>
+#include <FastCG/ForwardWorldRenderer.h>
 #include <FastCG/Exception.h>
 #include <FastCG/DirectionalLight.h>
+#include <FastCG/DeferredWorldRenderer.h>
 #include <FastCG/Component.h>
 #include <FastCG/Camera.h>
 #include <FastCG/Behaviour.h>
@@ -27,11 +32,6 @@
 
 namespace FastCG
 {
-	const std::string SHADERS_FOLDER = "shaders";
-	const std::string FORWARD_RENDERING_SHADERS_FOLDER = SHADERS_FOLDER + "/forward";
-	const std::string DEFERRED_RENDERING_SHADERS_FOLDER = SHADERS_FOLDER + "/deferred";
-	const std::string FONTS_FOLDER = "fonts";
-
 	BaseApplication *BaseApplication::smpInstance = nullptr;
 
 #define FASTCG_REGISTER_COMPONENT(className, component)                    \
@@ -51,23 +51,9 @@ namespace FastCG
 		m##className##s.erase(it);                                                      \
 	}
 
-#define FASTCG_IMPLEMENT_SYSTEM(className, argsClassName) \
-	static className *sp##className = nullptr;            \
-	void className::Create(const argsClassName &rArgs)    \
-	{                                                     \
-		sp##className = new className(rArgs);             \
-	}                                                     \
-	void className::Destroy()                             \
-	{                                                     \
-		delete sp##className;                             \
-	}                                                     \
-	className *className::GetInstance()                   \
-	{                                                     \
-		return sp##className;                             \
-	}
-
 	FASTCG_IMPLEMENT_SYSTEM(AssetSystem, AssetSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(InputSystem, InputSystemArgs);
+	FASTCG_IMPLEMENT_SYSTEM(ImGuiSystem, ImGuiSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
@@ -225,44 +211,50 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
-		ImGui::CreateContext();
-		auto &io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
 		AssetSystem::Create({mSettings.assetBundles});
 		InputSystem::Create({});
-		mpRenderBatchStrategy = std::make_unique<MaterialBasedRenderBatchStrategy>();
-		RenderingSystem::Create({mSettings.renderingPath,
-								 mScreenWidth,
-								 mScreenHeight,
-								 mClearColor,
-								 mAmbientLight,
-								 mDirectionalLights,
-								 mPointLights,
-								 mpRenderBatchStrategy->GetRenderBatches(),
-								 mRenderingStatistics});
+		ImGuiSystem::Create({mScreenWidth,
+							 mScreenHeight});
+		RenderingSystem::Create({mScreenWidth,
+								 mScreenHeight});
 
+		ImGuiSystem::GetInstance()->Initialize();
 		RenderingSystem::GetInstance()->Initialize();
 
-		int width, height;
-		unsigned char *pixels = nullptr;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-		auto *pImGuiTexture = RenderingSystem::GetInstance()->CreateTexture({"ImGui",
-																			 (uint32_t)width,
-																			 (uint32_t)height,
-																			 TextureType::TEXTURE_2D,
-																			 TextureFormat::RGBA,
-																			 {32, 32, 32, 32},
-																			 TextureDataType::UNSIGNED_CHAR,
-																			 TextureFilter::LINEAR_FILTER,
-																			 TextureWrapMode::CLAMP,
-																			 false,
-																			 pixels});
-		io.Fonts->SetTexID((void *)pImGuiTexture);
+		mpRenderBatchStrategy = std::make_unique<MaterialBasedRenderBatchStrategy>();
+		switch (mSettings.renderingPath)
+		{
+		case RenderingPath::FORWARD_RENDERING:
+			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mScreenWidth,
+																						mScreenHeight,
+																						mClearColor,
+																						mAmbientLight,
+																						mDirectionalLights,
+																						mPointLights,
+																						mpRenderBatchStrategy->GetRenderBatches(),
+																						mRenderingStatistics}));
+			break;
+		case RenderingPath::DEFERRED_RENDERING:
+			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mScreenWidth,
+																						 mScreenHeight,
+																						 mClearColor,
+																						 mAmbientLight,
+																						 mDirectionalLights,
+																						 mPointLights,
+																						 mpRenderBatchStrategy->GetRenderBatches(),
+																						 mRenderingStatistics}));
+			break;
+		default:
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mSettings.renderingPath);
+			break;
+		}
+		mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mScreenWidth,
+																			mScreenHeight});
 
 		ShaderLoader::LoadShaders(mSettings.renderingPath);
 
-		RenderingSystem::GetInstance()->PostInitialize();
+		mpWorldRenderer->Initialize();
+		mpImGuiRenderer->Initialize();
 
 		mpInternalGameObject = GameObject::Instantiate();
 		Camera::Instantiate(mpInternalGameObject);
@@ -274,13 +266,16 @@ namespace FastCG
 	{
 		OnFinalize();
 
+		mpImGuiRenderer->Finalize();
+		mpWorldRenderer->Finalize();
+
+		ImGuiSystem::GetInstance()->Finalize();
 		RenderingSystem::GetInstance()->Finalize();
 
 		RenderingSystem::Destroy();
+		ImGuiSystem::Destroy();
 		InputSystem::Destroy();
 		AssetSystem::Destroy();
-
-		ImGui::DestroyContext();
 	}
 
 	bool BaseApplication::ParseCommandLineArguments(int argc, char **argv)
@@ -303,17 +298,7 @@ namespace FastCG
 
 		InputSystem::GetInstance()->Swap();
 
-		auto &io = ImGui::GetIO();
-		io.DisplaySize.x = (float)mScreenWidth;
-		io.DisplaySize.y = (float)mScreenHeight;
-		io.DeltaTime = (float)deltaTime + 0.0000001f;
-		auto mousePos = InputSystem::GetMousePosition();
-		io.AddMousePosEvent((float)mousePos.x, (float)mousePos.y);
-		io.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
-		io.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
-		io.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
-
-		ImGui::NewFrame();
+		ImGuiSystem::GetInstance()->BeginFrame(deltaTime);
 
 		for (auto *pGameObject : mGameObjects)
 		{
@@ -329,25 +314,27 @@ namespace FastCG
 			pBehaviour->Update((float)startTime, (float)deltaTime);
 		}
 
-		RenderingSystem::GetInstance()->Render(mpMainCamera);
+		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
 
 		ImGui::Begin("Statistics");
 		ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
 		ImGui::Text("Draw Calls: %zu", mRenderingStatistics.drawCalls);
-		ImGui::Text("Triangles: %zu", mRenderingStatistics.numberOfTriangles);
+		ImGui::Text("Triangles: %zu", mRenderingStatistics.triangles);
 		ImGui::End();
 
-		ImGui::EndFrame();
-		ImGui::Render();
+		ImGuiSystem::GetInstance()->EndFrame();
 
-		RenderingSystem::GetInstance()->RenderImGui(ImGui::GetDrawData());
+		mRenderingStatistics.Reset();
+
+		mpWorldRenderer->Render(mpMainCamera, pRenderingContext);
+		mpImGuiRenderer->Render(ImGui::GetDrawData(), pRenderingContext);
+
+		RenderingSystem::GetInstance()->Present();
 
 		mLastFrameTime = startTime;
 
 		mTotalElapsedTime += deltaTime;
 		mFrameCount++;
-
-		RenderingSystem::GetInstance()->Present();
 
 		if (mFrameRate != UNLOCKED_FRAMERATE)
 		{

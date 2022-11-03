@@ -3,6 +3,7 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Exception.h>
 #include <FastCG/BaseBuffer.h>
 
 #include <GL/glew.h>
@@ -15,11 +16,6 @@ namespace FastCG
     class OpenGLBuffer : public BaseBuffer
     {
     public:
-        void SetData(size_t size, const void* pData) const;
-        void SetSubData(size_t offset, size_t size, const void *pData) const;
-        void Bind() const;
-        void BindBase(GLuint location) const;
-
         inline operator GLuint() const
         {
             return mBufferId;

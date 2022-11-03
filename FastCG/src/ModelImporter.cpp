@@ -3,6 +3,7 @@
 #include <FastCG/Renderable.h>
 #include <FastCG/TextureImporter.h>
 #include <FastCG/ModelImporter.h>
+#include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FileWriter.h>
 #include <FastCG/FileReader.h>
@@ -20,23 +21,10 @@
 
 namespace FastCG
 {
-	struct OptimizedModelHeader
-	{
-		size_t numVertices;
-		size_t numNormals;
-		size_t numUvs;
-		size_t numIndices;
-	};
-
 	struct ImportContext
 	{
 		std::vector<std::unique_ptr<char[]>> fileData;
 	};
-
-	std::string GetOptimizedModelFilePath(const std::string &rFilePath)
-	{
-		return File::GetBasePath(rFilePath) + File::GetFileNameWithoutExtension(rFilePath) + ".model";
-	}
 
 	void FileReaderCallback(void *context,
 							const char *filename,
@@ -63,7 +51,7 @@ namespace FastCG
 		{
 			auto &shape = pShapes[shapeIdx];
 
-			std::vector<glm::vec3> vertices;
+			std::vector<glm::vec3> positions;
 			std::vector<glm::vec3> normals;
 			std::vector<glm::vec2> uvs;
 			std::vector<uint32_t> indices;
@@ -83,21 +71,21 @@ namespace FastCG
 					auto &face = attributes.faces[faceIdx++];
 					if (face.v_idx != (int)0x80000000)
 					{
-						auto *pVertices = attributes.vertices + (intptr_t)(face.v_idx * 3);
-						vertices.emplace_back(glm::vec3{pVertices[0], pVertices[1], pVertices[2]});
+						auto *pPositions = attributes.vertices + (intptr_t)(face.v_idx * 3);
+						positions.emplace_back(glm::vec3{pPositions[0], pPositions[1], pPositions[2]});
 					}
 					else
 					{
-						vertices.emplace_back(glm::vec3{0, 0, 0});
+						positions.emplace_back(glm::vec3{0, 0, 0});
 					}
 					if (face.vn_idx != (int)0x80000000)
 					{
 						auto *pNormals = attributes.normals + (intptr_t)(face.vn_idx * 3);
 						normals.emplace_back(glm::vec3{pNormals[0], pNormals[1], pNormals[2]});
 					}
-					else
+					else if (!regenNormals)
 					{
-						normals.emplace_back(glm::vec3{0, 0, 0});
+						normals.clear();
 						regenNormals = true;
 					}
 					if (face.vt_idx != (int)0x80000000)
@@ -113,16 +101,19 @@ namespace FastCG
 				}
 			}
 
+			if (regenNormals)
+			{
+				normals = MeshUtils::CalculateNormals(positions, indices);
+			}
+			auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
+
 			auto *pMesh = RenderingSystem::GetInstance()->CreateMesh({rName + " (" + std::to_string(shapeIdx) + ")",
-																	  vertices,
-																	  normals,
-																	  uvs,
-																	  {},
-																	  {},
-																	  indices,
-																	  true,
-																	  regenNormals,
-																	  true});
+																	  {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{Shader::POSITIONS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																	   {"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{Shader::NORMALS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																	   {"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{Shader::UVS_ATTRIBUTE_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
+																	   {"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{Shader::TANGENTS_ATTRIBUTE_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+																	  {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
+																	  MeshUtils::CalculateBounds(positions)});
 			rMeshCatalog.emplace(shapeIdx, pMesh);
 		}
 	}
@@ -244,72 +235,6 @@ namespace FastCG
 		return pModelGameObject;
 	}
 
-	void CombineMeshes(const GameObject *pGameObject,
-					   std::vector<glm::vec3> &rVertices,
-					   std::vector<glm::vec3> &rNormals,
-					   std::vector<glm::vec2> &rUVs,
-					   std::vector<uint32_t> &rIndices)
-	{
-		auto *pRenderable = static_cast<Renderable *>(pGameObject->GetComponent(Renderable::TYPE));
-		if (pRenderable != nullptr)
-		{
-			auto model = pGameObject->GetTransform()->GetModel();
-
-			const auto *pMesh = pRenderable->GetMesh();
-			auto indicesOffset = (uint32_t)rVertices.size();
-			const auto &rMeshVertices = pMesh->GetVertices();
-			for (auto &vertex : rMeshVertices)
-			{
-				rVertices.emplace_back(glm::vec3(model * glm::vec4(vertex, 1)));
-			}
-
-			const auto &rMeshNormals = pMesh->GetNormals();
-			rNormals.insert(rNormals.end(), rMeshNormals.begin(), rMeshNormals.end());
-
-			const auto &rMeshUVs = pMesh->GetUVs();
-			rUVs.insert(rUVs.end(), rMeshUVs.begin(), rMeshUVs.end());
-
-			const auto &rMeshIndices = pMesh->GetIndices();
-			for (auto &index : rMeshIndices)
-			{
-				rIndices.emplace_back(indicesOffset + index);
-			}
-		}
-
-		const auto &rChildren = pGameObject->GetTransform()->GetChildren();
-		for (auto *child : rChildren)
-		{
-			CombineMeshes(child->GetGameObject(), rVertices, rNormals, rUVs, rIndices);
-		}
-	}
-
-	void ExportOptimizedModelFile(const std::string &rOptimizedModelFileName, const GameObject *pGameObject)
-	{
-		std::vector<glm::vec3> vertices;
-		std::vector<glm::vec3> normals;
-		std::vector<glm::vec2> uvs;
-		std::vector<uint32_t> indices;
-
-		CombineMeshes(pGameObject, vertices, normals, uvs, indices);
-
-		OptimizedModelHeader header;
-		header.numVertices = vertices.size();
-		header.numNormals = normals.size();
-		header.numUvs = uvs.size();
-		header.numIndices = indices.size();
-
-		OutputBinaryStream outStream;
-
-		outStream.Write(header);
-
-		outStream.Write(&vertices[0], vertices.size());
-		outStream.Write(&normals[0], normals.size());
-		outStream.Write(&uvs[0], uvs.size());
-		outStream.Write(&indices[0], indices.size());
-
-		FileWriter::WriteBinary(rOptimizedModelFileName, outStream.GetData(), outStream.GetSize());
-	}
-
 	GameObject *ImportModelFromObjFile(const std::string &rFilePath)
 	{
 		tinyobj_attrib_t attributes;
@@ -348,90 +273,9 @@ namespace FastCG
 		return pModelGameObject;
 	}
 
-	GameObject *ImportModelFromOptimizedFile(const std::string &rOptimizedModelFilePath)
-	{
-		size_t dataSize;
-		auto data = FileReader::ReadBinary(rOptimizedModelFilePath, dataSize);
-
-		if (data == nullptr)
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error opening optimized model file: %s", rOptimizedModelFilePath.c_str());
-		}
-
-		InputBinaryStream inStream(data.get(), dataSize);
-
-		OptimizedModelHeader header;
-
-		inStream.Read(header);
-
-		std::vector<glm::vec3> vertices;
-		vertices.resize(header.numVertices);
-		if (!inStream.Read(&vertices[0], vertices.size()))
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error reading vertices from optimized model file: %s", rOptimizedModelFilePath.c_str());
-		}
-
-		std::vector<glm::vec3> normals;
-		normals.resize(header.numNormals);
-		if (!inStream.Read(&normals[0], normals.size()))
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error reading normals from optimized model file: %s", rOptimizedModelFilePath.c_str());
-		}
-
-		std::vector<glm::vec2> uvs;
-		uvs.resize(header.numUvs);
-		if (!inStream.Read(&uvs[0], uvs.size()))
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error reading uvs from optimized model file: %s", rOptimizedModelFilePath.c_str());
-		}
-
-		std::vector<uint32_t> indices;
-		indices.resize(header.numIndices);
-		if (!inStream.Read(&indices[0], indices.size()))
-		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error reading indices from optimized model file: %s", rOptimizedModelFilePath.c_str());
-		}
-
-		auto *pMesh = RenderingSystem::GetInstance()->CreateMesh({rOptimizedModelFilePath,
-																  vertices,
-																  normals,
-																  uvs,
-																  {},
-																  {},
-																  indices,
-																  true,
-																  false,
-																  true});
-		const auto *pShader = RenderingSystem::GetInstance()->FindShader("SolidColor");
-
-		auto modelName = File::GetFileNameWithoutExtension(rOptimizedModelFilePath);
-		auto *pMaterial = RenderingSystem::GetInstance()->CreateMaterial({modelName + " Optimized Material", pShader});
-		pMaterial->SetDiffuseColor(Colors::WHITE);
-		pMaterial->SetSpecularColor(Colors::BLACK);
-		pMaterial->SetShininess(0);
-
-		auto *pGameObject = GameObject::Instantiate(modelName);
-		Renderable::Instantiate(pGameObject, pMaterial, pMesh);
-
-		return pGameObject;
-	}
-
 	GameObject *ModelImporter::Import(const std::string &rFilePath, ModelImporterOptionType options)
 	{
-		auto optimizedFilePath = AssetSystem::GetInstance()->Resolve(GetOptimizedModelFilePath(rFilePath));
-		if (File::Exists(optimizedFilePath))
-		{
-			return ImportModelFromOptimizedFile(optimizedFilePath);
-		}
-		else
-		{
-			auto *pModelGameObject = ImportModelFromObjFile(rFilePath);
-			if ((options & (uint8_t)ModelImporterOption::MIO_EXPORT_OPTIMIZED_MODEL_FILE) != 0)
-			{
-				ExportOptimizedModelFile(optimizedFilePath, pModelGameObject);
-			}
-			return pModelGameObject;
-		}
+		return ImportModelFromObjFile(rFilePath);
 	}
 
 }

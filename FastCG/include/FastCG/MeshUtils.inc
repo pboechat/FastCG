@@ -1,22 +1,23 @@
+#include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
 
 namespace FastCG
 {
-    std::vector<glm::vec3> BaseMesh::CalculateNormals(const std::vector<glm::vec3> &vertices, const std::vector<uint32_t> &indices)
+    std::vector<glm::vec3> MeshUtils::CalculateNormals(const std::vector<glm::vec3> &positions, const std::vector<uint32_t> &indices)
     {
         std::vector<glm::vec3> normals;
-        normals.resize(vertices.size());
+        normals.resize(positions.size());
         for (size_t i = 0; i < indices.size(); i += 3)
         {
             uint32_t i1 = indices[i];
             uint32_t i2 = indices[i + 1];
             uint32_t i3 = indices[i + 2];
 
-            const auto &v1 = vertices[i1];
-            const auto &v2 = vertices[i2];
-            const auto &v3 = vertices[i3];
+            const auto &p1 = positions[i1];
+            const auto &p2 = positions[i2];
+            const auto &p3 = positions[i3];
 
-            auto n = glm::cross(v2 - v1, v3 - v1);
+            auto n = glm::cross(p2 - p1, p3 - p1);
             normals[i1] += n;
             normals[i2] += n;
             normals[i3] += n;
@@ -30,10 +31,10 @@ namespace FastCG
         return normals;
     }
 
-    std::vector<glm::vec4> BaseMesh::CalculateTangents(const std::vector<glm::vec3> &vertices, const std::vector<glm::vec3> &normals, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices)
+    std::vector<glm::vec4> MeshUtils::CalculateTangents(const std::vector<glm::vec3> &positions, const std::vector<glm::vec3> &normals, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices)
     {
-        // if there's no vertices, exit
-        if (vertices.empty())
+        // if there's no positions, exit
+        if (positions.empty())
         {
             return {};
         }
@@ -44,9 +45,9 @@ namespace FastCG
             return {};
         }
 
-        std::vector<glm::vec4> tangents(vertices.size());
-        std::vector<glm::vec3> tangents1(vertices.size());
-        std::vector<glm::vec3> tangents2(vertices.size());
+        std::vector<glm::vec4> tangents(positions.size());
+        std::vector<glm::vec3> tangents1(positions.size());
+        std::vector<glm::vec3> tangents2(positions.size());
 
         for (size_t i = 0; i < indices.size(); i += 3)
         {
@@ -54,22 +55,22 @@ namespace FastCG
             auto i2 = indices[i + 1];
             auto i3 = indices[i + 2];
 
-            auto &v1 = vertices[i1];
-            auto &v2 = vertices[i2];
-            auto &v3 = vertices[i3];
+            auto &p1 = positions[i1];
+            auto &p2 = positions[i2];
+            auto &p3 = positions[i3];
 
             auto &w1 = uvs[i1];
             auto &w2 = uvs[i2];
             auto &w3 = uvs[i3];
 
-            auto x1 = v2.x - v1.x;
-            auto x2 = v3.x - v1.x;
+            auto x1 = p2.x - p1.x;
+            auto x2 = p3.x - p1.x;
 
-            auto y1 = v2.y - v1.y;
-            auto y2 = v3.y - v1.y;
+            auto y1 = p2.y - p1.y;
+            auto y2 = p3.y - p1.y;
 
-            auto z1 = v2.z - v1.z;
-            auto z2 = v3.z - v1.z;
+            auto z1 = p2.z - p1.z;
+            auto z2 = p3.z - p1.z;
 
             auto s1 = w2.x - w1.x;
             auto s2 = w3.x - w1.x;
@@ -96,7 +97,7 @@ namespace FastCG
             tangents2[i3] += tdir;
         }
 
-        for (size_t i = 0; i < vertices.size(); i++)
+        for (size_t i = 0; i < positions.size(); i++)
         {
             auto &normal = normals[i];
             auto &tangent = tangents1[i];
@@ -111,25 +112,28 @@ namespace FastCG
         return tangents;
     }
 
-    void BaseMesh::CalculateBounds()
+    AABB MeshUtils::CalculateBounds(const std::vector<glm::vec3> &positions)
     {
-        if (mVertices.empty())
+        if (positions.empty())
         {
-            return;
+            return {};
         }
 
-        mBounds.min.x = mBounds.min.y = mBounds.min.z = 1e10f;
-        mBounds.max.x = mBounds.max.y = mBounds.max.z = -1e10f;
+        AABB bounds;
+        bounds.min.x = bounds.min.y = bounds.min.z = 1e10f;
+        bounds.max.x = bounds.max.y = bounds.max.z = -1e10f;
 
-        for (const auto &rVertex : mVertices)
+        for (const auto &rPosition : positions)
         {
-            mBounds.min.x = MathF::Min(mBounds.min.x, rVertex.x);
-            mBounds.min.y = MathF::Min(mBounds.min.y, rVertex.y);
-            mBounds.min.z = MathF::Min(mBounds.min.z, rVertex.z);
-            mBounds.max.x = MathF::Max(mBounds.max.x, rVertex.x);
-            mBounds.max.y = MathF::Max(mBounds.max.y, rVertex.y);
-            mBounds.max.z = MathF::Max(mBounds.max.z, rVertex.z);
+            bounds.min.x = MathF::Min(bounds.min.x, rPosition.x);
+            bounds.min.y = MathF::Min(bounds.min.y, rPosition.y);
+            bounds.min.z = MathF::Min(bounds.min.z, rPosition.z);
+            bounds.max.x = MathF::Max(bounds.max.x, rPosition.x);
+            bounds.max.y = MathF::Max(bounds.max.y, rPosition.y);
+            bounds.max.z = MathF::Max(bounds.max.z, rPosition.z);
         }
+
+        return bounds;
     }
 
 }

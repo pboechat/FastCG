@@ -1,7 +1,7 @@
 #ifndef FASTCG_ASSET_SYSTEM
 #define FASTCG_ASSET_SYSTEM
 
-#include <FastCG/BaseApplication.h>
+#include <FastCG/System.h>
 
 #include <vector>
 #include <string>

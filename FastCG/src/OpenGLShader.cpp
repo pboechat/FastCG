@@ -1,11 +1,10 @@
 #ifdef FASTCG_OPENGL
 
 #include <FastCG/ShaderSource.h>
+#include <FastCG/OpenGLUtils.h>
 #include <FastCG/OpenGLShader.h>
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/FastCG.h>
-
-#include <algorithm>
 
 namespace
 {
@@ -34,35 +33,6 @@ namespace
 
     DECLARE_CHECK_STATUS_FN(Shader)
     DECLARE_CHECK_STATUS_FN(Program)
-
-#define CASE_RETURN_STRING(str) \
-    case str:                   \
-        return #str
-    const char *GetOpenGLShaderTypeString(GLenum shaderType)
-    {
-        switch (shaderType)
-        {
-            CASE_RETURN_STRING(GL_VERTEX_SHADER);
-            CASE_RETURN_STRING(GL_FRAGMENT_SHADER);
-        default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpenGL shader type");
-            return nullptr;
-        }
-    }
-
-    GLenum GetOpenGLShaderType(FastCG::ShaderType shaderType)
-    {
-        switch (shaderType)
-        {
-        case FastCG::ShaderType::ST_VERTEX:
-            return GL_VERTEX_SHADER;
-        case FastCG::ShaderType::ST_FRAGMENT:
-            return GL_FRAGMENT_SHADER;
-        default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled shader type");
-            return 0;
-        }
-    }
 
 }
 
@@ -143,23 +113,6 @@ namespace FastCG
         {
             glDeleteProgram(mProgramId);
         }
-    }
-
-    void OpenGLShader::Bind() const
-    {
-        glUseProgram(mProgramId);
-    }
-
-    void OpenGLShader::Unbind() const
-    {
-        glUseProgram(0);
-    }
-
-    void OpenGLShader::BindTexture(GLint bindingLocation, GLuint textureId, GLint textureUnit) const
-    {
-        glActiveTexture(GL_TEXTURE0 + textureUnit);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glUniform1i(bindingLocation, textureUnit);
     }
 
 }

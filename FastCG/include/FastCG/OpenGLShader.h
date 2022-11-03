@@ -17,13 +17,9 @@ namespace FastCG
     class OpenGLShader : public BaseShader
     {
     public:
-        void Bind() const;
-        void Unbind() const;
-        void BindTexture(GLint bindingLocation, GLuint textureId, GLint textureUnit) const;
-
-        inline GLint GetBindingLocation(const std::string &rName) const
+        inline operator GLuint() const
         {
-            return glGetUniformLocation(mProgramId, rName.c_str());
+            return mProgramId;
         }
 
     private:

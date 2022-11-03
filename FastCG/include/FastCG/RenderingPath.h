@@ -8,9 +8,9 @@ namespace FastCG
 {
     enum class RenderingPath : uint8_t
     {
-        RP_FORWARD_RENDERING = 0,
-        RP_DEFERRED_RENDERING,
-        RP_MAX
+        FORWARD_RENDERING = 0,
+        DEFERRED_RENDERING,
+        MAX
 
     };
 
