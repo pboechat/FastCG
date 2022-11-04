@@ -68,8 +68,12 @@ namespace FastCG
             pRenderingContext->PushDebugMarker("Forward World Rendering");
             {
                 pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
-                pRenderingContext->SetScissorTest(false);
+                pRenderingContext->SetDepthTest(true);
                 pRenderingContext->SetDepthWrite(true);
+                pRenderingContext->SetStencilTest(false);
+                pRenderingContext->SetScissorTest(false);
+                pRenderingContext->SetCullMode(Face::BACK);
+                pRenderingContext->SetBlend(false);
                 pRenderingContext->SetRenderTargets(mRenderTargets.data(), mRenderTargets.size());
 
                 pRenderingContext->PushDebugMarker("Clear Render Targets");

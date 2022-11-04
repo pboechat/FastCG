@@ -60,7 +60,7 @@ namespace FastCG
 			return mpBaseType;
 		}
 
-		bool IsDerived(const ComponentType &rType) const
+		inline bool IsDerived(const ComponentType &rType) const
 		{
 			const ComponentType *pSearch = this;
 			while (pSearch)

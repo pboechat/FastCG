@@ -91,26 +91,6 @@ namespace FastCG
 			return mpBumpMap;
 		}
 
-		inline bool IsTwoSided() const
-		{
-			return mTwoSided;
-		}
-
-		inline void SetTwoSided(bool twoSided)
-		{
-			mTwoSided = twoSided;
-		}
-
-		inline bool HasDepth() const
-		{
-			return mHasDepth;
-		}
-
-		inline void SetHasDepth(bool hasDepth)
-		{
-			mHasDepth = hasDepth;
-		}
-
 	protected:
 		const std::string mName;
 		const Shader *mpShader;
@@ -118,8 +98,6 @@ namespace FastCG
 		const Buffer *mpMaterialConstantsBuffer{nullptr};
 		const Texture *mpColorMap{nullptr};
 		const Texture *mpBumpMap{nullptr};
-		bool mTwoSided{false};
-		bool mHasDepth{true};
 
 		BaseMaterial(const MaterialArgs &rArgs, const Buffer *pMaterialConstantsBuffer) : mName(rArgs.name),
 																						  mpShader(rArgs.pShader),

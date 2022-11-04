@@ -39,7 +39,7 @@ namespace FastCG
         uint32_t stride;
         uint32_t offset;
 
-        bool IsValid() const
+        inline bool IsValid() const
         {
             return size > 0 && type != VertexDataType::NONE;
         }

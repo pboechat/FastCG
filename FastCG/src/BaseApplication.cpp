@@ -316,10 +316,12 @@ namespace FastCG
 
 		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
 
-		ImGui::Begin("Statistics");
-		ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
-		ImGui::Text("Draw Calls: %u", mRenderingStatistics.drawCalls);
-		ImGui::Text("Triangles: %u", mRenderingStatistics.triangles);
+		if (ImGui::Begin("Statistics"))
+		{
+			ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
+			ImGui::Text("Draw Calls: %u", mRenderingStatistics.drawCalls);
+			ImGui::Text("Triangles: %u", mRenderingStatistics.triangles);
+		}
 		ImGui::End();
 
 		ImGuiSystem::GetInstance()->EndFrame();

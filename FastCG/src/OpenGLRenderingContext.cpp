@@ -191,11 +191,13 @@ namespace FastCG
     void OpenGLRenderingContext::Bind(const OpenGLBuffer *pBuffer, uint32_t binding)
     {
         assert(pBuffer != nullptr);
+        assert(mpBoundShader != nullptr);
         glBindBufferBase(GetOpenGLTarget(pBuffer->GetType()), binding, *pBuffer);
     }
 
     void OpenGLRenderingContext::Bind(const OpenGLBuffer *pBuffer, const char *name)
     {
+        assert(pBuffer != nullptr);
         assert(mpBoundShader != nullptr);
         auto binding = glGetUniformLocation(*mpBoundShader, name);
         Bind(pBuffer, binding);
@@ -203,6 +205,8 @@ namespace FastCG
 
     void OpenGLRenderingContext::Bind(const OpenGLTexture *pTexture, uint32_t binding, uint32_t unit)
     {
+        assert(pTexture != nullptr);
+        assert(mpBoundShader != nullptr);
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, *pTexture);
         glUniform1i(binding, unit);
@@ -322,6 +326,7 @@ namespace FastCG
     void OpenGLRenderingContext::SetVertexBuffers(const OpenGLBuffer *const *pBuffers, size_t bufferCount)
     {
         assert(pBuffers != nullptr);
+        assert(mpBoundShader != nullptr);
         assert(bufferCount > 0);
         auto vaoId = OpenGLRenderingSystem::GetInstance()->GetOrCreateVertexArray(pBuffers, bufferCount);
         assert(vaoId != ~0u);
@@ -331,6 +336,7 @@ namespace FastCG
     void OpenGLRenderingContext::SetIndexBuffer(const OpenGLBuffer *pBuffer)
     {
         assert(pBuffer != nullptr);
+        assert(mpBoundShader != nullptr);
         auto target = GetOpenGLTarget(pBuffer->GetType());
         assert(target == GL_ELEMENT_ARRAY_BUFFER);
         glBindBuffer(target, *pBuffer);

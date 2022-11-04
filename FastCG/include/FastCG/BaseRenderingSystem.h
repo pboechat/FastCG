@@ -63,7 +63,9 @@ namespace FastCG
         void DestroyShader(const Shader *pShader);
         void DestroyTexture(const Texture *pTexture);
         const Shader *FindShader(const std::string &rName) const;
-#ifdef FASTCG_LINUX
+#if defined FASTCG_WINDOWS
+        void SetupPixelFormat() const;
+#elif defined FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
 

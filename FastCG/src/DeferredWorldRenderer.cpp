@@ -196,9 +196,13 @@ namespace FastCG
             pRenderingContext->PushDebugMarker("Deferred World Rendering");
             {
                 pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
-                pRenderingContext->SetScissorTest(false);
+                pRenderingContext->SetDepthTest(true);
+                pRenderingContext->SetDepthWrite(true);
+                pRenderingContext->SetStencilTest(false);
                 pRenderingContext->SetStencilWriteMask(0);
-
+                pRenderingContext->SetScissorTest(false);
+                pRenderingContext->SetCullMode(Face::BACK);
+                pRenderingContext->SetBlend(false);
                 pRenderingContext->SetRenderTargets(mGBufferRenderTargets.data(), 6);
 
                 pRenderingContext->PushDebugMarker("Clear G-Buffer");

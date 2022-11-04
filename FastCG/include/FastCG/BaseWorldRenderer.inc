@@ -49,30 +49,6 @@ namespace FastCG
     {
         pRenderingContext->Copy(pMaterial->GetMaterialConstantsBuffer(), sizeof(MaterialConstants), &pMaterial->GetMaterialConstants());
 
-        if (pMaterial->HasDepth())
-        {
-            pRenderingContext->SetDepthTest(true);
-            pRenderingContext->SetDepthWrite(true);
-        }
-        else
-        {
-            pRenderingContext->SetDepthTest(false);
-            pRenderingContext->SetDepthWrite(false);
-        }
-        pRenderingContext->SetStencilTest(false);
-        // glStencilMask(0);
-
-        if (pMaterial->IsTwoSided())
-        {
-            pRenderingContext->SetCullMode(Face::NONE);
-        }
-        else
-        {
-            pRenderingContext->SetCullMode(Face::BACK);
-        }
-
-        pRenderingContext->SetBlend(false);
-
         pRenderingContext->Bind(pMaterial->GetShader());
         pRenderingContext->Bind(pMaterial->GetMaterialConstantsBuffer(), Shader::MATERIAL_CONSTANTS_BINDING_INDEX);
         auto *pColorMap = pMaterial->GetColorMap();
