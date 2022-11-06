@@ -78,6 +78,6 @@ void SSAOApplication::OnStart()
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
 	auto *pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
 	auto *pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
-	pFlyCameraController->SetWalkSpeed(5.0f);
-	pFlyCameraController->SetTurnSpeed(5.0f);
+	pFlyCameraController->SetWalkSpeed(5);
+	pFlyCameraController->SetTurnSpeed(0.25f);
 }

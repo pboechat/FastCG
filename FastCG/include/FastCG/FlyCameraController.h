@@ -4,6 +4,7 @@
 #include <FastCG/Behaviour.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace FastCG
 {
@@ -35,6 +36,9 @@ namespace FastCG
 		void OnUpdate(float time, float deltaTime) override;
 
 	private:
+		float mTheta{0};
+		float mPhi{0};
+		glm::quat mRotation{};
 		glm::uvec2 mLastMousePosition{0, 0};
 		bool mRightMouseButtonPressed{false};
 		float mWalkSpeed{1};

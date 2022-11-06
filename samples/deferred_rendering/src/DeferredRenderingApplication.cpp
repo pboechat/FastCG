@@ -26,8 +26,6 @@ constexpr uint32_t NUMBER_OF_SPHERE_SLICES = 30;
 constexpr uint32_t LIGHT_GRID_WIDTH = 7;
 constexpr uint32_t LIGHT_GRID_DEPTH = 7;
 constexpr uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
-constexpr float WALK_SPEED = 20.0f;
-constexpr float TURN_SPEED = 20.0f;
 
 DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, RenderingPath::DEFERRED_RENDERING, {"deferred_rendering"}})
 {
@@ -104,6 +102,6 @@ void DeferredRenderingApplication::OnStart()
 	pLightsAnimator->SetLights(pointLights);
 	auto *pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
 	auto *pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
-	pFlyCameraController->SetWalkSpeed(WALK_SPEED);
-	pFlyCameraController->SetTurnSpeed(TURN_SPEED);
+	pFlyCameraController->SetWalkSpeed(5);
+	pFlyCameraController->SetTurnSpeed(0.25f);
 }

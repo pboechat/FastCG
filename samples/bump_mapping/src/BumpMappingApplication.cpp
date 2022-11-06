@@ -110,5 +110,5 @@ void BumpMappingApplication::OnStart()
 	auto *pPlayerGameObject = GameObject::Instantiate();
 	auto *pFlyCameraController = FlyCameraController::Instantiate(pPlayerGameObject);
 	pFlyCameraController->SetWalkSpeed(5);
-	pFlyCameraController->SetTurnSpeed(5);
+	pFlyCameraController->SetTurnSpeed(0.25f);
 }
