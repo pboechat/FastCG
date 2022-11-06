@@ -163,7 +163,6 @@ namespace FastCG
 		double mTotalElapsedTime{0};
 		double mLastFrameTime{0};
 		RenderingStatistics mRenderingStatistics;
-		GameObject *mpInternalGameObject{nullptr};
 		Camera *mpMainCamera{nullptr};
 		std::vector<GameObject *> mGameObjects;
 		std::vector<Renderable *> mRenderables;

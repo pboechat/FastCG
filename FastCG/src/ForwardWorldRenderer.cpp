@@ -63,6 +63,9 @@ namespace FastCG
 
     void ForwardWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)
     {
+        assert(pCamera != nullptr);
+        assert(pRenderingContext != nullptr);
+
         pRenderingContext->Begin();
         {
             pRenderingContext->PushDebugMarker("Forward World Rendering");

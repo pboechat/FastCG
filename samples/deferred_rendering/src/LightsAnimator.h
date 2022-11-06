@@ -14,15 +14,15 @@ class LightsAnimator : public FastCG::Behaviour
 
 public:
 	void SetLights(const std::vector<FastCG::PointLight *> &rLights);
+	void ChangeColors();
 
 protected:
 	void OnUpdate(float time, float deltaTime) override;
 
 private:
-	std::vector<FastCG::PointLight *> mPointLights;
+	std::vector<FastCG::PointLight *> mLights;
 	std::vector<glm::vec3> mDirections;
 	float mLastDirectionChangeTime{0};
-	float mLastMouseButtonPressTime{0};
 };
 
 #endif

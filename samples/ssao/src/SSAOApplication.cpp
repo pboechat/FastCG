@@ -6,7 +6,7 @@
 #include <FastCG/Renderable.h>
 #include <FastCG/ModelImporter.h>
 #include <FastCG/MathT.h>
-#include <FastCG/FlyCameraController.h>
+#include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
@@ -66,8 +66,15 @@ SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, Renderi
 
 void SSAOApplication::OnStart()
 {
-	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
-	GetMainCamera()->SetSSAOEnabled(true);
+	auto *pMainCameraGameObject = GameObject::Instantiate();
+	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
+
+	auto *pCamera = Camera::Instantiate(pMainCameraGameObject);
+	pCamera->SetSSAOEnabled(true);
+
+	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
+	pFlyController->SetWalkSpeed(5);
+	pFlyController->SetTurnSpeed(0.25f);
 
 	LoadModel();
 
@@ -76,8 +83,5 @@ void SSAOApplication::OnStart()
 	CreateDirectionalLight();
 
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
-	auto *pControls = Controls::Instantiate(pGeneralBehavioursGameObject);
-	auto *pFlyCameraController = FlyCameraController::Instantiate(pGeneralBehavioursGameObject);
-	pFlyCameraController->SetWalkSpeed(5);
-	pFlyCameraController->SetTurnSpeed(0.25f);
+	Controls::Instantiate(pGeneralBehavioursGameObject);
 }

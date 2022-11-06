@@ -85,7 +85,7 @@ namespace FastCG
 			}
 		}
 
-		return 0;
+		return nullptr;
 	}
 
 	void GameObject::DestroyAllComponents()
@@ -124,7 +124,7 @@ namespace FastCG
 	AABB GameObject::GetBounds() const
 	{
 		AABB bounds;
-		auto *pRenderable = static_cast<Renderable *>(GetComponent(Renderable::TYPE));
+		auto *pRenderable = GetComponent<Renderable>();
 		if (pRenderable != nullptr)
 		{
 			bounds = pRenderable->GetMesh()->GetBounds();

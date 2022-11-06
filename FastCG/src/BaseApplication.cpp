@@ -161,7 +161,10 @@ namespace FastCG
 
 	void BaseApplication::SetMainCamera(Camera *pCamera)
 	{
-		pCamera->SetEnabled(true);
+		if (pCamera != nullptr)
+		{
+			pCamera->SetEnabled(true);
+		}
 
 		for (auto *pOtherCamera : mCameras)
 		{
@@ -174,7 +177,10 @@ namespace FastCG
 		}
 
 		mpMainCamera = pCamera;
-		mpMainCamera->SetAspectRatio(GetAspectRatio());
+		if (mpMainCamera != nullptr)
+		{
+			mpMainCamera->SetAspectRatio(GetAspectRatio());
+		}
 	}
 
 	int BaseApplication::Run(int argc, char **argv)
@@ -256,9 +262,6 @@ namespace FastCG
 		mpWorldRenderer->Initialize();
 		mpImGuiRenderer->Initialize();
 
-		mpInternalGameObject = GameObject::Instantiate();
-		Camera::Instantiate(mpInternalGameObject);
-
 		OnInitialize();
 	}
 
@@ -328,7 +331,10 @@ namespace FastCG
 
 		mRenderingStatistics.Reset();
 
-		mpWorldRenderer->Render(mpMainCamera, pRenderingContext);
+		if (mpMainCamera != nullptr)
+		{
+			mpWorldRenderer->Render(mpMainCamera, pRenderingContext);
+		}
 		mpImGuiRenderer->Render(ImGui::GetDrawData(), pRenderingContext);
 
 		RenderingSystem::GetInstance()->Present();

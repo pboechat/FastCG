@@ -1,25 +1,17 @@
-#include <FastCG/MouseButton.h>
+#include <FastCG/Transform.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Key.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/FlyCameraController.h>
-#include <FastCG/Camera.h>
-#include <FastCG/BaseApplication.h>
+#include <FastCG/FlyController.h>
 
 namespace FastCG
 {
-	IMPLEMENT_COMPONENT(FlyCameraController, Behaviour);
+	IMPLEMENT_COMPONENT(FlyController, Behaviour);
 
-	void FlyCameraController::OnUpdate(float time, float deltaTime)
+	void FlyController::OnUpdate(float time, float deltaTime)
 	{
-		auto *mainCamera = BaseApplication::GetInstance()->GetMainCamera();
-		if (mainCamera == nullptr)
-		{
-			return;
-		}
-
-		auto *pTransform = mainCamera->GetGameObject()->GetTransform();
+		auto *pTransform = GetGameObject()->GetTransform();
 
 		auto &rotation = pTransform->GetRotation();
 
@@ -33,8 +25,17 @@ namespace FastCG
 				{
 					if (rotation != mRotation)
 					{
-						mTheta = atanf(-rotation.x / rotation.y);
-						mPhi = atanf(rotation.y / rotation.w);
+						auto euler = glm::eulerAngles(rotation);
+						mTheta = euler.x * 0.5f * MathF::DEGREES_TO_RADIANS;
+						if (mTheta < 0)
+						{
+							mTheta = MathF::TWO_PI - mTheta;
+						}
+						mPhi = euler.y * 0.5f * MathF::DEGREES_TO_RADIANS;
+						if (mPhi < 0)
+						{
+							mPhi = MathF::TWO_PI - mPhi;
+						}
 					}
 
 					auto delta = deltaTime * mTurnSpeed;

@@ -4,6 +4,8 @@
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 
+#include <imgui.h>
+
 using namespace FastCG;
 
 IMPLEMENT_COMPONENT(Controls, Behaviour);
@@ -15,4 +17,13 @@ void Controls::OnUpdate(float time, float deltaTime)
 		Application::GetInstance()->Exit();
 		return;
 	}
+
+	if (ImGui::Begin("Controls"))
+	{
+		if (ImGui::Button("Change Colors"))
+		{
+			mpLightsAnimator->ChangeColors();
+		}
+	}
+	ImGui::End();
 }

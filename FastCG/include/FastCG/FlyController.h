@@ -1,5 +1,5 @@
-#ifndef FASTCG_FLY_CAMERA_CONTROLLER_H
-#define FASTCG_FLY_CAMERA_CONTROLLER_H
+#ifndef FASTCG_FLY_CONTROLLER_H
+#define FASTCG_FLY_CONTROLLER_H
 
 #include <FastCG/Behaviour.h>
 
@@ -8,9 +8,9 @@
 
 namespace FastCG
 {
-	class FlyCameraController : public Behaviour
+	class FlyController : public Behaviour
 	{
-		DECLARE_COMPONENT(FlyCameraController, Behaviour);
+		DECLARE_COMPONENT(FlyController, Behaviour);
 
 	public:
 		inline float GetWalkSpeed() const

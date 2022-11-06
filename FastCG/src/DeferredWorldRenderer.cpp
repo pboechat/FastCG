@@ -191,6 +191,9 @@ namespace FastCG
 
     void DeferredWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)
     {
+        assert(pCamera != nullptr);
+        assert(pRenderingContext != nullptr);
+
         pRenderingContext->Begin();
         {
             pRenderingContext->PushDebugMarker("Deferred World Rendering");

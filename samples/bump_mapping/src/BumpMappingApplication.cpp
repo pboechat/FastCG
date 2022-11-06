@@ -8,7 +8,7 @@
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/ModelImporter.h>
-#include <FastCG/FlyCameraController.h>
+#include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
@@ -17,7 +17,7 @@ using namespace FastCG;
 
 namespace
 {
-	void CreateSceneLights(std::vector<GameObject *> &rSceneLights)
+	void CreateLights(std::vector<GameObject *> &rSceneLights)
 	{
 		auto *pSceneLights = GameObject::Instantiate();
 
@@ -94,10 +94,17 @@ BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 
 
 void BumpMappingApplication::OnStart()
 {
-	GetMainCamera()->GetGameObject()->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
+	auto *pMainCameraGameObject = GameObject::Instantiate();
+	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
 
-	std::vector<GameObject *> sceneLights;
-	CreateSceneLights(sceneLights);
+	Camera::Instantiate(pMainCameraGameObject);
+
+	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
+	pFlyController->SetWalkSpeed(5);
+	pFlyController->SetTurnSpeed(0.25f);
+
+	std::vector<GameObject *> lights;
+	CreateLights(lights);
 
 	LoadModel();
 
@@ -106,9 +113,5 @@ void BumpMappingApplication::OnStart()
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
 	Controls::Instantiate(pGeneralBehavioursGameObject);
 	auto *pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
-	pLightsAnimator->SetLights(sceneLights);
-	auto *pPlayerGameObject = GameObject::Instantiate();
-	auto *pFlyCameraController = FlyCameraController::Instantiate(pPlayerGameObject);
-	pFlyCameraController->SetWalkSpeed(5);
-	pFlyCameraController->SetTurnSpeed(0.25f);
+	pLightsAnimator->SetLights(lights);
 }
