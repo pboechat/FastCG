@@ -7,12 +7,6 @@
 #include <FastCG/Camera.h>
 #include <FastCG/BaseApplication.h>
 
-namespace
-{
-	constexpr float EPSILON = 1;
-
-}
-
 namespace FastCG
 {
 	IMPLEMENT_COMPONENT(FlyCameraController, Behaviour);
