@@ -60,7 +60,7 @@ namespace FastCG
 		template <class ComponentT>
 		ComponentT *GetComponent() const
 		{
-			return static_cast<ComponentT*>(GetComponent(typename ComponentT::TYPE));
+			return static_cast<ComponentT*>(GetComponent(ComponentT::TYPE));
 		}
 		AABB GetBounds() const;
 		friend class Component;
