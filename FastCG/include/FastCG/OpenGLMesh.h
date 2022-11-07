@@ -17,7 +17,11 @@ namespace FastCG
     {
     private:
         OpenGLMesh(const MeshArgs &rArgs);
+        OpenGLMesh(const OpenGLMesh &rOther) = delete;
+        OpenGLMesh(const OpenGLMesh &&rOther) = delete;
         virtual ~OpenGLMesh();
+
+        OpenGLMesh operator=(const OpenGLMesh &rOther) = delete;
 
         friend class OpenGLRenderingSystem;
     };

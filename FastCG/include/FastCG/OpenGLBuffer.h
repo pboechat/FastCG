@@ -25,7 +25,11 @@ namespace FastCG
         GLuint mBufferId{~0u};
 
         OpenGLBuffer(const BufferArgs &rArgs);
+        OpenGLBuffer(const OpenGLBuffer &rOther) = delete;
+        OpenGLBuffer(const OpenGLBuffer &&rOther) = delete;
         virtual ~OpenGLBuffer();
+
+        OpenGLBuffer &operator=(const OpenGLBuffer &rOther) = delete;
 
         friend class OpenGLRenderingSystem;
     };
