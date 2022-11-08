@@ -40,7 +40,7 @@ namespace FastCG
 						mTheta *= halfDegToRad;
 						if (mTheta < 0)
 						{
-							mTheta = MathF::TWO_PI + mTheta;
+							mTheta = -mTheta;
 						}
 
 						mPhi = euler.y;
@@ -51,7 +51,7 @@ namespace FastCG
 						mPhi *= halfDegToRad;
 						if (mPhi < 0)
 						{
-							mPhi = MathF::TWO_PI + mPhi;
+							mPhi = -mPhi;
 						}
 					}
 
