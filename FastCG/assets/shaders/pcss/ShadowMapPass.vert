@@ -4,8 +4,8 @@
 #extension GL_GOOGLE_include_directive : enable
 #endif
 
-#include "FastCG.glsl"
-#include "InstanceConstants.glsl"
+#include "../FastCG.glsl"
+#include "ShadowMapPassConstants.glsl"
 
 layout(location = 0) in vec4 iPosition;
 

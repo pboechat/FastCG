@@ -32,7 +32,7 @@ namespace FastCG
 	template <>
 	struct ShaderFileExtension<ShaderType::ST_VERTEX>
 	{
-		static const char* value()
+		static const char *value()
 		{
 			return ".vert";
 		}
@@ -41,7 +41,7 @@ namespace FastCG
 	template <>
 	struct ShaderFileExtension<ShaderType::ST_FRAGMENT>
 	{
-		static const char* value()
+		static const char *value()
 		{
 			return ".frag";
 		}
@@ -56,10 +56,11 @@ namespace FastCG
 		static constexpr uint32_t TANGENTS_ATTRIBUTE_INDEX = 3;
 		static constexpr uint32_t COLORS_ATTRIBUTE_INDEX = 4;
 		static constexpr uint32_t SCENE_CONSTANTS_BINDING_INDEX = 0;
-		static constexpr uint32_t INSTANCE_CONTANTS_BINDING_INDEX = 1;
+		static constexpr uint32_t INSTANCE_CONSTANTS_BINDING_INDEX = 1;
 		static constexpr uint32_t LIGHTING_CONSTANTS_BINDING_INDEX = 2;
 		static constexpr uint32_t MATERIAL_CONSTANTS_BINDING_INDEX = 0x10;
-		static constexpr uint32_t SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX = 0x10;
+		static constexpr uint32_t SHADOW_MAP_PASS_CONSTANTS_BINDING_INDEX = 0;
+		static constexpr uint32_t SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX = 0;
 
 		inline const std::string &GetName() const
 		{

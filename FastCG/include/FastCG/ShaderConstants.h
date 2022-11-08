@@ -17,8 +17,9 @@ namespace FastCG
             glm::mat4 inverseView;
             glm::mat4 projection;
             glm::mat4 inverseProjection;
+            glm::vec2 screenSize;
             float pointSize;
-            float padding[3];
+            float padding;
         };
 
         struct InstanceConstants
@@ -49,19 +50,7 @@ namespace FastCG
 
     namespace DeferredRenderingPath
     {
-        struct SceneConstants
-        {
-            glm::mat4 view;
-            glm::mat4 inverseView;
-            glm::mat4 projection;
-            glm::mat4 inverseProjection;
-            glm::vec2 screenSize;
-            float aspectRatio;
-            float tanHalfFov;
-            float pointSize;
-            float padding[3];
-        };
-
+        using SceneConstants = ForwardRenderingPath::SceneConstants;
         using InstanceConstants = ForwardRenderingPath::InstanceConstants;
         using LightingConstants = ForwardRenderingPath::LightingConstants;
 
@@ -77,6 +66,11 @@ namespace FastCG
         float padding[3];
     };
 
+    struct ShadowMapPassConstants
+    {
+        glm::mat4 modelViewProjection;
+    };
+
     constexpr size_t NUMBER_OF_RANDOM_SAMPLES = 32;
     constexpr uint32_t NOISE_TEXTURE_WIDTH = 4;
     constexpr uint32_t NOISE_TEXTURE_HEIGHT = NOISE_TEXTURE_WIDTH;
@@ -84,10 +78,12 @@ namespace FastCG
 
     struct SSAOHighFrequencyPassConstants
     {
-        glm::vec4 randomSamples[NUMBER_OF_RANDOM_SAMPLES];
+        glm::mat4 projection;
+        glm::vec4 randomSamples[NUMBER_OF_RANDOM_SAMPLES]{};
         float radius{0.05f};
         float distanceScale{50.0f};
-        float padding[2];
+        float aspectRatio{};
+        float tanHalfFov{};
     };
 
     struct ImGuiConstants

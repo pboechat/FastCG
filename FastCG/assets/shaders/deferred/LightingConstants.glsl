@@ -2,42 +2,13 @@
 #define FASTCG_DEFERRED_LIGHTING_CONSTANTS_GLSL
 
 #include "FastCG.glsl"
+#include "../LightingConstants.glsl"
 
-layout(BINDING(0, 2)) uniform LightingConstants 
-{
-	vec4 uLight0Position;
-	vec4 uLight0ViewPosition;
-	vec4 uLight0DiffuseColor;
-	vec4 uLight0SpecularColor;
-	float uLight0Intensity;
-	float uLight0ConstantAttenuation;
-	float uLight0LinearAttenuation;
-	float uLight0QuadraticAttenuation;
-	vec4 uAmbientColor;
-	mat4 uShadowMapViewProjection;
-	float uShadowMapBias;
-};
-
-layout(BINDING(0, 2)) uniform sampler2D uShadowMap;
-layout(BINDING(0, 3)) uniform sampler2D uDiffuseMap;
-layout(BINDING(0, 4)) uniform sampler2D uNormalMap;
-layout(BINDING(0, 5)) uniform sampler2D uSpecularMap;
-layout(BINDING(0, 6)) uniform sampler2D uTangentMap;
-layout(BINDING(0, 7)) uniform sampler2D uExtraData;
-layout(BINDING(0, 8)) uniform sampler2D uDepth;
-layout(BINDING(0, 9)) uniform sampler2D uAmbientOcclusionMap;
-
-#define FASTCG_LIGHT_TYPE() uLight0Position.w
-
-float GetShadow(vec3 worldPosition)
-{
-	vec4 projectedCoords = uShadowMapViewProjection * vec4(worldPosition, 1);
-
-	vec3 shadowMapCoords = projectedCoords.xyz / projectedCoords.w;
-	shadowMapCoords = shadowMapCoords * 0.5 + 0.5;
-
-	float z = texture(uShadowMap, shadowMapCoords.xy).x;
-	return float(z > (shadowMapCoords.z - uShadowMapBias));
-}
+layout(BINDING(0, 5)) uniform sampler2D uDiffuseMap;
+layout(BINDING(0, 6)) uniform sampler2D uNormalMap;
+layout(BINDING(0, 7)) uniform sampler2D uSpecularMap;
+layout(BINDING(0, 8)) uniform sampler2D uTangentMap;
+layout(BINDING(0, 9)) uniform sampler2D uExtraData;
+layout(BINDING(0, A)) uniform sampler2D uDepth;
 
 #endif

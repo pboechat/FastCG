@@ -7,6 +7,11 @@
 	#define BINDING(a, b) binding = 0x##a##b
 #endif
 
+float LinearizeDepth(mat4 projection, float depth) 
+{
+	return projection[3][2] / (depth - (projection[2][2] / projection[2][3]));
+}
+
 vec3 PackNormalToColor(vec3 value)
 {
 	return value.xyz * 0.5 + 0.5;

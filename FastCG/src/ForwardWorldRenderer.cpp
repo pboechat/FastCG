@@ -48,7 +48,6 @@ namespace FastCG
                                                                            TextureFilter::POINT_FILTER,
                                                                            TextureWrapMode::CLAMP,
                                                                            false});
-        mpShadowMapPassShader = RenderingSystem::GetInstance()->FindShader("ShadowMapPass");
     }
 
     void ForwardWorldRenderer::Finalize()
@@ -77,6 +76,13 @@ namespace FastCG
             pRenderingContext->PushDebugMarker("Forward World Rendering");
             {
                 GenerateShadowMaps(pRenderingContext);
+
+                const auto isSSAOEnabled = pCamera->IsSSAOEnabled();
+
+                if (isSSAOEnabled)
+                {
+                    GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), mRenderTargets[1], pRenderingContext);
+                }
 
                 pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
                 pRenderingContext->SetDepthTest(true);
@@ -121,7 +127,7 @@ namespace FastCG
                                     }
 
                                     UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), view, projection, pRenderingContext);
-                                    pRenderingContext->Bind(mpInstanceConstantsBuffer, OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX);
+                                    pRenderingContext->Bind(mpInstanceConstantsBuffer, OpenGLShader::INSTANCE_CONSTANTS_BINDING_INDEX);
 
                                     const auto *pMesh = pRenderable->GetMesh();
 
@@ -164,7 +170,7 @@ namespace FastCG
 
                                                 const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
 
-                                                UpdateLightingConstants(pDirectionalLight, pDirectionalLight->GetDirection(), pRenderingContext);
+                                                UpdateLightingConstants(pDirectionalLight, pDirectionalLight->GetDirection(), isSSAOEnabled, pRenderingContext);
                                                 pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                                 pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
@@ -202,7 +208,7 @@ namespace FastCG
                                                     break;
                                                 }
 
-                                                UpdateLightingConstants(mArgs.rPointLights[i], view, pRenderingContext);
+                                                UpdateLightingConstants(mArgs.rPointLights[i], view, isSSAOEnabled, pRenderingContext);
 
                                                 pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 

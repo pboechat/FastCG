@@ -5,8 +5,9 @@
 #endif
 
 #include "FastCG.glsl"
+#include "SceneConstants.glsl"
 #include "LightingConstants.glsl"
-#include "MaterialConstants.glsl"
+#include "../MaterialConstants.glsl"
 #include "../Lighting.glsl"
 
 layout(location = 0) in vec3 vLightDirection;
@@ -20,5 +21,5 @@ layout(location = 0) out vec4 oColor;
 void main()
 {
 	vec4 diffuse = uDiffuseColor * texture(uColorMap, (vUV * uColorMapTiling));
-	oColor = Lighting(diffuse, uSpecularColor, uShininess, vLightDirection, vViewerDirection, vPosition, vNormal);
+	oColor = Lighting(diffuse, uSpecularColor, uShininess, vLightDirection, vViewerDirection, vPosition, vNormal, GetScreenCoordinates());
 }

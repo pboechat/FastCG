@@ -6,11 +6,6 @@
 const float DEPTH_RANGE_NEAR = 0;
 const float DEPTH_RANGE_FAR = 1;
 
-float LinearizeDepth(mat4 projection, float depth) 
-{
-	return projection[3][2] / (depth - (projection[2][2] / projection[2][3]));
-}
-
 vec3 GetViewPositionFromScreenCoordsAndDepth(mat4 projection, mat4 inverseProjection, vec2 screenSize, vec3 screenCoords)
 {
 	vec3 ndc;

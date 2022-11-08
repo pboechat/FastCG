@@ -7,7 +7,7 @@
 #define NOISE_TEXTURE_SIDE 4
 #define NOISE_TEXTURE_SIZE 16
 
-#include "FastCG.glsl"
+#include "../FastCG.glsl"
 
 layout(BINDING(0, 0)) uniform sampler2D uAmbientOcclusionMap;
 

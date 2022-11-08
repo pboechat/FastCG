@@ -42,8 +42,5 @@ void main()
 	vec3 lightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz);
 	vec3 viewerDirection = tangentSpaceMatrix * normalize(-viewPosition);
 
-	float ambientOcclusion = texture(uAmbientOcclusionMap, vUV).x;
-	ambientOcclusion = min(ambientOcclusion, 1.0);
-
-	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, worldPosition, normal) * ambientOcclusion;
+	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, worldPosition, normal, vUV);
 }

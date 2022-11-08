@@ -51,7 +51,55 @@ namespace FastCG
 			return mShadowMapBias = shadowMapBias;
 		}
 
+		inline void SetSSAORadius(float radius)
+		{
+			mSSAOHighFrequencyPassConstants.radius = radius;
+		}
+
+		inline float GetSSAORadius() const
+		{
+			return mSSAOHighFrequencyPassConstants.radius;
+		}
+
+		inline void SetSSAODistanceScale(float distanceScale)
+		{
+			mSSAOHighFrequencyPassConstants.distanceScale = distanceScale;
+		}
+
+		inline float GetSSAODistanceScale() const
+		{
+			return mSSAOHighFrequencyPassConstants.distanceScale;
+		}
+
+		inline bool IsSSAOBlurEnabled() const
+		{
+			return mSSAOBlurEnabled;
+		}
+
+		inline void SetSSAOBlurEnabled(bool ssaoBlurEnabled)
+		{
+			mSSAOBlurEnabled = ssaoBlurEnabled;
+		}
+
 	protected:
+		const WorldRendererArgs mArgs;
+		Buffer *mpInstanceConstantsBuffer{nullptr};
+		Buffer *mpLightingConstantsBuffer{nullptr};
+		Buffer *mpSceneConstantsBuffer{nullptr};
+		InstanceConstants mInstanceConstants{};
+		LightingConstants mLightingConstants{};
+		SceneConstants mSceneConstants{};
+		const Mesh *mpQuadMesh{nullptr};
+
+		inline void GenerateShadowMaps(RenderingContext *pRenderingContext);
+		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
+		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
+		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+
+	private:
 		using ShadowMapKey = uint64_t;
 
 		class ShadowMap
@@ -97,27 +145,27 @@ namespace FastCG
 			const Texture *mpTexture;
 		};
 
-		const WorldRendererArgs mArgs;
-		Buffer *mpInstanceConstantsBuffer{nullptr};
-		Buffer *mpLightingConstantsBuffer{nullptr};
-		Buffer *mpSceneConstantsBuffer{nullptr};
-		InstanceConstants mInstanceConstants{};
-		LightingConstants mLightingConstants{};
-		SceneConstants mSceneConstants{};
 		const Shader *mpShadowMapPassShader{nullptr};
+		const Buffer *mpShadowMapPassConstantsBuffer{nullptr};
+		ShadowMapPassConstants mShadowMapPassConstants{};
 		const Texture *mpEmptyShadowMap{nullptr};
 		std::unordered_map<ShadowMapKey, ShadowMap> mShadowMaps;
 		float mShadowMapBias{0.01f};
+		std::array<const Texture *, 2> mSSAORenderTargets;
+		const Shader *mpSSAOHighFrequencyPassShader{nullptr};
+		const Shader *mpSSAOBlurPassShader{nullptr};
+		const Buffer *mpSSAOHighFrequencyPassConstantsBuffer{nullptr};
+		SSAOHighFrequencyPassConstants mSSAOHighFrequencyPassConstants{};
+		const Texture *mpNoiseTexture{nullptr};
+		const Texture *mpEmptySSAOTexture{nullptr};
+		bool mSSAOBlurEnabled{true};
 
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
-		inline void GenerateShadowMaps(RenderingContext *pRenderingContext);
-		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
-		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, RenderingContext *pRenderingContext);
-		inline void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, RenderingContext *pRenderingContext);
-		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+		inline void UpdateShadowMapPassConstants(const glm::mat4 &rModelViewProjection, RenderingContext *pRenderingContext);
+		inline void BindSSAOTexture(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
+		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
 	};
 
 }

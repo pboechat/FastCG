@@ -13,17 +13,17 @@ layout(location = 0) out vec4 oColor;
 
 void main()
 {
-	vec2 uv = gl_FragCoord.xy / uScreenSize;
-	float depth = texture(uDepth, uv).x;
+	vec2 screenCoords = GetScreenCoordinates();
+	float depth = texture(uDepth, screenCoords).x;
 	vec3 viewPosition = GetViewPositionFromScreenCoordsAndDepth(uProjection, uInverseProjection, uScreenSize, vec3(gl_FragCoord.xy, depth));
 	vec3 worldPosition = vec3(uInverseView * vec4(viewPosition, 1));
-	vec4 diffuseColor = texture(uDiffuseMap, uv);
-	vec3 normal = UnpackNormalFromColor(texture(uNormalMap, uv)).xyz;
-	vec4 specularColor = texture(uSpecularMap, uv);
+	vec4 diffuseColor = texture(uDiffuseMap, screenCoords);
+	vec3 normal = UnpackNormalFromColor(texture(uNormalMap, screenCoords)).xyz;
+	vec4 specularColor = texture(uSpecularMap, screenCoords);
 	float shininess = specularColor.w;
 	specularColor = vec4(specularColor.xyz, 1.0);
-	vec4 tangent = UnpackNormalFromColor(texture(uTangentMap, uv));
-	vec4 extraData = texture(uExtraData, uv);
+	vec4 tangent = UnpackNormalFromColor(texture(uTangentMap, screenCoords));
+	vec4 extraData = texture(uExtraData, screenCoords);
 
 	mat3 tangentSpaceMatrix;
 	// FIXME: divergence control
@@ -41,8 +41,5 @@ void main()
 	vec3 lightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - viewPosition);
 	vec3 viewerDirection = tangentSpaceMatrix * normalize(-viewPosition);
 
-	float ambientOcclusion = texture(uAmbientOcclusionMap, uv).x;
-	ambientOcclusion = min(ambientOcclusion, 1.0);
-
-	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, worldPosition, normal) * ambientOcclusion;
+	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, worldPosition, normal, screenCoords);
 }

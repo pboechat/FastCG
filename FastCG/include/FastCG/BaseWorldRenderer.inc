@@ -1,10 +1,28 @@
+#include <FastCG/StandardGeometries.h>
+#include <FastCG/Random.h>
+#include <FastCG/MathT.h>
 #include <FastCG/BaseWorldRenderer.h>
 
 namespace
 {
-    const auto *CreateShadowMapTexture(uint32_t width, uint32_t height, FastCG::TextureFilter filter = FastCG::TextureFilter::LINEAR_FILTER, const void *pData = nullptr)
+    template <size_t N>
+    void GenerateRandomSamplesInAHemisphere(glm::vec4 randomSamples[N])
     {
-        return FastCG::RenderingSystem::GetInstance()->CreateTexture({"Shadow Map",
+        FastCG::Random::SeedWithTime();
+        for (uint32_t i = 0; i < N; i++)
+        {
+            glm::vec3 randomSample{FastCG::Random::NextFloat() * 2 - 1, FastCG::Random::NextFloat() * 2 - 1, FastCG::Random::NextFloat()};
+            randomSample = glm::normalize(randomSample);
+            auto scale = i / (float)N;
+            scale = FastCG::MathF::Lerp(0.1f, 1.0f, FastCG::MathF::Pow(scale, 2));
+            randomSample *= scale;
+            randomSamples[i] = glm::vec4{randomSample, 0};
+        }
+    }
+
+    const auto *CreateShadowMapTexture(const std::string &rName, uint32_t width, uint32_t height, FastCG::TextureFilter filter = FastCG::TextureFilter::LINEAR_FILTER, const void *pData = nullptr)
+    {
+        return FastCG::RenderingSystem::GetInstance()->CreateTexture({rName,
                                                                       width,
                                                                       height,
                                                                       FastCG::TextureType::TEXTURE_2D,
@@ -46,23 +64,98 @@ namespace FastCG
                                                                                BufferUsage::DYNAMIC,
                                                                                sizeof(SceneConstants),
                                                                                &mSceneConstants});
-        float data[] = {1};
-        mpEmptyShadowMap = CreateShadowMapTexture(1, 1, TextureFilter::POINT_FILTER, data);
+
+        mpShadowMapPassConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"Shadow Map Pass Constants",
+                                                                                       BufferType::UNIFORM,
+                                                                                       BufferUsage::DYNAMIC,
+                                                                                       sizeof(ShadowMapPassConstants),
+                                                                                       &mShadowMapPassConstants});
+
+        {
+            float data[] = {1};
+            mpEmptyShadowMap = CreateShadowMapTexture("Empty Shadow Map", 1, 1, TextureFilter::POINT_FILTER, data);
+        }
+
         mpShadowMapPassShader = RenderingSystem::GetInstance()->FindShader("ShadowMapPass");
         assert(mpShadowMapPassShader != nullptr);
+
+        mSSAORenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"Ambient Occlusion Map",
+                                                                               mArgs.rScreenWidth,
+                                                                               mArgs.rScreenHeight,
+                                                                               TextureType::TEXTURE_2D,
+                                                                               TextureFormat::RGBA,
+                                                                               {32, 32, 32, 32},
+                                                                               TextureDataType::FLOAT,
+                                                                               TextureFilter::LINEAR_FILTER,
+                                                                               TextureWrapMode::CLAMP,
+                                                                               false});
+        mSSAORenderTargets[1] = RenderingSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
+                                                                               mArgs.rScreenWidth,
+                                                                               mArgs.rScreenHeight,
+                                                                               TextureType::TEXTURE_2D,
+                                                                               TextureFormat::RGBA,
+                                                                               {32, 32, 32, 32},
+                                                                               TextureDataType::FLOAT,
+                                                                               TextureFilter::LINEAR_FILTER,
+                                                                               TextureWrapMode::CLAMP,
+                                                                               false});
+
+        mpSSAOHighFrequencyPassConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"SSAO High Frequency Pass Constants",
+                                                                                               BufferType::UNIFORM,
+                                                                                               BufferUsage::DYNAMIC,
+                                                                                               sizeof(SSAOHighFrequencyPassConstants),
+                                                                                               &mSSAOHighFrequencyPassConstants});
+
+        GenerateRandomSamplesInAHemisphere<NUMBER_OF_RANDOM_SAMPLES>(mSSAOHighFrequencyPassConstants.randomSamples);
+
+        Random::SeedWithTime();
+        auto pNoise = std::make_unique<glm::vec3[]>(NOISE_TEXTURE_SIZE);
+        for (uint32_t i = 0; i < NOISE_TEXTURE_HEIGHT; i++)
+        {
+            for (uint32_t j = 0; j < NOISE_TEXTURE_WIDTH; j++)
+            {
+                glm::vec3 noise(Random::NextFloat() * 2 - 1, Random::NextFloat() * 2 - 1, 0);
+                pNoise[i * NOISE_TEXTURE_WIDTH + j] = glm::normalize(noise);
+            }
+        }
+        mpNoiseTexture = RenderingSystem::GetInstance()->CreateTexture({"Noise",
+                                                                        NOISE_TEXTURE_WIDTH,
+                                                                        NOISE_TEXTURE_HEIGHT,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureFormat::RGB,
+                                                                        {8, 8, 8},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::POINT_FILTER,
+                                                                        TextureWrapMode::REPEAT,
+                                                                        false,
+                                                                        &pNoise[0][0]});
+
+        {
+            glm::vec4 data[] = {glm::vec4{1, 1, 1, 1}};
+            mpEmptySSAOTexture = RenderingSystem::GetInstance()->CreateTexture({"Empty SSAO",
+                                                                                1,
+                                                                                1,
+                                                                                TextureType::TEXTURE_2D,
+                                                                                TextureFormat::RGBA,
+                                                                                {8, 8, 8, 8},
+                                                                                TextureDataType::FLOAT,
+                                                                                TextureFilter::POINT_FILTER,
+                                                                                TextureWrapMode::REPEAT,
+                                                                                false,
+                                                                                data});
+        }
+
+        mpSSAOHighFrequencyPassShader = RenderingSystem::GetInstance()->FindShader("SSAOHighFrequencyPass");
+        assert(mpSSAOHighFrequencyPassShader != nullptr);
+        mpSSAOBlurPassShader = RenderingSystem::GetInstance()->FindShader("SSAOBlurPass");
+        assert(mpSSAOBlurPassShader != nullptr);
+
+        mpQuadMesh = StandardGeometries::CreateXYPlane("Fullscreen Quad", 2, 2, 1, 1, glm::vec3(0, 0, 0));
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Finalize()
     {
-        mpShadowMapPassShader = nullptr;
-
-        if (mpEmptyShadowMap != nullptr)
-        {
-            RenderingSystem::GetInstance()->DestroyTexture(mpEmptyShadowMap);
-            mpEmptyShadowMap = nullptr;
-        }
-
         if (mpSceneConstantsBuffer != nullptr)
         {
             RenderingSystem::GetInstance()->DestroyBuffer(mpSceneConstantsBuffer);
@@ -80,6 +173,50 @@ namespace FastCG
             RenderingSystem::GetInstance()->DestroyBuffer(mpLightingConstantsBuffer);
             mpLightingConstantsBuffer = nullptr;
         }
+
+        mpShadowMapPassShader = nullptr;
+
+        if (mpEmptyShadowMap != nullptr)
+        {
+            RenderingSystem::GetInstance()->DestroyTexture(mpEmptyShadowMap);
+            mpEmptyShadowMap = nullptr;
+        }
+
+        if (mpShadowMapPassConstantsBuffer != nullptr)
+        {
+            RenderingSystem::GetInstance()->DestroyBuffer(mpShadowMapPassConstantsBuffer);
+            mpShadowMapPassConstantsBuffer = nullptr;
+        }
+
+        mpSSAOHighFrequencyPassShader = nullptr;
+        mpSSAOBlurPassShader = nullptr;
+
+        if (mpQuadMesh != nullptr)
+        {
+            RenderingSystem::GetInstance()->DestroyMesh(mpQuadMesh);
+        }
+
+        if (mpEmptySSAOTexture != nullptr)
+        {
+            RenderingSystem::GetInstance()->DestroyTexture(mpEmptySSAOTexture);
+        }
+
+        if (mpNoiseTexture != nullptr)
+        {
+            RenderingSystem::GetInstance()->DestroyTexture(mpNoiseTexture);
+        }
+
+        if (mpSSAOHighFrequencyPassConstantsBuffer != nullptr)
+        {
+            RenderingSystem::GetInstance()->DestroyBuffer(mpSSAOHighFrequencyPassConstantsBuffer);
+            mpSSAOHighFrequencyPassConstantsBuffer = nullptr;
+        }
+
+        for (const auto *pRenderTarget : mSSAORenderTargets)
+        {
+            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+        }
+        memset(mSSAORenderTargets.data(), 0, sizeof(mSSAORenderTargets));
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -89,7 +226,7 @@ namespace FastCG
         auto it = mShadowMaps.find(shadowMapKey);
         if (it == mShadowMaps.end())
         {
-            it = mShadowMaps.emplace(shadowMapKey, ShadowMap{pLight, CreateShadowMapTexture(mArgs.rScreenWidth, mArgs.rScreenHeight)}).first;
+            it = mShadowMaps.emplace(shadowMapKey, ShadowMap{pLight, CreateShadowMapTexture("Shadow Map", mArgs.rScreenWidth, mArgs.rScreenHeight)}).first;
         }
         return it->second;
     }
@@ -154,14 +291,71 @@ namespace FastCG
                     pRenderingContext->SetRenderTargets(&pShadowMapTexture, 1);
                     pRenderingContext->ClearDepthTarget(0, 1);
 
-                    UpdateInstanceConstants(model, rShadowMap.GetView(), rShadowMap.GetProjection(), pRenderingContext);
-
-                    pRenderingContext->Bind(mpInstanceConstantsBuffer, OpenGLShader::INSTANCE_CONTANTS_BINDING_INDEX);
+                    auto modelViewProjection = rShadowMap.GetProjection() * rShadowMap.GetView() * model;
+                    UpdateShadowMapPassConstants(modelViewProjection, pRenderingContext);
+                    pRenderingContext->Bind(mpShadowMapPassConstantsBuffer, Shader::SHADOW_MAP_PASS_CONSTANTS_BINDING_INDEX);
 
                     pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
 
                     mArgs.rRenderingStatistics.drawCalls++;
                 }
+            }
+        }
+        pRenderingContext->PopDebugMarker();
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext)
+    {
+        pRenderingContext->PushDebugMarker("Ambient Occlusion Map Generation");
+        {
+            pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+            pRenderingContext->SetDepthTest(false);
+            pRenderingContext->SetDepthWrite(false);
+            pRenderingContext->SetStencilTest(false);
+            pRenderingContext->SetScissorTest(false);
+            pRenderingContext->SetCullMode(Face::NONE);
+            pRenderingContext->SetBlend(false);
+
+            pRenderingContext->PushDebugMarker("SSAO High Frequency Pass");
+            {
+                pRenderingContext->SetRenderTargets(&mSSAORenderTargets[0], 1);
+                pRenderingContext->ClearRenderTarget(0, Colors::NONE);
+
+                pRenderingContext->Bind(mpSSAOHighFrequencyPassShader);
+
+                pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+                UpdateSSAOHighFrequencyPassConstants(rProjection, fov, pDepth, pRenderingContext);
+                pRenderingContext->Bind(mpSSAOHighFrequencyPassConstantsBuffer, Shader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX);
+
+                pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
+                pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
+
+                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+
+                mArgs.rRenderingStatistics.drawCalls++;
+            }
+            pRenderingContext->PopDebugMarker();
+
+            if (mSSAOBlurEnabled)
+            {
+                pRenderingContext->PushDebugMarker("SSAO Blur Pass");
+                {
+                    pRenderingContext->SetRenderTargets(&mSSAORenderTargets[1], 1);
+                    pRenderingContext->ClearRenderTarget(0, Colors::NONE);
+
+                    pRenderingContext->Bind(mpSSAOBlurPassShader);
+
+                    pRenderingContext->Bind(mSSAORenderTargets[0], "uAmbientOcclusion", 0);
+
+                    pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
+                    pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
+
+                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+
+                    mArgs.rRenderingStatistics.drawCalls++;
+                }
+                pRenderingContext->PopDebugMarker();
             }
         }
         pRenderingContext->PopDebugMarker();
@@ -200,7 +394,27 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindSSAOTexture(bool isSSAOEnabled, RenderingContext *pRenderingContext) const
+    {
+        if (isSSAOEnabled)
+        {
+            if (mSSAOBlurEnabled)
+            {
+                pRenderingContext->Bind(mSSAORenderTargets[1], "uAmbientOcclusionMap", 3);
+            }
+            else
+            {
+                pRenderingContext->Bind(mSSAORenderTargets[0], "uAmbientOcclusionMap", 3);
+            }
+        }
+        else
+        {
+            pRenderingContext->Bind(mpEmptySSAOTexture, "uAmbientOcclusionMap", 3);
+        }
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
         mLightingConstants.light0Position = glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1);
         mLightingConstants.light0ViewPosition = rView * mLightingConstants.light0Position;
@@ -217,11 +431,13 @@ namespace FastCG
         mLightingConstants.shadowMapBias = 0;
         pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
 
+        BindSSAOTexture(isSSAOEnabled, pRenderingContext);
+
         pRenderingContext->Copy(mpLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
         mLightingConstants.light0Position = glm::vec4(rDirection, 0);
         mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
@@ -245,6 +461,8 @@ namespace FastCG
             pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
         }
 
+        BindSSAOTexture(isSSAOEnabled, pRenderingContext);
+
         pRenderingContext->Copy(mpLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
     }
 
@@ -255,9 +473,31 @@ namespace FastCG
         mSceneConstants.inverseView = glm::inverse(rView);
         mSceneConstants.projection = rProjection;
         mSceneConstants.inverseProjection = glm::inverse(rProjection);
+        mSceneConstants.screenSize = glm::vec2{mArgs.rScreenWidth, mArgs.rScreenHeight};
         mSceneConstants.pointSize = 1.0f; // TODO:
 
         pRenderingContext->Copy(mpSceneConstantsBuffer, sizeof(SceneConstants), &mSceneConstants);
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateShadowMapPassConstants(const glm::mat4 &rModelViewProjection, RenderingContext *pRenderingContext)
+    {
+        mShadowMapPassConstants.modelViewProjection = rModelViewProjection;
+
+        pRenderingContext->Copy(mpShadowMapPassConstantsBuffer, sizeof(ShadowMapPassConstants), &mShadowMapPassConstants);
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext)
+    {
+        mSSAOHighFrequencyPassConstants.projection = rProjection;
+        mSSAOHighFrequencyPassConstants.aspectRatio = mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
+        mSSAOHighFrequencyPassConstants.tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * fov) / 2.0f);
+
+        pRenderingContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants);
+
+        pRenderingContext->Bind(mpNoiseTexture, "uNoise", 0);
+        pRenderingContext->Bind(pDepth, "uDepth", 1);
     }
 
 }
