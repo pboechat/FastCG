@@ -23,4 +23,5 @@ It features:
  - Simple asset management:
     - Support to multiple image types (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
     - Support to OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
+ - Support to immediate-mode GUI (via [Dear ImGUI](https://github.com/ocornut/imgui))
  - Unity-like component-based API
