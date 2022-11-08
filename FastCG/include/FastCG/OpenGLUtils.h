@@ -259,16 +259,13 @@ namespace FastCG
             {
                 return GL_R8;
             }
+            else if (bitsPerPixel.r == 16 && dataType == TextureDataType::FLOAT)
+            {
+                return GL_R16F;
+            }
             else if (bitsPerPixel.r == 16)
             {
-                if (dataType == TextureDataType::FLOAT)
-                {
-                    return GL_R16F;
-                }
-                else
-                {
-                    return GL_R16;
-                }
+                return GL_R16;
             }
             else if (bitsPerPixel.r == 32 && dataType == TextureDataType::FLOAT)
             {
@@ -323,11 +320,11 @@ namespace FastCG
             }
         case TextureFormat::RGBA:
         case TextureFormat::BGRA:
-            if (bitsPerPixel.r == 10 && bitsPerPixel.g == 10 && bitsPerPixel.b == 10 & bitsPerPixel.a == 2 && dataType == TextureDataType::UNSIGNED_INT)
+            if (bitsPerPixel.r == 10 && bitsPerPixel.g == 10 && bitsPerPixel.b == 10 && bitsPerPixel.a == 2 && dataType == TextureDataType::UNSIGNED_INT)
             {
                 return GL_RGB10_A2UI;
             }
-            else if (bitsPerPixel.r == 10 && bitsPerPixel.g == 10 && bitsPerPixel.b == 10 & bitsPerPixel.a == 2)
+            else if (bitsPerPixel.r == 10 && bitsPerPixel.g == 10 && bitsPerPixel.b == 10 && bitsPerPixel.a == 2)
             {
                 return GL_RGB10_A2;
             }
