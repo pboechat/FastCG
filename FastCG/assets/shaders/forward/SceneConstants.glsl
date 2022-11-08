@@ -6,9 +6,12 @@
 layout(BINDING(0, 0)) uniform SceneConstants 
 {
 	mat4 uView;
+	mat4 uInverseView;
 	mat4 uProjection;
 	mat4 uInverseProjection;
 	float uPointSize;
 };
+
+#define VIEWER_POSITION() uView[3].xyz
 
 #endif

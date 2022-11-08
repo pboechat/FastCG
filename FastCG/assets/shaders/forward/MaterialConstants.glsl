@@ -11,7 +11,7 @@ layout(BINDING(1, 0)) uniform MaterialConstants
 	vec2 uBumpMapTiling;
 	float uShininess;
 };
-layout(BINDING(0, 0)) uniform sampler2D uColorMap;
-layout(BINDING(0, 1)) uniform sampler2D uBumpMap;
+layout(BINDING(1, 0)) uniform sampler2D uColorMap;
+layout(BINDING(1, 1)) uniform sampler2D uBumpMap;
 
 #endif

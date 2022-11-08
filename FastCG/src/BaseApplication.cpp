@@ -7,7 +7,7 @@
 #include <FastCG/PointLight.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/ModelImporter.h>
-#include <FastCG/MaterialBasedRenderBatchStrategy.h>
+#include <FastCG/RenderBatchStrategy.h>
 #include <FastCG/Light.h>
 #include <FastCG/Key.h>
 #include <FastCG/ImGuiSystem.h>
@@ -63,7 +63,8 @@ namespace FastCG
 																			mClearColor(settings.clearColor),
 																			mAmbientLight(settings.ambientLight),
 																			mFrameRate(settings.frameRate),
-																			mSecondsPerFrame(1 / (double)settings.frameRate)
+																			mSecondsPerFrame(1 / (double)settings.frameRate),
+																			mpRenderBatchStrategy(std::make_unique<RenderBatchStrategy>())
 	{
 		if (smpInstance != nullptr)
 		{
@@ -71,6 +72,35 @@ namespace FastCG
 		}
 
 		smpInstance = this;
+
+		switch (mSettings.renderingPath)
+		{
+		case RenderingPath::FORWARD_RENDERING:
+			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mScreenWidth,
+																						mScreenHeight,
+																						mClearColor,
+																						mAmbientLight,
+																						mDirectionalLights,
+																						mPointLights,
+																						mpRenderBatchStrategy->GetRenderBatches(),
+																						mRenderingStatistics}));
+			break;
+		case RenderingPath::DEFERRED_RENDERING:
+			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mScreenWidth,
+																						 mScreenHeight,
+																						 mClearColor,
+																						 mAmbientLight,
+																						 mDirectionalLights,
+																						 mPointLights,
+																						 mpRenderBatchStrategy->GetRenderBatches(),
+																						 mRenderingStatistics}));
+			break;
+		default:
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mSettings.renderingPath);
+			break;
+		}
+		mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mScreenWidth,
+																			mScreenHeight});
 	}
 
 	BaseApplication::~BaseApplication()
@@ -226,36 +256,6 @@ namespace FastCG
 
 		ImGuiSystem::GetInstance()->Initialize();
 		RenderingSystem::GetInstance()->Initialize();
-
-		mpRenderBatchStrategy = std::make_unique<MaterialBasedRenderBatchStrategy>();
-		switch (mSettings.renderingPath)
-		{
-		case RenderingPath::FORWARD_RENDERING:
-			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mScreenWidth,
-																						mScreenHeight,
-																						mClearColor,
-																						mAmbientLight,
-																						mDirectionalLights,
-																						mPointLights,
-																						mpRenderBatchStrategy->GetRenderBatches(),
-																						mRenderingStatistics}));
-			break;
-		case RenderingPath::DEFERRED_RENDERING:
-			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mScreenWidth,
-																						 mScreenHeight,
-																						 mClearColor,
-																						 mAmbientLight,
-																						 mDirectionalLights,
-																						 mPointLights,
-																						 mpRenderBatchStrategy->GetRenderBatches(),
-																						 mRenderingStatistics}));
-			break;
-		default:
-			FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mSettings.renderingPath);
-			break;
-		}
-		mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mScreenWidth,
-																			mScreenHeight});
 
 		ShaderLoader::LoadShaders(mSettings.renderingPath);
 

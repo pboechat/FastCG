@@ -1,5 +1,4 @@
 #include <FastCG/Transform.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/TextureImporter.h>
 #include <FastCG/ModelImporter.h>
@@ -199,7 +198,9 @@ namespace FastCG
 									   const tinyobj_shape_t *pShapes,
 									   size_t numShapes,
 									   const MaterialCatalog &rMaterialCatalog,
-									   const MeshCatalog &rMeshCatalog)
+									   const MeshCatalog &rMeshCatalog,
+									   const Material *pDefaultMaterial,
+									   ModelImporterOptionMaskType options)
 	{
 		auto *pModelGameObject = GameObject::Instantiate(rModelName);
 		auto *pModelTransform = pModelGameObject->GetTransform();
@@ -218,7 +219,7 @@ namespace FastCG
 			// doesn't support multi materials at the moment
 			auto &shape = pShapes[shapeIdx];
 			auto materialIdx = attributes.material_ids[shapeIdx];
-			Material *pMaterial = nullptr;
+			const Material *pMaterial = nullptr;
 			if (materialIdx > 0)
 			{
 				auto it = rMaterialCatalog.find((uint32_t)materialIdx);
@@ -229,13 +230,20 @@ namespace FastCG
 			{
 				pMaterial = rMaterialCatalog.begin()->second;
 			}
+			else
+			{
+				pMaterial = pDefaultMaterial;
+			}
 
-			auto *pRenderable = Renderable::Instantiate(pShapeGameObject, pMaterial, pMesh);
+			Renderable::Instantiate(pShapeGameObject,
+									pMaterial,
+									pMesh,
+									(options & (ModelImporterOptionMaskType)ModelImporterOption::IS_SHADOW_CASTER) != 0);
 		}
 		return pModelGameObject;
 	}
 
-	GameObject *ImportModelFromObjFile(const std::string &rFilePath)
+	GameObject *ModelImporter::Import(const std::string &rFilePath, const Material *pDefaultMaterial, ModelImporterOptionMaskType options)
 	{
 		tinyobj_attrib_t attributes;
 		tinyobj_shape_t *pShapes;
@@ -264,18 +272,13 @@ namespace FastCG
 		BuildMeshCatalog(rFilePath, attributes, pShapes, numShapes, meshCatalog);
 
 		auto modelName = File::GetFileNameWithoutExtension(rFilePath);
-		auto *pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog, meshCatalog);
+		auto *pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog, meshCatalog, pDefaultMaterial, options);
 
 		tinyobj_attrib_free(&attributes);
 		tinyobj_shapes_free(pShapes, numShapes);
 		tinyobj_materials_free(pMaterials, numMaterials);
 
 		return pModelGameObject;
-	}
-
-	GameObject *ModelImporter::Import(const std::string &rFilePath, ModelImporterOptionType options)
-	{
-		return ImportModelFromObjFile(rFilePath);
 	}
 
 }

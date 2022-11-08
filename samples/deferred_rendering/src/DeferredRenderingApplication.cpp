@@ -22,14 +22,14 @@ using namespace FastCG;
 
 namespace
 {
-	constexpr uint32_t FLOOR_SIZE = 10;
-	constexpr float SPHERE_RADIUS = FLOOR_SIZE * 0.025f;
+	constexpr float GROUND_SIZE = 10;
+	constexpr float SPHERE_RADIUS = GROUND_SIZE * 0.025f;
 	constexpr uint32_t NUMBER_OF_SPHERE_SLICES = 30;
 	constexpr uint32_t LIGHT_GRID_WIDTH = 7;
 	constexpr uint32_t LIGHT_GRID_DEPTH = 7;
 	constexpr uint32_t LIGHT_GRID_SIZE = LIGHT_GRID_WIDTH * LIGHT_GRID_DEPTH;
 
-	void CreateFloor()
+	void CreateGround()
 	{
 		auto *pCheckersColorMap = TextureImporter::Import("textures/checkers.png");
 		if (pCheckersColorMap == nullptr)
@@ -37,13 +37,13 @@ namespace
 			FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");
 		}
 
-		auto *pFloorMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Floor", RenderingSystem::GetInstance()->FindShader("Specular")});
+		auto *pFloorMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindShader("Specular")});
 		pFloorMaterial->SetColorMap(pCheckersColorMap);
 		pFloorMaterial->SetDiffuseColor(Colors::WHITE);
 		pFloorMaterial->SetSpecularColor(Colors::WHITE);
 		pFloorMaterial->SetShininess(5.0f);
 
-		auto *pFloorMesh = StandardGeometries::CreateXZPlane("Floor", (float)FLOOR_SIZE, (float)FLOOR_SIZE, 1, 1, glm::vec3(0, 0, 0));
+		auto *pFloorMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
 		auto *pFloorGameObject = GameObject::Instantiate();
 		Renderable::Instantiate(pFloorGameObject, pFloorMaterial, pFloorMesh);
@@ -58,12 +58,12 @@ namespace
 
 		auto *pSphereMesh = StandardGeometries::CreateSphere("Sphere", SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
 
-		for (float z = 0; z < FLOOR_SIZE; z += 1)
+		for (float z = 0; z < GROUND_SIZE; z += 1)
 		{
-			for (float x = 0; x < FLOOR_SIZE; x += 1)
+			for (float x = 0; x < GROUND_SIZE; x += 1)
 			{
 				auto *pSphereGameObject = GameObject::Instantiate();
-				pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
+				pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 				Renderable::Instantiate(pSphereGameObject, pSphereMaterial, pSphereMesh);
 			}
 		}
@@ -71,15 +71,15 @@ namespace
 
 	void CreateLights(std::vector<PointLight *> &rSceneLights)
 	{
-		float depthIncrement = FLOOR_SIZE / (float)LIGHT_GRID_DEPTH;
-		float horizontalIncrement = FLOOR_SIZE / (float)LIGHT_GRID_WIDTH;
+		float depthIncrement = GROUND_SIZE / (float)LIGHT_GRID_DEPTH;
+		float horizontalIncrement = GROUND_SIZE / (float)LIGHT_GRID_WIDTH;
 		float intensity = 0.2f;
-		for (float z = 1; z < FLOOR_SIZE; z += depthIncrement)
+		for (float z = 1; z < GROUND_SIZE; z += depthIncrement)
 		{
-			for (float x = 1; x < FLOOR_SIZE; x += horizontalIncrement)
+			for (float x = 1; x < GROUND_SIZE; x += horizontalIncrement)
 			{
 				auto *pPointLightGameObject = GameObject::Instantiate();
-				pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(FLOOR_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
+				pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 
 				auto *pPointLight = PointLight::Instantiate(pPointLightGameObject);
 				auto color = Colors::COMMON_LIGHT_COLORS[Random::Range<size_t>(0, Colors::NUMBER_OF_COMMON_LIGHT_COLORS)];
@@ -101,7 +101,7 @@ DeferredRenderingApplication::DeferredRenderingApplication() : Application({"def
 void DeferredRenderingApplication::OnStart()
 {
 	auto *pMainCameraGameObject = GameObject::Instantiate();
-	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, FLOOR_SIZE * 0.5f, (float)FLOOR_SIZE));
+	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, GROUND_SIZE * 0.5f, GROUND_SIZE));
 	pMainCameraGameObject->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
 	Camera::Instantiate(pMainCameraGameObject);
@@ -110,7 +110,7 @@ void DeferredRenderingApplication::OnStart()
 	pFlyController->SetWalkSpeed(5);
 	pFlyController->SetTurnSpeed(0.25f);
 
-	CreateFloor();
+	CreateGround();
 	CreateSpheres();
 
 	std::vector<PointLight *> lights;

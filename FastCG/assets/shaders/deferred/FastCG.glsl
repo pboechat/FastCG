@@ -11,7 +11,7 @@ float LinearizeDepth(mat4 projection, float depth)
 	return projection[3][2] / (depth - (projection[2][2] / projection[2][3]));
 }
 
-vec3 GetWorldPositionFromScreenCoordsAndDepth(mat4 projection, mat4 inverseProjection, vec2 screenSize, vec3 screenCoords)
+vec3 GetViewPositionFromScreenCoordsAndDepth(mat4 projection, mat4 inverseProjection, vec2 screenSize, vec3 screenCoords)
 {
 	vec3 ndc;
     ndc.xy = (2.0 * screenCoords.xy) / screenSize - 1;
@@ -21,8 +21,8 @@ vec3 GetWorldPositionFromScreenCoordsAndDepth(mat4 projection, mat4 inverseProje
     clipCoords.w = LinearizeDepth(projection, ndc.z);
     clipCoords.xyz = ndc * clipCoords.w;
  
-    vec4 eyePosition = inverseProjection * clipCoords;
-	return eyePosition.xyz / eyePosition.w;
+    vec4 viewPosition = inverseProjection * clipCoords;
+	return viewPosition.xyz / viewPosition.w;
 }
 
 bool HasBump(vec4 tangent, vec4 extraData)

@@ -3,6 +3,7 @@
 
 #include <FastCG/TextureImporter.h>
 #include <FastCG/StandardGeometries.h>
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/ModelImporter.h>
 #include <FastCG/MathT.h>
@@ -17,10 +18,13 @@ namespace
 {
 	void LoadModel()
 	{
-		auto *pModel = ModelImporter::Import("objs/doomsday.obj");
+		auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material",
+																				 RenderingSystem::GetInstance()->FindShader("SolidColor")});
+
+		auto *pModel = ModelImporter::Import("objs/armadillo.obj", pDefaultMaterial);
 		if (pModel == nullptr)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
+			FASTCG_THROW_EXCEPTION(Exception, "Missing armadillo model");
 		}
 
 		const auto &bounds = pModel->GetBounds();
@@ -33,19 +37,7 @@ namespace
 
 		pTransform->SetScale(glm::vec3(scale, scale, scale));
 		auto center = bounds.getCenter();
-		pTransform->SetPosition(glm::vec3(-center.x * scale, 0, -center.z * scale));
-	}
-
-	void CreateGround()
-	{
-		auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindShader("SolidColor")});
-		pGroundMaterial->SetDiffuseColor(Colors::WHITE);
-		pGroundMaterial->SetSpecularColor(Colors::WHITE);
-		pGroundMaterial->SetShininess(1);
-
-		auto *pGroundGameObject = GameObject::Instantiate();
-		auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
-		Renderable::Instantiate(pGroundGameObject, pGroundMaterial, pGroundMesh);
+		pTransform->SetPosition(glm::vec3(-center.x * scale, center.y * scale, -center.z * scale));
 	}
 
 	void CreateDirectionalLight()
@@ -67,7 +59,8 @@ SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, Renderi
 void SSAOApplication::OnStart()
 {
 	auto *pMainCameraGameObject = GameObject::Instantiate();
-	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
+	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3{0, 0.25f, -1.5f});
+	pMainCameraGameObject->GetTransform()->RotateAround(180, glm::vec3{0, 1, 0});
 
 	auto *pCamera = Camera::Instantiate(pMainCameraGameObject);
 	pCamera->SetSSAOEnabled(true);
@@ -77,9 +70,6 @@ void SSAOApplication::OnStart()
 	pFlyController->SetTurnSpeed(0.25f);
 
 	LoadModel();
-
-	CreateGround();
-
 	CreateDirectionalLight();
 
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();

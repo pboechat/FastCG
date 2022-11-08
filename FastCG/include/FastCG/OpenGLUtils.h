@@ -332,6 +332,15 @@ namespace FastCG
             {
                 return GL_DEPTH_STENCIL;
             }
+        case TextureFormat::DEPTH:
+            if (bitsPerPixel.r == 24)
+            {
+                return GL_DEPTH_COMPONENT24;
+            }
+            else
+            {
+                return GL_DEPTH_COMPONENT;
+            }
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Unhandled texture format: %d", (int)format);
             return 0;
@@ -356,6 +365,8 @@ namespace FastCG
             return GL_BGRA;
         case TextureFormat::DEPTH_STENCIL:
             return GL_DEPTH_STENCIL;
+        case TextureFormat::DEPTH:
+            return GL_DEPTH_COMPONENT;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Unhandled texture format: %d", (int)format);
             return 0;

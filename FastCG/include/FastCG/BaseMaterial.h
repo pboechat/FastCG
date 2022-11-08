@@ -10,11 +10,14 @@
 
 namespace FastCG
 {
-	template <class ShaderT>
+	template <class ShaderT, class TextureT>
 	struct BaseMaterialArgs
 	{
 		std::string name;
 		const ShaderT *pShader;
+		MaterialConstants materialConstants{};
+		const TextureT *pColorMap{nullptr};
+		const TextureT *pBumpMap{nullptr};
 	};
 
 	template <class BufferT, class ShaderT, class TextureT>
@@ -24,7 +27,7 @@ namespace FastCG
 		using Buffer = BufferT;
 		using Shader = ShaderT;
 		using Texture = TextureT;
-		using MaterialArgs = BaseMaterialArgs<ShaderT>;
+		using MaterialArgs = BaseMaterialArgs<ShaderT, TextureT>;
 
 		inline const std::string &GetName() const
 		{
@@ -101,7 +104,10 @@ namespace FastCG
 
 		BaseMaterial(const MaterialArgs &rArgs, const Buffer *pMaterialConstantsBuffer) : mName(rArgs.name),
 																						  mpShader(rArgs.pShader),
-																						  mpMaterialConstantsBuffer(pMaterialConstantsBuffer)
+																						  mMaterialConstants(rArgs.materialConstants),
+																						  mpMaterialConstantsBuffer(pMaterialConstantsBuffer),
+																						  mpColorMap(rArgs.pColorMap),
+																						  mpBumpMap(rArgs.pBumpMap)
 		{
 			assert(mpShader != nullptr);
 			assert(pMaterialConstantsBuffer != nullptr);

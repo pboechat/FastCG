@@ -4,12 +4,14 @@
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/RenderBatch.h>
 #include <FastCG/PointLight.h>
+#include <FastCG/Light.h>
 #include <FastCG/IWorldRenderer.h>
 #include <FastCG/DirectionalLight.h>
 
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <unordered_map>
 
 namespace FastCG
 {
@@ -21,7 +23,7 @@ namespace FastCG
 		const glm::vec4 &rAmbientLight;
 		const std::vector<DirectionalLight *> &rDirectionalLights;
 		const std::vector<PointLight *> &rPointLights;
-		const std::vector<const RenderBatch *> &rRenderBatches;
+		const std::vector<RenderBatch> &rRenderBatches;
 		RenderingStatistics &rRenderingStatistics;
 	};
 
@@ -39,7 +41,62 @@ namespace FastCG
 		inline void Initialize() override;
 		inline void Finalize() override;
 
+		inline float GetShadowMapBias() const
+		{
+			return mShadowMapBias;
+		}
+
+		inline void SetShadowMapBias(float shadowMapBias)
+		{
+			return mShadowMapBias = shadowMapBias;
+		}
+
 	protected:
+		using ShadowMapKey = uint64_t;
+
+		class ShadowMap
+		{
+		public:
+			ShadowMap(const Light *pLight = nullptr, const Texture *pTexture = nullptr) : mpLight(pLight), mpTexture(pTexture)
+			{
+			}
+
+			inline const Texture *GetTexture() const
+			{
+				return mpTexture;
+			}
+
+			inline glm::mat4 GetView() const
+			{
+				if (mpLight->GetType().IsDerived(DirectionalLight::TYPE))
+				{
+					return glm::lookAt(static_cast<const DirectionalLight *>(mpLight)->GetDirection(), glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0});
+				}
+				else
+				{
+					return glm::mat4();
+				}
+			}
+
+			inline glm::mat4 GetProjection() const
+			{
+				if (mpLight->GetType().IsDerived(DirectionalLight::TYPE))
+				{
+					constexpr float size = 20;
+					constexpr float halfSize = size * 0.5f;
+					return glm::ortho(-halfSize, halfSize, -halfSize, halfSize, -size, size);
+				}
+				else
+				{
+					return glm::mat4();
+				}
+			}
+
+		private:
+			const Light *mpLight;
+			const Texture *mpTexture;
+		};
+
 		const WorldRendererArgs mArgs;
 		Buffer *mpInstanceConstantsBuffer{nullptr};
 		Buffer *mpLightingConstantsBuffer{nullptr};
@@ -47,12 +104,20 @@ namespace FastCG
 		InstanceConstants mInstanceConstants{};
 		LightingConstants mLightingConstants{};
 		SceneConstants mSceneConstants{};
+		const Shader *mpShadowMapPassShader{nullptr};
+		const Texture *mpEmptyShadowMap{nullptr};
+		std::unordered_map<ShadowMapKey, ShadowMap> mShadowMaps;
+		float mShadowMapBias{0.01f};
 
+		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;
+		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
+		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
+		inline void GenerateShadowMaps(RenderingContext *pRenderingContext);
 		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
-		inline void UpdateInstanceConstantsBuffer(const glm::mat4 &model, RenderingContext *pRenderingContext);
-		inline void UpdateLightingConstantsBuffer(const PointLight *pPointLight, RenderingContext *pRenderingContext);
-		inline void UpdateLightingConstantsBuffer(const DirectionalLight *pDirectionalLight, const glm::vec3 &direction, RenderingContext *pRenderingContext);
-		inline virtual void UpdateSceneConstantsBuffer(const Camera *pCamera, RenderingContext *pRenderingContext);
+		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+		inline void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, RenderingContext *pRenderingContext);
+		inline void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, RenderingContext *pRenderingContext);
+		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 	};
 
 }

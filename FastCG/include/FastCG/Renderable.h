@@ -11,19 +11,9 @@ namespace FastCG
 		DECLARE_COMPONENT(Renderable, Component);
 
 	public:
-		inline Material *GetMaterial()
-		{
-			return mpMaterial;
-		}
-
 		inline const Material *GetMaterial() const
 		{
 			return mpMaterial;
-		}
-
-		inline Mesh *GetMesh()
-		{
-			return mpMesh;
 		}
 
 		inline const Mesh *GetMesh() const
@@ -31,11 +21,17 @@ namespace FastCG
 			return mpMesh;
 		}
 
-	private:
-		Renderable(GameObject *pGameObject, Material *pMaterial, Mesh *pMesh) : Component(pGameObject), mpMaterial(pMaterial), mpMesh(pMesh) {}
+		inline bool IsShadowCaster() const
+		{
+			return mIsShadowCaster;
+		}
 
-		Material *const mpMaterial{nullptr};
-		Mesh *const mpMesh{nullptr};
+	private:
+		const Material *const mpMaterial{nullptr};
+		const Mesh *const mpMesh{nullptr};
+		const bool mIsShadowCaster{false};
+
+		Renderable(GameObject *pGameObject, const Material *pMaterial, const Mesh *pMesh, bool isShadowCaster = false) : Component(pGameObject), mpMaterial(pMaterial), mpMesh(pMesh), mIsShadowCaster(isShadowCaster) {}
 	};
 
 }

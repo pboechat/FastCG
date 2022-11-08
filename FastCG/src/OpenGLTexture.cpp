@@ -27,6 +27,7 @@ namespace FastCG
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
         glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapMode);
         glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapMode);
+        glTexParameteri(target, GL_TEXTURE_WRAP_R, wrapMode);
         if (IsDepthFormat(mFormat))
         {
             glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE);

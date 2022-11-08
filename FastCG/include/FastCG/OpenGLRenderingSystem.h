@@ -68,13 +68,13 @@ namespace FastCG
             }
             return *it;
         }
-        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount);
-        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
 #if defined FASTCG_WINDOWS
         void SetupPixelFormat() const;
 #elif defined FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
+        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount);
+        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
 
     protected:
         OpenGLRenderingSystem(const RenderingSystemArgs &rArgs);

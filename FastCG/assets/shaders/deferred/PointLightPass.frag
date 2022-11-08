@@ -13,17 +13,17 @@ layout(location = 0) out vec4 oColor;
 
 void main()
 {
-	vec2 iUV = gl_FragCoord.xy / uScreenSize;
-
-	float depth = texture(uDepth, iUV).x;
-	vec3 position = GetWorldPositionFromScreenCoordsAndDepth(uProjection, uInverseProjection, uScreenSize, vec3(gl_FragCoord.xy, depth));
-	vec4 diffuseColor = texture(uDiffuseMap, iUV);
-	vec3 normal = UnpackNormalFromColor(texture(uNormalMap, iUV)).xyz;
-	vec4 specularColor = texture(uSpecularMap, iUV);
+	vec2 uv = gl_FragCoord.xy / uScreenSize;
+	float depth = texture(uDepth, uv).x;
+	vec3 viewPosition = GetViewPositionFromScreenCoordsAndDepth(uProjection, uInverseProjection, uScreenSize, vec3(gl_FragCoord.xy, depth));
+	vec3 worldPosition = vec3(uInverseView * vec4(viewPosition, 1));
+	vec4 diffuseColor = texture(uDiffuseMap, uv);
+	vec3 normal = UnpackNormalFromColor(texture(uNormalMap, uv)).xyz;
+	vec4 specularColor = texture(uSpecularMap, uv);
 	float shininess = specularColor.w;
 	specularColor = vec4(specularColor.xyz, 1.0);
-	vec4 tangent = UnpackNormalFromColor(texture(uTangentMap, iUV));
-	vec4 extraData = texture(uExtraData, iUV);
+	vec4 tangent = UnpackNormalFromColor(texture(uTangentMap, uv));
+	vec4 extraData = texture(uExtraData, uv);
 
 	mat3 tangentSpaceMatrix;
 	// FIXME: divergence control
@@ -38,11 +38,11 @@ void main()
 		tangentSpaceMatrix = mat3(1.0);
 	}
 
-	vec3 lightDirection = tangentSpaceMatrix * normalize(uLight0Position.xyz - position);
-	vec3 viewerDirection = tangentSpaceMatrix * normalize(-position);
+	vec3 lightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - viewPosition);
+	vec3 viewerDirection = tangentSpaceMatrix * normalize(-viewPosition);
 
-	float ambientOcclusion = texture(uAmbientOcclusionMap, iUV).x;
+	float ambientOcclusion = texture(uAmbientOcclusionMap, uv).x;
 	ambientOcclusion = min(ambientOcclusion, 1.0);
 
-	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, position, normal) * ambientOcclusion;
+	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, worldPosition, normal) * ambientOcclusion;
 }

@@ -14,6 +14,7 @@ namespace FastCG
         struct SceneConstants
         {
             glm::mat4 view;
+            glm::mat4 inverseView;
             glm::mat4 projection;
             glm::mat4 inverseProjection;
             float pointSize;
@@ -31,6 +32,7 @@ namespace FastCG
         struct LightingConstants
         {
             glm::vec4 light0Position;
+            glm::vec4 light0ViewPosition;
             glm::vec4 light0DiffuseColor;
             glm::vec4 light0SpecularColor;
             float light0Intensity;
@@ -38,6 +40,9 @@ namespace FastCG
             float light0LinearAttenuation;
             float light0QuadraticAttenuation;
             glm::vec4 ambientColor;
+            glm::mat4 shadowMapViewProjection;
+            float shadowMapBias;
+            float padding[3];
         };
 
     }
@@ -47,6 +52,7 @@ namespace FastCG
         struct SceneConstants
         {
             glm::mat4 view;
+            glm::mat4 inverseView;
             glm::mat4 projection;
             glm::mat4 inverseProjection;
             glm::vec2 screenSize;

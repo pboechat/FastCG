@@ -1,14 +1,11 @@
 #ifndef FASTCG_MODEL_IMPORTER_H
 #define FASTCG_MODEL_IMPORTER_H
 
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/GameObject.h>
-#include <FastCG/AABB.h>
-
-#include <glm/glm.hpp>
 
 #include <type_traits>
 #include <string>
-#include <vector>
 #include <cstdint>
 
 namespace FastCG
@@ -16,15 +13,17 @@ namespace FastCG
 	enum class ModelImporterOption : uint8_t
 	{
 		NONE = 0,
+		IS_SHADOW_CASTER = 1 << 0
 
 	};
 
-	using ModelImporterOptionType = std::underlying_type<ModelImporterOption>::type;
+	using ModelImporterOptionIntType = std::underlying_type<ModelImporterOption>::type;
+	using ModelImporterOptionMaskType = uint8_t;
 
 	class ModelImporter
 	{
 	public:
-		static GameObject *Import(const std::string &rFileName, ModelImporterOptionType options = (ModelImporterOptionType)ModelImporterOption::NONE);
+		static GameObject *Import(const std::string &rFileName, const Material *pDefaultMaterial, ModelImporterOptionMaskType options = (ModelImporterOptionMaskType)ModelImporterOption::NONE);
 
 	private:
 		ModelImporter() = delete;

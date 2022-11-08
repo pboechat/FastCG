@@ -67,7 +67,11 @@ namespace
 
 	void LoadModel()
 	{
-		auto *pModel = ModelImporter::Import("objs/doomsday.obj");
+		auto *pMissingMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Missing Material",
+																				 RenderingSystem::GetInstance()->FindShader("SolidColor"),
+																				 {Colors::PURPLE}});
+
+		auto *pModel = ModelImporter::Import("objs/doomsday.obj", pMissingMaterial);
 		if (pModel == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
@@ -103,12 +107,10 @@ void BumpMappingApplication::OnStart()
 	pFlyController->SetWalkSpeed(5);
 	pFlyController->SetTurnSpeed(0.25f);
 
+	LoadModel();
+	CreateGround();
 	std::vector<GameObject *> lights;
 	CreateLights(lights);
-
-	LoadModel();
-
-	CreateGround();
 
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
 	Controls::Instantiate(pGeneralBehavioursGameObject);

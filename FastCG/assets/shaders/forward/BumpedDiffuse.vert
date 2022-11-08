@@ -5,6 +5,7 @@
 #endif
 
 #include "FastCG.glsl"
+#include "SceneConstants.glsl"
 #include "InstanceConstants.glsl"
 #include "LightingConstants.glsl"
 
@@ -25,8 +26,10 @@ void main()
 
 	mat3 tangentSpaceMatrix = transpose(mat3(tangent, binormal, normal));
 
-	vPosition = vec3(uModelView * iPosition);
-	vLightDirection = tangentSpaceMatrix * normalize(uLight0Position.xyz - (step(0.0, FASTCG_LIGHT_TYPE()) * vPosition));
+	vec4 modelPosition = uModel * iPosition;
+	vec3 viewPosition = vec3(uView * modelPosition);
+	vLightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - (step(0.0, FASTCG_LIGHT_TYPE()) * viewPosition));
+	vPosition = modelPosition.xyz;
 	vUV = iUV;
 
 	gl_Position = uModelViewProjection * iPosition;

@@ -9,15 +9,15 @@
 #include "MaterialConstants.glsl"
 #include "../Lighting.glsl"
 
-layout(location = 0) in vec3 vPosition;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec2 vUV;
+layout(location = 0) in vec3 vLightDirection;
+layout(location = 1) in vec3 vPosition;
+layout(location = 2) in vec3 vNormal;
+layout(location = 3) in vec2 vUV;
 
 layout(location = 0) out vec4 oColor;
 
 void main()
 {
 	vec4 diffuse = uDiffuseColor * texture(uColorMap, (vUV * uColorMapTiling));
-	vec3 lightDirection = normalize(uLight0Position.xyz - (step(0.0, FASTCG_LIGHT_TYPE()) * vPosition));
-	oColor = Lighting(diffuse, lightDirection, vPosition, vNormal);
+	oColor = Lighting(diffuse, vLightDirection, vPosition, vNormal);
 }

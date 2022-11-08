@@ -1,7 +1,6 @@
 #ifndef SSAO_APPLICATION_H
 #define SSAO_APPLICATION_H
 
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Application.h>
 
 #include <vector>

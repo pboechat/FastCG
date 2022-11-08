@@ -34,7 +34,8 @@ namespace FastCG
 		RGBA,
 		BGR,
 		BGRA,
-		DEPTH_STENCIL
+		DEPTH_STENCIL,
+		DEPTH
 
 	};
 

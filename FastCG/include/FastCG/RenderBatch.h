@@ -8,10 +8,18 @@
 
 namespace FastCG
 {
+    enum class RenderBatchType
+    {
+        SHADOW_CASTERS = 0,
+        MATERIAL_BASED
+
+    };
+
     struct RenderBatch
     {
-        const Material *pMaterial;
-        std::vector<const Renderable *> renderables;
+        RenderBatchType type;
+        const Material *pMaterial{nullptr};
+        std::vector<const Renderable *> renderables{};
     };
 
 }

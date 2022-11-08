@@ -6,6 +6,7 @@
 layout(BINDING(0, 0)) uniform SceneConstants 
 {
 	mat4 uView;
+	mat4 uInverseView;
 	mat4 uProjection;
 	mat4 uInverseProjection;
 	vec2 uScreenSize;

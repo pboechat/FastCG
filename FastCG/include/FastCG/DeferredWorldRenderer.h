@@ -48,7 +48,11 @@ namespace FastCG
         void Finalize() override;
 
     protected:
-        void UpdateSceneConstantsBuffer(const Camera *pCamera, RenderingContext *pRenderingContext);
+        void BindGBufferTextures(RenderingContext *pRenderingContext) const;
+        void BindSSAOTexture(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
+        void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, float fov, RenderingContext *pRenderingContext);
+        void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+        void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext);
 
     private:
         std::array<const Texture *, 7> mGBufferRenderTargets;

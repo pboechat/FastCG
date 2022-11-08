@@ -181,12 +181,55 @@ namespace FastCG
         mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
     }
 
-    void DeferredWorldRenderer::UpdateSceneConstantsBuffer(const Camera *pCamera, RenderingContext *pRenderingContext)
+    void DeferredWorldRenderer::BindGBufferTextures(RenderingContext *pRenderingContext) const
+    {
+        pRenderingContext->Bind(mGBufferRenderTargets[0], "uDiffuseMap", 3);
+        pRenderingContext->Bind(mGBufferRenderTargets[1], "uNormalMap", 4);
+        pRenderingContext->Bind(mGBufferRenderTargets[2], "uSpecularMap", 5);
+        pRenderingContext->Bind(mGBufferRenderTargets[3], "uTangentMap", 6);
+        pRenderingContext->Bind(mGBufferRenderTargets[4], "uExtraData", 7);
+        pRenderingContext->Bind(mGBufferRenderTargets[5], "uDepth", 8);
+    }
+
+    void DeferredWorldRenderer::BindSSAOTexture(bool isSSAOEnabled, RenderingContext *pRenderingContext) const
+    {
+        if (isSSAOEnabled)
+        {
+            if (mSSAOBlurEnabled)
+            {
+                pRenderingContext->Bind(mSSAORenderTargets[1], "uAmbientOcclusionMap", 9);
+            }
+            else
+            {
+                pRenderingContext->Bind(mSSAORenderTargets[0], "uAmbientOcclusionMap", 9);
+            }
+        }
+        else
+        {
+            pRenderingContext->Bind(mpEmptySSAOTexture, "uAmbientOcclusionMap", 9);
+        }
+    }
+
+    void DeferredWorldRenderer::UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, float fov, RenderingContext *pRenderingContext)
     {
         mSceneConstants.screenSize = glm::vec2{mArgs.rScreenWidth, mArgs.rScreenHeight};
         mSceneConstants.aspectRatio = mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
-        mSceneConstants.tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * pCamera->GetFieldOfView()) / 2.0f);
-        BaseWorldRenderer::UpdateSceneConstantsBuffer(pCamera, pRenderingContext);
+        mSceneConstants.tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * fov) / 2.0f);
+        BaseWorldRenderer::UpdateSceneConstants(rView, rProjection, pRenderingContext);
+    }
+
+    void DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    {
+        BindGBufferTextures(pRenderingContext);
+        BindSSAOTexture(isSSAOEnabled, pRenderingContext);
+        BaseWorldRenderer::UpdateLightingConstants(pPointLight, rView, pRenderingContext);
+    }
+
+    void DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    {
+        BindGBufferTextures(pRenderingContext);
+        BindSSAOTexture(isSSAOEnabled, pRenderingContext);
+        BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rDirection, pRenderingContext);
     }
 
     void DeferredWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)
@@ -194,10 +237,15 @@ namespace FastCG
         assert(pCamera != nullptr);
         assert(pRenderingContext != nullptr);
 
+        auto view = pCamera->GetView();
+        auto projection = pCamera->GetProjection();
+
         pRenderingContext->Begin();
         {
             pRenderingContext->PushDebugMarker("Deferred World Rendering");
             {
+                GenerateShadowMaps(pRenderingContext);
+
                 pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
                 pRenderingContext->SetDepthTest(true);
                 pRenderingContext->SetDepthWrite(true);
@@ -218,49 +266,56 @@ namespace FastCG
                 }
                 pRenderingContext->PopDebugMarker();
 
-                pRenderingContext->PushDebugMarker("G-Buffer Filling Passes");
+                auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
+                if (renderBatchIt != mArgs.rRenderBatches.cend())
                 {
-                    UpdateSceneConstantsBuffer(pCamera, pRenderingContext);
-
-                    for (const auto *pRenderBatch : mArgs.rRenderBatches)
+                    pRenderingContext->PushDebugMarker("Material Passes");
                     {
-                        const auto *pMaterial = pRenderBatch->pMaterial;
+                        UpdateSceneConstants(view, projection, pCamera->GetFieldOfView(), pRenderingContext);
 
-                        pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
+                        for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                         {
-                            SetupMaterial(pMaterial, pRenderingContext);
+                            const auto *pMaterial = renderBatchIt->pMaterial;
 
-                            pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
-
-                            for (const auto *pRenderable : pRenderBatch->renderables)
+                            pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                             {
-                                if (!pRenderable->GetGameObject()->IsActive())
+                                assert(renderBatchIt->type == RenderBatchType::MATERIAL_BASED);
+
+                                SetupMaterial(pMaterial, pRenderingContext);
+
+                                pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+
+                                for (const auto *pRenderable : renderBatchIt->renderables)
                                 {
-                                    continue;
+                                    if (!pRenderable->GetGameObject()->IsActive())
+                                    {
+                                        continue;
+                                    }
+
+                                    UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
+                                    pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONTANTS_BINDING_INDEX);
+
+                                    auto *pMesh = pRenderable->GetMesh();
+
+                                    pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
+                                    pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
+
+                                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
+
+                                    mArgs.rRenderingStatistics.drawCalls++;
+                                    mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
                                 }
-
-                                UpdateInstanceConstantsBuffer(pRenderable->GetGameObject()->GetTransform()->GetModel(), pRenderingContext);
-
-                                pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONTANTS_BINDING_INDEX);
-
-                                auto *pMesh = pRenderable->GetMesh();
-
-                                pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                                pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
-
-                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
-
-                                mArgs.rRenderingStatistics.drawCalls++;
-                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
                             }
+                            pRenderingContext->PopDebugMarker();
                         }
-                        pRenderingContext->PopDebugMarker();
                     }
+                    pRenderingContext->PopDebugMarker();
                 }
-                pRenderingContext->PopDebugMarker();
 
                 {
-                    if (pCamera->IsSSAOEnabled())
+                    const bool isSSAOEnabled = pCamera->IsSSAOEnabled();
+
+                    if (isSSAOEnabled)
                     {
                         pRenderingContext->PushDebugMarker("SSAO High Frequency Pass");
                         {
@@ -273,11 +328,8 @@ namespace FastCG
                             pRenderingContext->Bind(mpSSAOHighFrequencyPassShader);
 
                             pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
-
                             pRenderingContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants);
-
                             pRenderingContext->Bind(mpSSAOHighFrequencyPassConstantsBuffer, Shader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX);
-
                             pRenderingContext->Bind(mpNoiseTexture, "uNoise", 0);
                             pRenderingContext->Bind(mGBufferRenderTargets[1], "uNormalMap", 1);
                             pRenderingContext->Bind(mGBufferRenderTargets[5], "uDepth", 2);
@@ -314,32 +366,6 @@ namespace FastCG
                     }
 
                     {
-                        const auto BindLightPassTextures = [&]()
-                        {
-                            pRenderingContext->Bind(mGBufferRenderTargets[0], "uDiffuseMap", 0);
-                            pRenderingContext->Bind(mGBufferRenderTargets[1], "uNormalMap", 1);
-                            pRenderingContext->Bind(mGBufferRenderTargets[2], "uSpecularMap", 2);
-                            pRenderingContext->Bind(mGBufferRenderTargets[3], "uTangentMap", 3);
-                            pRenderingContext->Bind(mGBufferRenderTargets[4], "uExtraData", 4);
-                            pRenderingContext->Bind(mGBufferRenderTargets[5], "uDepth", 5);
-
-                            if (pCamera->IsSSAOEnabled())
-                            {
-                                if (mSSAOBlurEnabled)
-                                {
-                                    pRenderingContext->Bind(mSSAORenderTargets[1], "uAmbientOcclusionMap", 6);
-                                }
-                                else
-                                {
-                                    pRenderingContext->Bind(mSSAORenderTargets[0], "uAmbientOcclusionMap", 6);
-                                }
-                            }
-                            else
-                            {
-                                pRenderingContext->Bind(mpEmptySSAOTexture, "uAmbientOcclusionMap", 6);
-                            }
-                        };
-
                         pRenderingContext->PushDebugMarker("Clear G-Buffer Final Render Target");
                         {
                             pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
@@ -357,7 +383,7 @@ namespace FastCG
                                 {
                                     auto model = glm::scale(pPointLight->GetGameObject()->GetTransform()->GetModel(), glm::vec3(CalculateLightBoundingSphereScale(pPointLight)));
 
-                                    UpdateInstanceConstantsBuffer(model, pRenderingContext);
+                                    UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
 
                                     pRenderingContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Stencil Sub-Pass").c_str());
                                     {
@@ -403,11 +429,10 @@ namespace FastCG
 
                                         pRenderingContext->Bind(mpPointLightPassShader);
                                         pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
-                                        UpdateInstanceConstantsBuffer(model, pRenderingContext);
+                                        UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
                                         pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONTANTS_BINDING_INDEX);
-                                        UpdateLightingConstantsBuffer(pPointLight, pRenderingContext);
+                                        UpdateLightingConstants(pPointLight, view, isSSAOEnabled, pRenderingContext);
                                         pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
-                                        BindLightPassTextures();
 
                                         pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                                         pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
@@ -437,7 +462,6 @@ namespace FastCG
                             pRenderingContext->SetCullMode(Face::BACK);
 
                             pRenderingContext->Bind(mpDirectionalLightPassShader);
-                            BindLightPassTextures();
 
                             auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
                             for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
@@ -445,7 +469,7 @@ namespace FastCG
                                 const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
                                 pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                                 {
-                                    UpdateLightingConstantsBuffer(pDirectionalLight, glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1))), pRenderingContext);
+                                    UpdateLightingConstants(pDirectionalLight, glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1))), isSSAOEnabled, pRenderingContext);
                                     pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                     pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());

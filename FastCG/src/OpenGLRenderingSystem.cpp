@@ -312,6 +312,10 @@ namespace FastCG
             {
                 attachment = GL_DEPTH_STENCIL_ATTACHMENT;
             }
+            else if (pTexture->GetFormat() == TextureFormat::DEPTH)
+            {
+                attachment = GL_DEPTH_ATTACHMENT;
+            }
             else
             {
                 attachment = GL_COLOR_ATTACHMENT0 + (i++);
