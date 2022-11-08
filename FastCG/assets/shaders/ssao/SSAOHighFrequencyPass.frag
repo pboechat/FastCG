@@ -10,7 +10,7 @@
 layout(location = 0) in vec2 vUV;
 layout(location = 1) noperspective in vec3 vViewRay;
 
-layout(location = 0) out vec4 oAmbientOcclusion;
+layout(location = 0) out float oAmbientOcclusion;
 
 void main()
 {
@@ -62,5 +62,5 @@ void main()
 	}
 	occlusion /= NUMBER_OF_RANDOM_SAMPLES;
 
-	oAmbientOcclusion = vec4(occlusion, occlusion, occlusion, 1.0);
+	oAmbientOcclusion = occlusion;
 }

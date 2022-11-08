@@ -301,9 +301,17 @@ namespace FastCG
             {
                 return GL_RGB10;
             }
+            else if (bitsPerPixel.r == 11 && bitsPerPixel.g == 11 && bitsPerPixel.b == 10 && dataType == TextureDataType::FLOAT)
+            {
+                return GL_R11F_G11F_B10F;
+            }
             else if (bitsPerPixel.r == 12 && bitsPerPixel.g == 12 && bitsPerPixel.b == 12)
             {
                 return GL_RGB12;
+            }
+            else if (bitsPerPixel.r == 16 && bitsPerPixel.g == 16 && bitsPerPixel.b == 16 && dataType == TextureDataType::FLOAT)
+            {
+                return GL_RGB16F;
             }
             else if (bitsPerPixel.r == 16 && bitsPerPixel.g == 16 && bitsPerPixel.b == 16)
             {
@@ -315,7 +323,15 @@ namespace FastCG
             }
         case TextureFormat::RGBA:
         case TextureFormat::BGRA:
-            if (bitsPerPixel.r == 32 && bitsPerPixel.g == 32 && bitsPerPixel.b == 32 && bitsPerPixel.a == 32 && dataType == TextureDataType::FLOAT)
+            if (bitsPerPixel.r == 10 && bitsPerPixel.g == 10 && bitsPerPixel.b == 10 & bitsPerPixel.a == 2 && dataType == TextureDataType::UNSIGNED_INT)
+            {
+                return GL_RGB10_A2UI;
+            }
+            else if (bitsPerPixel.r == 10 && bitsPerPixel.g == 10 && bitsPerPixel.b == 10 & bitsPerPixel.a == 2)
+            {
+                return GL_RGB10_A2;
+            }
+            else if (bitsPerPixel.r == 32 && bitsPerPixel.g == 32 && bitsPerPixel.b == 32 && bitsPerPixel.a == 32 && dataType == TextureDataType::FLOAT)
             {
                 return GL_RGBA32F;
             }
@@ -333,9 +349,17 @@ namespace FastCG
                 return GL_DEPTH_STENCIL;
             }
         case TextureFormat::DEPTH:
-            if (bitsPerPixel.r == 24)
+            if (bitsPerPixel.r == 16)
+            {
+                return GL_DEPTH_COMPONENT16;
+            }
+            else if (bitsPerPixel.r == 24)
             {
                 return GL_DEPTH_COMPONENT24;
+            }
+            else if (bitsPerPixel.r == 32)
+            {
+                return GL_DEPTH_COMPONENT32;
             }
             else
             {

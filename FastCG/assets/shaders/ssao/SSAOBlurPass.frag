@@ -13,13 +13,13 @@ layout(BINDING(0, 0)) uniform sampler2D uAmbientOcclusionMap;
 
 layout(location = 0) in vec2 vUV;
 
-layout(location = 0) out vec4 oAmbientOcclusion;
+layout(location = 0) out float oAmbientOcclusion;
 
 void main()
 {
 	vec2 texelSize = 1.0 / textureSize(uAmbientOcclusionMap, 0);
 
-	vec4 result = vec4(0);
+	float result = 0;
 	vec2 stride = vec2(-NOISE_TEXTURE_SIDE * 0.5);
 	for (int x = 0; x < NOISE_TEXTURE_SIDE; x++) 
 	{
@@ -29,7 +29,7 @@ void main()
 			uvOffset += stride;
 			uvOffset *= texelSize;
 
-			result += texture(uAmbientOcclusionMap, vUV + uvOffset);
+			result += texture(uAmbientOcclusionMap, vUV + uvOffset).x;
 		}
 	}
 

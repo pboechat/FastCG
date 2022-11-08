@@ -32,7 +32,7 @@ namespace FastCG
                                                                            mArgs.rScreenHeight,
                                                                            TextureType::TEXTURE_2D,
                                                                            TextureFormat::RGBA,
-                                                                           {32, 32, 32, 32},
+                                                                           {10, 10, 10, 2},
                                                                            TextureDataType::FLOAT,
                                                                            TextureFilter::POINT_FILTER,
                                                                            TextureWrapMode::CLAMP,
