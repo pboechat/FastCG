@@ -25,16 +25,33 @@ namespace FastCG
 				{
 					if (rotation != mRotation)
 					{
+						const auto halfDegToRad = 0.5f * MathF::DEGREES_TO_RADIANS;
+
 						auto euler = glm::eulerAngles(rotation);
-						mTheta = euler.x * 0.5f * MathF::DEGREES_TO_RADIANS;
+
+						// FIXME: can't map non-multiple of PI rotations around the Z axis for now
+						assert(fmod(euler.z, 180) == 0);
+
+						mTheta = euler.x;
+						if (euler.z == 180)
+						{
+							mTheta -= 180;
+						}
+						mTheta *= halfDegToRad;
 						if (mTheta < 0)
 						{
-							mTheta = MathF::TWO_PI - mTheta;
+							mTheta = MathF::TWO_PI + mTheta;
 						}
-						mPhi = euler.y * 0.5f * MathF::DEGREES_TO_RADIANS;
+
+						mPhi = euler.y;
+						if (euler.z == 180)
+						{
+							mPhi += 180;
+						}
+						mPhi *= halfDegToRad;
 						if (mPhi < 0)
 						{
-							mPhi = MathF::TWO_PI - mPhi;
+							mPhi = MathF::TWO_PI + mPhi;
 						}
 					}
 
