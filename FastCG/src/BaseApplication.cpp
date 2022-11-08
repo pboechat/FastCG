@@ -75,7 +75,7 @@ namespace FastCG
 
 		switch (mSettings.renderingPath)
 		{
-		case RenderingPath::FORWARD_RENDERING:
+		case RenderingPath::FORWARD:
 			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mScreenWidth,
 																						mScreenHeight,
 																						mClearColor,
@@ -85,7 +85,7 @@ namespace FastCG
 																						mpRenderBatchStrategy->GetRenderBatches(),
 																						mRenderingStatistics}));
 			break;
-		case RenderingPath::DEFERRED_RENDERING:
+		case RenderingPath::DEFERRED:
 			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mScreenWidth,
 																						 mScreenHeight,
 																						 mClearColor,
