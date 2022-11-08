@@ -10,8 +10,6 @@ layout(BINDING(0, 0)) uniform SceneConstants
 	mat4 uProjection;
 	mat4 uInverseProjection;
 	vec2 uScreenSize;
-	float uAspectRatio;
-	float uTanHalfFov;
 	float uPointSize;
 };
 
