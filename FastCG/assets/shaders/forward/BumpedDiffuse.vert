@@ -26,10 +26,10 @@ void main()
 
 	mat3 tangentSpaceMatrix = transpose(mat3(tangent, binormal, normal));
 
-	vec4 modelPosition = uModel * iPosition;
-	vec3 viewPosition = vec3(uView * modelPosition);
+	vec4 worldPosition = uModel * iPosition;
+	vec3 viewPosition = vec3(uView * worldPosition);
 	vLightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - (step(0.0, FASTCG_LIGHT_TYPE()) * viewPosition));
-	vPosition = modelPosition.xyz;
+	vPosition = worldPosition.xyz;
 	vUV = iUV;
 
 	gl_Position = uModelViewProjection * iPosition;
