@@ -152,6 +152,8 @@ namespace FastCG
 
                                         SubpassType lastSubpassType{SubpassType::ST_NONE};
 
+                                        auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
+
                                         for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
                                         {
                                             pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Directional Light Sub-Pass (" + std::to_string(i) + ")").c_str());
@@ -170,7 +172,7 @@ namespace FastCG
 
                                                 const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
 
-                                                UpdateLightingConstants(pDirectionalLight, pDirectionalLight->GetDirection(), isSSAOEnabled, pRenderingContext);
+                                                UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), isSSAOEnabled, pRenderingContext);
                                                 pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                                 pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);

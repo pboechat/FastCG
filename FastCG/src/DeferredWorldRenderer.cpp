@@ -306,13 +306,13 @@ namespace FastCG
 
                     pRenderingContext->Bind(mpDirectionalLightPassShader);
 
-                    auto inverseCameraRotation = glm::inverse(pCamera->GetGameObject()->GetTransform()->GetRotation());
+                    auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
                     for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
                     {
                         const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
                         pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                         {
-                            UpdateLightingConstants(pDirectionalLight, glm::vec3(glm::normalize(inverseCameraRotation * glm::vec4(pDirectionalLight->GetDirection(), 1))), isSSAOEnabled, pRenderingContext);
+                            UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), isSSAOEnabled, pRenderingContext);
                             pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                             pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());

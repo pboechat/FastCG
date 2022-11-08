@@ -439,7 +439,7 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        mLightingConstants.light0Position = glm::vec4(rDirection, 0);
+        mLightingConstants.light0Position = glm::vec4(rDirection, -1);
         mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
         mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
         mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
