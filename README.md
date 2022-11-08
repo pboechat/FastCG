@@ -9,15 +9,18 @@ It features:
  - Support to multiple platforms:
     - Windows
     - Linux
- - Multiple rendering system implementations:
+ - Support to multiple rendering backends:
     - OpenGL 4.3 (core profile)
     - Vulkan 1.3 (TODO)
  - Basic material system: diffuse, specular, bump, etc.
- - Different rendering paths: forward and deferred
+ - Multiple rendering paths: 
+    - Forward 
+    - Forward+ (TODO)
+    - Deferred
  - Multiple rendering techniques:
     - SSAO
     - PCSS (TODO)
  - Simple asset management:
     - Support to multiple image types (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
     - Support to OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
- - Unity-like API
+ - Unity-like component-based API
