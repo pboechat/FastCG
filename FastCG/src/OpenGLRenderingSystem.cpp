@@ -150,18 +150,16 @@ namespace FastCG
                 1,
                 PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
                 PFD_TYPE_RGBA,
-                32,
-                0, 0, 0, 0, 0, 0, // color bits (ignored)
-                0,                // no alpha buffer
-                0,                // alpha bits (ignored)
-                0,                // no accumulation buffer
-                0, 0, 0, 0,       // accum bits (ignored)
-                32,               // depth buffer
-                0,                // no stencil buffer
-                0,                // no auxiliary buffers
-                PFD_MAIN_PLANE,   // main layer
-                0,                // reserved
-                0, 0, 0,          // no layer, visible, damage masks
+                32,                     // color bits
+                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
+                0,                      // accum bits
+                0, 0, 0, 0,             // per-channel accum bits
+                0,                      // depth bits
+                0,                      // stencil bits
+                0,                      // auxiliary buffers
+                PFD_MAIN_PLANE,         // layer type
+                0,                      // reserved
+                0, 0, 0,                // layer mask, visible mask, damage mask
             };
         auto pixelFormat = ChoosePixelFormat(hDC, &pixelFormatDescr);
         if (!SetPixelFormat(hDC, pixelFormat, &pixelFormatDescr))
