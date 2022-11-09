@@ -198,7 +198,7 @@ namespace FastCG
             GLX_GREEN_SIZE, 8,
             GLX_BLUE_SIZE, 8,
             GLX_ALPHA_SIZE, 8,
-            GLX_DEPTH_SIZE, 24,
+            GLX_DEPTH_SIZE, 0,
             None};
 
         auto defaultScreen = DefaultScreen(pDisplay);
