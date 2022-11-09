@@ -150,6 +150,9 @@ namespace FastCG
         mpSSAOBlurPassShader = RenderingSystem::GetInstance()->FindShader("SSAOBlurPass");
         assert(mpSSAOBlurPassShader != nullptr);
 
+        mpTonemapShader = RenderingSystem::GetInstance()->FindShader("TonemapPass");
+        assert(mpTonemapShader != nullptr);
+
         mpQuadMesh = StandardGeometries::CreateXYPlane("Fullscreen Quad", 2, 2, 1, 1, glm::vec3(0, 0, 0));
     }
 
@@ -217,6 +220,8 @@ namespace FastCG
             RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
         }
         memset(mSSAORenderTargets.data(), 0, sizeof(mSSAORenderTargets));
+
+        mpTonemapShader = nullptr;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -357,6 +362,35 @@ namespace FastCG
                 }
                 pRenderingContext->PopDebugMarker();
             }
+        }
+        pRenderingContext->PopDebugMarker();
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext)
+    {
+        pRenderingContext->PushDebugMarker("Tonemapping");
+        {
+            pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+            pRenderingContext->SetDepthTest(false);
+            pRenderingContext->SetDepthWrite(false);
+            pRenderingContext->SetStencilTest(false);
+            pRenderingContext->SetScissorTest(false);
+            pRenderingContext->SetCullMode(Face::NONE);
+            pRenderingContext->SetBlend(false);
+
+            pRenderingContext->SetRenderTargets(&pDestinationRenderTarget, 1);
+
+            pRenderingContext->Bind(mpTonemapShader);
+
+            pRenderingContext->Bind(pSourceRenderTarget, "uSource", 0);
+
+            pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
+            pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
+
+            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+
+            mArgs.rRenderingStatistics.drawCalls++;
         }
         pRenderingContext->PopDebugMarker();
     }

@@ -93,6 +93,7 @@ namespace FastCG
 
 		inline void GenerateShadowMaps(RenderingContext *pRenderingContext);
 		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
+		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
 		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
 		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext);
@@ -159,6 +160,7 @@ namespace FastCG
 		const Texture *mpNoiseTexture{nullptr};
 		const Texture *mpEmptySSAOTexture{nullptr};
 		bool mSSAOBlurEnabled{true};
+		const Shader *mpTonemapShader{nullptr};
 
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
