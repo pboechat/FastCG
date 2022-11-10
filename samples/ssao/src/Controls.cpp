@@ -3,8 +3,9 @@
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Key.h>
+#include <FastCG/IWorldRenderer.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/DeferredWorldRenderer.h>
+#include <FastCG/Camera.h>
 #include <FastCG/Application.h>
 
 #include <imgui.h>
@@ -22,35 +23,35 @@ void Controls::OnUpdate(float time, float deltaTime)
 	}
 
 	auto *pMainCamera = BaseApplication::GetInstance()->GetMainCamera();
-	auto *pDeferredWorldRenderer = static_cast<DeferredWorldRenderer *>(Application::GetInstance()->GetWorldRenderer());
+	auto *pWorldRenderer = Application::GetInstance()->GetWorldRenderer();
 
 	if (ImGui::Begin("Controls"))
 	{
 		auto ssaoEnabled = pMainCamera->IsSSAOEnabled();
 		ImGui::Checkbox("SSAO enabled (F1)", &ssaoEnabled);
 		pMainCamera->SetSSAOEnabled(ssaoEnabled);
-		auto ssaoBlurEnabled = pDeferredWorldRenderer->IsSSAOBlurEnabled();
+		auto ssaoBlurEnabled = pWorldRenderer->IsSSAOBlurEnabled();
 		ImGui::Checkbox("SSAO blur enabled (F2)", &ssaoBlurEnabled);
-		pDeferredWorldRenderer->SetSSAOBlurEnabled(ssaoBlurEnabled);
-		auto ssaoRadius = pDeferredWorldRenderer->GetSSAORadius();
+		pWorldRenderer->SetSSAOBlurEnabled(ssaoBlurEnabled);
+		auto ssaoRadius = pWorldRenderer->GetSSAORadius();
 		ImGui::SliderFloat("SSAO radius (+/-)", &ssaoRadius, 0.01f, 0.1f);
-		pDeferredWorldRenderer->SetSSAORadius(ssaoRadius);
-		auto ssaoDistanceScale = pDeferredWorldRenderer->GetSSAODistanceScale();
+		pWorldRenderer->SetSSAORadius(ssaoRadius);
+		auto ssaoDistanceScale = pWorldRenderer->GetSSAODistanceScale();
 		ImGui::SliderFloat("SSAO distance scale (Home/End)", &ssaoDistanceScale, 1, 100);
-		pDeferredWorldRenderer->SetSSAODistanceScale(ssaoDistanceScale);
+		pWorldRenderer->SetSSAODistanceScale(ssaoDistanceScale);
+		ImGui::End();
 	}
-	ImGui::End();
 
 	InputSystem::IsKeyPressed(Key::F1, mPressedKeyMask, 0, [&]()
 							  { pMainCamera->SetSSAOEnabled(!pMainCamera->IsSSAOEnabled()); });
 	InputSystem::IsKeyPressed(Key::F2, mPressedKeyMask, 2, [&]()
-							  { pDeferredWorldRenderer->SetSSAOBlurEnabled(!pDeferredWorldRenderer->IsSSAOBlurEnabled()); });
+							  { pWorldRenderer->SetSSAOBlurEnabled(!pWorldRenderer->IsSSAOBlurEnabled()); });
 	InputSystem::IsKeyPressed(Key::PLUS, mPressedKeyMask, 3, [&]()
-							  { pDeferredWorldRenderer->SetSSAORadius(MathF::Clamp(pDeferredWorldRenderer->GetSSAORadius() + 0.01f, 0.01f, 10)); });
+							  { pWorldRenderer->SetSSAORadius(MathF::Clamp(pWorldRenderer->GetSSAORadius() + 0.01f, 0.01f, 10)); });
 	InputSystem::IsKeyPressed(Key::MINUS, mPressedKeyMask, 4, [&]()
-							  { pDeferredWorldRenderer->SetSSAORadius(MathF::Clamp(pDeferredWorldRenderer->GetSSAORadius() - 0.01f, 0.01f, 10)); });
+							  { pWorldRenderer->SetSSAORadius(MathF::Clamp(pWorldRenderer->GetSSAORadius() - 0.01f, 0.01f, 10)); });
 	InputSystem::IsKeyPressed(Key::HOME, mPressedKeyMask, 5, [&]()
-							  { pDeferredWorldRenderer->SetSSAODistanceScale(MathF::Clamp(pDeferredWorldRenderer->GetSSAODistanceScale() + 5, 0.1f, 100)); });
+							  { pWorldRenderer->SetSSAODistanceScale(MathF::Clamp(pWorldRenderer->GetSSAODistanceScale() + 5, 0.1f, 100)); });
 	InputSystem::IsKeyPressed(Key::END, mPressedKeyMask, 6, [&]()
-							  { pDeferredWorldRenderer->SetSSAODistanceScale(MathF::Clamp(pDeferredWorldRenderer->GetSSAODistanceScale() - 5, 0.1f, 100)); });
+							  { pWorldRenderer->SetSSAODistanceScale(MathF::Clamp(pWorldRenderer->GetSSAODistanceScale() - 5, 0.1f, 100)); });
 }

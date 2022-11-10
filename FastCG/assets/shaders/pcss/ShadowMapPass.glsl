@@ -3,7 +3,7 @@
 
 #include "../FastCG.glsl"
 
-layout(BINDING(0, 0)) uniform SSAOHighFrequencyPassConstants
+layout(BINDING(0, 0)) uniform ShadowMapPassConstants
 {
 	mat4 uModelViewProjection;
 };

@@ -97,6 +97,11 @@ namespace FastCG
 			return mFieldOfView;
 		}
 
+		inline float GetFrustrumNear() const
+		{
+			return mFrustumNear;
+		}
+
 	private:
 		float mFieldOfView;
 		float mFrustumNear;

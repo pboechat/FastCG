@@ -5,9 +5,8 @@
 #endif
 
 #include "FastCG.glsl"
-#include "SceneConstants.glsl"
-#include "LightingConstants.glsl"
-#include "../Lighting.glsl"
+#include "Scene.glsl"
+#include "Lighting.glsl"
 
 layout(location = 0) out vec4 oColor;
 

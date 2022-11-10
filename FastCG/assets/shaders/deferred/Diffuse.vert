@@ -5,7 +5,7 @@
 #endif
 
 #include "FastCG.glsl"
-#include "InstanceConstants.glsl"
+#include "Instance.glsl"
 
 layout(location = 0) in vec4 iPosition;
 layout(location = 1) in vec3 iNormal;

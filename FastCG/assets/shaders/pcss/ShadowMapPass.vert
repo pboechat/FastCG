@@ -5,7 +5,7 @@
 #endif
 
 #include "../FastCG.glsl"
-#include "ShadowMapPassConstants.glsl"
+#include "ShadowMapPass.glsl"
 
 layout(location = 0) in vec4 iPosition;
 

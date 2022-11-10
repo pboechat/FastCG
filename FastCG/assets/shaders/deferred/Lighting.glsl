@@ -1,8 +1,8 @@
-#ifndef FASTCG_DEFERRED_LIGHTING_CONSTANTS_GLSL
-#define FASTCG_DEFERRED_LIGHTING_CONSTANTS_GLSL
+#ifndef FASTCG_DEFERRED_LIGHTING_GLSL
+#define FASTCG_DEFERRED_LIGHTING_GLSL
 
 #include "FastCG.glsl"
-#include "../LightingConstants.glsl"
+#include "../Lighting.glsl"
 
 layout(BINDING(0, 5)) uniform sampler2D uDiffuseMap;
 layout(BINDING(0, 6)) uniform sampler2D uNormalMap;

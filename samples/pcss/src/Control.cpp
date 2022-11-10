@@ -1,7 +1,10 @@
 #include "Controls.h"
 
+#include <FastCG/IWorldRenderer.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
+
+#include <imgui.h>
 
 using namespace FastCG;
 
@@ -13,5 +16,21 @@ void Controls::OnUpdate(float time, float deltaTime)
     {
         Application::GetInstance()->Exit();
         return;
+    }
+
+    auto *pWorldRenderer = Application::GetInstance()->GetWorldRenderer();
+
+    if (ImGui::Begin("Controls"))
+    {
+        auto shadowMapBias = pWorldRenderer->GetShadowMapBias();
+        ImGui::SliderFloat("Shadow Map Bias", &shadowMapBias, 0, 0.1f);
+        pWorldRenderer->SetShadowMapBias(shadowMapBias);
+        auto blockerSearchSamples = (int)pWorldRenderer->GetPCSSBlockerSearchSamples();
+        ImGui::SliderInt("Blocker Search Samples (+/-)", &blockerSearchSamples, 1, 64);
+        pWorldRenderer->SetPCSSBlockerSearchSamples((uint32_t)blockerSearchSamples);
+        auto pcfSamples = (int)pWorldRenderer->GetPCSSPCFSamples();
+        ImGui::SliderInt("PCF Samples (Home/End)", &pcfSamples, 1, 64);
+        pWorldRenderer->SetPCSSPCFSamples((uint32_t)pcfSamples);
+        ImGui::End();
     }
 }

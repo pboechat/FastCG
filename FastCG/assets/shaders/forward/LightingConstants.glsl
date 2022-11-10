@@ -1,6 +1,0 @@
-#ifndef FASTCG_FORWARD_LIGHTING_CONSTANTS_GLSL
-#define FASTCG_FORWARD_LIGHTING_CONSTANTS_GLSL
-
-#include "../LightingConstants.glsl"
-
-#endif

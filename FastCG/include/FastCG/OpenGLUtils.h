@@ -350,9 +350,17 @@ namespace FastCG
             {
                 return GL_DEPTH_COMPONENT16;
             }
+            else if (bitsPerPixel.r == 16)
+            {
+                return GL_DEPTH_COMPONENT16;
+            }
             else if (bitsPerPixel.r == 24)
             {
                 return GL_DEPTH_COMPONENT24;
+            }
+            else if (bitsPerPixel.r == 32 && dataType == TextureDataType::FLOAT)
+            {
+                return GL_DEPTH_COMPONENT32F;
             }
             else if (bitsPerPixel.r == 32)
             {

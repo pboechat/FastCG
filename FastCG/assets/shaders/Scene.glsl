@@ -1,5 +1,5 @@
-#ifndef FASTCG_SCENE_CONSTANTS_GLGL
-#define FASTCG_SCENE_CONSTANTS_GLGL
+#ifndef FASTCG_SCENE_GLGL
+#define FASTCG_SCENE_GLGL
 
 #include "FastCG.glsl"
 
@@ -13,10 +13,7 @@ layout(BINDING(0, 0)) uniform SceneConstants
 	float uPointSize;
 };
 
-vec3 GetViewerPosition()
-{
-	return uView[3].xyz;
-} 
+#define GetViewerPosition() (uView[3].xyz)
 
 #define GetScreenCoordinates() (gl_FragCoord.xy / uScreenSize)
 

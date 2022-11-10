@@ -5,9 +5,9 @@
 #endif
 
 #include "FastCG.glsl"
-#include "SceneConstants.glsl"
-#include "LightingConstants.glsl"
-#include "InstanceConstants.glsl"
+#include "Scene.glsl"
+#include "Lighting.glsl"
+#include "Instance.glsl"
 
 layout(location = 0) in vec4 iPosition;
 layout(location = 1) in vec3 iNormal;
@@ -23,7 +23,7 @@ void main()
 {
 	vec4 worldPosition = uModel * iPosition;
 	vec3 viewPosition = vec3(uView * worldPosition);
-	vLightDirection = normalize(uLight0ViewPosition.xyz - (step(0, FASTCG_LIGHT_TYPE()) * viewPosition));
+	vLightDirection = normalize(uLight0ViewPosition.xyz - (step(0, GetLightType()) * viewPosition));
 	vViewerDirection = normalize(-viewPosition);
 	vPosition = worldPosition.xyz;
 	vNormal = normalize(mat3(uModelViewInverseTranspose) * iNormal);

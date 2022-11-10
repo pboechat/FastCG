@@ -18,6 +18,7 @@
 #include <FastCG/Exception.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/DeferredWorldRenderer.h>
+#include <FastCG/DebugMenuSystem.h>
 #include <FastCG/Component.h>
 #include <FastCG/Camera.h>
 #include <FastCG/Behaviour.h>
@@ -29,6 +30,21 @@
 #include <cstdio>
 #include <cassert>
 #include <algorithm>
+
+namespace
+{
+	void DeclareRenderingStatisticsWindow(float fps, const FastCG::RenderingStatistics &rRenderingStatistics)
+	{
+		if (ImGui::Begin("Rendering Statistics"))
+		{
+			ImGui::Text("FPS: %.3f", fps);
+			ImGui::Text("Draw Calls: %u", rRenderingStatistics.drawCalls);
+			ImGui::Text("Triangles: %u", rRenderingStatistics.triangles);
+			ImGui::End();
+		}
+	}
+
+}
 
 namespace FastCG
 {
@@ -52,6 +68,9 @@ namespace FastCG
 	}
 
 	FASTCG_IMPLEMENT_SYSTEM(AssetSystem, AssetSystemArgs);
+#ifdef _DEBUG
+	FASTCG_IMPLEMENT_SYSTEM(DebugMenuSystem, DebugMenuSystemArgs);
+#endif
 	FASTCG_IMPLEMENT_SYSTEM(InputSystem, InputSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(ImGuiSystem, ImGuiSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
@@ -248,6 +267,9 @@ namespace FastCG
 	void BaseApplication::Initialize()
 	{
 		AssetSystem::Create({mSettings.assetBundles});
+#ifdef _DEBUG
+		DebugMenuSystem::Create({});
+#endif
 		InputSystem::Create({});
 		ImGuiSystem::Create({mScreenWidth,
 							 mScreenHeight});
@@ -278,6 +300,9 @@ namespace FastCG
 		RenderingSystem::Destroy();
 		ImGuiSystem::Destroy();
 		InputSystem::Destroy();
+#ifdef _DEBUG
+		DebugMenuSystem::Destroy();
+#endif
 		AssetSystem::Destroy();
 	}
 
@@ -319,13 +344,10 @@ namespace FastCG
 
 		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
 
-		if (ImGui::Begin("Statistics"))
-		{
-			ImGui::Text("FPS: %.3f", 1.0f / deltaTime);
-			ImGui::Text("Draw Calls: %u", mRenderingStatistics.drawCalls);
-			ImGui::Text("Triangles: %u", mRenderingStatistics.triangles);
-		}
-		ImGui::End();
+		DeclareRenderingStatisticsWindow(1.0f / deltaTime, mRenderingStatistics);
+#ifdef _DEBUG
+		DebugMenuSystem::GetInstance()->DrawMenu();
+#endif
 
 		ImGuiSystem::GetInstance()->EndFrame();
 

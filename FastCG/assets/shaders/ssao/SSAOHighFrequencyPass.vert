@@ -5,7 +5,7 @@
 #endif
 
 #include "../FastCG.glsl"
-#include "SSAOHighFrequencyPassConstants.glsl"
+#include "SSAOHighFrequencyPass.glsl"
 
 layout(location = 0) in vec4 iPosition;
 layout(location = 2) in vec2 iUV;

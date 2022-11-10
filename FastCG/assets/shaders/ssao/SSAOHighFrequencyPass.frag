@@ -5,7 +5,7 @@
 #endif
 
 #include "../FastCG.glsl"
-#include "SSAOHighFrequencyPassConstants.glsl"
+#include "SSAOHighFrequencyPass.glsl"
 
 layout(location = 0) in vec2 vUV;
 layout(location = 1) noperspective in vec3 vViewRay;

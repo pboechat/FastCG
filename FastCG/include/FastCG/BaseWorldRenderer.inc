@@ -1,7 +1,10 @@
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/Random.h>
 #include <FastCG/MathT.h>
+#include <FastCG/DebugMenuSystem.h>
 #include <FastCG/BaseWorldRenderer.h>
+
+#include <imgui.h>
 
 namespace
 {
@@ -20,24 +23,26 @@ namespace
         }
     }
 
-    const auto *CreateShadowMapTexture(const std::string &rName, uint32_t width, uint32_t height, FastCG::TextureFilter filter = FastCG::TextureFilter::LINEAR_FILTER, const void *pData = nullptr)
+    const auto *CreateShadowMapTexture(const std::string &rName, uint32_t width, uint32_t height, const void *pData = nullptr)
     {
         return FastCG::RenderingSystem::GetInstance()->CreateTexture({rName,
                                                                       width,
                                                                       height,
                                                                       FastCG::TextureType::TEXTURE_2D,
                                                                       FastCG::TextureFormat::DEPTH,
-                                                                      {24},
+                                                                      {32},
                                                                       FastCG::TextureDataType::FLOAT,
-                                                                      filter,
+                                                                      FastCG::TextureFilter::POINT_FILTER,
                                                                       FastCG::TextureWrapMode::CLAMP,
                                                                       false,
                                                                       pData});
     }
+
 }
 
 namespace FastCG
 {
+    const uint32_t SHADOW_MAP_SIZE = 4096;
     const glm::mat4 INVALID_SHADOW_MAP_PROJECTION = glm::ortho(-FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX);
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -49,6 +54,10 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Initialize()
     {
+#ifdef _DEBUG
+        DebugMenuSystem::GetInstance()->AddItem("Renderer", std::bind(&BaseWorldRenderer::DebugMenuCallback, this));
+#endif
+
         mpLightingConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"Lighting Constants",
                                                                                   BufferType::UNIFORM,
                                                                                   BufferUsage::DYNAMIC,
@@ -73,7 +82,7 @@ namespace FastCG
 
         {
             float data[] = {1};
-            mpEmptyShadowMap = CreateShadowMapTexture("Empty Shadow Map", 1, 1, TextureFilter::POINT_FILTER, data);
+            mpEmptyShadowMap = CreateShadowMapTexture("Empty Shadow Map", 1, 1, data);
         }
 
         mpShadowMapPassShader = RenderingSystem::GetInstance()->FindShader("ShadowMapPass");
@@ -225,13 +234,32 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::DebugMenuCallback()
+    {
+        if (ImGui::BeginMenu("PCSS"))
+        {
+            ImGui::SliderFloat("Shadow Map Bias", &mLightingConstants.pcssData.shadowMapData.bias, 0, 0.1f);
+            ImGui::SliderInt("Blocker Search Samples", &mLightingConstants.pcssData.blockerSearchSamples, 1, 64);
+            ImGui::SliderInt("PCF Samples", &mLightingConstants.pcssData.pcfSamples, 1, 64);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("SSAO"))
+        {
+            ImGui::Checkbox("Blur enabled", &mSSAOBlurEnabled);
+            ImGui::SliderFloat("Radius", &mSSAOHighFrequencyPassConstants.radius, 0.01f, 0.1f);
+            ImGui::SliderFloat("Distance scale", &mSSAOHighFrequencyPassConstants.distanceScale, 1, 100);
+            ImGui::EndMenu();
+        }
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     const typename BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::ShadowMap &BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetOrCreateShadowMap(const Light *pLight)
     {
         auto shadowMapKey = GetShadowMapKey(pLight);
         auto it = mShadowMaps.find(shadowMapKey);
         if (it == mShadowMaps.end())
         {
-            it = mShadowMaps.emplace(shadowMapKey, ShadowMap{pLight, CreateShadowMapTexture("Shadow Map", mArgs.rScreenWidth, mArgs.rScreenHeight)}).first;
+            it = mShadowMaps.emplace(shadowMapKey, ShadowMap{pLight, CreateShadowMapTexture("Shadow Map", SHADOW_MAP_SIZE, SHADOW_MAP_SIZE)}).first;
         }
         return it->second;
     }
@@ -261,7 +289,7 @@ namespace FastCG
 
         pRenderingContext->PushDebugMarker("Shadow Casters Passes");
         {
-            pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+            pRenderingContext->SetViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
             pRenderingContext->SetDepthTest(true);
             pRenderingContext->SetDepthWrite(true);
             pRenderingContext->SetStencilTest(false);
@@ -428,7 +456,39 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindSSAOTexture(bool isSSAOEnabled, RenderingContext *pRenderingContext) const
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float near, RenderingContext *pRenderingContext)
+    {
+        // TODO:
+
+        mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
+        mLightingConstants.pcssData.near = 0;
+
+        pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float near, RenderingContext *pRenderingContext)
+    {
+        ShadowMap shadowMap;
+        if (GetShadowMap(pDirectionalLight, shadowMap))
+        {
+            auto view = shadowMap.GetView();
+            mLightingConstants.pcssData.shadowMapData.viewProjection = shadowMap.GetProjection() * view;
+            mLightingConstants.pcssData.near = near;
+
+            pRenderingContext->Bind(shadowMap.GetTexture(), "uShadowMap", 2);
+        }
+        else
+        {
+            mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
+            mLightingConstants.pcssData.near = 0;
+
+            pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
+        }
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSSAOConstants(bool isSSAOEnabled, RenderingContext *pRenderingContext) const
     {
         if (isSSAOEnabled)
         {
@@ -448,7 +508,7 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
         mLightingConstants.light0Position = glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1);
         mLightingConstants.light0ViewPosition = rView * mLightingConstants.light0Position;
@@ -460,18 +520,14 @@ namespace FastCG
         mLightingConstants.light0QuadraticAttenuation = pPointLight->GetQuadraticAttenuation();
         mLightingConstants.ambientColor = mArgs.rAmbientLight;
 
-        // TODO:
-        mLightingConstants.shadowMapViewProjection = INVALID_SHADOW_MAP_PROJECTION;
-        mLightingConstants.shadowMapBias = 0;
-        pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
-
-        BindSSAOTexture(isSSAOEnabled, pRenderingContext);
+        UpdatePCSSConstants(pPointLight, near, pRenderingContext);
+        UpdateSSAOConstants(isSSAOEnabled, pRenderingContext);
 
         pRenderingContext->Copy(mpLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
         mLightingConstants.light0Position = glm::vec4(rDirection, -1);
         mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
@@ -480,22 +536,8 @@ namespace FastCG
         mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();
         mLightingConstants.ambientColor = mArgs.rAmbientLight;
 
-        ShadowMap shadowMap;
-        if (GetShadowMap(pDirectionalLight, shadowMap))
-        {
-            mLightingConstants.shadowMapViewProjection = shadowMap.GetProjection() * shadowMap.GetView();
-            mLightingConstants.shadowMapBias = mShadowMapBias;
-
-            pRenderingContext->Bind(shadowMap.GetTexture(), "uShadowMap", 2);
-        }
-        else
-        {
-            mLightingConstants.shadowMapViewProjection = INVALID_SHADOW_MAP_PROJECTION;
-            mLightingConstants.shadowMapBias = 0;
-            pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
-        }
-
-        BindSSAOTexture(isSSAOEnabled, pRenderingContext);
+        UpdatePCSSConstants(pDirectionalLight, near, pRenderingContext);
+        UpdateSSAOConstants(isSSAOEnabled, pRenderingContext);
 
         pRenderingContext->Copy(mpLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
     }

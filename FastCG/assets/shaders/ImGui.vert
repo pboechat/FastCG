@@ -5,7 +5,7 @@
 #endif
 
 #include "FastCG.glsl"
-#include "ImGuiConstants.glsl"
+#include "ImGui.glsl"
 
 layout(location = 0) in vec2 iPosition;
 layout(location = 1) in vec2 iUV;

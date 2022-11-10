@@ -7,6 +7,8 @@
 
 namespace FastCG
 {
+    class BaseApplication;
+
     struct ImGuiSystemArgs
     {
         const uint32_t &rScreenWidth;

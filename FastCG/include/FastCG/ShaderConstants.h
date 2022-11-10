@@ -9,6 +9,22 @@
 
 namespace FastCG
 {
+    struct ShadowMapData
+    {
+        glm::mat4 viewProjection;
+        float bias{0.005f};
+        float padding[3];
+    };
+
+    struct PCSSData
+    {
+        ShadowMapData shadowMapData;
+        float near;
+        int blockerSearchSamples{16};
+        int pcfSamples{16};
+        float padding;
+    };
+
     namespace ForwardRenderingPath
     {
         struct SceneConstants
@@ -41,9 +57,7 @@ namespace FastCG
             float light0LinearAttenuation;
             float light0QuadraticAttenuation;
             glm::vec4 ambientColor;
-            glm::mat4 shadowMapViewProjection;
-            float shadowMapBias;
-            float padding[3];
+            PCSSData pcssData;
         };
 
     }

@@ -24,6 +24,6 @@ void Controls::OnUpdate(float time, float deltaTime)
 		{
 			mpLightsAnimator->ChangeColors();
 		}
+		ImGui::End();
 	}
-	ImGui::End();
 }

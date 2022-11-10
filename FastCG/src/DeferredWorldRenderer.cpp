@@ -110,15 +110,15 @@ namespace FastCG
         pRenderingContext->Bind(mGBufferRenderTargets[5], "uDepth", 9);
     }
 
-    void DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        BaseWorldRenderer::UpdateLightingConstants(pPointLight, rView, isSSAOEnabled, pRenderingContext);
+        BaseWorldRenderer::UpdateLightingConstants(pPointLight, rView, near, isSSAOEnabled, pRenderingContext);
         BindGBufferTextures(pRenderingContext);
     }
 
-    void DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rDirection, isSSAOEnabled, pRenderingContext);
+        BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rDirection, near, isSSAOEnabled, pRenderingContext);
         BindGBufferTextures(pRenderingContext);
     }
 
@@ -136,7 +136,8 @@ namespace FastCG
             {
                 GenerateShadowMaps(pRenderingContext);
 
-                const bool isSSAOEnabled = pCamera->IsSSAOEnabled();
+                const auto near = pCamera->GetFrustrumNear();
+                const auto isSSAOEnabled = pCamera->IsSSAOEnabled();
 
                 if (isSSAOEnabled)
                 {
@@ -274,7 +275,7 @@ namespace FastCG
                                 pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
                                 UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
                                 pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
-                                UpdateLightingConstants(pPointLight, view, isSSAOEnabled, pRenderingContext);
+                                UpdateLightingConstants(pPointLight, view, near, isSSAOEnabled, pRenderingContext);
                                 pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                 pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
@@ -312,7 +313,7 @@ namespace FastCG
                         const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
                         pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                         {
-                            UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), isSSAOEnabled, pRenderingContext);
+                            UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), near, isSSAOEnabled, pRenderingContext);
                             pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                             pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());

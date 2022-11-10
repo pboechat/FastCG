@@ -38,48 +38,68 @@ namespace FastCG
 		BaseWorldRenderer(const WorldRendererArgs &rArgs) : mArgs(rArgs) {}
 		virtual ~BaseWorldRenderer() = default;
 
-		inline void Initialize() override;
-		inline void Finalize() override;
-
-		inline float GetShadowMapBias() const
+		inline float GetShadowMapBias() const override
 		{
-			return mShadowMapBias;
+			return mLightingConstants.pcssData.shadowMapData.bias;
 		}
 
-		inline void SetShadowMapBias(float shadowMapBias)
+		inline void SetShadowMapBias(float shadowMapBias) override
 		{
-			return mShadowMapBias = shadowMapBias;
+			mLightingConstants.pcssData.shadowMapData.bias = shadowMapBias;
 		}
 
-		inline void SetSSAORadius(float radius)
+		inline uint32_t GetPCSSBlockerSearchSamples() const override
 		{
-			mSSAOHighFrequencyPassConstants.radius = radius;
+			return (uint32_t)mLightingConstants.pcssData.blockerSearchSamples;
 		}
 
-		inline float GetSSAORadius() const
+		inline void SetPCSSBlockerSearchSamples(uint32_t pcssBlockerSearchSamples) override
+		{
+			mLightingConstants.pcssData.blockerSearchSamples = pcssBlockerSearchSamples;
+		}
+
+		inline uint32_t GetPCSSPCFSamples() const override
+		{
+			return (uint32_t)mLightingConstants.pcssData.pcfSamples;
+		}
+
+		inline void SetPCSSPCFSamples(uint32_t pcssPCFSamples) override
+		{
+			mLightingConstants.pcssData.pcfSamples = pcssPCFSamples;
+		}
+
+		inline float GetSSAORadius() const override
 		{
 			return mSSAOHighFrequencyPassConstants.radius;
 		}
 
-		inline void SetSSAODistanceScale(float distanceScale)
+		inline void SetSSAORadius(float radius) override
 		{
-			mSSAOHighFrequencyPassConstants.distanceScale = distanceScale;
+			mSSAOHighFrequencyPassConstants.radius = radius;
 		}
 
-		inline float GetSSAODistanceScale() const
+		inline float GetSSAODistanceScale() const override
 		{
 			return mSSAOHighFrequencyPassConstants.distanceScale;
 		}
 
-		inline bool IsSSAOBlurEnabled() const
+		inline void SetSSAODistanceScale(float distanceScale) override
+		{
+			mSSAOHighFrequencyPassConstants.distanceScale = distanceScale;
+		}
+
+		inline bool IsSSAOBlurEnabled() const override
 		{
 			return mSSAOBlurEnabled;
 		}
 
-		inline void SetSSAOBlurEnabled(bool ssaoBlurEnabled)
+		inline void SetSSAOBlurEnabled(bool ssaoBlurEnabled) override
 		{
 			mSSAOBlurEnabled = ssaoBlurEnabled;
 		}
+
+		inline void Initialize() override;
+		inline void Finalize() override;
 
 	protected:
 		const WorldRendererArgs mArgs;
@@ -96,8 +116,8 @@ namespace FastCG
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
 		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
 		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, bool isSSAOEnabled, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext);
 		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 
 	private:
@@ -151,7 +171,6 @@ namespace FastCG
 		ShadowMapPassConstants mShadowMapPassConstants{};
 		const Texture *mpEmptyShadowMap{nullptr};
 		std::unordered_map<ShadowMapKey, ShadowMap> mShadowMaps;
-		float mShadowMapBias{0.01f};
 		std::array<const Texture *, 2> mSSAORenderTargets;
 		const Shader *mpSSAOHighFrequencyPassShader{nullptr};
 		const Shader *mpSSAOBlurPassShader{nullptr};
@@ -166,8 +185,13 @@ namespace FastCG
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
 		inline void UpdateShadowMapPassConstants(const glm::mat4 &rModelViewProjection, RenderingContext *pRenderingContext);
-		inline void BindSSAOTexture(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
+		inline void UpdatePCSSConstants(const PointLight *pPointLight, float near, RenderingContext *pRenderingContext);
+		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float near, RenderingContext *pRenderingContext);
+		inline void UpdateSSAOConstants(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
 		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
+#ifdef _DEBUG
+		inline void DebugMenuCallback();
+#endif
 	};
 
 }

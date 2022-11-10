@@ -9,6 +9,8 @@
 
 namespace FastCG
 {
+	class BaseApplication;
+
 	struct InputSystemArgs
 	{
 	};
@@ -44,8 +46,6 @@ namespace FastCG
 				pressedElementsMask &= ~elementMask;
 			}
 		}
-
-		friend class BaseApplication;
 
 	private:
 		class InputBuffer
@@ -85,6 +85,8 @@ namespace FastCG
 		void IncrementMouseWheelDelta();
 		void DecrementMouseWheelDelta();
 		void Swap();
+
+		friend class BaseApplication;
 	};
 
 }
