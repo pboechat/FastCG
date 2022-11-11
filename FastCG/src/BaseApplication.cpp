@@ -40,8 +40,8 @@ namespace
 			const ImVec4 green = {0, 1, 0, 1};
 			const ImVec4 red = {1, 0, 0, 1};
 
-			ImGui::Text("Target: %.6lf", target);
-			ImGui::TextColored(target == 0 || frame <= target ? green : red, "Frame: %.6lf", frame);
+			ImGui::Text("Target: %.6lf (%zu)", target, target == 0 ? 0 : (uint64_t)(1 / target));
+			ImGui::TextColored(target == 0 || frame <= target ? green : red, "Frame: %.6lf (%zu)", frame, frame == 0 ? 0 : (uint64_t)(1 / frame));
 			ImGui::TextColored(target == 0 || cpu <= target ? green : red, "CPU: %.6lf", cpu);
 			ImGui::TextColored(target == 0 || gpu <= target ? green : red, "GPU: %.6lf", gpu);
 			ImGui::TextColored(target == 0 || present <= target ? green : red, "Present: %.6lf", present);
