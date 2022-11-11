@@ -48,6 +48,16 @@ namespace FastCG
 			mLightingConstants.pcssData.shadowMapData.bias = shadowMapBias;
 		}
 
+		inline float GetPCSSUvScale() const override
+		{
+			return mLightingConstants.pcssData.uvScale;
+		}
+
+		inline void SetPCSSUvScale(float uvScale) override
+		{
+			mLightingConstants.pcssData.uvScale = uvScale;
+		}
+
 		inline uint32_t GetPCSSBlockerSearchSamples() const override
 		{
 			return (uint32_t)mLightingConstants.pcssData.blockerSearchSamples;

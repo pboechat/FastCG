@@ -11,6 +11,8 @@ namespace FastCG
     public:
         virtual float GetShadowMapBias() const = 0;
         virtual void SetShadowMapBias(float shadowMapBias) = 0;
+        virtual float GetPCSSUvScale() const = 0;
+        virtual void SetPCSSUvScale(float uvScale) = 0;
         virtual uint32_t GetPCSSBlockerSearchSamples() const = 0;
         virtual void SetPCSSBlockerSearchSamples(uint32_t pcssBlockerSearchSamples) = 0;
         virtual uint32_t GetPCSSPCFSamples() const = 0;

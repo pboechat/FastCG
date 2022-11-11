@@ -24,7 +24,9 @@ void Controls::OnUpdate(float time, float deltaTime)
     {
         auto shadowMapBias = pWorldRenderer->GetShadowMapBias();
         ImGui::SliderFloat("Shadow Map Bias", &shadowMapBias, 0, 0.1f);
-        pWorldRenderer->SetShadowMapBias(shadowMapBias);
+        auto uvScale = pWorldRenderer->GetPCSSUvScale();
+        ImGui::SliderFloat("UV Scale", &uvScale, 0, 0.2f);
+        pWorldRenderer->SetPCSSUvScale(uvScale);
         auto blockerSearchSamples = (int)pWorldRenderer->GetPCSSBlockerSearchSamples();
         ImGui::SliderInt("Blocker Search Samples (+/-)", &blockerSearchSamples, 1, 64);
         pWorldRenderer->SetPCSSBlockerSearchSamples((uint32_t)blockerSearchSamples);

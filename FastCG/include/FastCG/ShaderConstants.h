@@ -19,10 +19,10 @@ namespace FastCG
     struct PCSSData
     {
         ShadowMapData shadowMapData;
+        float uvScale{0.05f};
         float nearClip;
         int blockerSearchSamples{16};
         int pcfSamples{16};
-        float padding;
     };
 
     namespace ForwardRenderingPath

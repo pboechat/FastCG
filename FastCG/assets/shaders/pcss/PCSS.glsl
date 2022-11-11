@@ -8,11 +8,10 @@
 // Based on:
 // hhttps://developer.download.nvidia.com/whitepapers/2008/PCSS_Integration.pdf
 
-#define SCALE 0.133333
-
 struct PCSSData
 {
     ShadowMapData shadowMapData;
+	float uvScale;
 	float nearClip;
 	int blockerSearchSamples;
 	int pcfSamples;
@@ -20,7 +19,7 @@ struct PCSSData
 
 float SearchWidth(PCSSData pcssData, float receiverDistance)
 {
-	return SCALE * (receiverDistance - pcssData.nearClip) / receiverDistance;
+	return pcssData.uvScale * (receiverDistance - pcssData.nearClip) / receiverDistance;
 }
 
 void FindBlocker(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, out float avgBlockerDistance, out int numBlockers)
@@ -70,7 +69,7 @@ float GetPCSS(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
 	float penumbraWidth = (shadowMapCoords.z - avgBlockerDistance) / avgBlockerDistance;
 
 	// percentage-close filtering
-	float uvRadius = penumbraWidth * SCALE * pcssData.nearClip / shadowMapCoords.z;
+	float uvRadius = penumbraWidth * pcssData.uvScale * pcssData.nearClip / shadowMapCoords.z;
 	return 1 - PCF(pcssData, shadowMap, shadowMapCoords, uvRadius);
 }
 

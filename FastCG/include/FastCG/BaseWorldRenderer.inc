@@ -238,6 +238,7 @@ namespace FastCG
     {
         if (ImGui::BeginMenu("PCSS"))
         {
+            ImGui::SliderFloat("UV Scale", &mLightingConstants.pcssData.uvScale, 0, 0.2f);
             ImGui::SliderFloat("Shadow Map Bias", &mLightingConstants.pcssData.shadowMapData.bias, 0, 0.1f);
             ImGui::SliderInt("Blocker Search Samples", &mLightingConstants.pcssData.blockerSearchSamples, 1, 64);
             ImGui::SliderInt("PCF Samples", &mLightingConstants.pcssData.pcfSamples, 1, 64);
