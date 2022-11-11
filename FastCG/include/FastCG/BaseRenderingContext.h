@@ -75,6 +75,8 @@ namespace FastCG
         using Shader = ShaderT;
         using Texture = TextureT;
 
+        virtual ~BaseRenderingContext() = default;
+
         // Template interface
         void Begin();
         void PushDebugMarker(const char *name);
@@ -111,6 +113,7 @@ namespace FastCG
         void SetPrimitiveType(PrimitiveType primitiveType);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t indexCount, uint32_t firstIndex, int32_t vertexOffset);
         void End();
+        double GetElapsedTime();
     };
 
 }

@@ -33,11 +33,18 @@
 
 namespace
 {
-	void DeclareRenderingStatisticsWindow(float fps, const FastCG::RenderingStatistics &rRenderingStatistics)
+	void DeclareStatisticsWindow(double target, double frame, double cpu, double gpu, double present, const FastCG::RenderingStatistics &rRenderingStatistics)
 	{
-		if (ImGui::Begin("Rendering Statistics"))
+		if (ImGui::Begin("Statistics"))
 		{
-			ImGui::Text("FPS: %.3f", fps);
+			const ImVec4 green = {0, 1, 0, 1};
+			const ImVec4 red = {1, 0, 0, 1};
+
+			ImGui::Text("Target: %.6lf", target);
+			ImGui::TextColored(target == 0 || frame <= target ? green : red, "Frame: %.6lf", frame);
+			ImGui::TextColored(target == 0 || cpu <= target ? green : red, "CPU: %.6lf", cpu);
+			ImGui::TextColored(target == 0 || gpu <= target ? green : red, "GPU: %.6lf", gpu);
+			ImGui::TextColored(target == 0 || present <= target ? green : red, "Present: %.6lf", present);
 			ImGui::Text("Draw Calls: %u", rRenderingStatistics.drawCalls);
 			ImGui::Text("Triangles: %u", rRenderingStatistics.triangles);
 			ImGui::End();
@@ -82,7 +89,7 @@ namespace FastCG
 																			mClearColor(settings.clearColor),
 																			mAmbientLight(settings.ambientLight),
 																			mFrameRate(settings.frameRate),
-																			mSecondsPerFrame(1 / (double)settings.frameRate),
+																			mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate),
 																			mpRenderBatchStrategy(std::make_unique<RenderBatchStrategy>())
 	{
 		if (smpInstance != nullptr)
@@ -313,20 +320,21 @@ namespace FastCG
 
 	void BaseApplication::RunMainLoopIteration()
 	{
-		auto startTime = mStartTimer.GetTime();
-		double deltaTime;
-		if (mLastFrameTime != 0)
+		auto cpuStart = mStartTimer.GetTime();
+		double frameDeltaTime;
+		if (mLastFrameStart != 0)
 		{
-			deltaTime = startTime - mLastFrameTime;
+			frameDeltaTime = cpuStart - mLastFrameStart;
 		}
 		else
 		{
-			deltaTime = 0;
+			frameDeltaTime = 0;
 		}
+		mLastFrameStart = cpuStart;
 
 		InputSystem::GetInstance()->Swap();
 
-		ImGuiSystem::GetInstance()->BeginFrame(deltaTime);
+		ImGuiSystem::GetInstance()->BeginFrame(frameDeltaTime);
 
 		for (auto *pGameObject : mGameObjects)
 		{
@@ -339,12 +347,10 @@ namespace FastCG
 
 		for (auto *pBehaviour : mBehaviours)
 		{
-			pBehaviour->Update((float)startTime, (float)deltaTime);
+			pBehaviour->Update((float)cpuStart, (float)frameDeltaTime);
 		}
 
-		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
-
-		DeclareRenderingStatisticsWindow(1 / (float)deltaTime, mRenderingStatistics);
+		DeclareStatisticsWindow(mSecondsPerFrame, frameDeltaTime, mLastCpuElapsedTime, mLastGpuElapsedTime, RenderingSystem::GetInstance()->GetLastPresentElapsedTime(), mRenderingStatistics);
 #ifdef _DEBUG
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif
@@ -353,26 +359,34 @@ namespace FastCG
 
 		mRenderingStatistics.Reset();
 
-		if (mpMainCamera != nullptr)
+		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
+		pRenderingContext->Begin();
 		{
-			mpWorldRenderer->Render(mpMainCamera, pRenderingContext);
+			if (mpMainCamera != nullptr)
+			{
+				mpWorldRenderer->Render(mpMainCamera, pRenderingContext);
+			}
+			mpImGuiRenderer->Render(ImGui::GetDrawData(), pRenderingContext);
 		}
-		mpImGuiRenderer->Render(ImGui::GetDrawData(), pRenderingContext);
+		pRenderingContext->End();
+
+		auto cpuEnd = mStartTimer.GetTime();
+		mLastCpuElapsedTime = cpuEnd - cpuStart;
 
 		RenderingSystem::GetInstance()->Present();
 
-		mLastFrameTime = startTime;
+		mLastGpuElapsedTime = pRenderingContext->GetElapsedTime();
 
-		mTotalElapsedTime += deltaTime;
+		mTotalFrameElapsedTime += frameDeltaTime;
 		mFrameCount++;
 
 		if (mFrameRate != UNLOCKED_FRAMERATE)
 		{
-			auto idleTime = mSecondsPerFrame - deltaTime;
+			auto idleTime = mSecondsPerFrame - frameDeltaTime;
 			if (idleTime > 0)
 			{
 				Thread::Sleep(idleTime);
-				deltaTime += idleTime;
+				frameDeltaTime += idleTime;
 			}
 		}
 	}

@@ -90,6 +90,10 @@ namespace FastCG
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
 #endif
 
+#ifdef _DEBUG
+        glGenQueries(FASTCG_ARRAYSIZE(mTimestampQueries), mTimestampQueries);
+#endif
+
         // Create backbuffer handler (fake texture)
         mpBackbuffer = CreateTexture({"Backbuffer",
                                       1,
@@ -124,6 +128,10 @@ namespace FastCG
             glDeleteVertexArrays(1, &kvp.second);
         }
         mVaoIds.clear();
+
+#ifdef _DEBUG
+        glDeleteQueries(FASTCG_ARRAYSIZE(mTimestampQueries), mTimestampQueries);
+#endif
 
         DestroyOpenGLContext();
 
@@ -527,6 +535,10 @@ namespace FastCG
 
     void OpenGLRenderingSystem::Present()
     {
+#ifdef _DEBUG
+        glQueryCounter(mTimestampQueries[mCurrentQuery], GL_TIMESTAMP);
+        glGetInteger64v(GL_TIMESTAMP, &mPresentStart[mCurrentQuery]);
+#endif
 #if defined FASTCG_WINDOWS
         auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
         SwapBuffers(hDC);
@@ -537,6 +549,35 @@ namespace FastCG
         glXSwapBuffers(pDisplay, window);
 #else
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
+#endif
+#ifdef _DEBUG
+        // retrieve the previous timestamp query
+
+        mCurrentQuery = (mCurrentQuery + 1) % FASTCG_ARRAYSIZE(mTimestampQueries);
+
+        GLint done = 0;
+        while (!done)
+        {
+            glGetQueryObjectiv(mTimestampQueries[mCurrentQuery], GL_QUERY_RESULT_AVAILABLE, &done);
+        }
+
+        GLuint64 presentEnd;
+        glGetQueryObjectui64v(mTimestampQueries[mCurrentQuery], GL_QUERY_RESULT, &presentEnd);
+
+        mLastPresentElapsedTime = (presentEnd - (GLuint64)mPresentStart[mCurrentQuery]) * 1e-9;
+#endif
+        for (auto *pRenderingContext : mRenderingContexts)
+        {
+            pRenderingContext->RetrieveElapsedTime();
+        }
+    }
+
+    double OpenGLRenderingSystem::GetLastPresentElapsedTime()
+    {
+#ifdef _DEBUG
+        return mLastPresentElapsedTime;
+#else
+        return 0;
 #endif
     }
 }

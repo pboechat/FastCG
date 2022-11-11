@@ -152,213 +152,209 @@ namespace FastCG
         auto view = pCamera->GetView();
         auto projection = pCamera->GetProjection();
 
-        pRenderingContext->Begin();
+        pRenderingContext->PushDebugMarker("Deferred World Rendering");
         {
-            pRenderingContext->PushDebugMarker("Deferred World Rendering");
+            GenerateShadowMaps(pRenderingContext);
+
+            const auto nearClip = pCamera->GetFrustrumNear();
+            const auto isSSAOEnabled = pCamera->IsSSAOEnabled();
+
+            if (isSSAOEnabled)
             {
-                GenerateShadowMaps(pRenderingContext);
+                GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), mGBufferRenderTargets[5], pRenderingContext);
+            }
 
-                const auto nearClip = pCamera->GetFrustrumNear();
-                const auto isSSAOEnabled = pCamera->IsSSAOEnabled();
+            pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+            pRenderingContext->SetDepthTest(true);
+            pRenderingContext->SetDepthWrite(true);
+            pRenderingContext->SetStencilTest(false);
+            pRenderingContext->SetStencilWriteMask(0);
+            pRenderingContext->SetScissorTest(false);
+            pRenderingContext->SetCullMode(Face::BACK);
+            pRenderingContext->SetBlend(false);
+            pRenderingContext->SetRenderTargets(mGBufferRenderTargets.data(), 6);
 
-                if (isSSAOEnabled)
+            pRenderingContext->PushDebugMarker("Clear G-Buffer");
+            {
+                for (auto i : {0, 1, 2, 3, 4})
                 {
-                    GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), mGBufferRenderTargets[5], pRenderingContext);
+                    pRenderingContext->ClearRenderTarget(i, Colors::NONE);
                 }
+                pRenderingContext->ClearDepthStencilTarget(0, 1, 0);
+            }
+            pRenderingContext->PopDebugMarker();
 
-                pRenderingContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
-                pRenderingContext->SetDepthTest(true);
-                pRenderingContext->SetDepthWrite(true);
-                pRenderingContext->SetStencilTest(false);
-                pRenderingContext->SetStencilWriteMask(0);
-                pRenderingContext->SetScissorTest(false);
-                pRenderingContext->SetCullMode(Face::BACK);
-                pRenderingContext->SetBlend(false);
-                pRenderingContext->SetRenderTargets(mGBufferRenderTargets.data(), 6);
-
-                pRenderingContext->PushDebugMarker("Clear G-Buffer");
+            auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
+            if (renderBatchIt != mArgs.rRenderBatches.cend())
+            {
+                pRenderingContext->PushDebugMarker("Material Passes");
                 {
-                    for (auto i : {0, 1, 2, 3, 4})
-                    {
-                        pRenderingContext->ClearRenderTarget(i, Colors::NONE);
-                    }
-                    pRenderingContext->ClearDepthStencilTarget(0, 1, 0);
-                }
-                pRenderingContext->PopDebugMarker();
+                    UpdateSceneConstants(view, projection, pRenderingContext);
 
-                auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
-                if (renderBatchIt != mArgs.rRenderBatches.cend())
-                {
-                    pRenderingContext->PushDebugMarker("Material Passes");
+                    for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
-                        UpdateSceneConstants(view, projection, pRenderingContext);
+                        const auto *pMaterial = renderBatchIt->pMaterial;
 
-                        for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
+                        pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                         {
-                            const auto *pMaterial = renderBatchIt->pMaterial;
+                            assert(renderBatchIt->type == RenderBatchType::MATERIAL_BASED);
 
-                            pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
+                            SetupMaterial(pMaterial, pRenderingContext);
+
+                            pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+
+                            for (const auto *pRenderable : renderBatchIt->renderables)
                             {
-                                assert(renderBatchIt->type == RenderBatchType::MATERIAL_BASED);
-
-                                SetupMaterial(pMaterial, pRenderingContext);
-
-                                pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
-
-                                for (const auto *pRenderable : renderBatchIt->renderables)
+                                if (!pRenderable->GetGameObject()->IsActive())
                                 {
-                                    if (!pRenderable->GetGameObject()->IsActive())
-                                    {
-                                        continue;
-                                    }
-
-                                    UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
-                                    pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
-
-                                    auto *pMesh = pRenderable->GetMesh();
-
-                                    pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                                    pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
-
-                                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
-
-                                    mArgs.rRenderingStatistics.drawCalls++;
-                                    mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                                    continue;
                                 }
-                            }
-                            pRenderingContext->PopDebugMarker();
-                        }
-                    }
-                    pRenderingContext->PopDebugMarker();
-                }
 
-                pRenderingContext->PushDebugMarker("Clear G-Buffer Final Render Target");
-                {
-                    pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
-                    pRenderingContext->ClearRenderTarget(0, Colors::NONE);
-                }
-                pRenderingContext->PopDebugMarker();
-
-                pRenderingContext->PushDebugMarker("Point Light Passes");
-                {
-                    for (size_t i = 0; i < mArgs.rPointLights.size(); i++)
-                    {
-                        const auto *pPointLight = mArgs.rPointLights[i];
-
-                        pRenderingContext->PushDebugMarker((std::string("Point Light Pass (") + std::to_string(i) + ")").c_str());
-                        {
-                            auto model = glm::scale(pPointLight->GetGameObject()->GetTransform()->GetModel(), glm::vec3(CalculateLightBoundingSphereScale(pPointLight)));
-
-                            UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
-
-                            pRenderingContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Stencil Sub-Pass").c_str());
-                            {
-                                pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[5], 1);
-                                pRenderingContext->ClearStencilTarget(0, 0);
-
-                                pRenderingContext->SetStencilWriteMask(0xff);
-                                pRenderingContext->SetDepthTest(true);
-                                pRenderingContext->SetDepthWrite(false);
-                                pRenderingContext->SetStencilTest(true);
-                                pRenderingContext->SetStencilFunc(Face::FRONT_AND_BACK, CompareOp::ALWAYS, 0, 0);
-                                pRenderingContext->SetStencilOp(Face::BACK, StencilOp::KEEP, StencilOp::INCREMENT_AND_CLAMP, StencilOp::KEEP);
-                                pRenderingContext->SetStencilOp(Face::FRONT, StencilOp::KEEP, StencilOp::DECREMENT_AND_CLAMP, StencilOp::KEEP);
-                                pRenderingContext->SetBlend(false);
-                                pRenderingContext->SetCullMode(Face::NONE);
-
-                                pRenderingContext->Bind(mpStencilPassShader);
-
+                                UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
                                 pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
 
-                                pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
-                                pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
+                                auto *pMesh = pRenderable->GetMesh();
 
-                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpSphereMesh->GetIndexCount(), 0, 0);
+                                pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
+                                pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
 
-                                mArgs.rRenderingStatistics.drawCalls++;
-                            }
-                            pRenderingContext->PopDebugMarker();
-
-                            pRenderingContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Color Sub-Pass").c_str());
-                            {
-                                pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[5], 2);
-
-                                pRenderingContext->SetDepthTest(false);
-                                pRenderingContext->SetDepthWrite(false);
-                                pRenderingContext->SetStencilTest(true);
-                                pRenderingContext->SetStencilWriteMask(0);
-                                pRenderingContext->SetStencilFunc(Face::FRONT_AND_BACK, CompareOp::NOT_EQUAL, 0, 0xff);
-                                pRenderingContext->SetBlend(true);
-                                pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
-                                pRenderingContext->SetBlendFactors(BlendFactor::ONE, BlendFactor::ONE, BlendFactor::ZERO, BlendFactor::ZERO);
-                                pRenderingContext->SetCullMode(Face::FRONT);
-
-                                pRenderingContext->Bind(mpPointLightPassShader);
-                                pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
-                                UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
-                                pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
-                                UpdateLightingConstants(pPointLight, view, nearClip, isSSAOEnabled, pRenderingContext);
-                                pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
-
-                                pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
-                                pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
-
-                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpSphereMesh->GetIndexCount(), 0, 0);
+                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
 
                                 mArgs.rRenderingStatistics.drawCalls++;
+                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
                             }
-                            pRenderingContext->PopDebugMarker();
                         }
                         pRenderingContext->PopDebugMarker();
                     }
                 }
                 pRenderingContext->PopDebugMarker();
+            }
 
-                pRenderingContext->PushDebugMarker("Directional Light Passes");
+            pRenderingContext->PushDebugMarker("Clear G-Buffer Final Render Target");
+            {
+                pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
+                pRenderingContext->ClearRenderTarget(0, Colors::NONE);
+            }
+            pRenderingContext->PopDebugMarker();
+
+            pRenderingContext->PushDebugMarker("Point Light Passes");
+            {
+                for (size_t i = 0; i < mArgs.rPointLights.size(); i++)
                 {
-                    pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
+                    const auto *pPointLight = mArgs.rPointLights[i];
 
-                    pRenderingContext->SetDepthTest(false);
-                    pRenderingContext->SetDepthWrite(false);
-                    pRenderingContext->SetStencilTest(false);
-                    pRenderingContext->SetStencilWriteMask(0);
-                    pRenderingContext->SetBlend(true);
-                    pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
-                    pRenderingContext->SetBlendFactors(BlendFactor::ONE, BlendFactor::ONE, BlendFactor::ZERO, BlendFactor::ZERO);
-                    pRenderingContext->SetCullMode(Face::BACK);
-
-                    pRenderingContext->Bind(mpDirectionalLightPassShader);
-
-                    auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
-                    for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
+                    pRenderingContext->PushDebugMarker((std::string("Point Light Pass (") + std::to_string(i) + ")").c_str());
                     {
-                        const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
-                        pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
+                        auto model = glm::scale(pPointLight->GetGameObject()->GetTransform()->GetModel(), glm::vec3(CalculateLightBoundingSphereScale(pPointLight)));
+
+                        UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
+
+                        pRenderingContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Stencil Sub-Pass").c_str());
                         {
-                            UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pRenderingContext);
+                            pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[5], 1);
+                            pRenderingContext->ClearStencilTarget(0, 0);
+
+                            pRenderingContext->SetStencilWriteMask(0xff);
+                            pRenderingContext->SetDepthTest(true);
+                            pRenderingContext->SetDepthWrite(false);
+                            pRenderingContext->SetStencilTest(true);
+                            pRenderingContext->SetStencilFunc(Face::FRONT_AND_BACK, CompareOp::ALWAYS, 0, 0);
+                            pRenderingContext->SetStencilOp(Face::BACK, StencilOp::KEEP, StencilOp::INCREMENT_AND_CLAMP, StencilOp::KEEP);
+                            pRenderingContext->SetStencilOp(Face::FRONT, StencilOp::KEEP, StencilOp::DECREMENT_AND_CLAMP, StencilOp::KEEP);
+                            pRenderingContext->SetBlend(false);
+                            pRenderingContext->SetCullMode(Face::NONE);
+
+                            pRenderingContext->Bind(mpStencilPassShader);
+
+                            pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
+
+                            pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
+                            pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
+
+                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpSphereMesh->GetIndexCount(), 0, 0);
+
+                            mArgs.rRenderingStatistics.drawCalls++;
+                        }
+                        pRenderingContext->PopDebugMarker();
+
+                        pRenderingContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Color Sub-Pass").c_str());
+                        {
+                            pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[5], 2);
+
+                            pRenderingContext->SetDepthTest(false);
+                            pRenderingContext->SetDepthWrite(false);
+                            pRenderingContext->SetStencilTest(true);
+                            pRenderingContext->SetStencilWriteMask(0);
+                            pRenderingContext->SetStencilFunc(Face::FRONT_AND_BACK, CompareOp::NOT_EQUAL, 0, 0xff);
+                            pRenderingContext->SetBlend(true);
+                            pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
+                            pRenderingContext->SetBlendFactors(BlendFactor::ONE, BlendFactor::ONE, BlendFactor::ZERO, BlendFactor::ZERO);
+                            pRenderingContext->SetCullMode(Face::FRONT);
+
+                            pRenderingContext->Bind(mpPointLightPassShader);
+                            pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+                            UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
+                            pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
+                            UpdateLightingConstants(pPointLight, view, nearClip, isSSAOEnabled, pRenderingContext);
                             pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
-                            pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
-                            pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
+                            pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
+                            pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
 
-                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpSphereMesh->GetIndexCount(), 0, 0);
 
                             mArgs.rRenderingStatistics.drawCalls++;
                         }
                         pRenderingContext->PopDebugMarker();
                     }
+                    pRenderingContext->PopDebugMarker();
                 }
-                pRenderingContext->PopDebugMarker();
+            }
+            pRenderingContext->PopDebugMarker();
 
-                pRenderingContext->PushDebugMarker("Blit G-Buffer Final Render Target into Color Backbuffer");
+            pRenderingContext->PushDebugMarker("Directional Light Passes");
+            {
+                pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
+
+                pRenderingContext->SetDepthTest(false);
+                pRenderingContext->SetDepthWrite(false);
+                pRenderingContext->SetStencilTest(false);
+                pRenderingContext->SetStencilWriteMask(0);
+                pRenderingContext->SetBlend(true);
+                pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
+                pRenderingContext->SetBlendFactors(BlendFactor::ONE, BlendFactor::ONE, BlendFactor::ZERO, BlendFactor::ZERO);
+                pRenderingContext->SetCullMode(Face::BACK);
+
+                pRenderingContext->Bind(mpDirectionalLightPassShader);
+
+                auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
+                for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
                 {
-                    pRenderingContext->Blit(mGBufferRenderTargets[6], RenderingSystem::GetInstance()->GetBackbuffer());
+                    const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
+                    pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
+                    {
+                        UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pRenderingContext);
+                        pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
+
+                        pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
+                        pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
+
+                        pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+
+                        mArgs.rRenderingStatistics.drawCalls++;
+                    }
+                    pRenderingContext->PopDebugMarker();
                 }
-                pRenderingContext->PopDebugMarker();
+            }
+            pRenderingContext->PopDebugMarker();
+
+            pRenderingContext->PushDebugMarker("Blit G-Buffer Final Render Target into Color Backbuffer");
+            {
+                pRenderingContext->Blit(mGBufferRenderTargets[6], RenderingSystem::GetInstance()->GetBackbuffer());
             }
             pRenderingContext->PopDebugMarker();
         }
-        pRenderingContext->End();
+        pRenderingContext->PopDebugMarker();
     }
 
     void DeferredWorldRenderer::Finalize()

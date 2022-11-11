@@ -8,8 +8,13 @@
 #include <FastCG/OpenGLBuffer.h>
 #include <FastCG/BaseRenderingContext.h>
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 namespace FastCG
 {
+    class OpenGLRenderingSystem;
+
     class OpenGLRenderingContext : public BaseRenderingContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
     public:
@@ -47,9 +52,25 @@ namespace FastCG
         void SetIndexBuffer(const OpenGLBuffer *pBuffer);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t indexCount, uint32_t firstIndex, int32_t vertexOffset);
         void End();
+        double GetElapsedTime();
 
     private:
         const OpenGLShader *mpBoundShader{nullptr};
+        bool mEnded{true};
+#ifdef _DEBUG
+        GLuint mTimeElapsedQueries[2]{}; // double buffered
+        size_t mCurrentQuery{0};
+        double mElapsedTime{0};
+#endif
+
+        OpenGLRenderingContext();
+        virtual ~OpenGLRenderingContext();
+
+#ifdef _DEBUG
+        void RetrieveElapsedTime();
+#endif
+
+        friend class OpenGLRenderingSystem;
     };
 
 }

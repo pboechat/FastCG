@@ -160,8 +160,10 @@ namespace FastCG
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
 		size_t mFrameCount{0};
-		double mTotalElapsedTime{0};
-		double mLastFrameTime{0};
+		double mTotalFrameElapsedTime{0};
+		double mLastFrameStart{0};
+		double mLastCpuElapsedTime{0};
+		double mLastGpuElapsedTime{0};
 		RenderingStatistics mRenderingStatistics;
 		Camera *mpMainCamera{nullptr};
 		std::vector<GameObject *> mGameObjects;

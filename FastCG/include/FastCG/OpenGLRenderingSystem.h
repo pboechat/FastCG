@@ -98,11 +98,18 @@ namespace FastCG
         const OpenGLTexture *mpBackbuffer;
         std::unordered_map<uint32_t, GLuint> mFboIds;
         std::unordered_map<uint32_t, GLuint> mVaoIds;
+#ifdef _DEBUG
+        GLuint mTimestampQueries[2]{}; // double buffered
+        size_t mCurrentQuery{0};
+        GLint64 mPresentStart[2]{};
+        double mLastPresentElapsedTime{0};
+#endif
 
         void Initialize();
         void Resize() {}
         void Present();
         void Finalize();
+        double GetLastPresentElapsedTime();
 #ifdef FASTCG_LINUX
         void AcquireVisualInfoAndFbConfig();
 #endif

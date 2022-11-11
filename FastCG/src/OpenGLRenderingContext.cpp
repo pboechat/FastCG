@@ -6,18 +6,34 @@
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/Exception.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #include <vector>
 #include <cassert>
 #include <algorithm>
 
 namespace FastCG
 {
+    OpenGLRenderingContext::OpenGLRenderingContext()
+    {
+#ifdef _DEBUG
+        glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
+#endif
+    }
+
+    OpenGLRenderingContext::~OpenGLRenderingContext()
+    {
+#ifdef _DEBUG
+        glDeleteQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
+#endif
+    }
+
     void OpenGLRenderingContext::Begin()
     {
-        FASTCG_CHECK_OPENGL_ERROR();
+        assert(mEnded);
+        mEnded = false;
+#ifdef _DEBUG
+        mElapsedTime = 0;
+        glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[mCurrentQuery]);
+#endif
     }
 
     void OpenGLRenderingContext::PushDebugMarker(const char *name)
@@ -349,8 +365,45 @@ namespace FastCG
 
     void OpenGLRenderingContext::End()
     {
+        assert(!mEnded);
         mpBoundShader = nullptr;
         FASTCG_CHECK_OPENGL_ERROR();
+
+#ifdef _DEBUG
+        glEndQuery(GL_TIME_ELAPSED);
+#endif
+        mEnded = true;
+    }
+
+#ifdef _DEBUG
+    void OpenGLRenderingContext::RetrieveElapsedTime()
+    {
+        assert(mEnded);
+
+        // retrieves the result of the previous query
+
+        mCurrentQuery = (mCurrentQuery + 1) % FASTCG_ARRAYSIZE(mTimeElapsedQueries);
+
+        GLint done = 0;
+        while (!done)
+        {
+            glGetQueryObjectiv(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT_AVAILABLE, &done);
+        }
+
+        GLuint64 elapsedTime;
+        glGetQueryObjectui64v(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT, &elapsedTime);
+
+        mElapsedTime = elapsedTime * 1e-9;
+    }
+#endif
+
+    double OpenGLRenderingContext::GetElapsedTime()
+    {
+#ifdef _DEBUG
+        return mElapsedTime;
+#else
+        return 0;
+#endif
     }
 
 }

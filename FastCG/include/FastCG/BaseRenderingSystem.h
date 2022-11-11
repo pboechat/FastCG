@@ -79,6 +79,7 @@ namespace FastCG
         void Resize();
         void Present();
         void Finalize();
+        double GetLastPresentElapsedTime();
 
         friend class BaseApplication;
     };
