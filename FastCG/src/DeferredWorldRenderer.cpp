@@ -22,6 +22,17 @@ namespace FastCG
     {
         BaseWorldRenderer::Initialize();
 
+        CreateGBufferRenderTargets();
+
+        mpStencilPassShader = RenderingSystem::GetInstance()->FindShader("StencilPass");
+        mpDirectionalLightPassShader = RenderingSystem::GetInstance()->FindShader("DirectionalLightPass");
+        mpPointLightPassShader = RenderingSystem::GetInstance()->FindShader("PointLightPass");
+
+        mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
+    }
+
+    void DeferredWorldRenderer::CreateGBufferRenderTargets()
+    {
         mGBufferRenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Diffuse",
                                                                                   mArgs.rScreenWidth,
                                                                                   mArgs.rScreenHeight,
@@ -92,12 +103,15 @@ namespace FastCG
                                                                                   TextureFilter::POINT_FILTER,
                                                                                   TextureWrapMode::CLAMP,
                                                                                   false});
+    }
 
-        mpStencilPassShader = RenderingSystem::GetInstance()->FindShader("StencilPass");
-        mpDirectionalLightPassShader = RenderingSystem::GetInstance()->FindShader("DirectionalLightPass");
-        mpPointLightPassShader = RenderingSystem::GetInstance()->FindShader("PointLightPass");
-
-        mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
+    void DeferredWorldRenderer::DestroyGBufferRenderTargets()
+    {
+        for (const auto *pRenderTarget : mGBufferRenderTargets)
+        {
+            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+        }
+        memset(mGBufferRenderTargets.data(), 0, sizeof(mGBufferRenderTargets));
     }
 
     void DeferredWorldRenderer::BindGBufferTextures(RenderingContext *pRenderingContext) const
@@ -120,6 +134,14 @@ namespace FastCG
     {
         BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rDirection, nearClip, isSSAOEnabled, pRenderingContext);
         BindGBufferTextures(pRenderingContext);
+    }
+
+    void DeferredWorldRenderer::Resize()
+    {
+        BaseWorldRenderer::Resize();
+
+        DestroyGBufferRenderTargets();
+        CreateGBufferRenderTargets();
     }
 
     void DeferredWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)
@@ -346,11 +368,7 @@ namespace FastCG
             RenderingSystem::GetInstance()->DestroyMesh(mpSphereMesh);
         }
 
-        for (const auto *pRenderTarget : mGBufferRenderTargets)
-        {
-            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
-        }
-        memset(mGBufferRenderTargets.data(), 0, sizeof(mGBufferRenderTargets));
+        DestroyGBufferRenderTargets();
 
         BaseWorldRenderer::Finalize();
     }

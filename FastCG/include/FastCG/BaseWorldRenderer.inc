@@ -88,26 +88,7 @@ namespace FastCG
         mpShadowMapPassShader = RenderingSystem::GetInstance()->FindShader("ShadowMapPass");
         assert(mpShadowMapPassShader != nullptr);
 
-        mSSAORenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"Ambient Occlusion Map",
-                                                                               mArgs.rScreenWidth,
-                                                                               mArgs.rScreenHeight,
-                                                                               TextureType::TEXTURE_2D,
-                                                                               TextureFormat::R,
-                                                                               {8},
-                                                                               TextureDataType::FLOAT,
-                                                                               TextureFilter::LINEAR_FILTER,
-                                                                               TextureWrapMode::CLAMP,
-                                                                               false});
-        mSSAORenderTargets[1] = RenderingSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
-                                                                               mArgs.rScreenWidth,
-                                                                               mArgs.rScreenHeight,
-                                                                               TextureType::TEXTURE_2D,
-                                                                               TextureFormat::R,
-                                                                               {8},
-                                                                               TextureDataType::FLOAT,
-                                                                               TextureFilter::LINEAR_FILTER,
-                                                                               TextureWrapMode::CLAMP,
-                                                                               false});
+        CreateSSAORenderTargets();
 
         mpSSAOHighFrequencyPassConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"SSAO High Frequency Pass Constants",
                                                                                                BufferType::UNIFORM,
@@ -163,6 +144,48 @@ namespace FastCG
         assert(mpTonemapShader != nullptr);
 
         mpQuadMesh = StandardGeometries::CreateXYPlane("Fullscreen Quad", 2, 2, 1, 1, glm::vec3(0, 0, 0));
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::CreateSSAORenderTargets()
+    {
+        mSSAORenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"Ambient Occlusion Map",
+                                                                               mArgs.rScreenWidth,
+                                                                               mArgs.rScreenHeight,
+                                                                               TextureType::TEXTURE_2D,
+                                                                               TextureFormat::R,
+                                                                               {8},
+                                                                               TextureDataType::FLOAT,
+                                                                               TextureFilter::LINEAR_FILTER,
+                                                                               TextureWrapMode::CLAMP,
+                                                                               false});
+        mSSAORenderTargets[1] = RenderingSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
+                                                                               mArgs.rScreenWidth,
+                                                                               mArgs.rScreenHeight,
+                                                                               TextureType::TEXTURE_2D,
+                                                                               TextureFormat::R,
+                                                                               {8},
+                                                                               TextureDataType::FLOAT,
+                                                                               TextureFilter::LINEAR_FILTER,
+                                                                               TextureWrapMode::CLAMP,
+                                                                               false});
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::DestroySSAORenderTargets()
+    {
+        for (const auto *pRenderTarget : mSSAORenderTargets)
+        {
+            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+        }
+        memset(mSSAORenderTargets.data(), 0, sizeof(mSSAORenderTargets));
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Resize()
+    {
+        DestroySSAORenderTargets();
+        CreateSSAORenderTargets();
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -223,12 +246,6 @@ namespace FastCG
             RenderingSystem::GetInstance()->DestroyBuffer(mpSSAOHighFrequencyPassConstantsBuffer);
             mpSSAOHighFrequencyPassConstantsBuffer = nullptr;
         }
-
-        for (const auto *pRenderTarget : mSSAORenderTargets)
-        {
-            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
-        }
-        memset(mSSAORenderTargets.data(), 0, sizeof(mSSAORenderTargets));
 
         mpTonemapShader = nullptr;
     }

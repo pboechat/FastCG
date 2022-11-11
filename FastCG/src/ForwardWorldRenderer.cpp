@@ -27,6 +27,11 @@ namespace FastCG
     {
         BaseWorldRenderer::Initialize();
 
+        CreateRenderTargets();
+    }
+
+    void ForwardWorldRenderer::CreateRenderTargets()
+    {
         mRenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"Color",
                                                                            mArgs.rScreenWidth,
                                                                            mArgs.rScreenHeight,
@@ -50,7 +55,7 @@ namespace FastCG
                                                                            false});
     }
 
-    void ForwardWorldRenderer::Finalize()
+    void ForwardWorldRenderer::DestroyRenderTargets()
     {
         for (auto *pRenderTarget : mRenderTargets)
         {
@@ -59,6 +64,19 @@ namespace FastCG
                 RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
             }
         }
+    }
+
+    void ForwardWorldRenderer::Resize()
+    {
+        BaseWorldRenderer::Resize();
+
+        DestroyRenderTargets();
+        CreateRenderTargets();
+    }
+
+    void ForwardWorldRenderer::Finalize()
+    {
+        DestroyRenderTargets();
 
         BaseWorldRenderer::Finalize();
     }

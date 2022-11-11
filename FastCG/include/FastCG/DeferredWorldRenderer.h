@@ -14,10 +14,13 @@ namespace FastCG
         DeferredWorldRenderer(const WorldRendererArgs &rArgs) : BaseWorldRenderer(rArgs) {}
 
         void Initialize() override;
+        void Resize() override;
         void Render(const Camera *pCamera, RenderingContext *pRenderingContext) override;
         void Finalize() override;
 
     protected:
+        void CreateGBufferRenderTargets();
+        void DestroyGBufferRenderTargets();
         void BindGBufferTextures(RenderingContext *pRenderingContext) const;
         void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;
         void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;

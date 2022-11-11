@@ -24,6 +24,7 @@ namespace FastCG
         virtual bool IsSSAOBlurEnabled() const = 0;
         virtual void SetSSAOBlurEnabled(bool ssaoBlurEnabled) = 0;
         virtual void Initialize() = 0;
+        virtual void Resize() = 0;
         virtual void Finalize() = 0;
         virtual void Render(const Camera *pCamera, RenderingContext *pRenderingContext) = 0;
     };

@@ -109,6 +109,7 @@ namespace FastCG
 		}
 
 		inline void Initialize() override;
+		inline void Resize() override;
 		inline void Finalize() override;
 
 	protected:
@@ -191,6 +192,8 @@ namespace FastCG
 		bool mSSAOBlurEnabled{true};
 		const Shader *mpTonemapShader{nullptr};
 
+		inline void CreateSSAORenderTargets();
+		inline void DestroySSAORenderTargets();
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;

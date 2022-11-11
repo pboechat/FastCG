@@ -416,6 +416,7 @@ namespace FastCG
 			mpMainCamera->SetAspectRatio(GetAspectRatio());
 		}
 		RenderingSystem::GetInstance()->Resize();
+		mpWorldRenderer->Resize();
 		OnResize();
 	}
 }
