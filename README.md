@@ -19,7 +19,8 @@ It features:
     - Deferred
  - Multiple rendering techniques:
     - SSAO
-    - PCSS (TODO)
+    - PCSS
+    - HDR/Tonemap (TODO)
  - Simple asset management:
     - Support to multiple image types (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
     - Support to OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
