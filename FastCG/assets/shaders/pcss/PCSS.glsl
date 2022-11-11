@@ -13,14 +13,14 @@
 struct PCSSData
 {
     ShadowMapData shadowMapData;
-	float near;
+	float nearClip;
 	int blockerSearchSamples;
 	int pcfSamples;
 };
 
 float SearchWidth(PCSSData pcssData, float receiverDistance)
 {
-	return SCALE * (receiverDistance - pcssData.near) / receiverDistance;
+	return SCALE * (receiverDistance - pcssData.nearClip) / receiverDistance;
 }
 
 void FindBlocker(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, out float avgBlockerDistance, out int numBlockers)
@@ -70,7 +70,7 @@ float GetPCSS(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
 	float penumbraWidth = (shadowMapCoords.z - avgBlockerDistance) / avgBlockerDistance;
 
 	// percentage-close filtering
-	float uvRadius = penumbraWidth * SCALE * pcssData.near / shadowMapCoords.z;
+	float uvRadius = penumbraWidth * SCALE * pcssData.nearClip / shadowMapCoords.z;
 	return 1 - PCF(pcssData, shadowMap, shadowMapCoords, uvRadius);
 }
 

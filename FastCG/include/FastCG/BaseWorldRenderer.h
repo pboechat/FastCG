@@ -116,8 +116,8 @@ namespace FastCG
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
 		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
 		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
 		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 
 	private:
@@ -185,8 +185,8 @@ namespace FastCG
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
 		inline void UpdateShadowMapPassConstants(const glm::mat4 &rModelViewProjection, RenderingContext *pRenderingContext);
-		inline void UpdatePCSSConstants(const PointLight *pPointLight, float near, RenderingContext *pRenderingContext);
-		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float near, RenderingContext *pRenderingContext);
+		inline void UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, RenderingContext *pRenderingContext);
+		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, RenderingContext *pRenderingContext);
 		inline void UpdateSSAOConstants(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
 		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
 #ifdef _DEBUG

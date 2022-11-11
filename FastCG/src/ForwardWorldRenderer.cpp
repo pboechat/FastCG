@@ -77,7 +77,7 @@ namespace FastCG
             {
                 GenerateShadowMaps(pRenderingContext);
 
-                const auto near = pCamera->GetFrustrumNear();
+                const auto nearClip = pCamera->GetFrustrumNear();
                 const auto isSSAOEnabled = pCamera->IsSSAOEnabled();
 
                 if (isSSAOEnabled)
@@ -173,7 +173,7 @@ namespace FastCG
 
                                                 const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
 
-                                                UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), near, isSSAOEnabled, pRenderingContext);
+                                                UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pRenderingContext);
                                                 pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                                 pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
@@ -211,7 +211,7 @@ namespace FastCG
                                                     break;
                                                 }
 
-                                                UpdateLightingConstants(mArgs.rPointLights[i], view, near, isSSAOEnabled, pRenderingContext);
+                                                UpdateLightingConstants(mArgs.rPointLights[i], view, nearClip, isSSAOEnabled, pRenderingContext);
 
                                                 pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 

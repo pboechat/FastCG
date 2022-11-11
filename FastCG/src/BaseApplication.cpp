@@ -344,7 +344,7 @@ namespace FastCG
 
 		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
 
-		DeclareRenderingStatisticsWindow(1.0f / deltaTime, mRenderingStatistics);
+		DeclareRenderingStatisticsWindow(1 / (float)deltaTime, mRenderingStatistics);
 #ifdef _DEBUG
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif

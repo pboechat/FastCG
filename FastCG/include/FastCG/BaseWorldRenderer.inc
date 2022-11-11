@@ -456,32 +456,32 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float near, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, RenderingContext *pRenderingContext)
     {
         // TODO:
 
         mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
-        mLightingConstants.pcssData.near = 0;
+        mLightingConstants.pcssData.nearClip = 0;
 
         pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float near, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, RenderingContext *pRenderingContext)
     {
         ShadowMap shadowMap;
         if (GetShadowMap(pDirectionalLight, shadowMap))
         {
             auto view = shadowMap.GetView();
             mLightingConstants.pcssData.shadowMapData.viewProjection = shadowMap.GetProjection() * view;
-            mLightingConstants.pcssData.near = near;
+            mLightingConstants.pcssData.nearClip = nearClip;
 
             pRenderingContext->Bind(shadowMap.GetTexture(), "uShadowMap", 2);
         }
         else
         {
             mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
-            mLightingConstants.pcssData.near = 0;
+            mLightingConstants.pcssData.nearClip = 0;
 
             pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
         }
@@ -508,7 +508,7 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
         mLightingConstants.light0Position = glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1);
         mLightingConstants.light0ViewPosition = rView * mLightingConstants.light0Position;
@@ -520,14 +520,14 @@ namespace FastCG
         mLightingConstants.light0QuadraticAttenuation = pPointLight->GetQuadraticAttenuation();
         mLightingConstants.ambientColor = mArgs.rAmbientLight;
 
-        UpdatePCSSConstants(pPointLight, near, pRenderingContext);
+        UpdatePCSSConstants(pPointLight, nearClip, pRenderingContext);
         UpdateSSAOConstants(isSSAOEnabled, pRenderingContext);
 
         pRenderingContext->Copy(mpLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float near, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
         mLightingConstants.light0Position = glm::vec4(rDirection, -1);
         mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
@@ -536,7 +536,7 @@ namespace FastCG
         mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();
         mLightingConstants.ambientColor = mArgs.rAmbientLight;
 
-        UpdatePCSSConstants(pDirectionalLight, near, pRenderingContext);
+        UpdatePCSSConstants(pDirectionalLight, nearClip, pRenderingContext);
         UpdateSSAOConstants(isSSAOEnabled, pRenderingContext);
 
         pRenderingContext->Copy(mpLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
