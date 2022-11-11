@@ -55,7 +55,7 @@ namespace FastCG
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Initialize()
     {
 #ifdef _DEBUG
-        DebugMenuSystem::GetInstance()->AddItem("Renderer", std::bind(&BaseWorldRenderer::DebugMenuCallback, this));
+        DebugMenuSystem::GetInstance()->AddItem("World Renderer", std::bind(&BaseWorldRenderer::DebugMenuCallback, this));
 #endif
 
         mpLightingConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"Lighting Constants",
