@@ -250,6 +250,7 @@ namespace FastCG
         mpTonemapShader = nullptr;
     }
 
+#ifdef _DEBUG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::DebugMenuCallback()
     {
@@ -269,6 +270,7 @@ namespace FastCG
             ImGui::EndMenu();
         }
     }
+#endif
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     const typename BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::ShadowMap &BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetOrCreateShadowMap(const Light *pLight)

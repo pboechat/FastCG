@@ -562,11 +562,12 @@ namespace FastCG
         glGetQueryObjectui64v(mPresentTimestampQuery, GL_QUERY_RESULT, &presentEnd);
 
         mPresentElapsedTime = (presentEnd - (GLuint64)presentStart) * 1e-9;
-#endif
+        
         for (auto *pRenderingContext : mRenderingContexts)
         {
             pRenderingContext->RetrieveElapsedTime();
         }
+#endif
     }
 
     double OpenGLRenderingSystem::GetLastPresentElapsedTime()
