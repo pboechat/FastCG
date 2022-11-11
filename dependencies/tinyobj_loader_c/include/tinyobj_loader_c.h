@@ -1352,7 +1352,7 @@ static char *generate_mtl_filename(const char *obj_filename,
   /* Overwrite the obj basename with the mtllib name, filling the string */
   auto plen = mtl_filename_length - mtllib_name_length;
   p = &mtl_filename[plen];
-  strncpy(p, mtllib_name, mtllib_name_length);
+  strncpy_s(p, mtllib_name_length, mtllib_name, mtllib_name_length);
   return mtl_filename;
 }
 
