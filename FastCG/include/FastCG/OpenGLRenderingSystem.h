@@ -99,10 +99,8 @@ namespace FastCG
         std::unordered_map<uint32_t, GLuint> mFboIds;
         std::unordered_map<uint32_t, GLuint> mVaoIds;
 #ifdef _DEBUG
-        GLuint mTimestampQueries[2]{}; // double buffered
-        size_t mCurrentQuery{0};
-        GLint64 mPresentStart[2]{};
-        double mLastPresentElapsedTime{0};
+        GLuint mPresentTimestampQuery{~0u};
+        double mPresentElapsedTime{0};
 #endif
 
         void Initialize();

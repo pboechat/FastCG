@@ -91,7 +91,7 @@ namespace FastCG
 #endif
 
 #ifdef _DEBUG
-        glGenQueries(FASTCG_ARRAYSIZE(mTimestampQueries), mTimestampQueries);
+        glGenQueries(1, &mPresentTimestampQuery);
 #endif
 
         // Create backbuffer handler (fake texture)
@@ -130,7 +130,7 @@ namespace FastCG
         mVaoIds.clear();
 
 #ifdef _DEBUG
-        glDeleteQueries(FASTCG_ARRAYSIZE(mTimestampQueries), mTimestampQueries);
+        glDeleteQueries(1, &mPresentTimestampQuery);
 #endif
 
         DestroyOpenGLContext();
@@ -536,8 +536,9 @@ namespace FastCG
     void OpenGLRenderingSystem::Present()
     {
 #ifdef _DEBUG
-        glQueryCounter(mTimestampQueries[mCurrentQuery], GL_TIMESTAMP);
-        glGetInteger64v(GL_TIMESTAMP, &mPresentStart[mCurrentQuery]);
+        GLint64 presentStart;
+        glQueryCounter(mPresentTimestampQuery, GL_TIMESTAMP);
+        glGetInteger64v(GL_TIMESTAMP, &presentStart);
 #endif
 #if defined FASTCG_WINDOWS
         auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
@@ -551,20 +552,16 @@ namespace FastCG
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
 #endif
 #ifdef _DEBUG
-        // retrieve the previous timestamp query
-
-        mCurrentQuery = (mCurrentQuery + 1) % FASTCG_ARRAYSIZE(mTimestampQueries);
-
         GLint done = 0;
         while (!done)
         {
-            glGetQueryObjectiv(mTimestampQueries[mCurrentQuery], GL_QUERY_RESULT_AVAILABLE, &done);
+            glGetQueryObjectiv(mPresentTimestampQuery, GL_QUERY_RESULT_AVAILABLE, &done);
         }
 
         GLuint64 presentEnd;
-        glGetQueryObjectui64v(mTimestampQueries[mCurrentQuery], GL_QUERY_RESULT, &presentEnd);
+        glGetQueryObjectui64v(mPresentTimestampQuery, GL_QUERY_RESULT, &presentEnd);
 
-        mLastPresentElapsedTime = (presentEnd - (GLuint64)mPresentStart[mCurrentQuery]) * 1e-9;
+        mPresentElapsedTime = (presentEnd - (GLuint64)presentStart) * 1e-9;
 #endif
         for (auto *pRenderingContext : mRenderingContexts)
         {
@@ -575,7 +572,7 @@ namespace FastCG
     double OpenGLRenderingSystem::GetLastPresentElapsedTime()
     {
 #ifdef _DEBUG
-        return mLastPresentElapsedTime;
+        return mPresentElapsedTime;
 #else
         return 0;
 #endif
