@@ -21,7 +21,7 @@ void main()
 	vec4 diffuseColor = texture(uDiffuseMap, vUV);
 	vec3 normal = UnpackNormalFromColor(texture(uNormalMap, vUV)).xyz;
 	vec4 specularColor = texture(uSpecularMap, vUV);
-	float shininess = specularColor.w;
+	float shininess = UnpackFromNormalizedValue(specularColor.w);
 	specularColor = vec4(specularColor.xyz, 1.0);
 	vec4 tangent = UnpackNormalFromColor(texture(uTangentMap, vUV));
 	vec4 extraData = texture(uExtraData, vUV);

@@ -21,7 +21,7 @@ void main()
 {
 	oDiffuse = uDiffuseColor * texture(uColorMap, vUV * uColorMapTiling);
 	oNormal = vec4(PackNormalToColor(vNormal), 0.0);
-	oSpecular = vec4(uSpecularColor.xyz, uShininess);
+	oSpecular = vec4(uSpecularColor.xyz, PackToNormalizedValue(uShininess));
 	oTangent = PackNormalToColor(vTangent);
 	oExtraData = vec4(texture(uBumpMap, vUV * uBumpMapTiling).xyz, 0.0);
 }

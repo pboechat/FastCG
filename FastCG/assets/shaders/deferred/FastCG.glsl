@@ -6,6 +6,16 @@
 const float DEPTH_RANGE_NEAR = 0;
 const float DEPTH_RANGE_FAR = 1;
 
+float PackToNormalizedValue(float value)
+{
+    return value / 256.0;
+}
+
+float UnpackFromNormalizedValue(float value)
+{
+    return value * 256.0;
+}
+
 vec3 GetViewPositionFromScreenCoordsAndDepth(mat4 projection, mat4 inverseProjection, vec2 screenSize, vec3 screenCoords)
 {
 	vec3 ndc;

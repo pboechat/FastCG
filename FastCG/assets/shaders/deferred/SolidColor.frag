@@ -17,5 +17,5 @@ void main()
 {
 	oDiffuse = uDiffuseColor;
 	oNormal = vec4(PackNormalToColor(vNormal), 0.0);
-	oSpecular = vec4(uSpecularColor.xyz, uShininess);
+	oSpecular = vec4(uSpecularColor.xyz, PackToNormalizedValue(uShininess));
 }
