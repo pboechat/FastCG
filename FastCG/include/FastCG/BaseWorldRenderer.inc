@@ -528,10 +528,11 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        mLightingConstants.light0Position = glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetPosition(), 1);
-        mLightingConstants.light0ViewPosition = rView * mLightingConstants.light0Position;
+        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetPosition();
+        mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
+        mLightingConstants.light0ViewPosition = rInverseView * mLightingConstants.light0Position;
         mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();
         mLightingConstants.light0SpecularColor = pPointLight->GetSpecularColor();
         mLightingConstants.light0Intensity = pPointLight->GetIntensity();
@@ -547,9 +548,9 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        mLightingConstants.light0Position = glm::vec4(rDirection, -1);
+        mLightingConstants.light0Position = glm::vec4(rViewDirection, -1);
         mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
         mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
         mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
@@ -563,10 +564,10 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext)
     {
         mSceneConstants.view = rView;
-        mSceneConstants.inverseView = glm::inverse(rView);
+        mSceneConstants.inverseView = rInverseView;
         mSceneConstants.projection = rProjection;
         mSceneConstants.inverseProjection = glm::inverse(rProjection);
         mSceneConstants.screenSize = glm::vec2{mArgs.rScreenWidth, mArgs.rScreenHeight};

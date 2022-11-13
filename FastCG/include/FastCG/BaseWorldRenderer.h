@@ -127,9 +127,9 @@ namespace FastCG
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
 		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
 		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
-		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
+		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 
 	private:
 		using ShadowMapKey = uint64_t;
@@ -150,7 +150,9 @@ namespace FastCG
 			{
 				if (mpLight->GetType().IsDerived(DirectionalLight::TYPE))
 				{
-					return glm::lookAt(static_cast<const DirectionalLight *>(mpLight)->GetDirection(), glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0});
+					auto *pDirectionalLight = static_cast<const DirectionalLight *>(mpLight);
+					auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
+					return glm::lookAt(directionalLightPosition, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0});
 				}
 				else
 				{

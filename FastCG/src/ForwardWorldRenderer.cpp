@@ -87,6 +87,7 @@ namespace FastCG
         assert(pRenderingContext != nullptr);
 
         auto view = pCamera->GetView();
+        auto inverseView = glm::inverse(view);
         auto projection = pCamera->GetProjection();
 
         pRenderingContext->PushDebugMarker("Forward World Rendering");
@@ -122,7 +123,7 @@ namespace FastCG
             {
                 pRenderingContext->PushDebugMarker("Material Passes");
                 {
-                    UpdateSceneConstants(view, projection, pRenderingContext);
+                    UpdateSceneConstants(view, inverseView, projection, pRenderingContext);
 
                     for (; renderBatchesIt != mArgs.rRenderBatches.cend(); ++renderBatchesIt)
                     {
@@ -169,7 +170,7 @@ namespace FastCG
 
                                     SubpassType lastSubpassType{SubpassType::ST_NONE};
 
-                                    auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
+                                    auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
 
                                     for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
                                     {
@@ -189,7 +190,9 @@ namespace FastCG
 
                                             const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
 
-                                            UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pRenderingContext);
+                                            auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
+
+                                            UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pRenderingContext);
                                             pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                             pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
@@ -227,7 +230,7 @@ namespace FastCG
                                                 break;
                                             }
 
-                                            UpdateLightingConstants(mArgs.rPointLights[i], view, nearClip, isSSAOEnabled, pRenderingContext);
+                                            UpdateLightingConstants(mArgs.rPointLights[i], inverseView, nearClip, isSSAOEnabled, pRenderingContext);
 
                                             pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 

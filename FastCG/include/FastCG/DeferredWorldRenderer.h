@@ -22,8 +22,8 @@ namespace FastCG
         void CreateGBufferRenderTargets();
         void DestroyGBufferRenderTargets();
         void BindGBufferTextures(RenderingContext *pRenderingContext) const;
-        void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;
-        void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;
+        void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;
+        void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;
 
     private:
         std::array<const Texture *, 7> mGBufferRenderTargets;

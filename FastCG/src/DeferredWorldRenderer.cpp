@@ -124,15 +124,15 @@ namespace FastCG
         pRenderingContext->Bind(mGBufferRenderTargets[5], "uDepth", 9);
     }
 
-    void DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        BaseWorldRenderer::UpdateLightingConstants(pPointLight, rView, nearClip, isSSAOEnabled, pRenderingContext);
+        BaseWorldRenderer::UpdateLightingConstants(pPointLight, rInverseView, nearClip, isSSAOEnabled, pRenderingContext);
         BindGBufferTextures(pRenderingContext);
     }
 
-    void DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
+    void DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rDirection, nearClip, isSSAOEnabled, pRenderingContext);
+        BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rViewDirection, nearClip, isSSAOEnabled, pRenderingContext);
         BindGBufferTextures(pRenderingContext);
     }
 
@@ -150,6 +150,7 @@ namespace FastCG
         assert(pRenderingContext != nullptr);
 
         auto view = pCamera->GetView();
+        auto inverseView = glm::inverse(view);
         auto projection = pCamera->GetProjection();
 
         pRenderingContext->PushDebugMarker("Deferred World Rendering");
@@ -189,7 +190,7 @@ namespace FastCG
             {
                 pRenderingContext->PushDebugMarker("Material Passes");
                 {
-                    UpdateSceneConstants(view, projection, pRenderingContext);
+                    UpdateSceneConstants(view, inverseView, projection, pRenderingContext);
 
                     for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
@@ -210,7 +211,7 @@ namespace FastCG
                                     continue;
                                 }
 
-                                UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
+                                UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), view, projection, pRenderingContext);
                                 pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
 
                                 auto *pMesh = pRenderable->GetMesh();
@@ -247,7 +248,7 @@ namespace FastCG
                     {
                         auto model = glm::scale(pPointLight->GetGameObject()->GetTransform()->GetModel(), glm::vec3(CalculateLightBoundingSphereScale(pPointLight)));
 
-                        UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
+                        UpdateInstanceConstants(model, view, projection, pRenderingContext);
 
                         pRenderingContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Stencil Sub-Pass").c_str());
                         {
@@ -293,9 +294,9 @@ namespace FastCG
 
                             pRenderingContext->Bind(mpPointLightPassShader);
                             pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
-                            UpdateInstanceConstants(model, mSceneConstants.view, mSceneConstants.projection, pRenderingContext);
+                            UpdateInstanceConstants(model, view, projection, pRenderingContext);
                             pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
-                            UpdateLightingConstants(pPointLight, view, nearClip, isSSAOEnabled, pRenderingContext);
+                            UpdateLightingConstants(pPointLight, inverseView, nearClip, isSSAOEnabled, pRenderingContext);
                             pRenderingContext->Bind(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                             pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());

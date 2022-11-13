@@ -74,6 +74,7 @@ namespace
 		float depthIncrement = GROUND_SIZE / (float)LIGHT_GRID_DEPTH;
 		float horizontalIncrement = GROUND_SIZE / (float)LIGHT_GRID_WIDTH;
 		float intensity = 0.2f;
+		Random::Seed(0);
 		for (float z = 1; z < GROUND_SIZE; z += depthIncrement)
 		{
 			for (float x = 1; x < GROUND_SIZE; x += horizontalIncrement)
