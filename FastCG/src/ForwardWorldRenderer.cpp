@@ -64,14 +64,18 @@ namespace FastCG
                 RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
             }
         }
+        mRenderTargets = {};
     }
 
     void ForwardWorldRenderer::Resize()
     {
         BaseWorldRenderer::Resize();
 
-        DestroyRenderTargets();
-        CreateRenderTargets();
+        if (RenderingSystem::GetInstance()->IsInitialized())
+        {
+            DestroyRenderTargets();
+            CreateRenderTargets();
+        }
     }
 
     void ForwardWorldRenderer::Finalize()

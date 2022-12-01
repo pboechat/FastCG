@@ -26,7 +26,7 @@ namespace FastCG
         void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext) override;
 
     private:
-        std::array<const Texture *, 7> mGBufferRenderTargets;
+        std::array<const Texture *, 7> mGBufferRenderTargets{};
         const Shader *mpStencilPassShader{nullptr};
         const Shader *mpPointLightPassShader{nullptr};
         const Shader *mpDirectionalLightPassShader{nullptr};

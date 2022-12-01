@@ -105,6 +105,8 @@ namespace FastCG
                                       TextureFilter::POINT_FILTER,
                                       TextureWrapMode::CLAMP,
                                       false});
+
+        mInitialized = true;
     }
 
 #define DESTROY_ALL(containerName)             \
@@ -116,6 +118,8 @@ namespace FastCG
 
     void OpenGLRenderingSystem::Finalize()
     {
+        mInitialized = false;
+
         DESTROY_ALL(mMaterials);
         DESTROY_ALL(mMeshes);
         DESTROY_ALL(mShaders);

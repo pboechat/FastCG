@@ -42,6 +42,10 @@ namespace FastCG
         {
             return mArgs.rScreenHeight;
         }
+        inline bool IsInitialized() const
+        {
+            return mInitialized;
+        }
         inline const OpenGLTexture *GetBackbuffer() const
         {
             return mpBackbuffer;
@@ -95,6 +99,7 @@ namespace FastCG
         std::vector<OpenGLRenderingContext *> mRenderingContexts;
         std::vector<OpenGLShader *> mShaders;
         std::vector<OpenGLTexture *> mTextures;
+        bool mInitialized{false};
         const OpenGLTexture *mpBackbuffer;
         std::unordered_map<uint32_t, GLuint> mFboIds;
         std::unordered_map<uint32_t, GLuint> mVaoIds;

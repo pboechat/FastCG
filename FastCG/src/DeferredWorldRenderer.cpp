@@ -109,9 +109,12 @@ namespace FastCG
     {
         for (const auto *pRenderTarget : mGBufferRenderTargets)
         {
-            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+            if (pRenderTarget != nullptr)
+            {
+                RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+            }
         }
-        memset(mGBufferRenderTargets.data(), 0, sizeof(mGBufferRenderTargets));
+        mGBufferRenderTargets = {};
     }
 
     void DeferredWorldRenderer::BindGBufferTextures(RenderingContext *pRenderingContext) const
@@ -140,8 +143,11 @@ namespace FastCG
     {
         BaseWorldRenderer::Resize();
 
-        DestroyGBufferRenderTargets();
-        CreateGBufferRenderTargets();
+        if (RenderingSystem::GetInstance()->IsInitialized())
+        {
+            DestroyGBufferRenderTargets();
+            CreateGBufferRenderTargets();
+        }
     }
 
     void DeferredWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)

@@ -176,16 +176,22 @@ namespace FastCG
     {
         for (const auto *pRenderTarget : mSSAORenderTargets)
         {
-            RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+            if (pRenderTarget != nullptr)
+            {
+                RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+            }
         }
-        memset(mSSAORenderTargets.data(), 0, sizeof(mSSAORenderTargets));
+        mSSAORenderTargets = {};
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Resize()
     {
-        DestroySSAORenderTargets();
-        CreateSSAORenderTargets();
+        if (RenderingSystem::GetInstance()->IsInitialized())
+        {
+            DestroySSAORenderTargets();
+            CreateSSAORenderTargets();
+        }
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>

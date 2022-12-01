@@ -19,7 +19,7 @@ namespace FastCG
         void Finalize() override;
 
     private:
-        std::array<const Texture *, 2> mRenderTargets;
+        std::array<const Texture *, 2> mRenderTargets{};
 
         void CreateRenderTargets();
         void DestroyRenderTargets();

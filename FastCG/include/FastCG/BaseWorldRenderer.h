@@ -184,7 +184,7 @@ namespace FastCG
 		ShadowMapPassConstants mShadowMapPassConstants{};
 		const Texture *mpEmptyShadowMap{nullptr};
 		std::unordered_map<ShadowMapKey, ShadowMap> mShadowMaps;
-		std::array<const Texture *, 2> mSSAORenderTargets;
+		std::array<const Texture *, 2> mSSAORenderTargets{};
 		const Shader *mpSSAOHighFrequencyPassShader{nullptr};
 		const Shader *mpSSAOBlurPassShader{nullptr};
 		const Buffer *mpSSAOHighFrequencyPassConstantsBuffer{nullptr};

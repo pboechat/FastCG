@@ -47,6 +47,7 @@ namespace FastCG
         static_assert(std::is_same<typename RenderingContext::Texture, Texture>::value, "RenderingContext::Texture type must be the same as Texture type");
 
         // Template interface
+        bool IsInitialized() const; 
         const Texture *GetBackbuffer() const;
         uint32_t GetScreenWidth() const;
         uint32_t GetScreenHeight() const;
