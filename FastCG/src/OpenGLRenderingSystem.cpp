@@ -429,6 +429,8 @@ namespace FastCG
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Error making a final WGL context current");
             }
+
+            wglSwapIntervalEXT(mArgs.vsync ? 1 : 0);
         }
 
         if (oldHGLRC != 0)
@@ -503,6 +505,8 @@ namespace FastCG
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Error making a final GLX context current");
             }
+
+            glXSwapIntervalEXT(pDisplay, rWindow, mArgs.vsync ? 1 : 0);
         }
 
         if (pOldRenderContext != nullptr)
@@ -549,9 +553,8 @@ namespace FastCG
         SwapBuffers(hDC);
 #elif defined FASTCG_LINUX
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
-        auto &window = X11Application::GetInstance()->GetWindow();
-        glXSwapIntervalEXT(pDisplay, window, 0);
-        glXSwapBuffers(pDisplay, window);
+        auto &rWindow = X11Application::GetInstance()->GetWindow();
+        glXSwapBuffers(pDisplay, rWindow);
 #else
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
 #endif

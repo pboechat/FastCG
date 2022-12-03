@@ -38,6 +38,7 @@ namespace FastCG
 		uint32_t screenWidth{1024};
 		uint32_t screenHeight{768};
 		uint32_t frameRate{60};
+		bool vsync{false};
 		RenderingPath renderingPath{RenderingPath::FORWARD};
 		std::vector<std::string> assetBundles{};
 		glm::vec4 clearColor{Colors::BLACK};

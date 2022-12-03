@@ -282,7 +282,8 @@ namespace FastCG
 		ImGuiSystem::Create({mScreenWidth,
 							 mScreenHeight});
 		RenderingSystem::Create({mScreenWidth,
-								 mScreenHeight});
+								 mScreenHeight,
+								 mSettings.vsync});
 
 		ImGuiSystem::GetInstance()->Initialize();
 		RenderingSystem::GetInstance()->Initialize();

@@ -25,6 +25,7 @@ namespace FastCG
     {
         const uint32_t &rScreenWidth;
         const uint32_t &rScreenHeight;
+        bool vsync;
     };
 
     template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
