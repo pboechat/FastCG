@@ -156,8 +156,8 @@ namespace FastCG
 		uint32_t mScreenHeight;
 		double mSecondsPerFrame;
 		std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy;
-		std::unique_ptr<IWorldRenderer> mpWorldRenderer{nullptr};
-		std::unique_ptr<ImGuiRenderer> mpImGuiRenderer{nullptr};
+		std::unique_ptr<IWorldRenderer> mpWorldRenderer;
+		std::unique_ptr<ImGuiRenderer> mpImGuiRenderer;
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
 		size_t mFrameCount{0};
