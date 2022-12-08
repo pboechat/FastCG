@@ -64,8 +64,7 @@ namespace FastCG
             message);
     }
 
-    OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs),
-                                                                                     mArgs(rArgs)
+    OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs)
     {
     }
 

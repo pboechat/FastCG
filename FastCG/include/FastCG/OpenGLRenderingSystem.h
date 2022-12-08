@@ -34,14 +34,6 @@ namespace FastCG
         FASTCG_DECLARE_SYSTEM(OpenGLRenderingSystem, RenderingSystemArgs);
 
     public:
-        inline uint32_t GetScreenWidth() const
-        {
-            return mArgs.rScreenWidth;
-        }
-        inline uint32_t GetScreenHeight() const
-        {
-            return mArgs.rScreenHeight;
-        }
         inline bool IsInitialized() const
         {
             return mInitialized;
@@ -92,7 +84,6 @@ namespace FastCG
         GLXFBConfig mpFbConfig{nullptr};
         GLXContext mpRenderContext{nullptr};
 #endif
-        const RenderingSystemArgs mArgs;
         std::vector<OpenGLBuffer *> mBuffers;
         std::vector<OpenGLMaterial *> mMaterials;
         std::vector<OpenGLMesh *> mMeshes;

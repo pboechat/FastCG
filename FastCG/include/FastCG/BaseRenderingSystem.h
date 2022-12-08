@@ -50,8 +50,14 @@ namespace FastCG
         // Template interface
         bool IsInitialized() const; 
         const Texture *GetBackbuffer() const;
-        uint32_t GetScreenWidth() const;
-        uint32_t GetScreenHeight() const;
+        inline uint32_t GetScreenWidth() const
+        {
+            return mArgs.rScreenWidth;
+        }
+        inline uint32_t GetScreenHeight() const
+        {
+            return mArgs.rScreenHeight;
+        }
         Buffer *CreateBuffer(const BufferArgs &rArgs);
         Material *CreateMaterial(const MeshArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
