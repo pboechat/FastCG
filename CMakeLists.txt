@@ -7,4 +7,6 @@ include(cmake/fastcg_targets.cmake)
 
 add_subdirectory(dependencies)
 add_subdirectory(FastCG)
-add_subdirectory(samples)
+if (FASTCG_BUILD_SAMPLES)
+    add_subdirectory(samples)
+endif()
