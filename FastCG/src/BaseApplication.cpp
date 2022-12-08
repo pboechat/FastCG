@@ -224,6 +224,8 @@ namespace FastCG
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif
 
+		WorldSystem::GetInstance()->Update((float)cpuStart, (float)frameDeltaTime);
+
 		ImGuiSystem::GetInstance()->EndFrame();
 
 		mRenderingStatistics.Reset();
