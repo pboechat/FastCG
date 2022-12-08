@@ -198,7 +198,8 @@ namespace FastCG
 		SRT mLocalTransform;
 		SRT mWorldTransform;
 
-		Transform(GameObject *pGameObject) : mpGameObject(pGameObject)
+		Transform(GameObject *pGameObject, const glm::vec3 &rScale = glm::vec3{1, 1, 1}, const glm::quat &rRotation = {}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0}) : mpGameObject(pGameObject),
+																																											 mLocalTransform(rScale, rRotation, rPosition)
 		{
 		}
 

@@ -10,20 +10,18 @@
 
 namespace FastCG
 {
-	GameObject::GameObject()
+	GameObject::GameObject() : mpTransform(new Transform(this), [](void *pData)
+										   { delete pData; })
 	{
-		mpTransform = new Transform(this);
 	}
 
-	GameObject::GameObject(const std::string &rName) : mName(rName)
+	GameObject::GameObject(const std::string &rName, const glm::vec3 &rScale, const glm::quat &rRotation, const glm::vec3 &rPosition) : mName(rName),
+																																		mpTransform(new Transform(this, rScale, rRotation, rPosition), [](void *pData)
+																																					{ delete pData; })
 	{
-		mpTransform = new Transform(this);
 	}
 
-	GameObject::~GameObject()
-	{
-		delete mpTransform;
-	}
+	GameObject::~GameObject() = default;
 
 	void GameObject::SetActive(bool active)
 	{
@@ -100,16 +98,9 @@ namespace FastCG
 		assert(mComponents.size() == 0);
 	}
 
-	GameObject *GameObject::Instantiate()
+	GameObject *GameObject::Instantiate(const std::string &rName, const glm::vec3 &rScale, const glm::quat &rRotation, const glm::vec3 &rPosition)
 	{
-		auto *pGameObject = new GameObject();
-		BaseApplication::GetInstance()->RegisterGameObject(pGameObject);
-		return pGameObject;
-	}
-
-	GameObject *GameObject::Instantiate(const std::string &rName)
-	{
-		auto *pGameObject = new GameObject(rName);
+		auto *pGameObject = new GameObject(rName, rScale, rRotation, rPosition);
 		BaseApplication::GetInstance()->RegisterGameObject(pGameObject);
 		return pGameObject;
 	}

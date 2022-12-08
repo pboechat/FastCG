@@ -3,8 +3,12 @@
 
 #include <FastCG/AABB.h>
 
-#include <string>
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <vector>
+#include <string>
+#include <memory>
 
 namespace FastCG
 {
@@ -16,8 +20,7 @@ namespace FastCG
 	class GameObject
 	{
 	public:
-		static GameObject *Instantiate();
-		static GameObject *Instantiate(const std::string &rName);
+		static GameObject *Instantiate(const std::string &rName = {}, const glm::vec3 &rScale = glm::vec3{1, 1, 1}, const glm::quat &rRotation = {}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0});
 		static void Destroy(GameObject *pGameObject);
 
 		inline const std::string &GetName() const
@@ -32,12 +35,12 @@ namespace FastCG
 
 		inline Transform *GetTransform()
 		{
-			return mpTransform;
+			return mpTransform.get();
 		}
 
 		inline const Transform *GetTransform() const
 		{
-			return mpTransform;
+			return mpTransform.get();
 		}
 
 		inline Renderable *GetRenderable()
@@ -60,20 +63,22 @@ namespace FastCG
 		template <class ComponentT>
 		ComponentT *GetComponent() const
 		{
-			return static_cast<ComponentT*>(GetComponent(ComponentT::TYPE));
+			return static_cast<ComponentT *>(GetComponent(ComponentT::TYPE));
 		}
 		AABB GetBounds() const;
 		friend class Component;
 
 	private:
+		using TransformUniquePtr = std::unique_ptr<Transform, void (*)(void *)>;
+
 		std::string mName;
-		Transform *mpTransform;
+		TransformUniquePtr mpTransform;
 		Renderable *mpRenderable{nullptr};
 		std::vector<Component *> mComponents;
 		bool mActive{true};
 
 		GameObject();
-		GameObject(const std::string &rName);
+		GameObject(const std::string &rName, const glm::vec3 &rScale, const glm::quat &rRotation, const glm::vec3 &rPosition);
 		~GameObject();
 
 		void AddComponent(Component *pComponent);
