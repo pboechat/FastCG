@@ -21,8 +21,6 @@ namespace FastCG
 		const uint32_t &rScreenHeight;
 		const glm::vec4 &rClearColor;
 		const glm::vec4 &rAmbientLight;
-		const std::vector<DirectionalLight *> &rDirectionalLights;
-		const std::vector<PointLight *> &rPointLights;
 		const std::vector<RenderBatch> &rRenderBatches;
 		RenderingStatistics &rRenderingStatistics;
 	};
@@ -205,7 +203,7 @@ namespace FastCG
 		inline void UpdateSSAOConstants(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
 		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
 #ifdef _DEBUG
-		inline void DebugMenuCallback();
+		inline void DebugMenuItemCallback(int &result);
 #endif
 	};
 

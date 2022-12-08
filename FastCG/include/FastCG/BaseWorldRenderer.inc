@@ -1,3 +1,4 @@
+#include <FastCG/WorldSystem.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/Random.h>
 #include <FastCG/MathT.h>
@@ -55,7 +56,7 @@ namespace FastCG
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Initialize()
     {
 #ifdef _DEBUG
-        DebugMenuSystem::GetInstance()->AddItem("World Renderer", std::bind(&BaseWorldRenderer::DebugMenuCallback, this));
+        DebugMenuSystem::GetInstance()->AddItem("World Renderer", std::bind(&BaseWorldRenderer::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
 
         mpLightingConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"Lighting Constants",
@@ -258,7 +259,7 @@ namespace FastCG
 
 #ifdef _DEBUG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::DebugMenuCallback()
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::DebugMenuItemCallback(int &result)
     {
         if (ImGui::BeginMenu("PCSS"))
         {
@@ -339,9 +340,10 @@ namespace FastCG
 
                 auto model = pRenderable->GetGameObject()->GetTransform()->GetModel();
 
-                for (size_t i = 0; i < mArgs.rDirectionalLights.size(); ++i)
+                const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
+                for (size_t i = 0; i < rDirectionalLights.size(); ++i)
                 {
-                    const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
+                    const auto *pDirectionalLight = rDirectionalLights[i];
 
                     const auto &rShadowMap = GetOrCreateShadowMap(pDirectionalLight);
 

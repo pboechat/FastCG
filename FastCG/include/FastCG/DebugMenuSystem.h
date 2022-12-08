@@ -19,20 +19,31 @@ namespace FastCG
     {
     };
 
-    using DebugMenuItemCallback = std::function<void()>;
+    using DebugMenuItemCallback = std::function<void(int &)>;
+    using DebugMenuCallback = std::function<void(int)>;
 
     class DebugMenuSystem
     {
         FASTCG_DECLARE_SYSTEM(DebugMenuSystem, DebugMenuSystemArgs);
 
     public:
-        inline void AddItem(const std::string &name, const DebugMenuItemCallback &callback)
+        inline void AddCallback(const std::string &rName, const DebugMenuCallback &rCallback)
         {
-            mItems.emplace(std::hash<std::string>()(name), Item{name, callback});
+            mCallbacks.emplace(std::hash<std::string>()(rName), rCallback);
         }
-        inline void RemoveItem(const std::string &name)
+        inline void RemoveCallback(const std::string &rName)
         {
-            auto it = mItems.find(std::hash<std::string>()(name));
+            auto it = mCallbacks.find(std::hash<std::string>()(rName));
+            assert(it != mCallbacks.end());
+            mCallbacks.erase(it);
+        }
+        inline void AddItem(const std::string &rName, const DebugMenuItemCallback &rItemCallback)
+        {
+            mItems.emplace(std::hash<std::string>()(rName), Item{rName, rItemCallback});
+        }
+        inline void RemoveItem(const std::string &rName)
+        {
+            auto it = mItems.find(std::hash<std::string>()(rName));
             assert(it != mItems.end());
             mItems.erase(it);
         }
@@ -47,6 +58,7 @@ namespace FastCG
 
         const DebugMenuSystemArgs mArgs;
         std::unordered_map<size_t, Item> mItems;
+        std::unordered_map<size_t, DebugMenuCallback> mCallbacks;
 
         DebugMenuSystem(const DebugMenuSystemArgs &rArgs) : mArgs(rArgs) {}
 

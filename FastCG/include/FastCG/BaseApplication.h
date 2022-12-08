@@ -18,17 +18,9 @@
 
 namespace FastCG
 {
-	class ModelImporter;
 	class RenderBatchStrategy;
-	class Renderable;
-	class PointLight;
 	class ImGuiRenderer;
 	class IWorldRenderer;
-	class GameObject;
-	class DirectionalLight;
-	class Component;
-	class Camera;
-	class Behaviour;
 
 	constexpr uint32_t UNLOCKED_FRAMERATE = ~0u;
 
@@ -76,13 +68,6 @@ namespace FastCG
 			return mScreenWidth / (float)mScreenHeight;
 		}
 
-		inline Camera *GetMainCamera()
-		{
-			return mpMainCamera;
-		}
-
-		void SetMainCamera(Camera *pCamera);
-
 		inline const glm::vec4 &GetClearColor() const
 		{
 			return mClearColor;
@@ -119,8 +104,6 @@ namespace FastCG
 		{
 			mRunning = false;
 		}
-
-		friend class GameObject;
 
 	protected:
 		const ApplicationSettings mSettings;
@@ -166,20 +149,7 @@ namespace FastCG
 		double mLastCpuElapsedTime{0};
 		double mLastGpuElapsedTime{0};
 		RenderingStatistics mRenderingStatistics;
-		Camera *mpMainCamera{nullptr};
-		std::vector<GameObject *> mGameObjects;
-		std::vector<Renderable *> mRenderables;
-		std::vector<DirectionalLight *> mDirectionalLights;
-		std::vector<PointLight *> mPointLights;
-		std::vector<Component *> mComponents;
-		std::vector<Camera *> mCameras;
-		std::vector<Behaviour *> mBehaviours;
 
-		void RegisterGameObject(GameObject *pGameObject);
-		void UnregisterGameObject(GameObject *pGameObject);
-		void RegisterComponent(Component *pComponent);
-		void RegisterCamera(Camera *pCamera);
-		void UnregisterComponent(Component *pComponent);
 		void Initialize();
 		void Finalize();
 	};

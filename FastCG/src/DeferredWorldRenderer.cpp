@@ -1,3 +1,4 @@
+#include <FastCG/WorldSystem.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/MathT.h>
 #include <FastCG/DeferredWorldRenderer.h>
@@ -152,8 +153,12 @@ namespace FastCG
 
     void DeferredWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)
     {
-        assert(pCamera != nullptr);
         assert(pRenderingContext != nullptr);
+
+        if (pCamera == nullptr)
+        {
+            return;
+        }
 
         auto view = pCamera->GetView();
         auto inverseView = glm::inverse(view);
@@ -246,9 +251,10 @@ namespace FastCG
 
             pRenderingContext->PushDebugMarker("Point Light Passes");
             {
-                for (size_t i = 0; i < mArgs.rPointLights.size(); i++)
+                const auto &rPointLights = WorldSystem::GetInstance()->GetPointLights();
+                for (size_t i = 0; i < rPointLights.size(); i++)
                 {
-                    const auto *pPointLight = mArgs.rPointLights[i];
+                    const auto *pPointLight = rPointLights[i];
 
                     pRenderingContext->PushDebugMarker((std::string("Point Light Pass (") + std::to_string(i) + ")").c_str());
                     {
@@ -335,9 +341,10 @@ namespace FastCG
                 pRenderingContext->Bind(mpDirectionalLightPassShader);
 
                 auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
-                for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
+                const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
+                for (size_t i = 0; i < rDirectionalLights.size(); i++)
                 {
-                    const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
+                    const auto *pDirectionalLight = rDirectionalLights[i];
                     pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                     {
                         UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pRenderingContext);

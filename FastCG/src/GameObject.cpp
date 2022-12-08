@@ -1,9 +1,9 @@
+#include <FastCG/WorldSystem.h>
 #include <FastCG/Transform.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/Exception.h>
 #include <FastCG/Component.h>
-#include <FastCG/BaseApplication.h>
 
 #include <cassert>
 #include <algorithm>
@@ -50,7 +50,7 @@ namespace FastCG
 			mpRenderable = static_cast<Renderable *>(pComponent);
 		}
 
-		BaseApplication::GetInstance()->RegisterComponent(pComponent);
+		WorldSystem::GetInstance()->RegisterComponent(pComponent);
 
 		mComponents.emplace_back(pComponent);
 	}
@@ -70,7 +70,7 @@ namespace FastCG
 
 		mComponents.erase(it);
 
-		BaseApplication::GetInstance()->UnregisterComponent(pComponent);
+		WorldSystem::GetInstance()->UnregisterComponent(pComponent);
 	}
 
 	Component *GameObject::GetComponent(const ComponentType &rComponentType) const
@@ -101,14 +101,14 @@ namespace FastCG
 	GameObject *GameObject::Instantiate(const std::string &rName, const glm::vec3 &rScale, const glm::quat &rRotation, const glm::vec3 &rPosition)
 	{
 		auto *pGameObject = new GameObject(rName, rScale, rRotation, rPosition);
-		BaseApplication::GetInstance()->RegisterGameObject(pGameObject);
+		WorldSystem::GetInstance()->RegisterGameObject(pGameObject);
 		return pGameObject;
 	}
 
 	void GameObject::Destroy(GameObject *pGameObject)
 	{
 		pGameObject->DestroyAllComponents();
-		BaseApplication::GetInstance()->UnregisterGameObject(pGameObject);
+		WorldSystem::GetInstance()->UnregisterGameObject(pGameObject);
 		delete pGameObject;
 	}
 

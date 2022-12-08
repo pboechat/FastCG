@@ -1,3 +1,4 @@
+#include <FastCG/WorldSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/ForwardWorldRenderer.h>
 
@@ -87,8 +88,12 @@ namespace FastCG
 
     void ForwardWorldRenderer::Render(const Camera *pCamera, RenderingContext *pRenderingContext)
     {
-        assert(pCamera != nullptr);
         assert(pRenderingContext != nullptr);
+
+        if (pCamera == nullptr)
+        {
+            return;
+        }
 
         auto view = pCamera->GetView();
         auto inverseView = glm::inverse(view);
@@ -156,7 +161,10 @@ namespace FastCG
                                 pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
 
-                                if (mArgs.rDirectionalLights.size() == 0 && mArgs.rPointLights.size() == 0)
+                                const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
+                                const auto &rPointLights = WorldSystem::GetInstance()->GetPointLights();
+
+                                if (rDirectionalLights.size() == 0 && rPointLights.size() == 0)
                                 {
                                     pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
 
@@ -176,7 +184,7 @@ namespace FastCG
 
                                     auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
 
-                                    for (size_t i = 0; i < mArgs.rDirectionalLights.size(); i++)
+                                    for (size_t i = 0; i < rDirectionalLights.size(); i++)
                                     {
                                         pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Directional Light Sub-Pass (" + std::to_string(i) + ")").c_str());
                                         {
@@ -192,7 +200,7 @@ namespace FastCG
                                                 break;
                                             }
 
-                                            const auto *pDirectionalLight = mArgs.rDirectionalLights[i];
+                                            const auto *pDirectionalLight = rDirectionalLights[i];
 
                                             auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
 
@@ -218,7 +226,7 @@ namespace FastCG
                                         pRenderingContext->PopDebugMarker();
                                     }
 
-                                    for (size_t i = 0; i < mArgs.rPointLights.size(); i++)
+                                    for (size_t i = 0; i < rPointLights.size(); i++)
                                     {
                                         pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Point Light Sub-Pass (" + std::to_string(i) + ")").c_str());
                                         {
@@ -234,7 +242,7 @@ namespace FastCG
                                                 break;
                                             }
 
-                                            UpdateLightingConstants(mArgs.rPointLights[i], inverseView, nearClip, isSSAOEnabled, pRenderingContext);
+                                            UpdateLightingConstants(rPointLights[i], inverseView, nearClip, isSSAOEnabled, pRenderingContext);
 
                                             pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 

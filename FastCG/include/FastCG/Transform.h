@@ -11,7 +11,7 @@
 
 namespace FastCG
 {
-	class BaseApplication;
+	class WorldSystem;
 
 	class Transform
 	{
@@ -140,7 +140,7 @@ namespace FastCG
 		}
 
 		friend class GameObject;
-		friend class BaseApplication;
+		friend class WorldSystem;
 
 	private:
 		struct SRT

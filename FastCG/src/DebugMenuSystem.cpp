@@ -8,6 +8,7 @@ namespace FastCG
 {
     void DebugMenuSystem::DrawMenu()
     {
+        int result = 0;
         if (ImGui::BeginMainMenuBar())
         {
             for (auto it = mItems.begin(); it != mItems.end(); ++it)
@@ -15,11 +16,17 @@ namespace FastCG
                 auto &rItem = it->second;
                 if (ImGui::BeginMenu(rItem.name.c_str()))
                 {
-                    rItem.callback();
+                    rItem.callback(result);
                     ImGui::EndMenu();
                 }
             }
             ImGui::EndMainMenuBar();
+        }
+
+        for (auto it = mCallbacks.begin(); it != mCallbacks.end(); ++it)
+        {
+            auto &rCallback = it->second;
+            rCallback(result);
         }
     }
 
