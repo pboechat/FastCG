@@ -73,7 +73,7 @@ void PCSSApplication::OnStart()
     pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, GROUND_SIZE * 0.5f, GROUND_SIZE));
     pMainCameraGameObject->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
-    Camera::Instantiate(pMainCameraGameObject);
+    Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
 
     auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
     pFlyController->SetWalkSpeed(5);

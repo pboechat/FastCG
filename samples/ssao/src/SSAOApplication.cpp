@@ -62,8 +62,7 @@ void SSAOApplication::OnStart()
 	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3{0, 0.25f, -1.5f});
 	pMainCameraGameObject->GetTransform()->RotateAround(180, glm::vec3{0, 1, 0});
 
-	auto *pCamera = Camera::Instantiate(pMainCameraGameObject);
-	pCamera->SetSSAOEnabled(true);
+	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE, true);
 
 	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
 	pFlyController->SetWalkSpeed(5);

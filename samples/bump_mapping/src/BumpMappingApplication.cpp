@@ -101,7 +101,7 @@ void BumpMappingApplication::OnStart()
 	auto *pMainCameraGameObject = GameObject::Instantiate();
 	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
 
-	Camera::Instantiate(pMainCameraGameObject);
+	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
 
 	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
 	pFlyController->SetWalkSpeed(5);

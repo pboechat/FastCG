@@ -98,7 +98,7 @@ namespace FastCG
         {
             GenerateShadowMaps(pRenderingContext);
 
-            const auto nearClip = pCamera->GetFrustrumNear();
+            const auto nearClip = pCamera->GetNearClip();
             const auto isSSAOEnabled = pCamera->IsSSAOEnabled();
 
             if (isSSAOEnabled)
