@@ -13,8 +13,32 @@ namespace FastCG
 {
 	enum class ProjectionMode : uint8_t
 	{
-		PM_PERSPECTIVE,
-		PM_ORTHOGRAPHIC
+		PERSPECTIVE,
+		ORTHOGRAPHIC
+	};
+
+	struct CameraSetupArgs
+	{
+		union
+		{
+			struct
+			{
+				float nearClip{0.3f};
+				float farClip{1000};
+				float fieldOfView{0};
+				float aspectRatio{0};
+				float padding[2];
+			} perspective{};
+			struct
+			{
+				float nearClip{0.3f};
+				float farClip{1000};
+				float left{0};
+				float top{0};
+				float right{0};
+				float bottom{0};
+			} orthographic;
+		};
 	};
 
 	class Camera : public Component
@@ -22,31 +46,6 @@ namespace FastCG
 		DECLARE_COMPONENT(Camera, Component);
 
 	public:
-		inline void OnInstantiate() override
-		{
-			SetUp();
-			mSSAOEnabled = false;
-		}
-
-		inline void SetUp(float fieldOfView = 60,
-						  float frustumNear = 0.3f,
-						  float frustumFar = 1000,
-						  float frustumBottom = 0,
-						  float frustumTop = 0,
-						  float frustumLeft = 0,
-						  float frustumRight = 0,
-						  ProjectionMode projectionMode = ProjectionMode::PM_PERSPECTIVE)
-		{
-			mFieldOfView = fieldOfView;
-			mFrustumNear = frustumNear;
-			mFrustumFar = frustumFar;
-			mFrustumBottom = frustumBottom;
-			mFrustumTop = frustumTop;
-			mFrustumLeft = frustumLeft;
-			mFrustumRight = frustumRight;
-			mProjectionMode = projectionMode;
-		}
-
 		inline bool IsSSAOEnabled() const
 		{
 			return mSSAOEnabled;
@@ -57,21 +56,16 @@ namespace FastCG
 			mSSAOEnabled = ssaoEnabled;
 		}
 
-		inline void SetAspectRatio(float aspectRatio)
-		{
-			mAspectRatio = aspectRatio;
-		}
-
 		inline glm::mat4 GetProjection() const
 		{
-			if (mProjectionMode == ProjectionMode::PM_PERSPECTIVE)
+			if (mProjectionMode == ProjectionMode::PERSPECTIVE)
 			{
-				return glm::perspective(mFieldOfView, mAspectRatio, mFrustumNear, mFrustumFar);
+				return glm::perspective(GetFieldOfView(), GetAspectRatio(), GetNearClip(), GetFarClip());
 			}
 
 			else
 			{
-				return glm::ortho(mFrustumLeft, mFrustumRight, mFrustumBottom, mFrustumTop, mFrustumNear, mFrustumFar);
+				return glm::ortho(GetLeft(), GetRight(), GetBottom(), GetTop(), GetNearClip(), GetFarClip());
 			}
 		}
 
@@ -82,37 +76,101 @@ namespace FastCG
 
 		inline void operator=(const Camera &rOther)
 		{
-			mFieldOfView = rOther.mFieldOfView;
-			mFrustumNear = rOther.mFrustumNear;
-			mFrustumFar = rOther.mFrustumFar;
-			mFrustumTop = rOther.mFrustumTop;
-			mFrustumBottom = rOther.mFrustumBottom;
-			mFrustumLeft = rOther.mFrustumLeft;
-			mFrustumRight = rOther.mFrustumRight;
+			mArgs = rOther.mArgs;
 			mProjectionMode = rOther.mProjectionMode;
 		}
 
 		inline float GetFieldOfView() const
 		{
-			return mFieldOfView;
+			return mArgs.perspective.fieldOfView;
 		}
 
-		inline float GetFrustrumNear() const
+		inline void SetFieldOfView(float fieldOfView)
 		{
-			return mFrustumNear;
+			mArgs.perspective.fieldOfView = fieldOfView;
+		}
+
+		inline float GetAspectRatio() const
+		{
+			return mArgs.perspective.aspectRatio;
+		}
+
+		inline void SetAspectRatio(float aspectRatio)
+		{
+			mArgs.perspective.aspectRatio = aspectRatio;
+		}
+
+		inline float GetNearClip() const
+		{
+			return mArgs.perspective.nearClip;
+		}
+
+		inline void SetNearClip(float nearClip)
+		{
+			mArgs.perspective.nearClip = nearClip;
+		}
+
+		inline float GetFarClip() const
+		{
+			return mArgs.perspective.farClip;
+		}
+
+		inline void SetFarClip(float farClip)
+		{
+			mArgs.perspective.farClip = farClip;
+		}
+
+		inline float GetLeft() const
+		{
+			return mArgs.orthographic.left;
+		}
+
+		inline void SetLeft(float left)
+		{
+			mArgs.orthographic.left = left;
+		}
+
+		inline float GetTop() const
+		{
+			return mArgs.orthographic.top;
+		}
+
+		inline void SetTop(float top)
+		{
+			mArgs.orthographic.top = top;
+		}
+
+		inline float GetRight() const
+		{
+			return mArgs.orthographic.right;
+		}
+
+		inline void SetRight(float right)
+		{
+			mArgs.orthographic.right = right;
+		}
+
+		inline float GetBottom() const
+		{
+			return mArgs.orthographic.bottom;
+		}
+
+		inline void SetBottom(float bottom)
+		{
+			mArgs.orthographic.bottom = bottom;
 		}
 
 	private:
-		float mFieldOfView;
-		float mFrustumNear;
-		float mFrustumFar;
-		float mFrustumTop;
-		float mFrustumBottom;
-		float mFrustumLeft;
-		float mFrustumRight;
-		float mAspectRatio;
+		CameraSetupArgs mArgs;
 		ProjectionMode mProjectionMode;
 		bool mSSAOEnabled;
+
+		Camera(GameObject *pGameObject, const CameraSetupArgs &rArgs, ProjectionMode projectionMode, bool ssaoEnabled = false) : Component(pGameObject),
+																																 mArgs(rArgs),
+																																 mProjectionMode(projectionMode),
+																																 mSSAOEnabled(ssaoEnabled)
+		{
+		}
 	};
 
 }
