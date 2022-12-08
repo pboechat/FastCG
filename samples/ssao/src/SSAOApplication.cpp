@@ -42,7 +42,7 @@ namespace
 
 	void CreateDirectionalLight()
 	{
-		auto *pDirectionalLightGameObject = GameObject::Instantiate();
+		auto *pDirectionalLightGameObject = GameObject::Instantiate("Directional Light");
 		auto *pDirectionalLight = DirectionalLight::Instantiate(pDirectionalLightGameObject);
 		pDirectionalLight->SetDiffuseColor(Colors::WHITE);
 		pDirectionalLight->SetIntensity(1);
@@ -58,7 +58,7 @@ SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, false, 
 
 void SSAOApplication::OnStart()
 {
-	auto *pMainCameraGameObject = GameObject::Instantiate();
+	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
 	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3{0, 0.25f, -1.5f});
 	pMainCameraGameObject->GetTransform()->RotateAround(180, glm::vec3{0, 1, 0});
 
@@ -71,6 +71,6 @@ void SSAOApplication::OnStart()
 	LoadModel();
 	CreateDirectionalLight();
 
-	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
+	auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
 	Controls::Instantiate(pGeneralBehavioursGameObject);
 }

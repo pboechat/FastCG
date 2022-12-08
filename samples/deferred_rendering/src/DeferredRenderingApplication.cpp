@@ -45,7 +45,7 @@ namespace
 
 		auto *pFloorMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
-		auto *pFloorGameObject = GameObject::Instantiate();
+		auto *pFloorGameObject = GameObject::Instantiate("Floor");
 		Renderable::Instantiate(pFloorGameObject, pFloorMaterial, pFloorMesh);
 	}
 
@@ -62,7 +62,7 @@ namespace
 		{
 			for (float x = 0; x < GROUND_SIZE; x += 1)
 			{
-				auto *pSphereGameObject = GameObject::Instantiate();
+				auto *pSphereGameObject = GameObject::Instantiate("Sphere");
 				pSphereGameObject->GetTransform()->SetPosition(glm::vec3(-(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS, -(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 				Renderable::Instantiate(pSphereGameObject, pSphereMaterial, pSphereMesh);
 			}
@@ -75,11 +75,12 @@ namespace
 		float horizontalIncrement = GROUND_SIZE / (float)LIGHT_GRID_WIDTH;
 		float intensity = 0.2f;
 		Random::Seed(0);
+		int i = 0;
 		for (float z = 1; z < GROUND_SIZE; z += depthIncrement)
 		{
 			for (float x = 1; x < GROUND_SIZE; x += horizontalIncrement)
 			{
-				auto *pPointLightGameObject = GameObject::Instantiate();
+				auto *pPointLightGameObject = GameObject::Instantiate((std::string("Point Light ") + std::to_string(i++)).c_str());
 				pPointLightGameObject->GetTransform()->SetPosition(glm::vec3(-(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + x, SPHERE_RADIUS * 2.5f, -(GROUND_SIZE * 0.5f - (2 * SPHERE_RADIUS)) + z));
 
 				auto *pPointLight = PointLight::Instantiate(pPointLightGameObject);
@@ -101,7 +102,7 @@ DeferredRenderingApplication::DeferredRenderingApplication() : Application({"def
 
 void DeferredRenderingApplication::OnStart()
 {
-	auto *pMainCameraGameObject = GameObject::Instantiate();
+	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
 	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, GROUND_SIZE * 0.5f, GROUND_SIZE));
 	pMainCameraGameObject->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
@@ -117,7 +118,7 @@ void DeferredRenderingApplication::OnStart()
 	std::vector<PointLight *> lights;
 	CreateLights(lights);
 
-	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
+	auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
 	auto *pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
 	pLightsAnimator->SetLights(lights);
 	Controls::Instantiate(pGeneralBehavioursGameObject);

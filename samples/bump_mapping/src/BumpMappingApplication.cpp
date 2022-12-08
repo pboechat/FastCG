@@ -19,9 +19,9 @@ namespace
 {
 	void CreateLights(std::vector<GameObject *> &rSceneLights)
 	{
-		auto *pSceneLights = GameObject::Instantiate();
+		auto *pSceneLights = GameObject::Instantiate("Scene Lights");
 
-		auto *pLightGameObject = GameObject::Instantiate();
+		auto *pLightGameObject = GameObject::Instantiate("Point Light 1");
 		pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
 		pLightGameObject->GetTransform()->SetPosition(glm::vec3(2, 2, 0));
 		rSceneLights.emplace_back(pLightGameObject);
@@ -32,7 +32,7 @@ namespace
 		pPointLight->SetIntensity(1);
 		pPointLight->SetQuadraticAttenuation(0.25f);
 
-		pLightGameObject = GameObject::Instantiate();
+		pLightGameObject = GameObject::Instantiate("Point Light 2");
 		pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
 		pLightGameObject->GetTransform()->SetPosition(glm::vec3(-2, 2, 0));
 		rSceneLights.emplace_back(pLightGameObject);
@@ -46,7 +46,7 @@ namespace
 
 	void CreateGround()
 	{
-		auto *pGround = GameObject::Instantiate();
+		auto *pGround = GameObject::Instantiate("Ground");
 
 		auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
 
@@ -98,7 +98,7 @@ BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 
 
 void BumpMappingApplication::OnStart()
 {
-	auto *pMainCameraGameObject = GameObject::Instantiate();
+	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
 	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
 
 	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
@@ -112,7 +112,7 @@ void BumpMappingApplication::OnStart()
 	std::vector<GameObject *> lights;
 	CreateLights(lights);
 
-	auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
+	auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
 	Controls::Instantiate(pGeneralBehavioursGameObject);
 	auto *pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
 	pLightsAnimator->SetLights(lights);

@@ -46,14 +46,14 @@ namespace
     {
         auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindShader("SolidColor")});
 
-        auto *pGroundGameObject = GameObject::Instantiate();
+        auto *pGroundGameObject = GameObject::Instantiate("Ground");
         auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE);
         Renderable::Instantiate(pGroundGameObject, pGroundMaterial, pGroundMesh);
     }
 
     void CreateDirectionalLight()
     {
-        auto *pDirectionalLightGameObject = GameObject::Instantiate();
+        auto *pDirectionalLightGameObject = GameObject::Instantiate("Directional Light");
         auto *pDirectionalLight = DirectionalLight::Instantiate(pDirectionalLightGameObject);
         pDirectionalLight->SetDiffuseColor(Colors::WHITE);
         pDirectionalLight->SetIntensity(1);
@@ -69,7 +69,7 @@ PCSSApplication::PCSSApplication() : Application({"pcss", 1024, 768, 60, false, 
 
 void PCSSApplication::OnStart()
 {
-    auto *pMainCameraGameObject = GameObject::Instantiate();
+    auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
     pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, GROUND_SIZE * 0.5f, GROUND_SIZE));
     pMainCameraGameObject->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
@@ -83,6 +83,6 @@ void PCSSApplication::OnStart()
     CreateGround();
     CreateDirectionalLight();
 
-    auto *pGeneralBehavioursGameObject = GameObject::Instantiate();
+    auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
     Controls::Instantiate(pGeneralBehavioursGameObject);
 }
