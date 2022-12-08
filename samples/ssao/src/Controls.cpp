@@ -40,8 +40,8 @@ void Controls::OnUpdate(float time, float deltaTime)
 		auto ssaoDistanceScale = pWorldRenderer->GetSSAODistanceScale();
 		ImGui::SliderFloat("SSAO distance scale (Home/End)", &ssaoDistanceScale, 1, 100);
 		pWorldRenderer->SetSSAODistanceScale(ssaoDistanceScale);
-		ImGui::End();
 	}
+	ImGui::End();
 
 	InputSystem::IsKeyPressed(Key::F1, mPressedKeyMask, 0, [&]()
 							  { pMainCamera->SetSSAOEnabled(!pMainCamera->IsSSAOEnabled()); });

@@ -44,8 +44,8 @@ namespace
 			ImGui::TextColored(target == 0 || present <= target ? green : red, "Present Time: %.6lf", present);
 			ImGui::Text("Draw Calls: %u", rRenderingStatistics.drawCalls);
 			ImGui::Text("Triangles: %u", rRenderingStatistics.triangles);
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 
 }

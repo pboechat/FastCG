@@ -62,7 +62,7 @@ namespace FastCG
     }
 
 #ifdef _DEBUG
-    void CreateObjectHierarchy(const GameObject *pGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
+    void CreateObjectHierarchy(const GameObject *pGameObject, const GameObject *pSelectedGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -73,56 +73,50 @@ namespace FastCG
         rVisitedGameObjects.emplace(pGameObject);
 
         ImGui::PushID(pGameObject);
-        if (ImGui::TreeNodeEx(pGameObject->GetName().c_str(), ImGuiTreeNodeFlags_SpanFullWidth))
+        auto &rChildren = pGameObject->GetTransform()->GetChildren();
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+        if (pGameObject == pSelectedGameObject)
         {
-            for (auto *pChild : pGameObject->GetTransform()->GetChildren())
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+        if (rChildren.empty())
+        {
+            ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf);
+        }
+        else
+        {
+            if (ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags))
             {
-                CreateObjectHierarchy(pChild->GetGameObject(), rVisitedGameObjects);
+                for (auto *pChild : rChildren)
+                {
+                    CreateObjectHierarchy(pChild->GetGameObject(), pSelectedGameObject, rVisitedGameObjects);
+                }
+                ImGui::TreePop();
             }
-            ImGui::TreePop();
         }
         ImGui::PopID();
     }
 
     void WorldSystem::DebugMenuCallback(int result)
     {
-        if (result == 1)
+        if (mShowObjectHierarchy)
         {
-            ImGui::OpenPopup("Object Hierarchy");
-        }
-        else if (result == 2)
-        {
-            ImGui::OpenPopup("Object Details");
-        }
-
-        if (ImGui::BeginPopup("Object Hierarchy"))
-        {
-            ImGui::Text("Object Hierarchy");
-            std::unordered_set<const GameObject *> visitedGameObjects;
-            for (auto *pGameObject : mGameObjects)
+            if (ImGui::Begin("Object Hierarchy"))
             {
-                CreateObjectHierarchy(pGameObject, visitedGameObjects);
+                std::unordered_set<const GameObject *> visitedGameObjects;
+                for (auto *pGameObject : mGameObjects)
+                {
+                    CreateObjectHierarchy(pGameObject, mpSelectedGameObject, visitedGameObjects);
+                }
+
             }
-
-            ImGui::EndPopup();
-        }
-
-        if (ImGui::BeginPopup("Object Details"))
-        {
-            // TODO:
+            ImGui::End();
         }
     }
 
     void WorldSystem::DebugMenuItemCallback(int &result)
     {
-        if (ImGui::MenuItem("Object Hierarchy"))
-        {
-            result = 1;
-        }
-        if (ImGui::MenuItem("Object Details"))
-        {
-            result = 2;
-        }
+        ImGui::Checkbox("Object Hierarchy", &mShowObjectHierarchy);
     }
 #endif
 

@@ -33,6 +33,6 @@ void Controls::OnUpdate(float time, float deltaTime)
         auto pcfSamples = (int)pWorldRenderer->GetPCSSPCFSamples();
         ImGui::SliderInt("PCF Samples (Home/End)", &pcfSamples, 1, 64);
         pWorldRenderer->SetPCSSPCFSamples((uint32_t)pcfSamples);
-        ImGui::End();
     }
+    ImGui::End();
 }

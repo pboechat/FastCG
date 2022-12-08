@@ -58,8 +58,14 @@ namespace FastCG
         Camera *mpMainCamera{nullptr};
         std::vector<GameObject *> mGameObjects;
         std::vector<Component *> mComponents;
+#ifdef _DEBUG
+        GameObject *mpSelectedGameObject{nullptr};
+        bool mShowObjectHierarchy{false};
+#endif
 
-        WorldSystem(const WorldSystemArgs &rArgs) : mArgs(rArgs) {}
+        WorldSystem(const WorldSystemArgs &rArgs) : mArgs(rArgs)
+        {
+        }
         ~WorldSystem();
 
         void RegisterGameObject(GameObject *pGameObject);
@@ -69,7 +75,7 @@ namespace FastCG
         void UnregisterComponent(Component *pComponent);
 #ifdef _DEBUG
         void DebugMenuCallback(int result);
-        void DebugMenuItemCallback(int& result);
+        void DebugMenuItemCallback(int &result);
 #endif
 
         friend class GameObject;
