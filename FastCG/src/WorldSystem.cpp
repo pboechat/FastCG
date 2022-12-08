@@ -62,7 +62,7 @@ namespace FastCG
     }
 
 #ifdef _DEBUG
-    void CreateObjectHierarchy(const GameObject *pGameObject, const GameObject *pSelectedGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
+    void CreateObjectHierarchy(const GameObject *pGameObject, const GameObject *&rpSelectedGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -75,21 +75,30 @@ namespace FastCG
         ImGui::PushID(pGameObject);
         auto &rChildren = pGameObject->GetTransform()->GetChildren();
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
-        if (pGameObject == pSelectedGameObject)
+        if (pGameObject == rpSelectedGameObject)
         {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
         if (rChildren.empty())
         {
             ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf);
+            if (ImGui::IsItemClicked())
+            {
+                rpSelectedGameObject = pGameObject;
+            }
         }
         else
         {
             if (ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags))
             {
+                if (ImGui::IsItemClicked())
+                {
+                    rpSelectedGameObject = pGameObject;
+                }
+
                 for (auto *pChild : rChildren)
                 {
-                    CreateObjectHierarchy(pChild->GetGameObject(), pSelectedGameObject, rVisitedGameObjects);
+                    CreateObjectHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rVisitedGameObjects);
                 }
                 ImGui::TreePop();
             }
@@ -108,7 +117,20 @@ namespace FastCG
                 {
                     CreateObjectHierarchy(pGameObject, mpSelectedGameObject, visitedGameObjects);
                 }
-
+            }
+            ImGui::End();
+        }
+        if (mShowObjectDetails)
+        {
+            if (ImGui::Begin("Object Details"))
+            {
+                if (mpSelectedGameObject != nullptr)
+                {
+                    for (auto *pComponent : mpSelectedGameObject->GetComponents())
+                    {
+                        ImGui::Text(pComponent->GetType().GetName().c_str());
+                    }
+                }
             }
             ImGui::End();
         }
@@ -117,6 +139,7 @@ namespace FastCG
     void WorldSystem::DebugMenuItemCallback(int &result)
     {
         ImGui::Checkbox("Object Hierarchy", &mShowObjectHierarchy);
+        ImGui::Checkbox("Object Details", &mShowObjectDetails);
     }
 #endif
 
@@ -132,6 +155,12 @@ namespace FastCG
         auto it = std::find(mGameObjects.begin(), mGameObjects.end(), pGameObject);
         assert(it != mGameObjects.end());
         mGameObjects.erase(it);
+#ifdef _DEBUG
+        if (mpSelectedGameObject == pGameObject)
+        {
+            mpSelectedGameObject = nullptr;
+        }
+#endif
     }
 
     void WorldSystem::RegisterComponent(Component *pComponent)

@@ -65,6 +65,10 @@ namespace FastCG
 		{
 			return static_cast<ComponentT *>(GetComponent(ComponentT::TYPE));
 		}
+		const std::vector<Component *> GetComponents() const
+		{
+			return mComponents;
+		}
 		AABB GetBounds() const;
 		friend class Component;
 

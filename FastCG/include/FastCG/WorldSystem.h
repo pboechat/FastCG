@@ -59,8 +59,9 @@ namespace FastCG
         std::vector<GameObject *> mGameObjects;
         std::vector<Component *> mComponents;
 #ifdef _DEBUG
-        GameObject *mpSelectedGameObject{nullptr};
+        const GameObject *mpSelectedGameObject{nullptr};
         bool mShowObjectHierarchy{false};
+        bool mShowObjectDetails{false};
 #endif
 
         WorldSystem(const WorldSystemArgs &rArgs) : mArgs(rArgs)
