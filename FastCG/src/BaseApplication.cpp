@@ -38,13 +38,15 @@ namespace
 		if (ImGui::Begin("Statistics"))
 		{
 			const ImVec4 green = {0, 1, 0, 1};
+			const ImVec4 orange = {1, 0.27f, 0, 1};
 			const ImVec4 red = {1, 0, 0, 1};
+			const auto warnThreshold = 0.75 * target;
 
 			ImGui::Text("Resolution: %ux%u", width, height);
 			ImGui::Text("Target Time: %.6lf (%zu)", target, target == 0 ? 0 : (uint64_t)(1 / target));
-			ImGui::TextColored(target == 0 || frame <= target ? green : red, "Frame Time: %.6lf (%zu)", frame, frame == 0 ? 0 : (uint64_t)(1 / frame));
-			ImGui::TextColored(target == 0 || cpu <= target ? green : red, "CPU Time: %.6lf", cpu);
-			ImGui::TextColored(target == 0 || gpu <= target ? green : red, "GPU Time: %.6lf", gpu);
+			ImGui::TextColored(target == 0 || frame <= target ? (frame <= warnThreshold ? green : orange) : red, "Frame Time: %.6lf (%zu)", frame, frame == 0 ? 0 : (uint64_t)(1 / frame));
+			ImGui::TextColored(target == 0 || cpu <= target ? (frame <= warnThreshold ? green : orange) : red, "CPU Time: %.6lf", cpu);
+			ImGui::TextColored(target == 0 || gpu <= target ? (frame <= warnThreshold ? green : orange) : red, "GPU Time: %.6lf", gpu);
 			ImGui::TextColored(target == 0 || present <= target ? green : red, "Present Time: %.6lf", present);
 			ImGui::Text("Draw Calls: %u", rRenderingStatistics.drawCalls);
 			ImGui::Text("Triangles: %u", rRenderingStatistics.triangles);
