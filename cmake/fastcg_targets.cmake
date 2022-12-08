@@ -78,12 +78,8 @@ endfunction()
 
 function(_fastcg_set_target_properties)
     set(DEPLOY_DIR "${FASTCG_DEPLOY}/${ARGV0}")
-    set(LIBS_DIR "${FASTCG_LIBS}/${ARGV0}")
-
     set_target_properties(${ARGV0} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${DEPLOY_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${LIBS_DIR}
-        LIBRARY_OUTPUT_DIRECTORY ${LIBS_DIR}
         DEBUG_POSTFIX "d"
     )
 
@@ -91,8 +87,6 @@ function(_fastcg_set_target_properties)
         string(TOUPPER ${CMAKE_CONFIGURATION_TYPE} CMAKE_CONFIGURATION_TYPE)
         set_target_properties(${ARGV0} PROPERTIES 
             RUNTIME_OUTPUT_DIRECTORY_${CMAKE_CONFIGURATION_TYPE} ${DEPLOY_DIR}
-            ARCHIVE_OUTPUT_DIRECTORY_${CMAKE_CONFIGURATION_TYPE} ${LIBS_DIR}
-            LIBRARY_OUTPUT_DIRECTORY_${CMAKE_CONFIGURATION_TYPE} ${LIBS_DIR}
             VS_DEBUGGER_WORKING_DIRECTORY ${DEPLOY_DIR}
             DEBUG_POSTFIX "d"
         )
