@@ -40,7 +40,7 @@ protected:                                                                  \
 	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject) \
 	{                                                                       \
 	}                                                                       \
-	~className() = default
+	virtual ~className() = default
 
 #define FASTCG_IMPLEMENT_COMPONENT(className, baseClassName) \
 	const FastCG::ComponentType className::TYPE(#className, &baseClassName::TYPE)
