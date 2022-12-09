@@ -43,7 +43,7 @@ namespace FastCG
 
 	class Camera : public Component
 	{
-		DECLARE_COMPONENT(Camera, Component);
+		FASTCG_DECLARE_COMPONENT(Camera, Component);
 
 	public:
 		inline bool IsSSAOEnabled() const

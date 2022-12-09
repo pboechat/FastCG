@@ -9,7 +9,7 @@
 
 class Controls : public FastCG::Behaviour
 {
-	DECLARE_COMPONENT(Controls, FastCG::Behaviour);
+	FASTCG_DECLARE_COMPONENT(Controls, FastCG::Behaviour);
 
 protected:
 	void OnInstantiate() override

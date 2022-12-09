@@ -2,6 +2,6 @@
 
 namespace FastCG
 {
-	IMPLEMENT_COMPONENT(Renderable, Component);
+	FASTCG_IMPLEMENT_COMPONENT(Renderable, Component);
 
 }

@@ -8,7 +8,7 @@ namespace FastCG
 {
 	class DirectionalLight : public Light
 	{
-		DECLARE_COMPONENT(DirectionalLight, Light);
+		FASTCG_DECLARE_COMPONENT(DirectionalLight, Light);
 
 	public:
 		inline glm::vec3 GetDirection() const

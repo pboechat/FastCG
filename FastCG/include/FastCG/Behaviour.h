@@ -7,7 +7,7 @@ namespace FastCG
 {
 	class Behaviour : public Component
 	{
-		DECLARE_ABSTRACT_COMPONENT(Behaviour, Component);
+		FASTCG_DECLARE_ABSTRACT_COMPONENT(Behaviour, Component);
 
 	public:
 		inline void Update(float time, float deltaTime)

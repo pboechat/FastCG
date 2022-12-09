@@ -9,7 +9,7 @@
 
 using namespace FastCG;
 
-IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
+FASTCG_IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
 
 void LightsAnimator::OnUpdate(float time, float deltaTime)
 {

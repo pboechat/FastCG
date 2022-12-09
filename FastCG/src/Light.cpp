@@ -2,6 +2,6 @@
 
 namespace FastCG
 {
-	IMPLEMENT_COMPONENT(Light, Component);
+	FASTCG_IMPLEMENT_COMPONENT(Light, Component);
 
 }

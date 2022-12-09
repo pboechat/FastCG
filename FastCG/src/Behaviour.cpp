@@ -2,6 +2,6 @@
 
 namespace FastCG
 {
-	IMPLEMENT_COMPONENT(Behaviour, Component);
+	FASTCG_IMPLEMENT_COMPONENT(Behaviour, Component);
 
 }

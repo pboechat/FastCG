@@ -7,7 +7,7 @@
 
 namespace FastCG
 {
-	IMPLEMENT_COMPONENT(FlyController, Behaviour);
+	FASTCG_IMPLEMENT_COMPONENT(FlyController, Behaviour);
 
 	void FlyController::OnUpdate(float time, float deltaTime)
 	{

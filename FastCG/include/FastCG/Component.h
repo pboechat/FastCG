@@ -6,10 +6,13 @@
 
 #include <string>
 
-#define DECLARE_COMPONENT(className, baseClassName)                               \
+#define FASTCG_DECLARE_COMPONENT(className, baseClassName)                        \
 public:                                                                           \
 	static const FastCG::ComponentType TYPE;                                      \
-	inline virtual const FastCG::ComponentType &GetType() const { return TYPE; }  \
+	inline virtual const FastCG::ComponentType &GetType() const                   \
+	{                                                                             \
+		return TYPE;                                                              \
+	}                                                                             \
 	template <typename... ArgsT>                                                  \
 	static className *Instantiate(FastCG::GameObject *pGameObject, ArgsT... args) \
 	{                                                                             \
@@ -20,19 +23,26 @@ public:                                                                         
 	}                                                                             \
                                                                                   \
 private:                                                                          \
-	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject) {}    \
+	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject)       \
+	{                                                                             \
+	}                                                                             \
 	virtual ~className() = default
 
-#define DECLARE_ABSTRACT_COMPONENT(className, baseClassName)                     \
-public:                                                                          \
-	static const FastCG::ComponentType TYPE;                                     \
-	inline virtual const FastCG::ComponentType &GetType() const { return TYPE; } \
-                                                                                 \
-protected:                                                                       \
-	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject) {}   \
+#define FASTCG_DECLARE_ABSTRACT_COMPONENT(className, baseClassName)         \
+public:                                                                     \
+	static const FastCG::ComponentType TYPE;                                \
+	inline virtual const FastCG::ComponentType &GetType() const             \
+	{                                                                       \
+		return TYPE;                                                        \
+	}                                                                       \
+                                                                            \
+protected:                                                                  \
+	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject) \
+	{                                                                       \
+	}                                                                       \
 	~className() = default
 
-#define IMPLEMENT_COMPONENT(className, baseClassName) \
+#define FASTCG_IMPLEMENT_COMPONENT(className, baseClassName) \
 	const FastCG::ComponentType className::TYPE(#className, &baseClassName::TYPE)
 
 namespace FastCG

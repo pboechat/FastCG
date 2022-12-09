@@ -10,7 +10,7 @@ namespace FastCG
 {
 	class Light : public Component
 	{
-		DECLARE_ABSTRACT_COMPONENT(Light, Component);
+		FASTCG_DECLARE_ABSTRACT_COMPONENT(Light, Component);
 
 	public:
 		inline float GetIntensity() const

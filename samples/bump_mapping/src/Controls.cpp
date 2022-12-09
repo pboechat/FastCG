@@ -6,7 +6,7 @@
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 
-IMPLEMENT_COMPONENT(Controls, Behaviour);
+FASTCG_IMPLEMENT_COMPONENT(Controls, Behaviour);
 
 void Controls::OnUpdate(float time, float deltaTime)
 {

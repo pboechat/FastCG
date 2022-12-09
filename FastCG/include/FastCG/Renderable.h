@@ -8,7 +8,7 @@ namespace FastCG
 {
 	class Renderable : public Component
 	{
-		DECLARE_COMPONENT(Renderable, Component);
+		FASTCG_DECLARE_COMPONENT(Renderable, Component);
 
 	public:
 		inline const Material *GetMaterial() const

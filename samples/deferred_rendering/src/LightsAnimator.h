@@ -10,7 +10,7 @@
 
 class LightsAnimator : public FastCG::Behaviour
 {
-	DECLARE_COMPONENT(LightsAnimator, FastCG::Behaviour);
+	FASTCG_DECLARE_COMPONENT(LightsAnimator, FastCG::Behaviour);
 
 public:
 	void SetLights(const std::vector<FastCG::PointLight *> &rLights);

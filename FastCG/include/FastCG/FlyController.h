@@ -10,7 +10,7 @@ namespace FastCG
 {
 	class FlyController : public Behaviour
 	{
-		DECLARE_COMPONENT(FlyController, Behaviour);
+		FASTCG_DECLARE_COMPONENT(FlyController, Behaviour);
 
 	public:
 		inline float GetWalkSpeed() const

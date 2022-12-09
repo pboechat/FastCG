@@ -5,7 +5,7 @@
 
 using namespace FastCG;
 
-IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
+FASTCG_IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
 
 void LightsAnimator::SetLights(const std::vector<PointLight *> &rLights)
 {
