@@ -160,6 +160,14 @@ namespace FastCG
 			mArgs.orthographic.bottom = bottom;
 		}
 
+	protected:
+#ifdef _DEBUG
+		void OnRegisterInspectableProperties() override
+		{
+			RegisterInspectableProperty(this, "Field Of View", &Camera::GetFieldOfView, &Camera::SetFieldOfView);
+		}
+#endif
+
 	private:
 		CameraSetupArgs mArgs;
 		ProjectionMode mProjectionMode;

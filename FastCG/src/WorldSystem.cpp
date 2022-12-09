@@ -62,7 +62,7 @@ namespace FastCG
     }
 
 #ifdef _DEBUG
-    void CreateObjectHierarchy(const GameObject *pGameObject, const GameObject *&rpSelectedGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
+    void DisplaySceneHierarchy(const GameObject *pGameObject, const GameObject *&rpSelectedGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -98,7 +98,7 @@ namespace FastCG
 
                 for (auto *pChild : rChildren)
                 {
-                    CreateObjectHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rVisitedGameObjects);
+                    DisplaySceneHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rVisitedGameObjects);
                 }
                 ImGui::TreePop();
             }
@@ -106,31 +106,82 @@ namespace FastCG
         ImGui::PopID();
     }
 
+    void DisplaySceneHierarchy(const std::vector<GameObject *> &rGameObjects, const GameObject *&rpSelectedGameObject)
+    {
+        std::unordered_set<const GameObject *> visitedGameObjects;
+        for (auto *pGameObject : rGameObjects)
+        {
+            DisplaySceneHierarchy(pGameObject, rpSelectedGameObject, visitedGameObjects);
+        }
+    }
+
+    void DisplayObjectInspector(const GameObject *pSelectedGameObject)
+    {
+        if (pSelectedGameObject != nullptr)
+        {
+            for (auto *pComponent : pSelectedGameObject->GetComponents())
+            {
+                ImGui::Text(pComponent->GetType().GetName().c_str());
+                for (size_t i = 0; i < pComponent->GetInspectablePropertyCount(); ++i)
+                {
+                    auto *pInspectableProperty = pComponent->GetInspectableProperty(i);
+                    switch (pInspectableProperty->GetType())
+                    {
+                    case InspectablePropertyType::BYTE_STRING:
+                        break;
+                    case InspectablePropertyType::CHAR_STRING:
+                        break;
+                    case InspectablePropertyType::CHAR:
+                        break;
+                    case InspectablePropertyType::UCHAR:
+                        break;
+                    case InspectablePropertyType::INT32:
+                        break;
+                    case InspectablePropertyType::UINT32:
+                        break;
+                    case InspectablePropertyType::INT64:
+                        break;
+                    case InspectablePropertyType::UINT64:
+                        break;
+                    case InspectablePropertyType::FLOAT:
+                        float value;
+                        pInspectableProperty->GetValue(&value);
+                        if (ImGui::InputFloat(pInspectableProperty->GetName().c_str(), &value))
+                        {
+                            pInspectableProperty->SetValue((void *)&value);
+                        }
+                        break;
+                    case InspectablePropertyType::DOUBLE:
+                        break;
+                    case InspectablePropertyType::VEC2:
+                        break;
+                    case InspectablePropertyType::VEC3:
+                        break;
+                    case InspectablePropertyType::VEC4:
+                        break;
+                    default:
+                        assert(false);
+                    }
+                }
+            }
+        }
+    }
+
     void WorldSystem::DebugMenuCallback(int result)
     {
-        if (mShowObjectHierarchy)
+        if (mShowSceneHierarchy)
         {
-            if (ImGui::Begin("Object Hierarchy"))
+            if (ImGui::Begin("Scene Hierarchy"))
             {
-                std::unordered_set<const GameObject *> visitedGameObjects;
-                for (auto *pGameObject : mGameObjects)
-                {
-                    CreateObjectHierarchy(pGameObject, mpSelectedGameObject, visitedGameObjects);
-                }
+                DisplaySceneHierarchy(mGameObjects, mpSelectedGameObject);
             }
             ImGui::End();
         }
-        if (mShowObjectDetails)
+        if (mShowObjectInspector)
         {
-            if (ImGui::Begin("Object Details"))
+            if (ImGui::Begin("Object Inspector"))
             {
-                if (mpSelectedGameObject != nullptr)
-                {
-                    for (auto *pComponent : mpSelectedGameObject->GetComponents())
-                    {
-                        ImGui::Text(pComponent->GetType().GetName().c_str());
-                    }
-                }
+                DisplayObjectInspector(mpSelectedGameObject);
             }
             ImGui::End();
         }
@@ -138,8 +189,8 @@ namespace FastCG
 
     void WorldSystem::DebugMenuItemCallback(int &result)
     {
-        ImGui::Checkbox("Object Hierarchy", &mShowObjectHierarchy);
-        ImGui::Checkbox("Object Details", &mShowObjectDetails);
+        ImGui::Checkbox("Scene Hierarchy", &mShowSceneHierarchy);
+        ImGui::Checkbox("Object Inspector", &mShowObjectInspector);
     }
 #endif
 
