@@ -27,7 +27,7 @@
 
 namespace
 {
-	void DeclareStatisticsWindow(uint32_t width, uint32_t height, double target, double frame, double cpu, double gpu, double present, const FastCG::RenderingStatistics &rRenderingStatistics)
+	void DisplayStatisticsWindow(uint32_t width, uint32_t height, double target, double frame, double cpu, double gpu, double present, const FastCG::RenderingStatistics &rRenderingStatistics)
 	{
 		if (ImGui::Begin("Statistics"))
 		{
@@ -213,7 +213,7 @@ namespace FastCG
 		ImGuiSystem::GetInstance()->BeginFrame(frameDeltaTime);
 
 #ifdef _DEBUG
-		DeclareStatisticsWindow(mScreenWidth,
+		DisplayStatisticsWindow(mScreenWidth,
 								mScreenHeight,
 								mSecondsPerFrame,
 								frameDeltaTime,
