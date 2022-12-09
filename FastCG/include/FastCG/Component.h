@@ -9,7 +9,7 @@
 #define FASTCG_DECLARE_COMPONENT(className, baseClassName)                        \
 public:                                                                           \
 	static const FastCG::ComponentType TYPE;                                      \
-	inline virtual const FastCG::ComponentType &GetType() const                   \
+	inline const FastCG::ComponentType &GetType() const override                  \
 	{                                                                             \
 		return TYPE;                                                              \
 	}                                                                             \
@@ -31,7 +31,7 @@ private:                                                                        
 #define FASTCG_DECLARE_ABSTRACT_COMPONENT(className, baseClassName)         \
 public:                                                                     \
 	static const FastCG::ComponentType TYPE;                                \
-	inline virtual const FastCG::ComponentType &GetType() const             \
+	inline const FastCG::ComponentType &GetType() const override            \
 	{                                                                       \
 		return TYPE;                                                        \
 	}                                                                       \
