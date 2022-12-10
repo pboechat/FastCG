@@ -23,20 +23,20 @@ namespace FastCG
 		{
 			struct
 			{
-				float nearClip{0.3f};
-				float farClip{1000};
-				float fieldOfView{0};
-				float aspectRatio{0};
+				float nearClip;
+				float farClip;
+				float fieldOfView;
+				float aspectRatio;
 				float padding[2];
 			} perspective{};
 			struct
 			{
-				float nearClip{0.3f};
-				float farClip{1000};
-				float left{0};
-				float top{0};
-				float right{0};
-				float bottom{0};
+				float nearClip;
+				float farClip;
+				float left;
+				float top;
+				float right;
+				float bottom;
 			} orthographic;
 		};
 	};

@@ -5,6 +5,7 @@
 #include <FastCG/Exception.h>
 
 #include <string>
+#include <algorithm>
 
 #ifdef _DEBUG
 #define FASTCG_REGISTER_INSPECTABLE_PROPERTIES(component) \
@@ -131,16 +132,16 @@ namespace FastCG
 	template <InspectablePropertyType TypeEnum>
 	struct GetTypeFromInspectablePropertyType;
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                          \
-	template <>                                                                           \
-	struct GetInspectablePropertyTypeFromType<type>                                       \
-	{                                                                                     \
-		static const InspectablePropertyType value = InspectablePropertyType::##typeEnum; \
-	};                                                                                    \
-	template <>                                                                           \
-	struct GetTypeFromInspectablePropertyType<InspectablePropertyType::##typeEnum>        \
-	{                                                                                     \
-		using value = type;                                                               \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                        \
+	template <>                                                                         \
+	struct GetInspectablePropertyTypeFromType<type>                                     \
+	{                                                                                   \
+		static const InspectablePropertyType value = InspectablePropertyType::typeEnum; \
+	};                                                                                  \
+	template <>                                                                         \
+	struct GetTypeFromInspectablePropertyType<InspectablePropertyType::typeEnum>        \
+	{                                                                                   \
+		using value = type;                                                             \
 	}
 
 	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(bool, BOOL);

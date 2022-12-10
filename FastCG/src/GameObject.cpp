@@ -11,13 +11,13 @@
 namespace FastCG
 {
 	GameObject::GameObject() : mpTransform(new Transform(this), [](void *pData)
-										   { delete pData; })
+										   { delete (Transform *)pData; })
 	{
 	}
 
 	GameObject::GameObject(const std::string &rName, const glm::vec3 &rScale, const glm::quat &rRotation, const glm::vec3 &rPosition) : mName(rName),
 																																		mpTransform(new Transform(this, rScale, rRotation, rPosition), [](void *pData)
-																																					{ delete pData; })
+																																					{ delete (Transform *)pData; })
 	{
 	}
 
