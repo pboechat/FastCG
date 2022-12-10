@@ -100,10 +100,13 @@ namespace FastCG
 		}
 
 		int Run(int argc, char **argv);
+
 		inline void Exit()
 		{
 			mRunning = false;
 		}
+
+		virtual uint64_t GetNativeKey(Key key) const = 0;
 
 	protected:
 		const ApplicationSettings mSettings;

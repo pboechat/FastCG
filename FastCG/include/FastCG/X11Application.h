@@ -27,6 +27,7 @@ namespace FastCG
         Display *GetDisplay();
         Window &GetWindow();
         void CloseDisplay();
+        uint64_t GetNativeKey(Key key) const override;
 
     protected:
         void RunMainLoop() override;

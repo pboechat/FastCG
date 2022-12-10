@@ -2,6 +2,7 @@
 #define FASTCG_KEYCODE_H
 
 #include <type_traits>
+#include <limits>
 #include <cstdint>
 
 namespace FastCG
@@ -88,7 +89,13 @@ namespace FastCG
 		DEL,
 	};
 
-	using KeyCodesInt = std::underlying_type_t<Key>;
+	using KeyInt = std::underlying_type_t<Key>;
+
+#ifdef max
+#undef max
+#endif
+
+	constexpr auto KEY_COUNT = std::numeric_limits<KeyInt>::max();
 
 }
 

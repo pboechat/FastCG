@@ -99,13 +99,20 @@ namespace FastCG
 		const ComponentType *mpBaseType;
 	};
 
+	template <typename T, typename U>
+	using InspectablePropertyGetter = U (T::*)() const;
+	template <typename T, typename U>
+	using InspectablePropertySetter = void (T::*)(U);
+	template <typename T, typename U>
+	using InspectablePropertyGetterCR = const U &(T::*)() const;
+	template <typename T, typename U>
+	using InspectablePropertySetterCR = void (T::*)(const U &);
+
 #ifdef _DEBUG
 	enum class InspectablePropertyType : uint8_t
 	{
-		BYTE_STRING = 0,
-		CHAR_STRING,
-		CHAR,
-		UCHAR,
+		BOOL = 0,
+		STRING,
 		INT32,
 		UINT32,
 		INT64,
@@ -119,19 +126,25 @@ namespace FastCG
 	};
 
 	template <typename T>
-	struct GetInspectablePropertyType;
+	struct GetInspectablePropertyTypeFromType;
+
+	template <InspectablePropertyType TypeEnum>
+	struct GetTypeFromInspectablePropertyType;
 
 #define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                          \
 	template <>                                                                           \
-	struct GetInspectablePropertyType<type>                                               \
+	struct GetInspectablePropertyTypeFromType<type>                                       \
 	{                                                                                     \
 		static const InspectablePropertyType value = InspectablePropertyType::##typeEnum; \
+	};                                                                                    \
+	template <>                                                                           \
+	struct GetTypeFromInspectablePropertyType<InspectablePropertyType::##typeEnum>        \
+	{                                                                                     \
+		using value = type;                                                               \
 	}
 
-	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(uint8_t *, BYTE_STRING);
-	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(char *, CHAR_STRING);
-	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(char, CHAR);
-	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(unsigned char, UCHAR);
+	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(bool, BOOL);
+	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(std::string, STRING);
 	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(int32_t, INT32);
 	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(uint32_t, UINT32);
 	FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(int64_t, INT64);
@@ -147,22 +160,40 @@ namespace FastCG
 	public:
 		virtual InspectablePropertyType GetType() const = 0;
 		virtual const std::string &GetName() const = 0;
+		virtual void GetMin(void *value) const = 0;
+		virtual void GetMax(void *value) const = 0;
 		virtual void GetValue(void *value) const = 0;
 		virtual void SetValue(const void *value) = 0;
+		virtual bool IsReadOnly() const = 0;
 	};
-
-	template <typename T, typename U>
-	using InspectablePropertyGetter = U (T::*)() const;
-	template <typename T, typename U>
-	using InspectablePropertySetter = void (T::*)(U);
 
 	template <typename T, typename U>
 	class InspectableProperty : public IInspectableProperty
 	{
 	public:
-		static const auto TYPE = GetInspectablePropertyType<U>::value;
+		static const auto TYPE = GetInspectablePropertyTypeFromType<U>::value;
 
-		InspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter) : mpOwner(pOwner), mName(rName), mGetter(rGetter), mSetter(rSetter) {}
+		InspectableProperty(T *pOwner, const std::string &rName, U min, U max, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter)
+			: mpOwner(pOwner),
+			  mName(rName),
+			  mMin(min),
+			  mMax(max),
+			  mGetter(rGetter),
+			  mSetter(rSetter),
+			  mIsCR(false)
+		{
+		}
+
+		InspectableProperty(T *pOwner, const std::string &rName, const U &min, const U &max, const InspectablePropertyGetterCR<T, U> &rGetterCR, const InspectablePropertySetterCR<T, U> &rSetterCR)
+			: mpOwner(pOwner),
+			  mName(rName),
+			  mMin(min),
+			  mMax(max),
+			  mGetterCR(rGetterCR),
+			  mSetterCR(rSetterCR),
+			  mIsCR(true)
+		{
+		}
 
 		inline InspectablePropertyType GetType() const override
 		{
@@ -176,29 +207,98 @@ namespace FastCG
 
 		inline U GetValue() const
 		{
+			assert(!mIsCR);
 			return (mpOwner->*mGetter)();
 		}
 
 		inline void SetValue(U value)
 		{
+			assert(!mIsCR);
+			assert(!IsReadOnly());
 			(mpOwner->*mSetter)(value);
 		}
 
+		inline const U &GetValueCR() const
+		{
+			assert(mIsCR);
+			return (mpOwner->*mGetterCR)();
+		}
+
+		inline void SetValueCR(const U &value)
+		{
+			assert(mIsCR);
+			assert(!IsReadOnly());
+			(mpOwner->*mSetterCR)(value);
+		}
+
+		// This method can cause misaligned accesses!
+		inline void GetMin(void *value) const override
+		{
+			assert(value != nullptr);
+			assert((intptr_t)value % alignof(U) == 0);
+			*reinterpret_cast<U *>(value) = mMin;
+		}
+
+		// This method can cause misaligned accesses!
+		inline void GetMax(void *value) const override
+		{
+			assert(value != nullptr);
+			assert((intptr_t)value % alignof(U) == 0);
+			*reinterpret_cast<U *>(value) = mMax;
+		}
+
+		// This method can cause misaligned accesses!
 		inline void GetValue(void *value) const override
 		{
-			auto actualValue = GetValue();
-			memcpy(value, (void*)&actualValue, sizeof(U));
+			assert(value != nullptr);
+			assert((intptr_t)value % alignof(U) == 0);
+			if (mIsCR)
+			{
+				*reinterpret_cast<U *>(value) = GetValueCR();
+			}
+			else
+			{
+				*reinterpret_cast<U *>(value) = GetValue();
+			}
 		}
-		virtual void SetValue(const void *value) override
+
+		// This method can cause misaligned accesses!
+		inline void SetValue(const void *value) override
 		{
-			SetValue(*reinterpret_cast<const U *>(value));
+			assert(!IsReadOnly());
+			assert(value != nullptr);
+			assert((intptr_t)value % alignof(U) == 0);
+			if (mIsCR)
+			{
+				SetValueCR(*reinterpret_cast<const U *>(value));
+			}
+			else
+			{
+				SetValue(*reinterpret_cast<const U *>(value));
+			}
+		}
+
+		inline bool IsReadOnly() const override
+		{
+			return (mIsCR && mSetterCR == nullptr) || mSetter == nullptr;
 		}
 
 	private:
 		T *mpOwner;
 		std::string mName;
-		InspectablePropertyGetter<T, U> mGetter;
-		InspectablePropertySetter<T, U> mSetter;
+		U mMin;
+		U mMax;
+		union
+		{
+			InspectablePropertyGetter<T, U> mGetter;
+			InspectablePropertyGetterCR<T, U> mGetterCR;
+		};
+		union
+		{
+			InspectablePropertySetter<T, U> mSetter;
+			InspectablePropertySetterCR<T, U> mSetterCR;
+		};
+		bool mIsCR : 1;
 	};
 #endif
 
@@ -283,25 +383,48 @@ namespace FastCG
 		}
 
 	protected:
-#ifdef _DEBUG
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 		template <typename T, typename U>
-		inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter)
+		inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter = nullptr, U min = std::numeric_limits<U>::min(), U max = std::numeric_limits<U>::max())
 		{
+#ifdef _DEBUG
+			assert(pOwner != nullptr);
 			auto it = GetInspectablePropertyIterator(rName);
 			assert(it == mInspectableProperties.cend());
-			mInspectableProperties.emplace_back(new InspectableProperty<T, U>(pOwner, rName, rGetter, rSetter));
+			mInspectableProperties.emplace_back(new InspectableProperty<T, U>(pOwner, rName, min, max, rGetter, rSetter));
+#endif
 		}
+
+		template <typename T, typename U>
+		inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetterCR<T, U> &rGetterCR, const InspectablePropertySetterCR<T, U> &rSetterCR = nullptr, const U &rMin = std::numeric_limits<U>::min(), const U &rMax = std::numeric_limits<U>::max())
+		{
+#ifdef _DEBUG
+			assert(pOwner != nullptr);
+			auto it = GetInspectablePropertyIterator(rName);
+			assert(it == mInspectableProperties.cend());
+			mInspectableProperties.emplace_back(new InspectableProperty<T, U>(pOwner, rName, rMin, rMax, rGetterCR, rSetterCR));
+#endif
+		}
+
 		template <typename T, typename U>
 		inline void UnregisterInspectableProperty(const std::string &rName)
 		{
+#ifdef _DEBUG
 			auto it = GetInspectablePropertyIterator(rName);
 			assert(it != mInspectableProperties.cend());
 			mInspectableProperties.erase(it);
+#endif
 		}
+
 		virtual void OnRegisterInspectableProperties()
 		{
 		}
-#endif
 
 	private:
 		GameObject *mpGameObject;

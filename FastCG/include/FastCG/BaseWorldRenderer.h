@@ -149,7 +149,7 @@ namespace FastCG
 				if (mpLight->GetType().IsDerived(DirectionalLight::TYPE))
 				{
 					auto *pDirectionalLight = static_cast<const DirectionalLight *>(mpLight);
-					auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
+					auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
 					return glm::lookAt(directionalLightPosition, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0});
 				}
 				else

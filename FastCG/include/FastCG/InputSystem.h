@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 
+#include <type_traits>
+
 namespace FastCG
 {
 	class BaseApplication;
@@ -14,6 +16,15 @@ namespace FastCG
 	struct InputSystemArgs
 	{
 	};
+
+	enum class KeyChange : uint8_t
+	{
+		NONE = 0,
+		RELEASED,
+		PRESSED,
+	};
+
+	using KeyChangeInt = std::underlying_type_t<KeyChange>;
 
 	class InputSystem
 	{
@@ -24,10 +35,31 @@ namespace FastCG
 		static const int MOUSE_WHEEL_STEP = 1;
 		static const int MAXIMUM_MOUSE_WHEEL_DELTA = 128;
 
-		static bool GetKey(Key keyCode);
-		static MouseButtonState GetMouseButton(MouseButton button);
-		static const glm::uvec2 &GetMousePosition();
-		static int GetMouseWheelDelta();
+		inline static void GetKeyChanges(KeyChange keyChanges[KEY_COUNT])
+		{
+			const auto *pBackBufferKeys = GetInstance()->mBackBuffer.GetKeys();
+			const auto *pFrontBufferKeys = GetInstance()->mFrontBuffer.GetKeys();
+			for (KeyInt i = 0; i < KEY_COUNT; ++i)
+			{
+				keyChanges[i] = (KeyChange)((pBackBufferKeys[i] ^ pFrontBufferKeys[i]) & (1 << (KeyChangeInt)pBackBufferKeys[i]));
+			}
+		}
+		inline static bool GetKey(Key keyCode)
+		{
+			return GetInstance()->mFrontBuffer.GetKey(keyCode);
+		}
+		inline static MouseButtonState GetMouseButton(MouseButton button)
+		{
+			return GetInstance()->mFrontBuffer.GetMouseButton(button);
+		}
+		inline static const glm::uvec2 &GetMousePosition()
+		{
+			return GetInstance()->mFrontBuffer.GetMousePosition();
+		}
+		inline static int GetMouseWheelDelta()
+		{
+			return GetInstance()->mFrontBuffer.GetMouseWheelDelta();
+		}
 
 		template <typename MaskType, typename ElementType, typename CallbackType>
 		static void IsKeyPressed(Key keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
@@ -53,10 +85,37 @@ namespace FastCG
 		public:
 			InputBuffer();
 
-			bool GetKey(Key keyCode) const;
-			MouseButtonState GetMouseButton(MouseButton button) const;
-			const glm::uvec2 &GetMousePosition() const;
-			int GetMouseWheelDelta() const;
+			inline bool GetKey(Key keyCode) const
+			{
+				return mpKeys[(KeyInt)keyCode];
+			}
+			inline const bool *GetKeys() const
+			{
+				return mpKeys;
+			}
+			inline MouseButtonState GetMouseButton(MouseButton button) const
+			{
+				if (button == MouseButton::LEFT_BUTTON)
+				{
+					return mLeftMouseButton;
+				}
+				else if (button == MouseButton::MIDDLE_BUTTON)
+				{
+					return mMiddleMouseButton;
+				}
+				else
+				{
+					return mRightMouseButton;
+				}
+			}
+			inline const glm::uvec2 &GetMousePosition() const
+			{
+				return mMousePosition;
+			}
+			inline int GetMouseWheelDelta() const
+			{
+				return mMouseWheelDelta;
+			}
 			void SetKey(Key keyCode, bool state);
 			void SetMouseButton(MouseButton button, MouseButtonState state);
 			void SetMousePosition(const glm::uvec2 &rPosition);
@@ -66,7 +125,7 @@ namespace FastCG
 			void Clear();
 
 		private:
-			bool mpKeys[std::numeric_limits<KeyCodesInt>::max()];
+			bool mpKeys[KEY_COUNT];
 			MouseButtonState mLeftMouseButton{MouseButtonState::RELEASED};
 			MouseButtonState mMiddleMouseButton{MouseButtonState::RELEASED};
 			MouseButtonState mRightMouseButton{MouseButtonState::RELEASED};

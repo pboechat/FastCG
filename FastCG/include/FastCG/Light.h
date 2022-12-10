@@ -20,6 +20,7 @@ namespace FastCG
 
 		inline void SetIntensity(float intensity)
 		{
+			assert(intensity >= 0);
 			mIntensity = intensity;
 		}
 
@@ -47,6 +48,13 @@ namespace FastCG
 		glm::vec4 mDiffuseColor{Colors::WHITE};
 		glm::vec4 mSpecularColor{Colors::WHITE};
 		float mIntensity{1};
+
+		void OnRegisterInspectableProperties() override
+		{
+			RegisterInspectableProperty(this, "Diffuse Color", &Light::GetDiffuseColor, &Light::SetDiffuseColor, glm::vec4{0, 0, 0, 0}, glm::vec4{1, 1, 1, 1});
+			RegisterInspectableProperty(this, "Specular Color", &Light::GetSpecularColor, &Light::SetSpecularColor, glm::vec4{0, 0, 0, 0}, glm::vec4{1, 1, 1, 1});
+			RegisterInspectableProperty(this, "Intensity", &Light::GetIntensity, &Light::SetIntensity, 0.0f, 100.0f);
+		}
 	};
 
 }

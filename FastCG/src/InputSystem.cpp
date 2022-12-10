@@ -7,26 +7,6 @@
 
 namespace FastCG
 {
-	bool InputSystem::GetKey(Key keyCode)
-	{
-		return GetInstance()->mFrontBuffer.GetKey(keyCode);
-	}
-
-	MouseButtonState InputSystem::GetMouseButton(MouseButton button)
-	{
-		return GetInstance()->mFrontBuffer.GetMouseButton(button);
-	}
-
-	const glm::uvec2 &InputSystem::GetMousePosition()
-	{
-		return GetInstance()->mFrontBuffer.GetMousePosition();
-	}
-
-	int InputSystem::GetMouseWheelDelta()
-	{
-		return GetInstance()->mFrontBuffer.GetMouseWheelDelta();
-	}
-
 	void InputSystem::SetKey(Key keyCode, bool pressed)
 	{
 		mBackBuffer.SetKey(keyCode, pressed);
@@ -63,40 +43,9 @@ namespace FastCG
 		memset(mpKeys, 0, sizeof(mpKeys));
 	}
 
-	bool InputSystem::InputBuffer::GetKey(Key keyCode) const
-	{
-		return mpKeys[(KeyCodesInt)keyCode];
-	}
-
-	MouseButtonState InputSystem::InputBuffer::GetMouseButton(MouseButton button) const
-	{
-		if (button == MouseButton::LEFT_BUTTON)
-		{
-			return mLeftMouseButton;
-		}
-		else if (button == MouseButton::MIDDLE_BUTTON)
-		{
-			return mMiddleMouseButton;
-		}
-		else
-		{
-			return mRightMouseButton;
-		}
-	}
-
-	const glm::uvec2 &InputSystem::InputBuffer::GetMousePosition() const
-	{
-		return mMousePosition;
-	}
-
-	int InputSystem::InputBuffer::GetMouseWheelDelta() const
-	{
-		return mMouseWheelDelta;
-	}
-
 	void InputSystem::InputBuffer::SetKey(Key keyCode, bool pressed)
 	{
-		mpKeys[(KeyCodesInt)keyCode] = pressed;
+		mpKeys[(KeyInt)keyCode] = pressed;
 	}
 
 	void InputSystem::InputBuffer::SetMouseButton(MouseButton button, MouseButtonState state)

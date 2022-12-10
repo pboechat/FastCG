@@ -10,15 +10,6 @@ namespace FastCG
 		FASTCG_DECLARE_COMPONENT(PointLight, Light);
 
 	public:
-		inline void OnInstantiate() override
-		{
-			Light::OnInstantiate();
-
-			mConstantAttenuation = 0.0f;
-			mLinearAttenuation = 0.0f;
-			mQuadraticAttenuation = 1.0f;
-		}
-
 		inline float GetConstantAttenuation() const
 		{
 			return mConstantAttenuation;
@@ -49,10 +40,19 @@ namespace FastCG
 			mQuadraticAttenuation = quadraticAttenuation;
 		}
 
+	protected:
+		void OnRegisterInspectableProperties() override
+		{
+			Light::OnRegisterInspectableProperties();
+			RegisterInspectableProperty(this, "Constant Attenuation", &PointLight::GetConstantAttenuation, &PointLight::SetConstantAttenuation, 0.0f, 100.0f);
+			RegisterInspectableProperty(this, "Linear Attenuation", &PointLight::GetLinearAttenuation, &PointLight::SetLinearAttenuation, 0.0f, 100.0f);
+			RegisterInspectableProperty(this, "Quadratic Attenuation", &PointLight::GetQuadraticAttenuation, &PointLight::SetQuadraticAttenuation, 0.0f, 100.0f);
+		}
+
 	private:
-		float mConstantAttenuation;
-		float mLinearAttenuation;
-		float mQuadraticAttenuation;
+		float mConstantAttenuation{0};
+		float mLinearAttenuation{0};
+		float mQuadraticAttenuation{1};
 	};
 
 }

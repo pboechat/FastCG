@@ -13,7 +13,7 @@ namespace FastCG
 	public:
 		inline glm::vec3 GetDirection() const
 		{
-			return glm::normalize(-GetGameObject()->GetTransform()->GetPosition());
+			return glm::normalize(-GetGameObject()->GetTransform()->GetWorldPosition());
 		}
 	};
 

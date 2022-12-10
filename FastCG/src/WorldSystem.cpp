@@ -2,6 +2,7 @@
 #include <FastCG/RenderBatchStrategy.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
+#include <FastCG/MathT.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/DebugMenuSystem.h>
@@ -62,7 +63,7 @@ namespace FastCG
     }
 
 #ifdef _DEBUG
-    void DisplaySceneHierarchy(const GameObject *pGameObject, const GameObject *&rpSelectedGameObject, std::unordered_set<const GameObject *> &rVisitedGameObjects)
+    void DisplaySceneHierarchy(GameObject *pGameObject, GameObject *&rpSelectedGameObject, std::unordered_set<GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -81,7 +82,7 @@ namespace FastCG
         }
         if (rChildren.empty())
         {
-            ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf);
+            ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
             if (ImGui::IsItemClicked())
             {
                 rpSelectedGameObject = pGameObject;
@@ -102,65 +103,281 @@ namespace FastCG
                 }
                 ImGui::TreePop();
             }
+            else
+            {
+                for (auto *pChild : rChildren)
+                {
+                    rVisitedGameObjects.emplace(pChild->GetGameObject());
+                }
+            }
         }
         ImGui::PopID();
     }
 
-    void DisplaySceneHierarchy(const std::vector<GameObject *> &rGameObjects, const GameObject *&rpSelectedGameObject)
+    void DisplaySceneHierarchy(const std::vector<GameObject *> &rGameObjects, GameObject *&rpSelectedGameObject)
     {
-        std::unordered_set<const GameObject *> visitedGameObjects;
+        std::unordered_set<GameObject *> visitedGameObjects;
         for (auto *pGameObject : rGameObjects)
         {
             DisplaySceneHierarchy(pGameObject, rpSelectedGameObject, visitedGameObjects);
         }
     }
 
-    void DisplayObjectInspector(const GameObject *pSelectedGameObject)
+    template <typename T>
+    using ImGuiDragFn = bool (*)(const char *, T *, float, T, T, const char *, ImGuiSliderFlags);
+
+    template <typename T>
+    struct ImGuiDragFnSelector;
+
+    template <>
+    struct ImGuiDragFnSelector<int>
     {
-        if (pSelectedGameObject != nullptr)
+        static constexpr auto value = &ImGui::DragInt;
+    };
+
+    template <>
+    struct ImGuiDragFnSelector<float>
+    {
+        static constexpr auto value = &ImGui::DragFloat;
+    };
+
+    template <>
+    struct ImGuiDragFnSelector<double>
+    {
+        static constexpr auto value = &ImGui::DragFloat;
+    };
+
+    template <>
+    struct ImGuiDragFnSelector<glm::vec2>
+    {
+        static constexpr auto value = &ImGui::DragFloat2;
+    };
+
+    template <>
+    struct ImGuiDragFnSelector<glm::vec3>
+    {
+        static constexpr auto value = &ImGui::DragFloat3;
+    };
+
+    template <>
+    struct ImGuiDragFnSelector<glm::vec4>
+    {
+        static constexpr auto value = &ImGui::DragFloat4;
+    };
+
+    template <typename T, typename U>
+    struct InspectablePropertyDragScalarFnSelector
+    {
+        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = "%.3f", ImGuiSliderFlags sliderFlags = 0)
         {
-            for (auto *pComponent : pSelectedGameObject->GetComponents())
+            T min, max, value;
+            pInspectableProperty->GetMin(&min);
+            pInspectableProperty->GetMax(&max);
+            pInspectableProperty->GetValue(&value);
+            auto proxyValue = (U)value;
+            if (ImGuiDragFnSelector<U>::value(pInspectableProperty->GetName().c_str(), &proxyValue, speed, (U)min, (U)max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
             {
-                ImGui::Text(pComponent->GetType().GetName().c_str());
-                for (size_t i = 0; i < pComponent->GetInspectablePropertyCount(); ++i)
+                value = (T)proxyValue;
+                pInspectableProperty->SetValue((void *)&value);
+            }
+        }
+    };
+
+    template <typename T>
+    struct InspectablePropertyDragScalarFnSelector<T, void>
+    {
+        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = "%.3f", ImGuiSliderFlags sliderFlags = 0)
+        {
+            T min, max, value;
+            pInspectableProperty->GetMin(&min);
+            pInspectableProperty->GetMax(&max);
+            pInspectableProperty->GetValue(&value);
+            if (ImGuiDragFnSelector<T>::value(pInspectableProperty->GetName().c_str(), &value, speed, min, max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            {
+                pInspectableProperty->SetValue((void *)&value);
+            }
+        }
+    };
+
+    template <typename T>
+    struct InspectablePropertyDragVectorFnSelector
+    {
+        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = "%.3f", ImGuiSliderFlags sliderFlags = 0)
+        {
+            T min, max, value;
+            pInspectableProperty->GetMin(&min);
+            pInspectableProperty->GetMax(&max);
+            pInspectableProperty->GetValue(&value);
+            auto scalarMin = glm::min(min, min).x;
+            auto scalarMax = glm::max(max, max).x;
+            if (ImGuiDragFnSelector<T>::value(pInspectableProperty->GetName().c_str(), &value[0], speed, scalarMin, scalarMax, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            {
+                pInspectableProperty->SetValue((void *)&value);
+            }
+        }
+    };
+
+    template <typename T>
+    struct ImGuiScalarProxy
+    {
+        using value = void;
+    };
+
+    template <>
+    struct ImGuiScalarProxy<uint32_t>
+    {
+        using value = int32_t;
+    };
+
+    template <>
+    struct ImGuiScalarProxy<int64_t>
+    {
+        using value = int32_t;
+    };
+
+    template <>
+    struct ImGuiScalarProxy<uint64_t>
+    {
+        using value = int32_t;
+    };
+
+    template <>
+    struct ImGuiScalarProxy<double>
+    {
+        using value = float;
+    };
+
+    template <typename T>
+    struct InspectablePropertyDisplayFnSelector : InspectablePropertyDragScalarFnSelector<T, typename ImGuiScalarProxy<T>::value>
+    {
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<bool>
+    {
+        static void value(IInspectableProperty *pInspectableProperty)
+        {
+            bool value;
+            pInspectableProperty->GetValue(&value);
+            if (ImGui::Checkbox(pInspectableProperty->GetName().c_str(), &value))
+            {
+                pInspectableProperty->SetValue(&value);
+            }
+        }
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<std::string>
+    {
+        static void value(IInspectableProperty *pInspectableProperty)
+        {
+            std::string value;
+            pInspectableProperty->GetValue((void *)&value);
+            if (ImGui::InputText(pInspectableProperty->GetName().c_str(), &value[0], value.size()) && !pInspectableProperty->IsReadOnly())
+            {
+                pInspectableProperty->SetValue((void *)&value[0]);
+            }
+        }
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<glm::vec2> : InspectablePropertyDragVectorFnSelector<glm::vec2>
+    {
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<glm::vec3> : InspectablePropertyDragVectorFnSelector<glm::vec3>
+    {
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<glm::vec4> : InspectablePropertyDragVectorFnSelector<glm::vec4>
+    {
+    };
+
+    void DisplayObjectInspector(GameObject *pGameObject)
+    {
+        if (pGameObject != nullptr)
+        {
+            if (ImGui::CollapsingHeader("Transform"))
+            {
+                auto *pTransform = pGameObject->GetTransform();
+
+                auto scale = pTransform->GetScale();
+                if (ImGui::DragFloat3("Scale", &scale[0], 0.1f))
                 {
-                    auto *pInspectableProperty = pComponent->GetInspectableProperty(i);
-                    switch (pInspectableProperty->GetType())
+                    pTransform->SetScale(scale);
+                }
+
+                auto rotation = pTransform->GetRotation();
+                auto eulerAngles = glm::eulerAngles(rotation);
+                if (ImGui::DragFloat3("Rotation", &eulerAngles[0], 0.1f))
+                {
+                    eulerAngles = glm::radians(eulerAngles);
+                    pTransform->SetRotation(glm::quat(eulerAngles));
+                }
+
+                auto position = pTransform->GetPosition();
+                if (ImGui::DragFloat3("Position", &position[0], 0.1f))
+                {
+                    pTransform->SetPosition(position);
+                }
+            }
+
+            for (auto *pComponent : pGameObject->GetComponents())
+            {
+                if (ImGui::CollapsingHeader(pComponent->GetType().GetName().c_str()))
+                {
+                    for (size_t i = 0; i < pComponent->GetInspectablePropertyCount(); ++i)
                     {
-                    case InspectablePropertyType::BYTE_STRING:
-                        break;
-                    case InspectablePropertyType::CHAR_STRING:
-                        break;
-                    case InspectablePropertyType::CHAR:
-                        break;
-                    case InspectablePropertyType::UCHAR:
-                        break;
-                    case InspectablePropertyType::INT32:
-                        break;
-                    case InspectablePropertyType::UINT32:
-                        break;
-                    case InspectablePropertyType::INT64:
-                        break;
-                    case InspectablePropertyType::UINT64:
-                        break;
-                    case InspectablePropertyType::FLOAT:
-                        float value;
-                        pInspectableProperty->GetValue(&value);
-                        if (ImGui::InputFloat(pInspectableProperty->GetName().c_str(), &value))
+                        auto *pInspectableProperty = pComponent->GetInspectableProperty(i);
+                        auto readonly = pInspectableProperty->IsReadOnly();
+                        if (readonly)
                         {
-                            pInspectableProperty->SetValue((void *)&value);
+                            ImGui::BeginDisabled();
                         }
-                        break;
-                    case InspectablePropertyType::DOUBLE:
-                        break;
-                    case InspectablePropertyType::VEC2:
-                        break;
-                    case InspectablePropertyType::VEC3:
-                        break;
-                    case InspectablePropertyType::VEC4:
-                        break;
-                    default:
-                        assert(false);
+                        switch (pInspectableProperty->GetType())
+                        {
+                        case InspectablePropertyType::BOOL:
+                            InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::STRING:
+                            InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::INT32:
+                            InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::UINT32:
+                            InspectablePropertyDisplayFnSelector<uint32_t>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::INT64:
+                            InspectablePropertyDisplayFnSelector<int64_t>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::UINT64:
+                            InspectablePropertyDisplayFnSelector<uint64_t>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::FLOAT:
+                            InspectablePropertyDisplayFnSelector<float>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::DOUBLE:
+                            InspectablePropertyDisplayFnSelector<double>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::VEC2:
+                            InspectablePropertyDisplayFnSelector<glm::vec2>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::VEC3:
+                            InspectablePropertyDisplayFnSelector<glm::vec3>::value(pInspectableProperty);
+                            break;
+                        case InspectablePropertyType::VEC4:
+                            InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
+                            break;
+                        default:
+                            assert(false);
+                        }
+                        if (readonly)
+                        {
+                            ImGui::EndDisabled();
+                        }
                     }
                 }
             }

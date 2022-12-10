@@ -38,9 +38,14 @@ namespace FastCG
 			return mChildren;
 		}
 
-		inline const glm::vec3 &GetPosition() const
+		inline const glm::vec3 &GetWorldPosition() const
 		{
 			return mWorldTransform.position;
+		}
+
+		inline const glm::vec3 &GetPosition() const
+		{
+			return mLocalTransform.position;
 		}
 
 		inline void SetPosition(const glm::vec3 &position)
@@ -49,9 +54,14 @@ namespace FastCG
 			Update();
 		}
 
-		inline const glm::quat &GetRotation() const
+		inline const glm::quat &GetWorldRotation() const
 		{
 			return mWorldTransform.rotation;
+		}
+
+		inline const glm::quat &GetRotation() const
+		{
+			return mLocalTransform.rotation;
 		}
 
 		inline void SetRotation(const glm::quat &rRotation)
@@ -60,9 +70,14 @@ namespace FastCG
 			Update();
 		}
 
-		inline const glm::vec3 &GetScale() const
+		inline const glm::vec3 &GetWorldScale() const
 		{
 			return mWorldTransform.scale;
+		}
+
+		inline const glm::vec3 &GetScale() const
+		{
+			return mLocalTransform.scale;
 		}
 
 		inline void SetScale(const glm::vec3 &rScale)

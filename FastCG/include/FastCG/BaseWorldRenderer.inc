@@ -538,7 +538,7 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext)
     {
-        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetPosition();
+        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
         mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
         mLightingConstants.light0ViewPosition = rInverseView * mLightingConstants.light0Position;
         mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();

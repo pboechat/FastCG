@@ -13,6 +13,7 @@ namespace FastCG
 	{
 	public:
 		static const float DEGREES_TO_RADIANS;
+		static const float RADIANS_TO_DEGREES;
 		static const float PI;
 		static const float TWO_PI;
 
@@ -41,7 +42,9 @@ namespace FastCG
 	};
 
 	template <typename T>
-	const float Math<T>::DEGREES_TO_RADIANS = 0.0174532925f;
+	const float Math<T>::DEGREES_TO_RADIANS = 0.0174533f;
+	template <typename T>
+	const float Math<T>::RADIANS_TO_DEGREES = 57.2958f;
 	template <typename T>
 	const float Math<T>::PI = (float)M_PI;
 	template <typename T>

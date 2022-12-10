@@ -340,7 +340,7 @@ namespace FastCG
 
                 pRenderingContext->Bind(mpDirectionalLightPassShader);
 
-                auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
+                auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
                 const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
                 for (size_t i = 0; i < rDirectionalLights.size(); i++)
                 {

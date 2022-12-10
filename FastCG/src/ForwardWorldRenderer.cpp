@@ -182,7 +182,7 @@ namespace FastCG
 
                                     SubpassType lastSubpassType{SubpassType::ST_NONE};
 
-                                    auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetRotation()));
+                                    auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
 
                                     for (size_t i = 0; i < rDirectionalLights.size(); i++)
                                     {
@@ -202,7 +202,7 @@ namespace FastCG
 
                                             const auto *pDirectionalLight = rDirectionalLights[i];
 
-                                            auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetPosition());
+                                            auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
 
                                             UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pRenderingContext);
                                             pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);

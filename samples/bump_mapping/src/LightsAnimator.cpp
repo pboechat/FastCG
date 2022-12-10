@@ -1,9 +1,6 @@
 #include "LightsAnimator.h"
 
-#include <FastCG/Key.h>
 #include <FastCG/Transform.h>
-#include <FastCG/InputSystem.h>
-#include <FastCG/Application.h>
 
 #include <glm/glm.hpp>
 
@@ -13,9 +10,8 @@ FASTCG_IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
 
 void LightsAnimator::OnUpdate(float time, float deltaTime)
 {
-	if (InputSystem::GetKey(Key::ESCAPE))
+	if (!mEnabled)
 	{
-		Application::GetInstance()->Exit();
 		return;
 	}
 

@@ -13,14 +13,14 @@ namespace FastCG
 		FASTCG_DECLARE_COMPONENT(FlyController, Behaviour);
 
 	public:
-		inline float GetWalkSpeed() const
+		inline float GetMoveSpeed() const
 		{
-			return mWalkSpeed;
+			return mMoveSpeed;
 		}
 
-		inline void SetWalkSpeed(float walkSpeed)
+		inline void SetMoveSpeed(float walkSpeed)
 		{
-			mWalkSpeed = walkSpeed;
+			mMoveSpeed = walkSpeed;
 		}
 
 		inline float GetTurnSpeed() const
@@ -35,13 +35,20 @@ namespace FastCG
 
 		void OnUpdate(float time, float deltaTime) override;
 
+	protected:
+		void OnRegisterInspectableProperties() override
+		{
+			RegisterInspectableProperty(this, "Move Speed", &FlyController::GetMoveSpeed, &FlyController::SetMoveSpeed, 0.0f, 100.0f);
+			RegisterInspectableProperty(this, "Turn Speed", &FlyController::GetTurnSpeed, &FlyController::SetTurnSpeed, 0.0f, 100.0f);
+		}
+
 	private:
 		float mTheta{0};
 		float mPhi{0};
 		glm::quat mRotation{};
 		glm::uvec2 mLastMousePosition{0, 0};
 		bool mRightMouseButtonPressed{false};
-		float mWalkSpeed{1};
+		float mMoveSpeed{1};
 		float mTurnSpeed{1};
 	};
 

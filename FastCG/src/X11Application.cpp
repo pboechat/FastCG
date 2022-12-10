@@ -283,6 +283,18 @@ namespace FastCG
         XCloseDisplay(mpDisplay);
         mpDisplay = nullptr;
     }
+
+    uint64_t X11Application::GetNativeKey(Key key) const
+    {
+        for (auto it = gKeyLut.cbegin(); it != gKeyLut.cend(); ++it)
+        {
+            if (it->second == key)
+            {
+                return it->first;
+            }
+        }
+        return uint64_t(~0);
+    }
 }
 
 #endif

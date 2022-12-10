@@ -65,7 +65,7 @@ void SSAOApplication::OnStart()
 	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE, true);
 
 	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
-	pFlyController->SetWalkSpeed(5);
+	pFlyController->SetMoveSpeed(5);
 	pFlyController->SetTurnSpeed(0.25f);
 
 	LoadModel();

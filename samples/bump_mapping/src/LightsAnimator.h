@@ -15,10 +15,26 @@ public:
         mSceneLights = rSceneLights;
     }
 
+    inline bool IsEnabled() const
+    {
+        return mEnabled;
+    }
+
+    inline void SetEnabled(bool enabled)
+    {
+        mEnabled = enabled;
+    }
+
 protected:
     void OnUpdate(float time, float deltaTime) override;
 
+    void OnRegisterInspectableProperties() override
+    {
+        RegisterInspectableProperty(this, "Enabled", &LightsAnimator::IsEnabled, &LightsAnimator::SetEnabled);
+    }
+
 private:
+    bool mEnabled{true};
     std::vector<FastCG::GameObject *> mSceneLights;
 };
 

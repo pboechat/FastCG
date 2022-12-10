@@ -161,12 +161,14 @@ namespace FastCG
 		}
 
 	protected:
-#ifdef _DEBUG
 		void OnRegisterInspectableProperties() override
 		{
-			RegisterInspectableProperty(this, "Field Of View", &Camera::GetFieldOfView, &Camera::SetFieldOfView);
+			RegisterInspectableProperty(this, "Field Of View", &Camera::GetFieldOfView, &Camera::SetFieldOfView, 1.0f, 179.0f);
+			RegisterInspectableProperty(this, "Aspect Ratio", &Camera::GetAspectRatio, &Camera::SetAspectRatio, 0.1f, 10.0f);
+			RegisterInspectableProperty(this, "Near Clip", &Camera::GetNearClip, &Camera::SetNearClip, 0.1f, 10.0f);
+			RegisterInspectableProperty(this, "Far Clip", &Camera::GetFarClip, &Camera::SetFarClip, 10.0f, 1000.0f);
+			RegisterInspectableProperty(this, "SSAO Enabled", &Camera::IsSSAOEnabled, &Camera::SetSSAOEnabled);
 		}
-#endif
 
 	private:
 		CameraSetupArgs mArgs;

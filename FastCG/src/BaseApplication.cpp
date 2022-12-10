@@ -208,9 +208,12 @@ namespace FastCG
 		}
 		mLastFrameStart = cpuStart;
 
+		KeyChange keyChanges[KEY_COUNT];
+		InputSystem::GetKeyChanges(keyChanges);
+
 		InputSystem::GetInstance()->Swap();
 
-		ImGuiSystem::GetInstance()->BeginFrame(frameDeltaTime);
+		ImGuiSystem::GetInstance()->BeginFrame(frameDeltaTime, keyChanges);
 
 #ifdef _DEBUG
 		DisplayStatisticsWindow(mScreenWidth,

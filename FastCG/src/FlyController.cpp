@@ -13,7 +13,7 @@ namespace FastCG
 	{
 		auto *pTransform = GetGameObject()->GetTransform();
 
-		auto &rotation = pTransform->GetRotation();
+		auto &rotation = pTransform->GetWorldRotation();
 
 		if (InputSystem::GetMouseButton(MouseButton::RIGHT_BUTTON) == MouseButtonState::PRESSED)
 		{
@@ -88,33 +88,33 @@ namespace FastCG
 			mRightMouseButtonPressed = false;
 		}
 
-		auto position = pTransform->GetPosition();
+		auto position = pTransform->GetWorldPosition();
 
 		if (InputSystem::GetKey(Key::PAGE_UP) || InputSystem::GetKey(Key::LETTER_Q))
 		{
-			pTransform->SetPosition(position + (rotation * glm::vec3(0, -1, 0) * mWalkSpeed * deltaTime));
+			pTransform->SetPosition(position + (rotation * glm::vec3(0, -1, 0) * mMoveSpeed * deltaTime));
 		}
 		else if (InputSystem::GetKey(Key::PAGE_DOWN) || InputSystem::GetKey(Key::LETTER_E))
 		{
-			pTransform->SetPosition(position + (rotation * glm::vec3(0, 1, 0) * mWalkSpeed * deltaTime));
+			pTransform->SetPosition(position + (rotation * glm::vec3(0, 1, 0) * mMoveSpeed * deltaTime));
 		}
 
 		if (InputSystem::GetKey(Key::LEFT_ARROW) || InputSystem::GetKey(Key::LETTER_A))
 		{
-			pTransform->SetPosition(position + (rotation * glm::vec3(-1, 0, 0) * mWalkSpeed * deltaTime));
+			pTransform->SetPosition(position + (rotation * glm::vec3(-1, 0, 0) * mMoveSpeed * deltaTime));
 		}
 		else if (InputSystem::GetKey(Key::RIGHT_ARROW) || InputSystem::GetKey(Key::LETTER_D))
 		{
-			pTransform->SetPosition(position + (rotation * glm::vec3(1, 0, 0) * mWalkSpeed * deltaTime));
+			pTransform->SetPosition(position + (rotation * glm::vec3(1, 0, 0) * mMoveSpeed * deltaTime));
 		}
 
 		if (InputSystem::GetKey(Key::UP_ARROW) || InputSystem::GetKey(Key::LETTER_W))
 		{
-			pTransform->SetPosition(position + (rotation * glm::vec3(0, 0, -1) * mWalkSpeed * deltaTime));
+			pTransform->SetPosition(position + (rotation * glm::vec3(0, 0, -1) * mMoveSpeed * deltaTime));
 		}
 		else if (InputSystem::GetKey(Key::DOWN_ARROW) || InputSystem::GetKey(Key::LETTER_S))
 		{
-			pTransform->SetPosition(position + (rotation * glm::vec3(0, 0, 1) * mWalkSpeed * deltaTime));
+			pTransform->SetPosition(position + (rotation * glm::vec3(0, 0, 1) * mMoveSpeed * deltaTime));
 		}
 	}
 

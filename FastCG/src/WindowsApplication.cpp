@@ -24,16 +24,16 @@ namespace
 		KEY(MINUS, VK_SUBTRACT),
 		KEY(DOT, VK_OEM_PERIOD),
 		KEY(SLASH, VK_DIVIDE),
-		KEY(NUMBER_0, VK_NUMPAD0),
-		KEY(NUMBER_1, VK_NUMPAD1),
-		KEY(NUMBER_2, VK_NUMPAD2),
-		KEY(NUMBER_3, VK_NUMPAD3),
-		KEY(NUMBER_4, VK_NUMPAD4),
-		KEY(NUMBER_5, VK_NUMPAD5),
-		KEY(NUMBER_6, VK_NUMPAD6),
-		KEY(NUMBER_7, VK_NUMPAD7),
-		KEY(NUMBER_8, VK_NUMPAD8),
-		KEY(NUMBER_9, VK_NUMPAD9),
+		KEY(NUMBER_0, '0'),
+		KEY(NUMBER_1, '1'),
+		KEY(NUMBER_2, '2'),
+		KEY(NUMBER_3, '3'),
+		KEY(NUMBER_4, '4'),
+		KEY(NUMBER_5, '4'),
+		KEY(NUMBER_6, '5'),
+		KEY(NUMBER_7, '6'),
+		KEY(NUMBER_8, '7'),
+		KEY(NUMBER_9, '8'),
 		KEY(COLON, 58),
 		KEY(SEMI_COLON, 59),
 		KEY(EQUALS, 61),
@@ -142,7 +142,7 @@ namespace FastCG
 			break;
 		case WM_KEYDOWN:
 		case WM_KEYUP:
-			app->KeyboardCallback(TranslateKey((uint64_t)wParam), uMsg == WM_KEYDOWN);
+			app->KeyboardCallback(TranslateKey((uint64_t)wParam), uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
 			break;
 		default:
 			break;
@@ -263,6 +263,18 @@ namespace FastCG
 	{
 		ReleaseDC(mHWnd, mHDC);
 		mHDC = 0;
+	}
+
+	uint64_t WindowsApplication::GetNativeKey(Key key) const
+	{
+		for (auto it = gKeyLut.cbegin(); it != gKeyLut.cend(); ++it)
+		{
+			if (it->second == key)
+			{
+				return it->first;
+			}
+		}
+		return uint64_t(~0);
 	}
 }
 
