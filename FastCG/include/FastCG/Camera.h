@@ -74,12 +74,6 @@ namespace FastCG
 			return glm::inverse(GetGameObject()->GetTransform()->GetModel());
 		}
 
-		inline void operator=(const Camera &rOther)
-		{
-			mArgs = rOther.mArgs;
-			mProjectionMode = rOther.mProjectionMode;
-		}
-
 		inline float GetFieldOfView() const
 		{
 			return mArgs.perspective.fieldOfView;
@@ -160,9 +154,21 @@ namespace FastCG
 			mArgs.orthographic.bottom = bottom;
 		}
 
+		inline ProjectionMode GetProjectionMode() const
+		{
+			return mProjectionMode;
+		}
+
+		inline void operator=(const Camera &rOther)
+		{
+			mArgs = rOther.mArgs;
+			mProjectionMode = rOther.mProjectionMode;
+		}
+
 	protected:
 		void OnRegisterInspectableProperties() override
 		{
+			RegisterInspectableProperty(this, "Projection Mode", &Camera::GetProjectionMode, {{ProjectionMode::ORTHOGRAPHIC, "Orthographic"}, {ProjectionMode::PERSPECTIVE, "Perspective"}});
 			RegisterInspectableProperty(this, "Field Of View", &Camera::GetFieldOfView, &Camera::SetFieldOfView, 1.0f, 179.0f);
 			RegisterInspectableProperty(this, "Aspect Ratio", &Camera::GetAspectRatio, &Camera::SetAspectRatio, 0.1f, 10.0f);
 			RegisterInspectableProperty(this, "Near Clip", &Camera::GetNearClip, &Camera::SetNearClip, 0.1f, 10.0f);

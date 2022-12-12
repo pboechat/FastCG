@@ -3,6 +3,7 @@
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/MathT.h>
+#include <FastCG/Inspectable.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/DebugMenuSystem.h>
@@ -165,20 +166,41 @@ namespace FastCG
         static constexpr auto value = &ImGui::DragFloat4;
     };
 
+    template <typename T>
+    struct ImGuiDragFnFormatSelector;
+
+#define FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(type, format) \
+    template <>                                                    \
+    struct ImGuiDragFnFormatSelector<type>                         \
+    {                                                              \
+        static constexpr char *const value = format;               \
+    }
+
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(float, "%.3f");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(double, "%.3lf");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(int32_t, "%d");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(uint32_t, "%u");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(int64_t, "%ll");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(uint64_t, "%llu");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(glm::vec2, "%.3f");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(glm::vec3, "%.3f");
+    FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(glm::vec4, "%.3f");
+
     template <typename T, typename U>
     struct InspectablePropertyDragScalarFnSelector
     {
-        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = "%.3f", ImGuiSliderFlags sliderFlags = 0)
+        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
+            auto *pInspectableDelimitedProperty = static_cast<IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
-            pInspectableProperty->GetMin(&min);
-            pInspectableProperty->GetMax(&max);
-            pInspectableProperty->GetValue(&value);
+            pInspectableDelimitedProperty->GetMin(&min);
+            pInspectableDelimitedProperty->GetMax(&max);
+            pInspectableDelimitedProperty->GetValue(&value);
             auto proxyValue = (U)value;
-            if (ImGuiDragFnSelector<U>::value(pInspectableProperty->GetName().c_str(), &proxyValue, speed, (U)min, (U)max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            if (ImGuiDragFnSelector<U>::value(pInspectableDelimitedProperty->GetName().c_str(), &proxyValue, speed, (U)min, (U)max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
             {
                 value = (T)proxyValue;
-                pInspectableProperty->SetValue((void *)&value);
+                pInspectableDelimitedProperty->SetValue((void *)&value);
             }
         }
     };
@@ -186,15 +208,16 @@ namespace FastCG
     template <typename T>
     struct InspectablePropertyDragScalarFnSelector<T, void>
     {
-        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = "%.3f", ImGuiSliderFlags sliderFlags = 0)
+        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
+            auto *pInspectableDelimitedProperty = static_cast<IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
-            pInspectableProperty->GetMin(&min);
-            pInspectableProperty->GetMax(&max);
-            pInspectableProperty->GetValue(&value);
-            if (ImGuiDragFnSelector<T>::value(pInspectableProperty->GetName().c_str(), &value, speed, min, max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            pInspectableDelimitedProperty->GetMin(&min);
+            pInspectableDelimitedProperty->GetMax(&max);
+            pInspectableDelimitedProperty->GetValue(&value);
+            if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value, speed, min, max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
             {
-                pInspectableProperty->SetValue((void *)&value);
+                pInspectableDelimitedProperty->SetValue((void *)&value);
             }
         }
     };
@@ -202,17 +225,18 @@ namespace FastCG
     template <typename T>
     struct InspectablePropertyDragVectorFnSelector
     {
-        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = "%.3f", ImGuiSliderFlags sliderFlags = 0)
+        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
+            auto *pInspectableDelimitedProperty = static_cast<IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
-            pInspectableProperty->GetMin(&min);
-            pInspectableProperty->GetMax(&max);
-            pInspectableProperty->GetValue(&value);
+            pInspectableDelimitedProperty->GetMin(&min);
+            pInspectableDelimitedProperty->GetMax(&max);
+            pInspectableDelimitedProperty->GetValue(&value);
             auto scalarMin = glm::min(min, min).x;
             auto scalarMax = glm::max(max, max).x;
-            if (ImGuiDragFnSelector<T>::value(pInspectableProperty->GetName().c_str(), &value[0], speed, scalarMin, scalarMax, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value[0], speed, scalarMin, scalarMax, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
             {
-                pInspectableProperty->SetValue((void *)&value);
+                pInspectableDelimitedProperty->SetValue((void *)&value);
             }
         }
     };
@@ -223,29 +247,17 @@ namespace FastCG
         using value = void;
     };
 
-    template <>
-    struct ImGuiScalarProxy<uint32_t>
-    {
-        using value = int32_t;
-    };
+#define FASTCG_DECLARE_IMGUI_SCALAR_PROXY(type, proxyType) \
+    template <>                                            \
+    struct ImGuiScalarProxy<type>                          \
+    {                                                      \
+        using value = proxyType;                           \
+    }
 
-    template <>
-    struct ImGuiScalarProxy<int64_t>
-    {
-        using value = int32_t;
-    };
-
-    template <>
-    struct ImGuiScalarProxy<uint64_t>
-    {
-        using value = int32_t;
-    };
-
-    template <>
-    struct ImGuiScalarProxy<double>
-    {
-        using value = float;
-    };
+    FASTCG_DECLARE_IMGUI_SCALAR_PROXY(uint32_t, int32_t);
+    FASTCG_DECLARE_IMGUI_SCALAR_PROXY(int64_t, int32_t);
+    FASTCG_DECLARE_IMGUI_SCALAR_PROXY(uint64_t, int32_t);
+    FASTCG_DECLARE_IMGUI_SCALAR_PROXY(double, float);
 
     template <typename T>
     struct InspectablePropertyDisplayFnSelector : InspectablePropertyDragScalarFnSelector<T, typename ImGuiScalarProxy<T>::value>
@@ -295,11 +307,91 @@ namespace FastCG
     {
     };
 
+    void DisplayInspectable(const std::string &rName, Inspectable *pInspectable)
+    {
+        if (ImGui::TreeNode(rName.c_str()))
+        {
+            if (pInspectable != nullptr)
+            {
+                for (size_t i = 0; i < pInspectable->GetInspectablePropertyCount(); ++i)
+                {
+                    auto *pInspectableProperty = pInspectable->GetInspectableProperty(i);
+                    auto readonly = pInspectableProperty->IsReadOnly();
+                    if (readonly)
+                    {
+                        ImGui::BeginDisabled();
+                    }
+                    switch (pInspectableProperty->GetType())
+                    {
+                    case InspectablePropertyType::INSPECTABLE:
+                    {
+                        Inspectable *pOtherInspectable;
+                        pInspectableProperty->GetValue(&pOtherInspectable);
+                        DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable);
+                    }
+                    break;
+                    case InspectablePropertyType::ENUM:
+                    {
+                        auto pInspectableEnumProperty = static_cast<IInspectableEnumProperty *>(pInspectableProperty);
+                        auto ppItems = pInspectableEnumProperty->GetItems();
+                        int currentItem = (int)pInspectableEnumProperty->GetSelectedItem();
+                        if (ImGui::Combo(pInspectableEnumProperty->GetName().c_str(), &currentItem, ppItems, (int)pInspectableEnumProperty->GetItemCount()))
+                        {
+                            pInspectableEnumProperty->SetSelectedItem((size_t)currentItem);
+                        }
+                    }
+                    break;
+                    case InspectablePropertyType::BOOL:
+                        InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::STRING:
+                        InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::INT32:
+                        InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::UINT32:
+                        InspectablePropertyDisplayFnSelector<uint32_t>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::INT64:
+                        InspectablePropertyDisplayFnSelector<int64_t>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::UINT64:
+                        InspectablePropertyDisplayFnSelector<uint64_t>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::FLOAT:
+                        InspectablePropertyDisplayFnSelector<float>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::DOUBLE:
+                        InspectablePropertyDisplayFnSelector<double>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::VEC2:
+                        InspectablePropertyDisplayFnSelector<glm::vec2>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::VEC3:
+                        InspectablePropertyDisplayFnSelector<glm::vec3>::value(pInspectableProperty);
+                        break;
+                    case InspectablePropertyType::VEC4:
+                        InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
+                        break;
+                    default:
+                        assert(false);
+                    }
+                    if (readonly)
+                    {
+                        ImGui::EndDisabled();
+                    }
+                }
+            }
+            ImGui::TreePop();
+        }
+    }
+
     void DisplayObjectInspector(GameObject *pGameObject)
     {
         if (pGameObject != nullptr)
         {
-            if (ImGui::CollapsingHeader("Transform"))
+            if (ImGui::TreeNode("Transform"))
             {
                 auto *pTransform = pGameObject->GetTransform();
 
@@ -322,64 +414,12 @@ namespace FastCG
                 {
                     pTransform->SetPosition(position);
                 }
+                ImGui::TreePop();
             }
 
             for (auto *pComponent : pGameObject->GetComponents())
             {
-                if (ImGui::CollapsingHeader(pComponent->GetType().GetName().c_str()))
-                {
-                    for (size_t i = 0; i < pComponent->GetInspectablePropertyCount(); ++i)
-                    {
-                        auto *pInspectableProperty = pComponent->GetInspectableProperty(i);
-                        auto readonly = pInspectableProperty->IsReadOnly();
-                        if (readonly)
-                        {
-                            ImGui::BeginDisabled();
-                        }
-                        switch (pInspectableProperty->GetType())
-                        {
-                        case InspectablePropertyType::BOOL:
-                            InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::STRING:
-                            InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::INT32:
-                            InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::UINT32:
-                            InspectablePropertyDisplayFnSelector<uint32_t>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::INT64:
-                            InspectablePropertyDisplayFnSelector<int64_t>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::UINT64:
-                            InspectablePropertyDisplayFnSelector<uint64_t>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::FLOAT:
-                            InspectablePropertyDisplayFnSelector<float>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::DOUBLE:
-                            InspectablePropertyDisplayFnSelector<double>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::VEC2:
-                            InspectablePropertyDisplayFnSelector<glm::vec2>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::VEC3:
-                            InspectablePropertyDisplayFnSelector<glm::vec3>::value(pInspectableProperty);
-                            break;
-                        case InspectablePropertyType::VEC4:
-                            InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
-                            break;
-                        default:
-                            assert(false);
-                        }
-                        if (readonly)
-                        {
-                            ImGui::EndDisabled();
-                        }
-                    }
-                }
+                DisplayInspectable(pComponent->GetType().GetName(), pComponent);
             }
         }
     }
