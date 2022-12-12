@@ -47,11 +47,11 @@ namespace FastCG
     template <typename T, bool DerivedFromInspectable>
     struct _GetInspectablePropertyTypeFromType;
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                          \
-    template <>                                                                           \
-    struct _GetInspectablePropertyTypeFromType<type, false>                               \
-    {                                                                                     \
-        static const InspectablePropertyType value = InspectablePropertyType::##typeEnum; \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                        \
+    template <>                                                                         \
+    struct _GetInspectablePropertyTypeFromType<type, false>                             \
+    {                                                                                   \
+        static const InspectablePropertyType value = InspectablePropertyType::typeEnum; \
     }
 
     template <typename T>
@@ -124,7 +124,7 @@ namespace FastCG
     {
     public:
         InspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter, const U &rMin, const U &rMax)
-            : BaseInspectableProperty(pOwner, rName),
+            : BaseInspectableProperty<T, U>(pOwner, rName),
               mMin(rMin),
               mMax(rMax),
               mGetter(rGetter),
@@ -139,18 +139,18 @@ namespace FastCG
 
         inline const std::string &GetName() const override
         {
-            return mName;
+            return BaseInspectableProperty<T, U>::mName;
         }
 
         inline U GetValue() const
         {
-            return (mpOwner->*mGetter)();
+            return (BaseInspectableProperty<T, U>::mpOwner->*mGetter)();
         }
 
         inline void SetValue(U value)
         {
             assert(!IsReadOnly());
-            (mpOwner->*mSetter)(value);
+            (BaseInspectableProperty<T, U>::mpOwner->*mSetter)(value);
         }
 
         // This method can cause misaligned accesses!
@@ -203,7 +203,7 @@ namespace FastCG
     {
     public:
         InspectablePropertyCR(T *pOwner, const std::string &rName, const InspectablePropertyGetterCR<T, U> &rGetter, const InspectablePropertySetterCR<T, U> &rSetter, const U &rMin, const U &rMax)
-            : BaseInspectableProperty(pOwner, rName),
+            : BaseInspectableProperty<T, U>(pOwner, rName),
               mMin(rMin),
               mMax(rMin),
               mGetter(rGetter),
@@ -218,18 +218,18 @@ namespace FastCG
 
         inline const std::string &GetName() const override
         {
-            return mName;
+            return BaseInspectableProperty<T, U>::mName;
         }
 
         inline const U &GetValueCR() const
         {
-            return (mpOwner->*mGetter)();
+            return (BaseInspectableProperty<T, U>::mpOwner->*mGetter)();
         }
 
         inline void SetValueCR(const U &value)
         {
             assert(!IsReadOnly());
-            (mpOwner->*mSetter)(value);
+            (BaseInspectableProperty<T, U>::mpOwner->*mSetter)(value);
         }
 
         // This method can cause misaligned accesses!
@@ -282,7 +282,7 @@ namespace FastCG
     {
     public:
         InspectablePropertyCP(T *pOwner, const std::string &rName, const InspectablePropertyGetterCP<T, U> &rGetter, const InspectablePropertySetterCP<T, U> &rSetter)
-            : BaseInspectableProperty(pOwner, rName),
+            : BaseInspectableProperty<T, U>(pOwner, rName),
               mGetter(rGetter),
               mSetter(rSetter)
         {
@@ -295,18 +295,18 @@ namespace FastCG
 
         inline const std::string &GetName() const override
         {
-            return mName;
+            return BaseInspectableProperty<T, U>::mName;
         }
 
         inline const U *GetValueCP() const
         {
-            return (mpOwner->*mGetter)();
+            return (BaseInspectableProperty<T, U>::mpOwner->*mGetter)();
         }
 
         inline void SetValueCP(const U *value)
         {
             assert(!IsReadOnly());
-            (mpOwner->*mSetter)(value);
+            (BaseInspectableProperty<T, U>::mpOwner->*mSetter)(value);
         }
 
         // This method can cause misaligned accesses!
@@ -343,7 +343,7 @@ namespace FastCG
     class InspectableEnumProperty : public BaseInspectableProperty<T, U>, public IInspectableEnumProperty
     {
     public:
-        InspectableEnumProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter, const std::initializer_list<InspectableEnumPropertyItem<U>> &rItems) : BaseInspectableProperty(pOwner, rName),
+        InspectableEnumProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter, const std::initializer_list<InspectableEnumPropertyItem<U>> &rItems) : BaseInspectableProperty<T, U>(pOwner, rName),
                                                                                                                                                                                                                                             mGetter(rGetter),
                                                                                                                                                                                                                                             mSetter(rSetter)
         {
@@ -363,7 +363,7 @@ namespace FastCG
 
         inline const std::string &GetName() const override
         {
-            return mName;
+            return BaseInspectableProperty<T, U>::mName;
         }
 
         size_t GetItemCount() const override
@@ -378,13 +378,13 @@ namespace FastCG
 
         inline U GetValue() const
         {
-            return (mpOwner->*mGetter)();
+            return (BaseInspectableProperty<T, U>::mpOwner->*mGetter)();
         }
 
         inline void SetValue(U value)
         {
             assert(!IsReadOnly());
-            (mpOwner->*mSetter)(value);
+            (BaseInspectableProperty<T, U>::mpOwner->*mSetter)(value);
         }
 
         inline size_t GetSelectedItem() const override

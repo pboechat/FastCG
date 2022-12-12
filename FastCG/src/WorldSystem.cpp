@@ -173,7 +173,7 @@ namespace FastCG
     template <>                                                    \
     struct ImGuiDragFnFormatSelector<type>                         \
     {                                                              \
-        static constexpr char *const value = format;               \
+        static constexpr char const *value = format;               \
     }
 
     FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(float, "%.3f");
