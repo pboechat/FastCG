@@ -3,6 +3,7 @@
 
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/RenderBatch.h>
+#include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/Light.h>
 #include <FastCG/IWorldRenderer.h>
@@ -125,6 +126,7 @@ namespace FastCG
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
 		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
 		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+		inline uint32_t UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
 		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
 		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
@@ -197,7 +199,7 @@ namespace FastCG
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
-		inline void UpdateShadowMapPassConstants(const glm::mat4 &rModelViewProjection, RenderingContext *pRenderingContext);
+		inline uint32_t UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 		inline void UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, RenderingContext *pRenderingContext);
 		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, RenderingContext *pRenderingContext);
 		inline void UpdateSSAOConstants(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;

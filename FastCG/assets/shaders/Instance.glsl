@@ -3,12 +3,19 @@
 
 #include "FastCG.glsl"
 
-layout(BINDING(0, 1)) uniform InstanceConstants
+struct InstanceData
 {
-    mat4 uModel;
-	mat4 uModelView;
-	mat4 uModelViewInverseTranspose;
-	mat4 uModelViewProjection;
+	mat4 model;
+	mat4 modelView;
+	mat4 modelViewInverseTranspose;
+	mat4 modelViewProjection;
 };
+
+layout(BINDING(0, 1)) buffer InstanceConstants
+{
+    InstanceData uInstanceData[];
+};
+
+#define GetInstanceData() uInstanceData[gl_InstanceID]
 
 #endif

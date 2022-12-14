@@ -20,17 +20,17 @@ layout(location = 2) out vec2 vUV;
 
 void main()
 {
-	vec3 normal = normalize(mat3(uModelViewInverseTranspose) * iNormal);
-	vec3 tangent = normalize(mat3(uModelViewInverseTranspose) * iTangent.xyz);
+	vec3 normal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
+	vec3 tangent = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iTangent.xyz);
 	vec3 binormal = normalize(cross(normal, tangent) * iTangent.w);
 
 	mat3 tangentSpaceMatrix = transpose(mat3(tangent, binormal, normal));
 
-	vec4 worldPosition = uModel * iPosition;
+	vec4 worldPosition = GetInstanceData().model * iPosition;
 	vec3 viewPosition = vec3(uView * worldPosition);
 	vLightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
 	vPosition = worldPosition.xyz;
 	vUV = iUV;
 
-	gl_Position = uModelViewProjection * iPosition;
+	gl_Position = GetInstanceData().modelViewProjection * iPosition;
 }

@@ -25,6 +25,8 @@ namespace FastCG
         int pcfSamples{16};
     };
 
+    constexpr uint32_t MAX_NUM_INSTANCES = 4096;
+
     namespace ForwardRenderingPath
     {
         struct SceneConstants
@@ -38,12 +40,17 @@ namespace FastCG
             float padding;
         };
 
-        struct InstanceConstants
+        struct InstanceData
         {
             glm::mat4 model;
             glm::mat4 modelView;
             glm::mat4 modelViewInverseTranspose;
             glm::mat4 modelViewProjection;
+        };
+
+        struct InstanceConstants
+        {
+            InstanceData instanceData[MAX_NUM_INSTANCES];
         };
 
         struct LightingConstants
@@ -80,9 +87,14 @@ namespace FastCG
         float padding[3];
     };
 
-    struct ShadowMapPassConstants
+    struct ShadowMapPassInstanceData
     {
         glm::mat4 modelViewProjection;
+    };
+
+    struct ShadowMapPassConstants
+    {
+        ShadowMapPassInstanceData instanceData[MAX_NUM_INSTANCES];
     };
 
     constexpr size_t NUMBER_OF_RANDOM_SAMPLES = 32;

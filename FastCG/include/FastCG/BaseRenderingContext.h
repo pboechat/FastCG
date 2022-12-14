@@ -111,7 +111,8 @@ namespace FastCG
         void SetVertexBuffers(const Buffer *const *pBuffers, size_t bufferCount);
         void SetIndexBuffer(const Buffer *pBuffer);
         void SetPrimitiveType(PrimitiveType primitiveType);
-        void DrawIndexed(PrimitiveType primitiveType, uint32_t indexCount, uint32_t firstIndex, int32_t vertexOffset);
+        void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void End();
         double GetElapsedTime();
     };

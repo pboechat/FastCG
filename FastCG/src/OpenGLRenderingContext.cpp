@@ -358,9 +358,15 @@ namespace FastCG
         glBindBuffer(target, *pBuffer);
     }
 
-    void OpenGLRenderingContext::DrawIndexed(PrimitiveType primitiveType, uint32_t indexCount, uint32_t firstIndex, int32_t vertexOffset)
+    void OpenGLRenderingContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
     {
         glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (void *)(uintptr_t)firstIndex, (GLint)vertexOffset);
+    }
+
+    void OpenGLRenderingContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
+    {
+        assert(firstInstance == 0);
+        glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (void *)(uintptr_t)firstIndex, (GLsizei)instanceCount, (GLint)vertexOffset);
     }
 
     void OpenGLRenderingContext::End()

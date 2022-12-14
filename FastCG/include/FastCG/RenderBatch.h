@@ -5,6 +5,7 @@
 #include <FastCG/Renderable.h>
 
 #include <vector>
+#include <unordered_map>
 
 namespace FastCG
 {
@@ -19,7 +20,7 @@ namespace FastCG
     {
         RenderBatchType type;
         const Material *pMaterial{nullptr};
-        std::vector<const Renderable *> renderables{};
+        std::unordered_map<const Mesh *, std::vector<const Renderable *>> renderablesPerMesh{};
     };
 
 }

@@ -47,14 +47,12 @@ namespace FastCG
     void RenderBatchStrategy::AddToMaterialBasedRenderBatch(const Material *pMaterial, const std::initializer_list<const Renderable *> &rRenderablesToAdd)
     {
         auto it = FindMaterialBasedRenderBatch(pMaterial);
-        if (it != mRenderBatches.end())
+        if (it == mRenderBatches.end())
         {
-            AddToRenderBatch(*it, rRenderablesToAdd);
+            mRenderBatches.emplace_back(RenderBatch{RenderBatchType::MATERIAL_BASED, pMaterial});
+            it = mRenderBatches.end() - 1;
         }
-        else
-        {
-            mRenderBatches.emplace_back(RenderBatch{RenderBatchType::MATERIAL_BASED, pMaterial, rRenderablesToAdd});
-        }
+        AddToRenderBatch(*it, rRenderablesToAdd);
     }
 
     void RenderBatchStrategy::RemoveFromMaterialBasedRenderBatch(const Material *pMaterial, const Renderable *pRenderable)
@@ -69,19 +67,29 @@ namespace FastCG
 
     void RenderBatchStrategy::AddToRenderBatch(RenderBatch &rRenderBatch, const std::initializer_list<const Renderable *> &rRenderablesToAdd)
     {
-        auto &rRenderables = rRenderBatch.renderables;
-        rRenderables.insert(rRenderables.end(), rRenderablesToAdd.begin(), rRenderablesToAdd.end());
+        auto &rRenderablesPerMesh = rRenderBatch.renderablesPerMesh;
+        for (const auto *pRenderable : rRenderablesToAdd)
+        {
+            const auto *pMesh = pRenderable->GetMesh();
+            auto it = rRenderablesPerMesh.find(pMesh);
+            if (it == rRenderablesPerMesh.end())
+            {
+                it = rRenderablesPerMesh.emplace(pMesh, std::vector<const Renderable *>{}).first;
+            }
+            it->second.emplace_back(pRenderable);
+        }
     }
 
     inline bool RenderBatchStrategy::RemoveFromRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable)
     {
-        auto &rRenderables = rRenderBatch.renderables;
-        auto it = std::find(rRenderables.cbegin(), rRenderables.cend(), pRenderable);
-        if (it == rRenderables.cend())
-        {
-            return false;
-        }
-        rRenderables.erase(it);
+        auto &rRenderablesPerMesh = rRenderBatch.renderablesPerMesh;
+        const auto *pMesh = pRenderable->GetMesh();
+        auto renderablesPerMeshIt = rRenderablesPerMesh.find(pMesh);
+        assert(renderablesPerMeshIt != rRenderablesPerMesh.end());
+        auto& rRenderables = renderablesPerMeshIt->second;
+        auto renderableIt = std::find(rRenderables.cbegin(), rRenderables.cend(), pRenderable);
+        assert(renderableIt != rRenderables.cend());
+        rRenderables.erase(renderableIt);
         return true;
     }
 }

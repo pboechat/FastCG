@@ -65,7 +65,7 @@ namespace FastCG
                                                                                   sizeof(LightingConstants),
                                                                                   &mLightingConstants});
         mpInstanceConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"Instance Constants",
-                                                                                  BufferType::UNIFORM,
+                                                                                  BufferType::SHADER_STORAGE,
                                                                                   BufferUsage::DYNAMIC,
                                                                                   sizeof(InstanceConstants),
                                                                                   &mInstanceConstants});
@@ -76,7 +76,7 @@ namespace FastCG
                                                                                &mSceneConstants});
 
         mpShadowMapPassConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"Shadow Map Pass Constants",
-                                                                                       BufferType::UNIFORM,
+                                                                                       BufferType::SHADER_STORAGE,
                                                                                        BufferUsage::DYNAMIC,
                                                                                        sizeof(ShadowMapPassConstants),
                                                                                        &mShadowMapPassConstants});
@@ -309,7 +309,7 @@ namespace FastCG
     {
         auto &rShadowCastersRenderBatch = mArgs.rRenderBatches[0];
         assert(rShadowCastersRenderBatch.type == RenderBatchType::SHADOW_CASTERS);
-        if (rShadowCastersRenderBatch.renderables.empty())
+        if (rShadowCastersRenderBatch.renderablesPerMesh.empty())
         {
             return;
         }
@@ -326,37 +326,37 @@ namespace FastCG
 
             pRenderingContext->Bind(mpShadowMapPassShader);
 
-            for (const auto *pRenderable : rShadowCastersRenderBatch.renderables)
+            const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
+            for (size_t i = 0; i < rDirectionalLights.size(); ++i)
             {
-                if (!pRenderable->GetGameObject()->IsActive())
+                const auto *pDirectionalLight = rDirectionalLights[i];
+
+                const auto &rShadowMap = GetOrCreateShadowMap(pDirectionalLight);
+
+                const auto *pShadowMapTexture = rShadowMap.GetTexture();
+
+                for (auto it = rShadowCastersRenderBatch.renderablesPerMesh.cbegin(); it != rShadowCastersRenderBatch.renderablesPerMesh.cend(); ++it)
                 {
-                    continue;
-                }
+                    const auto *pMesh = it->first;
+                    const auto &rRenderables = it->second;
 
-                const auto *pMesh = pRenderable->GetMesh();
-
-                pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
-
-                auto model = pRenderable->GetGameObject()->GetTransform()->GetModel();
-
-                const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
-                for (size_t i = 0; i < rDirectionalLights.size(); ++i)
-                {
-                    const auto *pDirectionalLight = rDirectionalLights[i];
-
-                    const auto &rShadowMap = GetOrCreateShadowMap(pDirectionalLight);
-
-                    const auto *pShadowMapTexture = rShadowMap.GetTexture();
+                    pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
+                    pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
 
                     pRenderingContext->SetRenderTargets(&pShadowMapTexture, 1);
                     pRenderingContext->ClearDepthTarget(0, 1);
 
-                    auto modelViewProjection = rShadowMap.GetProjection() * rShadowMap.GetView() * model;
-                    UpdateShadowMapPassConstants(modelViewProjection, pRenderingContext);
+                    auto instanceCount = UpdateShadowMapPassConstants(rRenderables, rShadowMap.GetView(), rShadowMap.GetProjection(), pRenderingContext);
                     pRenderingContext->Bind(mpShadowMapPassConstantsBuffer, Shader::SHADOW_MAP_PASS_CONSTANTS_BINDING_INDEX);
 
-                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
+                    if (instanceCount == 1)
+                    {
+                        pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                    }
+                    else
+                    {
+                        pRenderingContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                    }
 
                     mArgs.rRenderingStatistics.drawCalls++;
                 }
@@ -392,7 +392,7 @@ namespace FastCG
                 pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                 pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
 
-                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
 
                 mArgs.rRenderingStatistics.drawCalls++;
             }
@@ -412,7 +412,7 @@ namespace FastCG
                     pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                     pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
 
-                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
 
                     mArgs.rRenderingStatistics.drawCalls++;
                 }
@@ -444,7 +444,7 @@ namespace FastCG
             pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
             pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
 
-            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
 
             mArgs.rRenderingStatistics.drawCalls++;
         }
@@ -473,14 +473,48 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext)
     {
+        auto &rInstanceData = mInstanceConstants.instanceData[0];
+
         auto modelView = rView * rModel;
 
-        mInstanceConstants.model = rModel;
-        mInstanceConstants.modelView = modelView;
-        mInstanceConstants.modelViewInverseTranspose = glm::transpose(glm::inverse(modelView));
-        mInstanceConstants.modelViewProjection = rProjection * modelView;
+        rInstanceData.model = rModel;
+        rInstanceData.modelView = modelView;
+        rInstanceData.modelViewInverseTranspose = glm::transpose(glm::inverse(modelView));
+        rInstanceData.modelViewProjection = rProjection * modelView;
 
-        pRenderingContext->Copy(mpInstanceConstantsBuffer, sizeof(InstanceConstants), &mInstanceConstants);
+        pRenderingContext->Copy(mpInstanceConstantsBuffer, sizeof(InstanceConstants::instanceData[0]), &mInstanceConstants);
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    uint32_t BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext)
+    {
+        uint32_t instanceCount = 0;
+        for (const auto *pRenderable : rRenderables)
+        {
+            if (!pRenderable->GetGameObject()->IsActive())
+            {
+                continue;
+            }
+
+            auto &rInstanceData = mInstanceConstants.instanceData[instanceCount++];
+
+            auto model = pRenderable->GetGameObject()->GetTransform()->GetModel();
+            auto modelView = rView * model;
+
+            rInstanceData.model = model;
+            rInstanceData.modelView = modelView;
+            rInstanceData.modelViewInverseTranspose = glm::transpose(glm::inverse(modelView));
+            rInstanceData.modelViewProjection = rProjection * modelView;
+        }
+
+        assert(instanceCount < MAX_NUM_INSTANCES);
+
+        if (instanceCount > 0)
+        {
+            pRenderingContext->Copy(mpInstanceConstantsBuffer, sizeof(InstanceConstants::instanceData[0]) * instanceCount, &mInstanceConstants);
+        }
+
+        return instanceCount;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -585,11 +619,29 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateShadowMapPassConstants(const glm::mat4 &rModelViewProjection, RenderingContext *pRenderingContext)
+    uint32_t BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext)
     {
-        mShadowMapPassConstants.modelViewProjection = rModelViewProjection;
+        uint32_t instanceCount = 0;
+        for (const auto *pRenderable : rRenderables)
+        {
+            if (!pRenderable->GetGameObject()->IsActive())
+            {
+                continue;
+            }
 
-        pRenderingContext->Copy(mpShadowMapPassConstantsBuffer, sizeof(ShadowMapPassConstants), &mShadowMapPassConstants);
+            auto &rInstanceData = mShadowMapPassConstants.instanceData[instanceCount++];
+
+            rInstanceData.modelViewProjection = rProjection * rView * pRenderable->GetGameObject()->GetTransform()->GetModel();
+        }
+
+        assert(instanceCount < MAX_NUM_INSTANCES);
+
+        if (instanceCount > 0)
+        {
+            pRenderingContext->Copy(mpShadowMapPassConstantsBuffer, sizeof(ShadowMapPassConstants::instanceData[0]) * instanceCount, &mShadowMapPassConstants);
+        }
+
+        return instanceCount;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>

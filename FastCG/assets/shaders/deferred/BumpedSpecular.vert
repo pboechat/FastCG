@@ -18,8 +18,8 @@ layout(location = 2) out vec2 vUV;
 
 void main()
 {
-	vNormal = normalize(mat3(uModelViewInverseTranspose) * iNormal);
-	vTangent = vec4(normalize(mat3(uModelViewInverseTranspose) * iTangent.xyz), iTangent.w);
+	vNormal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
+	vTangent = vec4(normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iTangent.xyz), iTangent.w);
 	vUV = iUV;
-	gl_Position = uModelViewProjection * iPosition;
+	gl_Position = GetInstanceData().modelViewProjection * iPosition;
 }

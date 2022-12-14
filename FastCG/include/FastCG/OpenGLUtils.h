@@ -28,6 +28,8 @@ namespace FastCG
         {
         case BufferType::UNIFORM:
             return GL_UNIFORM_BUFFER;
+        case BufferType::SHADER_STORAGE:
+            return GL_SHADER_STORAGE_BUFFER;
         case BufferType::VERTEX_ATTRIBUTE:
             return GL_ARRAY_BUFFER;
         case BufferType::INDICES:

@@ -127,18 +127,18 @@ namespace FastCG
             }
             pRenderingContext->PopDebugMarker();
 
-            auto renderBatchesIt = mArgs.rRenderBatches.cbegin() + 1;
-            if (renderBatchesIt != mArgs.rRenderBatches.cend())
+            auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
+            if (renderBatchIt != mArgs.rRenderBatches.cend())
             {
                 pRenderingContext->PushDebugMarker("Material Passes");
                 {
                     UpdateSceneConstants(view, inverseView, projection, pRenderingContext);
 
-                    for (; renderBatchesIt != mArgs.rRenderBatches.cend(); ++renderBatchesIt)
+                    for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
-                        assert(renderBatchesIt->type == RenderBatchType::MATERIAL_BASED);
+                        assert(renderBatchIt->type == RenderBatchType::MATERIAL_BASED);
 
-                        const auto *pMaterial = renderBatchesIt->pMaterial;
+                        const auto *pMaterial = renderBatchIt->pMaterial;
 
                         pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                         {
@@ -146,17 +146,18 @@ namespace FastCG
 
                             pRenderingContext->Bind(mpSceneConstantsBuffer, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
 
-                            for (const auto *pRenderable : renderBatchesIt->renderables)
+                            for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
-                                if (!pRenderable->GetGameObject()->IsActive())
+                                const auto *pMesh = it->first;
+                                const auto &rRenderables = it->second;
+
+                                auto instanceCount = UpdateInstanceConstants(rRenderables, view, projection, pRenderingContext);
+                                if (instanceCount == 0)
                                 {
                                     continue;
                                 }
 
-                                UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), view, projection, pRenderingContext);
                                 pRenderingContext->Bind(mpInstanceConstantsBuffer, OpenGLShader::INSTANCE_CONSTANTS_BINDING_INDEX);
-
-                                const auto *pMesh = pRenderable->GetMesh();
 
                                 pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
@@ -166,7 +167,14 @@ namespace FastCG
 
                                 if (rDirectionalLights.size() == 0 && rPointLights.size() == 0)
                                 {
-                                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
+                                    if (instanceCount == 1)
+                                    {
+                                        pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                    }
+                                    else
+                                    {
+                                        pRenderingContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                    }
 
                                     mArgs.rRenderingStatistics.drawCalls++;
                                     mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
@@ -207,7 +215,14 @@ namespace FastCG
                                             UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pRenderingContext);
                                             pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
-                                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
+                                            if (instanceCount == 1)
+                                            {
+                                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                            }
+                                            else
+                                            {
+                                                pRenderingContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                            }
 
                                             mArgs.rRenderingStatistics.drawCalls++;
 
@@ -246,7 +261,14 @@ namespace FastCG
 
                                             pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
-                                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
+                                            if (instanceCount == 1)
+                                            {
+                                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                            }
+                                            else
+                                            {
+                                                pRenderingContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                            }
 
                                             mArgs.rRenderingStatistics.drawCalls++;
 

@@ -12,6 +12,7 @@ namespace FastCG
     enum class BufferType : uint8_t
     {
         UNIFORM = 0,
+        SHADER_STORAGE,
         VERTEX_ATTRIBUTE,
         INDICES
     };

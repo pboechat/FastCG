@@ -50,7 +50,8 @@ namespace FastCG
         void ClearStencilTarget(uint32_t renderTargetIndex, int32_t stencil);
         void SetVertexBuffers(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
         void SetIndexBuffer(const OpenGLBuffer *pBuffer);
-        void DrawIndexed(PrimitiveType primitiveType, uint32_t indexCount, uint32_t firstIndex, int32_t vertexOffset);
+        void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void End();
         double GetElapsedTime();
 

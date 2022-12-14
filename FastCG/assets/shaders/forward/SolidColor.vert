@@ -21,12 +21,12 @@ layout(location = 4) out vec2 vUV;
 
 void main()
 {
-	vec4 worldPosition = uModel * iPosition;
+	vec4 worldPosition = GetInstanceData().model * iPosition;
 	vec3 viewPosition = vec3(uView * worldPosition);
 	vLightDirection = normalize(uLight0ViewPosition.xyz - (step(0, GetLightType()) * viewPosition));
 	vViewerDirection = normalize(-viewPosition);
 	vPosition = worldPosition.xyz;
-	vNormal = normalize(mat3(uModelViewInverseTranspose) * iNormal);
+	vNormal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
 	vUV = iUV;
-	gl_Position = uModelViewProjection * iPosition;
+	gl_Position = GetInstanceData().modelViewProjection * iPosition;
 }

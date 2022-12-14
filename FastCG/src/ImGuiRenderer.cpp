@@ -100,7 +100,7 @@ namespace FastCG
 
                             pRenderingContext->Bind((OpenGLTexture *)pCmd->GetTexID(), "uColorMap", 0);
 
-                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, (uint32_t)pCmd->ElemCount, (uint32_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (int32_t)pCmd->VtxOffset);
+                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, (uint32_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset);
                         }
                     }
                 }

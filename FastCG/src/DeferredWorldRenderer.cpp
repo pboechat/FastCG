@@ -215,22 +215,30 @@ namespace FastCG
 
                             pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
 
-                            for (const auto *pRenderable : renderBatchIt->renderables)
+                            for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
-                                if (!pRenderable->GetGameObject()->IsActive())
+                                const auto *pMesh = it->first;
+                                const auto &rRenderables = it->second;
+
+                                auto instanceCount = UpdateInstanceConstants(rRenderables, view, projection, pRenderingContext);
+                                if (instanceCount == 0)
                                 {
                                     continue;
                                 }
 
-                                UpdateInstanceConstants(pRenderable->GetGameObject()->GetTransform()->GetModel(), view, projection, pRenderingContext);
                                 pRenderingContext->Bind(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
-
-                                auto *pMesh = pRenderable->GetMesh();
 
                                 pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
 
-                                pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, pMesh->GetIndexCount(), 0, 0);
+                                if (instanceCount == 0)
+                                {
+                                    pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                }
+                                else
+                                {
+                                    pRenderingContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                }
 
                                 mArgs.rRenderingStatistics.drawCalls++;
                                 mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
@@ -284,7 +292,7 @@ namespace FastCG
                             pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
 
-                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpSphereMesh->GetIndexCount(), 0, 0);
+                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpSphereMesh->GetIndexCount(), 0);
 
                             mArgs.rRenderingStatistics.drawCalls++;
                         }
@@ -314,7 +322,7 @@ namespace FastCG
                             pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
 
-                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpSphereMesh->GetIndexCount(), 0, 0);
+                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpSphereMesh->GetIndexCount(), 0);
 
                             mArgs.rRenderingStatistics.drawCalls++;
                         }
@@ -353,7 +361,7 @@ namespace FastCG
                         pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                         pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
 
-                        pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, mpQuadMesh->GetIndexCount(), 0, 0);
+                        pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
 
                         mArgs.rRenderingStatistics.drawCalls++;
                     }
