@@ -213,6 +213,8 @@ namespace FastCG
 
                             SetupMaterial(pMaterial, pRenderingContext);
 
+                            pRenderingContext->SetRenderTargets(mGBufferRenderTargets.data(), 6);
+
                             pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
 
                             for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
