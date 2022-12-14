@@ -454,6 +454,49 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext)
     {
+        pRenderingContext->SetDepthTest(pMaterial->GetDepthTest());
+        pRenderingContext->SetDepthWrite(pMaterial->GetDepthWrite());
+        pRenderingContext->SetDepthFunc(pMaterial->GetDepthFunc());
+        pRenderingContext->SetScissorTest(pMaterial->GetScissorTest());
+        if (pMaterial->GetStencilTest())
+        {
+            pRenderingContext->SetStencilTest(true);
+            for (const auto &rStencilFunc : pMaterial->GetStencilFuncs())
+            {
+                if (rStencilFunc.face == Face::NONE)
+                {
+                    continue;
+                }
+                pRenderingContext->SetStencilFunc(rStencilFunc.face, rStencilFunc.stencilFunc, rStencilFunc.ref, rStencilFunc.mask);
+            }
+            for (const auto &rStencilOps : pMaterial->GetStencilOps())
+            {
+                if (rStencilOps.face == Face::NONE)
+                {
+                    continue;
+                }
+                pRenderingContext->SetStencilOp(rStencilOps.face, rStencilOps.stencilFail, rStencilOps.depthFail, rStencilOps.depthPass);
+            }
+            pRenderingContext->SetStencilWriteMask(pMaterial->GetStencilWriteMask());
+        }
+        else
+        {
+            pRenderingContext->SetStencilTest(false);
+        }
+        pRenderingContext->SetCullMode(pMaterial->GetCullMode());
+        if (pMaterial->GetBlend())
+        {
+            pRenderingContext->SetBlend(true);
+            const auto &rBlendFuncs = pMaterial->GetBlendFuncs();
+            pRenderingContext->SetBlendFunc(rBlendFuncs.color, rBlendFuncs.alpha);
+            const auto &rBlendFactors = pMaterial->GetBlendFactors();
+            pRenderingContext->SetBlendFactors(rBlendFactors.srcColor, rBlendFactors.dstColor, rBlendFactors.srcAlpha, rBlendFactors.dstAlpha);
+        }
+        else
+        {
+            pRenderingContext->SetBlend(false);
+        }
+
         pRenderingContext->Copy(pMaterial->GetMaterialConstantsBuffer(), sizeof(MaterialConstants), &pMaterial->GetMaterialConstants());
 
         pRenderingContext->Bind(pMaterial->GetShader());
