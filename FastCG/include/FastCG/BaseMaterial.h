@@ -12,7 +12,7 @@
 
 namespace FastCG
 {
-	struct StencilFunc
+	struct StencilFaceFunc
 	{
 		Face face;
 		CompareOp stencilFunc;
@@ -55,7 +55,7 @@ namespace FastCG
 		CompareOp depthFunc{CompareOp::LEQUAL};
 		bool scissorTest{false};
 		bool stencilTest{false};
-		std::array<StencilFunc, (size_t)Face::MAX> stencilFuncs{};
+		std::array<StencilFaceFunc, (size_t)Face::MAX> stencilFuncs{};
 		std::array<StencilFaceOp, (size_t)Face::MAX> stencilOps{};
 		uint32_t stencilWriteMask{0};
 		Face cullMode{Face::BACK};
@@ -210,7 +210,7 @@ namespace FastCG
 		CompareOp mDepthFunc;
 		bool mScissorTest;
 		bool mStencilTest;
-		std::array<StencilFunc, (size_t)Face::MAX> mStencilFuncs;
+		std::array<StencilFaceFunc, (size_t)Face::MAX> mStencilFuncs;
 		std::array<StencilFaceOp, (size_t)Face::MAX> mStencilOps;
 		uint32_t mStencilWriteMask;
 		Face mCullMode;
