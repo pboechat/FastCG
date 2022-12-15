@@ -10,41 +10,36 @@ namespace FastCG
 {
 	enum class ShaderType : uint8_t
 	{
-		ST_VERTEX = 0,
-		ST_FRAGMENT,
-		ST_MAX
+		VERTEX = 0,
+		FRAGMENT,
+		MAX
 	};
 
 	using ShaderTypeInt = std::underlying_type_t<ShaderType>;
 
 	template <typename T>
-	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::ST_MAX>;
+	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::MAX>;
+
+	template <ShaderType ShaderTypeT>
+	struct ShaderFileExtension;
+
+#define FASTCG_DECLARE_SHADER_FILE_EXTENSION(shaderType, ext) \
+	template <>                                               \
+	struct ShaderFileExtension<shaderType>                    \
+	{                                                         \
+		static const char *value()                            \
+		{                                                     \
+			return ext;                                       \
+		}                                                     \
+	}
+
+	FASTCG_DECLARE_SHADER_FILE_EXTENSION(ShaderType::VERTEX, ".vert");
+	FASTCG_DECLARE_SHADER_FILE_EXTENSION(ShaderType::FRAGMENT, ".frag");
 
 	struct ShaderArgs
 	{
 		std::string name;
 		ShaderTypeValueArray<std::string> shaderFileNames;
-	};
-
-	template <ShaderType ShaderTypeT>
-	struct ShaderFileExtension;
-
-	template <>
-	struct ShaderFileExtension<ShaderType::ST_VERTEX>
-	{
-		static const char *value()
-		{
-			return ".vert";
-		}
-	};
-
-	template <>
-	struct ShaderFileExtension<ShaderType::ST_FRAGMENT>
-	{
-		static const char *value()
-		{
-			return ".frag";
-		}
 	};
 
 	class BaseShader

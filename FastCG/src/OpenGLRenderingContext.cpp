@@ -197,42 +197,42 @@ namespace FastCG
         glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetDataType(), pTexture->GetBitsPerPixel()), (const GLvoid *)pData);
     }
 
-    void OpenGLRenderingContext::Bind(const OpenGLShader *pShader)
+    void OpenGLRenderingContext::BindShader(const OpenGLShader *pShader)
     {
         assert(pShader != nullptr);
         glUseProgram(*pShader);
         mpBoundShader = pShader;
     }
 
-    void OpenGLRenderingContext::Bind(const OpenGLBuffer *pBuffer, uint32_t binding)
+    void OpenGLRenderingContext::BindResource(const OpenGLBuffer *pBuffer, uint32_t index)
     {
         assert(pBuffer != nullptr);
         assert(mpBoundShader != nullptr);
-        glBindBufferBase(GetOpenGLTarget(pBuffer->GetType()), binding, *pBuffer);
+        glBindBufferBase(GetOpenGLTarget(pBuffer->GetType()), index, *pBuffer);
     }
 
-    void OpenGLRenderingContext::Bind(const OpenGLBuffer *pBuffer, const char *name)
+    void OpenGLRenderingContext::BindResource(const OpenGLBuffer *pBuffer, const char *name)
     {
         assert(pBuffer != nullptr);
         assert(mpBoundShader != nullptr);
-        auto binding = glGetUniformLocation(*mpBoundShader, name);
-        Bind(pBuffer, binding);
+        auto index = glGetUniformLocation(*mpBoundShader, name);
+        BindResource(pBuffer, index);
     }
 
-    void OpenGLRenderingContext::Bind(const OpenGLTexture *pTexture, uint32_t binding, uint32_t unit)
+    void OpenGLRenderingContext::BindResource(const OpenGLTexture *pTexture, uint32_t index, uint32_t unit)
     {
         assert(pTexture != nullptr);
         assert(mpBoundShader != nullptr);
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, *pTexture);
-        glUniform1i(binding, unit);
+        glUniform1i(index, unit);
     }
 
-    void OpenGLRenderingContext::Bind(const OpenGLTexture *pTexture, const char *name, uint32_t unit)
+    void OpenGLRenderingContext::BindResource(const OpenGLTexture *pTexture, const char *name, uint32_t unit)
     {
         assert(mpBoundShader != nullptr);
-        auto binding = glGetUniformLocation(*mpBoundShader, name);
-        Bind(pTexture, binding, unit);
+        auto index = glGetUniformLocation(*mpBoundShader, name);
+        BindResource(pTexture, index, unit);
     }
 
     void OpenGLRenderingContext::Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst)

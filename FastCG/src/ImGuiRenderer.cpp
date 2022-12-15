@@ -66,9 +66,9 @@ namespace FastCG
                 mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
                 pRenderingContext->Copy(mpImGuiConstantsBuffer, sizeof(ImGuiConstants), &mImGuiConstants);
 
-                pRenderingContext->Bind(mpImGuiShader);
+                pRenderingContext->BindShader(mpImGuiShader);
 
-                pRenderingContext->Bind(mpImGuiConstantsBuffer, 0u);
+                pRenderingContext->BindResource(mpImGuiConstantsBuffer, 0u);
 
                 pRenderingContext->SetVertexBuffers(mpImGuiMesh->GetVertexBuffers(), mpImGuiMesh->GetVertexBufferCount());
                 pRenderingContext->SetIndexBuffer(mpImGuiMesh->GetIndexBuffer());
@@ -98,7 +98,7 @@ namespace FastCG
 
                             pRenderingContext->SetScissor((int32_t)clipMin.x, (int32_t)(displaySize.y - clipMax.y), (uint32_t)(clipMax.x - clipMin.x), (uint32_t)(clipMax.y - clipMin.y));
 
-                            pRenderingContext->Bind((OpenGLTexture *)pCmd->GetTexID(), "uColorMap", 0);
+                            pRenderingContext->BindResource((OpenGLTexture *)pCmd->GetTexID(), "uColorMap", 0);
 
                             pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, (uint32_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset);
                         }

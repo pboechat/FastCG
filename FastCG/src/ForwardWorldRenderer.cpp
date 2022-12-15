@@ -144,9 +144,7 @@ namespace FastCG
                         {
                             SetupMaterial(pMaterial, pRenderingContext);
 
-                            pRenderingContext->SetRenderTargets(mRenderTargets.data(), mRenderTargets.size());
-
-                            pRenderingContext->Bind(mpSceneConstantsBuffer, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
+                            pRenderingContext->BindResource(mpSceneConstantsBuffer, OpenGLShader::SCENE_CONSTANTS_BINDING_INDEX);
 
                             for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
@@ -159,7 +157,7 @@ namespace FastCG
                                     continue;
                                 }
 
-                                pRenderingContext->Bind(mpInstanceConstantsBuffer, OpenGLShader::INSTANCE_CONSTANTS_BINDING_INDEX);
+                                pRenderingContext->BindResource(mpInstanceConstantsBuffer, OpenGLShader::INSTANCE_CONSTANTS_BINDING_INDEX);
 
                                 pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
@@ -215,7 +213,7 @@ namespace FastCG
                                             auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
 
                                             UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pRenderingContext);
-                                            pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
+                                            pRenderingContext->BindResource(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                             if (instanceCount == 1)
                                             {
@@ -260,8 +258,7 @@ namespace FastCG
                                             }
 
                                             UpdateLightingConstants(rPointLights[i], inverseView, nearClip, isSSAOEnabled, pRenderingContext);
-
-                                            pRenderingContext->Bind(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
+                                            pRenderingContext->BindResource(mpLightingConstantsBuffer, OpenGLShader::LIGHTING_CONSTANTS_BINDING_INDEX);
 
                                             if (instanceCount == 1)
                                             {

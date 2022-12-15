@@ -39,11 +39,11 @@ namespace FastCG
         void SetCullMode(Face face);
         void Copy(const Buffer *pBuffer, size_t dataSize, const void *pData);
         void Copy(const Texture *pTexture, size_t dataSize, const void *pData);
-        void Bind(const Shader *pShader);
-        void Bind(const Buffer *pBuffer, uint32_t binding);
-        void Bind(const Buffer *pBuffer, const char *name);
-        void Bind(const Texture *pTexture, uint32_t binding, uint32_t unit);
-        void Bind(const Texture *pTexture, const char *name, uint32_t unit);
+        void BindShader(const Shader *pShader);
+        void BindResource(const Buffer *pBuffer, uint32_t index);
+        void BindResource(const Buffer *pBuffer, const char *name);
+        void BindResource(const Texture *pTexture, uint32_t index, uint32_t unit);
+        void BindResource(const Texture *pTexture, const char *name, uint32_t unit);
         void Blit(const Texture *pSrc, const Texture *pDst);
         void SetRenderTargets(const Texture *const *pTextures, size_t textureCount);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);

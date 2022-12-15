@@ -202,9 +202,9 @@ namespace FastCG
     {
         switch (shaderType)
         {
-        case ShaderType::ST_VERTEX:
+        case ShaderType::VERTEX:
             return GL_VERTEX_SHADER;
-        case ShaderType::ST_FRAGMENT:
+        case ShaderType::FRAGMENT:
             return GL_FRAGMENT_SHADER;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Unhandled shader type");

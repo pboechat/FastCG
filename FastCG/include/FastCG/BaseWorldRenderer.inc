@@ -324,7 +324,7 @@ namespace FastCG
             pRenderingContext->SetCullMode(Face::BACK);
             pRenderingContext->SetBlend(false);
 
-            pRenderingContext->Bind(mpShadowMapPassShader);
+            pRenderingContext->BindShader(mpShadowMapPassShader);
 
             const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
             for (size_t i = 0; i < rDirectionalLights.size(); ++i)
@@ -347,7 +347,7 @@ namespace FastCG
                     pRenderingContext->ClearDepthTarget(0, 1);
 
                     auto instanceCount = UpdateShadowMapPassConstants(rRenderables, rShadowMap.GetView(), rShadowMap.GetProjection(), pRenderingContext);
-                    pRenderingContext->Bind(mpShadowMapPassConstantsBuffer, Shader::SHADOW_MAP_PASS_CONSTANTS_BINDING_INDEX);
+                    pRenderingContext->BindResource(mpShadowMapPassConstantsBuffer, Shader::SHADOW_MAP_PASS_CONSTANTS_BINDING_INDEX);
 
                     if (instanceCount == 1)
                     {
@@ -383,11 +383,12 @@ namespace FastCG
                 pRenderingContext->SetRenderTargets(&mSSAORenderTargets[0], 1);
                 pRenderingContext->ClearRenderTarget(0, Colors::NONE);
 
-                pRenderingContext->Bind(mpSSAOHighFrequencyPassShader);
+                pRenderingContext->BindShader(mpSSAOHighFrequencyPassShader);
 
-                pRenderingContext->Bind(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+                pRenderingContext->BindResource(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+
                 UpdateSSAOHighFrequencyPassConstants(rProjection, fov, pDepth, pRenderingContext);
-                pRenderingContext->Bind(mpSSAOHighFrequencyPassConstantsBuffer, Shader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX);
+                pRenderingContext->BindResource(mpSSAOHighFrequencyPassConstantsBuffer, Shader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX);
 
                 pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                 pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
@@ -405,9 +406,9 @@ namespace FastCG
                     pRenderingContext->SetRenderTargets(&mSSAORenderTargets[1], 1);
                     pRenderingContext->ClearRenderTarget(0, Colors::NONE);
 
-                    pRenderingContext->Bind(mpSSAOBlurPassShader);
+                    pRenderingContext->BindShader(mpSSAOBlurPassShader);
 
-                    pRenderingContext->Bind(mSSAORenderTargets[0], "uAmbientOcclusion", 0);
+                    pRenderingContext->BindResource(mSSAORenderTargets[0], "uAmbientOcclusion", 0);
 
                     pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                     pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
@@ -437,9 +438,9 @@ namespace FastCG
 
             pRenderingContext->SetRenderTargets(&pDestinationRenderTarget, 1);
 
-            pRenderingContext->Bind(mpTonemapShader);
+            pRenderingContext->BindShader(mpTonemapShader);
 
-            pRenderingContext->Bind(pSourceRenderTarget, "uSource", 0);
+            pRenderingContext->BindResource(pSourceRenderTarget, "uSource", 0);
 
             pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
             pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
@@ -499,17 +500,20 @@ namespace FastCG
 
         pRenderingContext->Copy(pMaterial->GetMaterialConstantsBuffer(), sizeof(MaterialConstants), &pMaterial->GetMaterialConstants());
 
-        pRenderingContext->Bind(pMaterial->GetShader());
-        pRenderingContext->Bind(pMaterial->GetMaterialConstantsBuffer(), Shader::MATERIAL_CONSTANTS_BINDING_INDEX);
+        pRenderingContext->BindShader(pMaterial->GetShader());
+
+        pRenderingContext->BindResource(pMaterial->GetMaterialConstantsBuffer(), Shader::MATERIAL_CONSTANTS_BINDING_INDEX);
+        
         auto *pColorMap = pMaterial->GetColorMap();
         if (pColorMap != nullptr)
         {
-            pRenderingContext->Bind(pColorMap, "uColorMap", 0);
+            pRenderingContext->BindResource(pColorMap, "uColorMap", 0);
         }
+        
         auto *pBumpMap = pMaterial->GetBumpMap();
         if (pBumpMap != nullptr)
         {
-            pRenderingContext->Bind(pBumpMap, "uBumpMap", 1);
+            pRenderingContext->BindResource(pBumpMap, "uBumpMap", 1);
         }
     }
 
@@ -568,7 +572,7 @@ namespace FastCG
         mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
         mLightingConstants.pcssData.nearClip = 0;
 
-        pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
+        pRenderingContext->BindResource(mpEmptyShadowMap, "uShadowMap", 2);
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -581,14 +585,14 @@ namespace FastCG
             mLightingConstants.pcssData.shadowMapData.viewProjection = shadowMap.GetProjection() * view;
             mLightingConstants.pcssData.nearClip = nearClip;
 
-            pRenderingContext->Bind(shadowMap.GetTexture(), "uShadowMap", 2);
+            pRenderingContext->BindResource(shadowMap.GetTexture(), "uShadowMap", 2);
         }
         else
         {
             mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
             mLightingConstants.pcssData.nearClip = 0;
 
-            pRenderingContext->Bind(mpEmptyShadowMap, "uShadowMap", 2);
+            pRenderingContext->BindResource(mpEmptyShadowMap, "uShadowMap", 2);
         }
     }
 
@@ -599,16 +603,16 @@ namespace FastCG
         {
             if (mSSAOBlurEnabled)
             {
-                pRenderingContext->Bind(mSSAORenderTargets[1], "uAmbientOcclusionMap", 3);
+                pRenderingContext->BindResource(mSSAORenderTargets[1], "uAmbientOcclusionMap", 3);
             }
             else
             {
-                pRenderingContext->Bind(mSSAORenderTargets[0], "uAmbientOcclusionMap", 3);
+                pRenderingContext->BindResource(mSSAORenderTargets[0], "uAmbientOcclusionMap", 3);
             }
         }
         else
         {
-            pRenderingContext->Bind(mpEmptySSAOTexture, "uAmbientOcclusionMap", 3);
+            pRenderingContext->BindResource(mpEmptySSAOTexture, "uAmbientOcclusionMap", 3);
         }
     }
 
@@ -696,8 +700,8 @@ namespace FastCG
 
         pRenderingContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants);
 
-        pRenderingContext->Bind(mpNoiseTexture, "uNoise", 0);
-        pRenderingContext->Bind(pDepth, "uDepth", 1);
+        pRenderingContext->BindResource(mpNoiseTexture, "uNoise", 0);
+        pRenderingContext->BindResource(pDepth, "uDepth", 1);
     }
 
 }

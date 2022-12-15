@@ -41,7 +41,7 @@ namespace FastCG
     OpenGLShader::OpenGLShader(const ShaderArgs &rName) : BaseShader(rName)
     {
         std::fill(mShadersIds.begin(), mShadersIds.end(), ~0u);
-        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::ST_MAX; i++)
+        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::MAX; i++)
         {
             auto shaderType = (ShaderType)i;
             const auto &shaderFileName = mArgs.shaderFileNames[i];

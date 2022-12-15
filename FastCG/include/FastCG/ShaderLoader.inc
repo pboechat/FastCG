@@ -45,14 +45,14 @@ namespace FastCG
             shaderRenderingPathMask = (1 << (RenderingPathInt)RenderingPath::MAX) - 1;
         }
 
-        if (rShaderFileName.find(ShaderFileExtension<ShaderType::ST_VERTEX>::value()) != std::string::npos)
+        if (rShaderFileName.find(ShaderFileExtension<ShaderType::VERTEX>::value()) != std::string::npos)
         {
-            rShaderType = ShaderType::ST_VERTEX;
+            rShaderType = ShaderType::VERTEX;
             return true;
         }
-        else if (rShaderFileName.find(ShaderFileExtension<ShaderType::ST_FRAGMENT>::value()) != std::string::npos)
+        else if (rShaderFileName.find(ShaderFileExtension<ShaderType::FRAGMENT>::value()) != std::string::npos)
         {
-            rShaderType = ShaderType::ST_FRAGMENT;
+            rShaderType = ShaderType::FRAGMENT;
             return true;
         }
         else
