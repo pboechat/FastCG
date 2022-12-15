@@ -1,7 +1,6 @@
 #ifndef FASTCG_MODEL_IMPORTER_H
 #define FASTCG_MODEL_IMPORTER_H
 
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/GameObject.h>
 
 #include <type_traits>

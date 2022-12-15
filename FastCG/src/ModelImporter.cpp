@@ -1,6 +1,8 @@
 #include <FastCG/Transform.h>
-#include <FastCG/Renderable.h>
 #include <FastCG/TextureImporter.h>
+#include <FastCG/ShaderConstants.h>
+#include <FastCG/RenderingSystem.h>
+#include <FastCG/Renderable.h>
 #include <FastCG/ModelImporter.h>
 #include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
@@ -107,10 +109,10 @@ namespace FastCG
 			auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
 
 			auto *pMesh = RenderingSystem::GetInstance()->CreateMesh({rName + " (" + std::to_string(shapeIdx) + ")",
-																	  {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{Shader::POSITIONS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																	   {"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{Shader::NORMALS_ATTRIBUTE_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																	   {"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{Shader::UVS_ATTRIBUTE_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
-																	   {"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{Shader::TANGENTS_ATTRIBUTE_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+																	  {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																	   {"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																	   {"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_SHADER_INPUT_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
+																	   {"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_SHADER_INPUT_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
 																	  {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
 																	  MeshUtils::CalculateBounds(positions)});
 			rMeshCatalog.emplace(shapeIdx, pMesh);

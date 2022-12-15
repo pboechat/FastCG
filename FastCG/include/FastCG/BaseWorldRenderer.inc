@@ -347,7 +347,7 @@ namespace FastCG
                     pRenderingContext->ClearDepthTarget(0, 1);
 
                     auto instanceCount = UpdateShadowMapPassConstants(rRenderables, rShadowMap.GetView(), rShadowMap.GetProjection(), pRenderingContext);
-                    pRenderingContext->BindResource(mpShadowMapPassConstantsBuffer, Shader::SHADOW_MAP_PASS_CONSTANTS_BINDING_INDEX);
+                    pRenderingContext->BindResource(mpShadowMapPassConstantsBuffer, SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                     if (instanceCount == 1)
                     {
@@ -385,10 +385,10 @@ namespace FastCG
 
                 pRenderingContext->BindShader(mpSSAOHighFrequencyPassShader);
 
-                pRenderingContext->BindResource(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+                pRenderingContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                 UpdateSSAOHighFrequencyPassConstants(rProjection, fov, pDepth, pRenderingContext);
-                pRenderingContext->BindResource(mpSSAOHighFrequencyPassConstantsBuffer, Shader::SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_BINDING_INDEX);
+                pRenderingContext->BindResource(mpSSAOHighFrequencyPassConstantsBuffer, SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                 pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                 pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
@@ -502,7 +502,7 @@ namespace FastCG
 
         pRenderingContext->BindShader(pMaterial->GetShader());
 
-        pRenderingContext->BindResource(pMaterial->GetMaterialConstantsBuffer(), Shader::MATERIAL_CONSTANTS_BINDING_INDEX);
+        pRenderingContext->BindResource(pMaterial->GetMaterialConstantsBuffer(), MATERIAL_CONSTANTS_SHADER_RESOURCE_INDEX);
         
         auto *pColorMap = pMaterial->GetColorMap();
         if (pColorMap != nullptr)

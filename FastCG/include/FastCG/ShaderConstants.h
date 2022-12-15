@@ -9,6 +9,18 @@
 
 namespace FastCG
 {
+    static constexpr uint32_t POSITION_SHADER_INPUT_INDEX = 0;
+    static constexpr uint32_t NORMAL_SHADER_INPUT_INDEX = 1;
+    static constexpr uint32_t UV_SHADER_INPUT_INDEX = 2;
+    static constexpr uint32_t TANGENT_SHADER_INPUT_INDEX = 3;
+    static constexpr uint32_t COLOR_SHADER_INPUT_INDEX = 4;
+    static constexpr uint32_t SCENE_CONSTANTS_SHADER_RESOURCE_INDEX = 0;
+    static constexpr uint32_t INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX = 1;
+    static constexpr uint32_t LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX = 2;
+    static constexpr uint32_t MATERIAL_CONSTANTS_SHADER_RESOURCE_INDEX = 0x10;
+    static constexpr uint32_t SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_INDEX = 0;
+    static constexpr uint32_t SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_INDEX = 0;
+
     struct ShadowMapData
     {
         glm::mat4 viewProjection;

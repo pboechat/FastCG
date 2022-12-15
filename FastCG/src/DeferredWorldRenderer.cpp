@@ -213,7 +213,7 @@ namespace FastCG
 
                             SetupMaterial(pMaterial, pRenderingContext);
 
-                            pRenderingContext->BindResource(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+                            pRenderingContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                             for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
@@ -226,7 +226,7 @@ namespace FastCG
                                     continue;
                                 }
 
-                                pRenderingContext->BindResource(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
+                                pRenderingContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                                 pRenderingContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pRenderingContext->SetIndexBuffer(pMesh->GetIndexBuffer());
@@ -287,7 +287,7 @@ namespace FastCG
 
                             pRenderingContext->BindShader(mpStencilPassShader);
 
-                            pRenderingContext->BindResource(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
+                            pRenderingContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                             pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
@@ -314,13 +314,13 @@ namespace FastCG
 
                             pRenderingContext->BindShader(mpPointLightPassShader);
 
-                            pRenderingContext->BindResource(mpSceneConstantsBuffer, Shader::SCENE_CONSTANTS_BINDING_INDEX);
+                            pRenderingContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
                             UpdateInstanceConstants(model, view, projection, pRenderingContext);
 
-                            pRenderingContext->BindResource(mpInstanceConstantsBuffer, Shader::INSTANCE_CONSTANTS_BINDING_INDEX);
+                            pRenderingContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
                             UpdateLightingConstants(pPointLight, inverseView, nearClip, isSSAOEnabled, pRenderingContext);
-                            
-                            pRenderingContext->BindResource(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
+
+                            pRenderingContext->BindResource(mpLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                             pRenderingContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pRenderingContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
@@ -359,7 +359,7 @@ namespace FastCG
                     pRenderingContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                     {
                         UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pRenderingContext);
-                        pRenderingContext->BindResource(mpLightingConstantsBuffer, Shader::LIGHTING_CONSTANTS_BINDING_INDEX);
+                        pRenderingContext->BindResource(mpLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX);
 
                         pRenderingContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                         pRenderingContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
