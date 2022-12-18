@@ -51,9 +51,14 @@ namespace FastCG
         memcpy(&mData[current], (void *)&object, sizeof(T));
     }
 
-    inline const uint8_t *OutputBinaryStream::GetData() const
+    inline uint8_t *OutputBinaryStream::GetData()
     {
         return &mData[0];
+    }
+
+    inline const uint8_t *OutputBinaryStream::GetData() const
+    {
+        return const_cast<OutputBinaryStream *>(this)->GetData();
     }
 
     inline size_t OutputBinaryStream::GetSize() const

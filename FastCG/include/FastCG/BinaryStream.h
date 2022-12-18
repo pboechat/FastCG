@@ -29,6 +29,7 @@ namespace FastCG
 		inline void Write(T *array, size_t length);
 		template <typename T>
 		inline void Write(T &object);
+		inline uint8_t *GetData();
 		inline const uint8_t *GetData() const;
 		inline size_t GetSize() const;
 
