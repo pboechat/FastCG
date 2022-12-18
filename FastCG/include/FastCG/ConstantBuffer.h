@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include <string>
+#include <string.h>
 #include <memory>
 #include <initializer_list>
 #include <cstdint>
@@ -113,17 +114,17 @@ namespace FastCG
             return mMembers;
         }
 
-        inline bool GetMemberValue(const std::string &rName, float &rValue)
+        inline bool GetMemberValue(const std::string &rName, float &rValue) const
         {
             return GetMemberValueInternal(rName, rValue);
         }
 
-        inline bool GetMemberValue(const std::string &rName, glm::vec2 &rValue)
+        inline bool GetMemberValue(const std::string &rName, glm::vec2 &rValue) const
         {
             return GetMemberValueInternal(rName, rValue);
         }
 
-        inline bool GetMemberValue(const std::string &rName, glm::vec4 &rValue)
+        inline bool GetMemberValue(const std::string &rName, glm::vec4 &rValue) const
         {
             return GetMemberValueInternal(rName, rValue);
         }
@@ -221,7 +222,7 @@ namespace FastCG
         }
 
         template <typename T>
-        inline bool GetMemberValueInternal(const std::string &rName, T &rValue)
+        inline bool GetMemberValueInternal(const std::string &rName, T &rValue) const
         {
             uint32_t offset;
             if (!GetMemberOffset(rName, offset))
