@@ -47,17 +47,17 @@ namespace FastCG
     template <typename T, bool DerivedFromInspectable>
     struct _GetInspectablePropertyTypeFromType;
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                        \
-    template <>                                                                         \
-    struct _GetInspectablePropertyTypeFromType<type, false>                             \
-    {                                                                                   \
-        static const InspectablePropertyType value = InspectablePropertyType::typeEnum; \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum)                            \
+    template <>                                                                             \
+    struct _GetInspectablePropertyTypeFromType<type, false>                                 \
+    {                                                                                       \
+        static constexpr InspectablePropertyType value = InspectablePropertyType::typeEnum; \
     }
 
     template <typename T>
     struct _GetInspectablePropertyTypeFromType<T, true>
     {
-        static const InspectablePropertyType value = InspectablePropertyType::INSPECTABLE;
+        static constexpr InspectablePropertyType value = InspectablePropertyType::INSPECTABLE;
     };
 
     FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(bool, BOOL);
@@ -84,8 +84,8 @@ namespace FastCG
     public:
         virtual InspectablePropertyType GetType() const = 0;
         virtual const std::string &GetName() const = 0;
-        virtual void GetValue(void *value) const = 0;
-        virtual void SetValue(const void *value) = 0;
+        virtual void GetValue(void *pValue) const = 0;
+        virtual void SetValue(const void *pValue) = 0;
         virtual bool IsReadOnly() const = 0;
     };
 
@@ -101,8 +101,8 @@ namespace FastCG
     class IInspectableDelimitedProperty : public IInspectableProperty
     {
     public:
-        virtual void GetMin(void *value) const = 0;
-        virtual void GetMax(void *value) const = 0;
+        virtual void GetMin(void *pValue) const = 0;
+        virtual void GetMax(void *pValue) const = 0;
     };
 
     template <typename T, typename U>
@@ -154,36 +154,36 @@ namespace FastCG
         }
 
         // This method can cause misaligned accesses!
-        inline void GetValue(void *value) const override
+        inline void GetValue(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = GetValue();
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = GetValue();
         }
 
         // This method can cause misaligned accesses!
-        inline void SetValue(const void *value) override
+        inline void SetValue(const void *pValue) override
         {
             assert(!IsReadOnly());
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            SetValue(*reinterpret_cast<const U *>(value));
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            SetValue(*reinterpret_cast<const U *>(pValue));
         }
 
         // This method can cause misaligned accesses!
-        inline void GetMin(void *value) const override
+        inline void GetMin(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = mMin;
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = mMin;
         }
 
         // This method can cause misaligned accesses!
-        inline void GetMax(void *value) const override
+        inline void GetMax(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = mMax;
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = mMax;
         }
 
         inline bool IsReadOnly() const override
@@ -233,36 +233,36 @@ namespace FastCG
         }
 
         // This method can cause misaligned accesses!
-        inline void GetValue(void *value) const override
+        inline void GetValue(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = GetValueCR();
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = GetValueCR();
         }
 
         // This method can cause misaligned accesses!
-        inline void SetValue(const void *value) override
+        inline void SetValue(const void *pValue) override
         {
             assert(!IsReadOnly());
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            SetValueCR(*reinterpret_cast<const U *>(value));
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            SetValueCR(*reinterpret_cast<const U *>(pValue));
         }
 
         // This method can cause misaligned accesses!
-        inline void GetMin(void *value) const override
+        inline void GetMin(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = mMin;
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = mMin;
         }
 
         // This method can cause misaligned accesses!
-        inline void GetMax(void *value) const override
+        inline void GetMax(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = mMax;
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = mMax;
         }
 
         inline bool IsReadOnly() const override
@@ -303,27 +303,27 @@ namespace FastCG
             return (BaseInspectableProperty<T, U>::mpOwner->*mGetter)();
         }
 
-        inline void SetValueCP(const U *value)
+        inline void SetValueCP(const U *pValue)
         {
             assert(!IsReadOnly());
-            (BaseInspectableProperty<T, U>::mpOwner->*mSetter)(value);
+            (BaseInspectableProperty<T, U>::mpOwner->*mSetter)(pValue);
         }
 
         // This method can cause misaligned accesses!
-        inline void GetValue(void *value) const override
+        inline void GetValue(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(const U *) == 0);
-            *reinterpret_cast<const U **>(value) = GetValueCP();
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(const U *) == 0);
+            *reinterpret_cast<const U **>(pValue) = GetValueCP();
         }
 
         // This method can cause misaligned accesses!
-        inline void SetValue(const void *value) override
+        inline void SetValue(const void *pValue) override
         {
             assert(!IsReadOnly());
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(const U *) == 0);
-            SetValueCP(*reinterpret_cast<const U **>(&value));
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(const U *) == 0);
+            SetValueCP(*reinterpret_cast<const U **>(&pValue));
         }
 
         inline bool IsReadOnly() const override
@@ -407,20 +407,20 @@ namespace FastCG
         }
 
         // This method can cause misaligned accesses!
-        inline void GetValue(void *value) const override
+        inline void GetValue(void *pValue) const override
         {
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            *reinterpret_cast<U *>(value) = GetValue();
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            *reinterpret_cast<U *>(pValue) = GetValue();
         }
 
         // This method can cause misaligned accesses!
-        inline void SetValue(const void *value) override
+        inline void SetValue(const void *pValue) override
         {
             assert(!IsReadOnly());
-            assert(value != nullptr);
-            assert((intptr_t)value % alignof(U) == 0);
-            SetValue(*reinterpret_cast<const U *>(value));
+            assert(pValue != nullptr);
+            assert((intptr_t)pValue % alignof(U) == 0);
+            SetValue(*reinterpret_cast<const U *>(pValue));
         }
 
         inline bool IsReadOnly() const override
