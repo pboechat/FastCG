@@ -12,8 +12,6 @@ namespace FastCG
         inline static void LoadShaders(RenderingPath renderingPath);
 
     private:
-        inline static bool ExtractShaderInfo(const std::string &rShaderFileName, std::string &rShaderName, ShaderType &rShaderType, RenderingPathMask &shaderRenderingPathMask);
-
         ShaderLoader() = delete;
         ~ShaderLoader() = delete;
     };

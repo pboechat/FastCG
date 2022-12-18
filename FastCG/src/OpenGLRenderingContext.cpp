@@ -122,9 +122,10 @@ namespace FastCG
         glStencilOpSeparate(GetOpenGLFace(face), GetOpenGLStencilFunc(stencilFail), GetOpenGLStencilFunc(depthFail), GetOpenGLStencilFunc(depthPass));
     }
 
-    void OpenGLRenderingContext::SetStencilWriteMask(uint32_t mask)
+    void OpenGLRenderingContext::SetStencilWriteMask(Face face, uint32_t mask)
     {
-        glStencilMask(mask);
+        assert(face != Face::NONE);
+        glStencilMaskSeparate(GetOpenGLFace(face), mask);
     }
 
     void OpenGLRenderingContext::SetDepthTest(bool depthTest)
@@ -293,10 +294,10 @@ namespace FastCG
         GLint stencilWriteMask;
         glGetIntegerv(GL_STENCIL_WRITEMASK, &stencilWriteMask);
         SetDepthWrite(true);
-        SetStencilWriteMask(0xff);
+        SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
         glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
         SetDepthWrite(depthWrite);
-        SetStencilWriteMask(stencilWriteMask);
+        SetStencilWriteMask(Face::FRONT_AND_BACK, stencilWriteMask);
     }
 
     void OpenGLRenderingContext::ClearDepthTarget(uint32_t renderTargetIndex, float depth)
@@ -312,9 +313,9 @@ namespace FastCG
     {
         GLint stencilMask;
         glGetIntegerv(GL_STENCIL_WRITEMASK, &stencilMask);
-        SetStencilWriteMask(0xff);
+        SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
         glClearBufferiv(GL_STENCIL, 0, &stencil);
-        SetStencilWriteMask(stencilMask);
+        SetStencilWriteMask(Face::FRONT_AND_BACK, stencilMask);
     }
 
     void OpenGLRenderingContext::SetRenderTargets(const OpenGLTexture *const *pTextures, size_t textureCount)

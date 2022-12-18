@@ -6,14 +6,13 @@
 
 #include <vector>
 #include <initializer_list>
-#include <algorithm>
 
 namespace FastCG
 {
 	class RenderBatchStrategy
 	{
 	public:
-		inline const std::vector<RenderBatch> &GetRenderBatches() const
+		inline const auto &GetRenderBatches() const
 		{
 			return mRenderBatches;
 		}
@@ -26,11 +25,6 @@ namespace FastCG
 
 		void AddToShadowCastersRenderBatch(const std::initializer_list<const Renderable *> &rRenderablesToAdd);
 		void RemoveFromShadowCastersRenderBatch(const Renderable *pRenderable);
-		inline auto FindMaterialBasedRenderBatch(const Material *pMaterial)
-		{
-			return std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
-								{ return rRenderBatch.type == RenderBatchType::MATERIAL_BASED && rRenderBatch.pMaterial == pMaterial; });
-		}
 		void AddToMaterialBasedRenderBatch(const Material *pMaterial, const std::initializer_list<const Renderable *> &rRenderablesToAdd);
 		void RemoveFromMaterialBasedRenderBatch(const Material *pMaterial, const Renderable *pRenderable);
 		void AddToRenderBatch(RenderBatch &rRenderBatch, const std::initializer_list<const Renderable *> &rRenderablesToAdd);

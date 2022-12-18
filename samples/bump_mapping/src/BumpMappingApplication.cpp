@@ -53,23 +53,22 @@ namespace
 		auto *pGroundColorMap = TextureImporter::Import("textures/ground_d.png");
 		auto *pGroupBumpMap = TextureImporter::Import("textures/ground_n.png");
 
-		auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindShader("BumpedSpecular")});
-		pGroundMaterial->SetColorMap(pGroundColorMap);
-		pGroundMaterial->SetColorMapTiling(glm::vec2(4, 4));
-		pGroundMaterial->SetBumpMap(pGroupBumpMap);
-		pGroundMaterial->SetBumpMapTiling(glm::vec2(4, 4));
-		pGroundMaterial->SetDiffuseColor(Colors::WHITE);
-		pGroundMaterial->SetSpecularColor(Colors::WHITE);
-		pGroundMaterial->SetShininess(30);
+		auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular")});
+		pGroundMaterial->SetTexture("uColorMap", pGroundColorMap);
+		pGroundMaterial->SetConstant("uColorMapTiling", glm::vec2(4, 4));
+		pGroundMaterial->SetTexture("uBumpMap", pGroupBumpMap);
+		pGroundMaterial->SetConstant("uBumpMapTiling", glm::vec2(4, 4));
+		pGroundMaterial->SetConstant("uDiffuseColor", Colors::WHITE);
+		pGroundMaterial->SetConstant("uSpecularColor", Colors::WHITE);
+		pGroundMaterial->SetConstant("uShininess", 30);
 
 		Renderable::Instantiate(pGround, pGroundMaterial, pGroundMesh);
 	}
 
 	void LoadModel()
 	{
-		auto *pMissingMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Missing Material",
-																				 RenderingSystem::GetInstance()->FindShader("SolidColor"),
-																				 {Colors::PURPLE}});
+		auto *pMissingMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Missing Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+		pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
 		auto *pModel = ModelImporter::Import("objs/doomsday.obj", pMissingMaterial);
 		if (pModel == nullptr)

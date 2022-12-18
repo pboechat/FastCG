@@ -26,6 +26,7 @@ namespace FastCG
         DST_COLOR,
         SRC_ALPHA,
         DST_ALPHA,
+        ONE_MINUS_SRC_COLOR,
         ONE_MINUS_SRC_ALPHA,
 
     };

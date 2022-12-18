@@ -31,7 +31,7 @@ namespace FastCG
         void SetStencilTest(bool stencilTest);
         void SetStencilFunc(Face face, CompareOp stencilFunc, int32_t ref, uint32_t mask);
         void SetStencilOp(Face face, StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
-        void SetStencilWriteMask(uint32_t mask);
+        void SetStencilWriteMask(Face face, uint32_t mask);
         void SetDepthTest(bool depthTest);
         void SetDepthWrite(bool depthWrite);
         void SetDepthFunc(CompareOp depthFunc);

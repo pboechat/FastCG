@@ -4,6 +4,7 @@
 #include <FastCG/BaseTexture.h>
 #include <FastCG/BaseShader.h>
 #include <FastCG/BaseMesh.h>
+#include <FastCG/BaseMaterialDefinition.h>
 #include <FastCG/BaseMaterial.h>
 #include <FastCG/BaseBuffer.h>
 
@@ -34,6 +35,7 @@ namespace FastCG
     public:
         using Buffer = BufferT;
         using Material = MaterialT;
+        using MaterialDefinition = typename MaterialT::MaterialDefinition;
         using Mesh = MeshT;
         using RenderingContext = RenderingContextT;
         using Shader = ShaderT;
@@ -48,7 +50,7 @@ namespace FastCG
         static_assert(std::is_same<typename RenderingContext::Texture, Texture>::value, "RenderingContext::Texture type must be the same as Texture type");
 
         // Template interface
-        bool IsInitialized() const; 
+        bool IsInitialized() const;
         const Texture *GetBackbuffer() const;
         inline uint32_t GetScreenWidth() const
         {
@@ -59,7 +61,8 @@ namespace FastCG
             return mArgs.rScreenHeight;
         }
         Buffer *CreateBuffer(const BufferArgs &rArgs);
-        Material *CreateMaterial(const MeshArgs &rArgs);
+        MaterialDefinition *CreateMaterialDefinition(const typename MaterialDefinition::MaterialDefinitionArgs &rArgs);
+        Material *CreateMaterial(const typename Material::MaterialArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
         RenderingContext *CreateRenderingContext();
         Shader *CreateShader(const ShaderArgs &rArgs);
@@ -70,6 +73,7 @@ namespace FastCG
         void DestroyRenderingContext(const RenderingContext *pRenderingContext);
         void DestroyShader(const Shader *pShader);
         void DestroyTexture(const Texture *pTexture);
+        const MaterialDefinition *FindMaterialDefinition(const std::string &rName) const;
         const Shader *FindShader(const std::string &rName) const;
 #if defined FASTCG_WINDOWS
         void SetupPixelFormat() const;

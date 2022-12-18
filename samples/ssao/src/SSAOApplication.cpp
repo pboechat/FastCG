@@ -18,8 +18,7 @@ namespace
 {
 	void LoadModel()
 	{
-		auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material",
-																				 RenderingSystem::GetInstance()->FindShader("SolidColor")});
+		auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
 		auto *pModel = ModelImporter::Import("objs/armadillo.obj", pDefaultMaterial);
 		if (pModel == nullptr)

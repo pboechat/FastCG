@@ -37,11 +37,11 @@ namespace
 			FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");
 		}
 
-		auto *pFloorMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindShader("Specular")});
-		pFloorMaterial->SetColorMap(pCheckersColorMap);
-		pFloorMaterial->SetDiffuseColor(Colors::WHITE);
-		pFloorMaterial->SetSpecularColor(Colors::WHITE);
-		pFloorMaterial->SetShininess(5.0f);
+		auto *pFloorMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSpecular")});
+		pFloorMaterial->SetTexture("uColorMap", pCheckersColorMap);
+		pFloorMaterial->SetConstant("uDiffuseColor", Colors::WHITE);
+		pFloorMaterial->SetConstant("uSpecularColor", Colors::WHITE);
+		pFloorMaterial->SetConstant("uShininess", 5);
 
 		auto *pFloorMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE, 1, 1, glm::vec3(0, 0, 0));
 
@@ -51,10 +51,10 @@ namespace
 
 	void CreateSpheres()
 	{
-		auto *pSphereMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Sphere", RenderingSystem::GetInstance()->FindShader("SolidColor")});
-		pSphereMaterial->SetDiffuseColor(Colors::WHITE);
-		pSphereMaterial->SetSpecularColor(Colors::WHITE);
-		pSphereMaterial->SetShininess(30.0f);
+		auto *pSphereMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Sphere", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+		pSphereMaterial->SetConstant("uDiffuseColor", glm::vec4(1, 1, 1, 0.5f));
+		pSphereMaterial->SetConstant("uSpecularColor", Colors::WHITE);
+		pSphereMaterial->SetConstant("uShininess", 30);
 
 		auto *pSphereMesh = StandardGeometries::CreateSphere("Sphere", SPHERE_RADIUS, NUMBER_OF_SPHERE_SLICES);
 

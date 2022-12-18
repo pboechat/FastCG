@@ -4,6 +4,45 @@
 
 #include <unordered_map>
 
+namespace
+{
+    bool ExtractShaderInfo(const std::string &rShaderFileName, std::string &rShaderName, FastCG::ShaderType &rShaderType, FastCG::RenderingPathMask &shaderRenderingPathMask)
+    {
+        rShaderName = FastCG::File::GetFileNameWithoutExtension(rShaderFileName);
+
+        shaderRenderingPathMask = 0;
+        for (FastCG::RenderingPathInt i = 0; i < (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX; i++)
+        {
+            if (rShaderFileName.find(FastCG::RENDERING_PATH_PATH_PATTERNS[i]) != std::string::npos)
+            {
+                shaderRenderingPathMask = (1 << i);
+                break;
+            }
+        }
+
+        if (shaderRenderingPathMask == 0)
+        {
+            shaderRenderingPathMask = (1 << (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX) - 1;
+        }
+
+        if (rShaderFileName.find(FastCG::ShaderFileExtension<FastCG::ShaderType::VERTEX>::value()) != std::string::npos)
+        {
+            rShaderType = FastCG::ShaderType::VERTEX;
+            return true;
+        }
+        else if (rShaderFileName.find(FastCG::ShaderFileExtension<FastCG::ShaderType::FRAGMENT>::value()) != std::string::npos)
+        {
+            rShaderType = FastCG::ShaderType::FRAGMENT;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+}
+
 namespace FastCG
 {
     void ShaderLoader::LoadShaders(RenderingPath renderingPath)
@@ -23,41 +62,6 @@ namespace FastCG
         for (const auto &rShaderInfo : shaderInfos)
         {
             RenderingSystem::GetInstance()->CreateShader({rShaderInfo.first, rShaderInfo.second});
-        }
-    }
-
-    bool ShaderLoader::ExtractShaderInfo(const std::string &rShaderFileName, std::string &rShaderName, ShaderType &rShaderType, RenderingPathMask &shaderRenderingPathMask)
-    {
-        rShaderName = File::GetFileNameWithoutExtension(rShaderFileName);
-
-        shaderRenderingPathMask = 0;
-        for (RenderingPathInt i = 0; i < (RenderingPathInt)RenderingPath::MAX; i++)
-        {
-            if (rShaderFileName.find(RENDERING_PATH_PATH_PATTERNS[i]) != std::string::npos)
-            {
-                shaderRenderingPathMask = (1 << i);
-                break;
-            }
-        }
-
-        if (shaderRenderingPathMask == 0)
-        {
-            shaderRenderingPathMask = (1 << (RenderingPathInt)RenderingPath::MAX) - 1;
-        }
-
-        if (rShaderFileName.find(ShaderFileExtension<ShaderType::VERTEX>::value()) != std::string::npos)
-        {
-            rShaderType = ShaderType::VERTEX;
-            return true;
-        }
-        else if (rShaderFileName.find(ShaderFileExtension<ShaderType::FRAGMENT>::value()) != std::string::npos)
-        {
-            rShaderType = ShaderType::FRAGMENT;
-            return true;
-        }
-        else
-        {
-            return false;
         }
     }
 }

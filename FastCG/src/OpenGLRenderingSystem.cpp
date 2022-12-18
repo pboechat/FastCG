@@ -262,19 +262,37 @@ namespace FastCG
     }
 
     DECLARE_CREATE_METHOD_WITH_ARGS(Buffer, mBuffers, const BufferArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(Material, mMaterials, const OpenGLMaterial::MaterialArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Mesh, mMeshes, const MeshArgs &, rArgs)
+    DECLARE_CREATE_METHOD_WITH_ARGS(MaterialDefinition, mMaterialDefinitions, const OpenGLMaterialDefinition::MaterialDefinitionArgs &, rArgs)
     DECLARE_CREATE_METHOD(RenderingContext, mRenderingContexts)
     DECLARE_CREATE_METHOD_WITH_ARGS(Shader, mShaders, const ShaderArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Texture, mTextures, const TextureArgs &, rArgs)
 
+    OpenGLMaterial *OpenGLRenderingSystem::CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs)
+    {
+        OpenGLBuffer *pMaterialConstantBuffer = nullptr;
+        const auto &rConstantBuffer = rArgs.pMaterialDefinition->GetConstantBuffer();
+        if (rConstantBuffer.GetSize() > 0)
+        {
+            pMaterialConstantBuffer = CreateBuffer({rArgs.name + " Material Constant Buffer",
+                                                    BufferType::UNIFORM,
+                                                    BufferUsage::DYNAMIC,
+                                                    rConstantBuffer.GetSize(),
+                                                    rConstantBuffer.GetData()});
+        }
+
+        mMaterials.emplace_back(new OpenGLMaterial(rArgs, pMaterialConstantBuffer));
+        return mMaterials.back();
+    }
+
 #define DECLARE_DESTROY_METHOD(className, containerMember)                                   \
-    void OpenGLRenderingSystem::Destroy##className(const className *p##className)            \
+    void OpenGLRenderingSystem::Destroy##className(const OpenGL##className *p##className)    \
     {                                                                                        \
         auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className); \
         if (it != containerMember.cend())                                                    \
         {                                                                                    \
             containerMember.erase(it);                                                       \
+            delete p##className;                                                             \
         }                                                                                    \
         else                                                                                 \
         {                                                                                    \
@@ -283,11 +301,31 @@ namespace FastCG
     }
 
     DECLARE_DESTROY_METHOD(Buffer, mBuffers)
-    DECLARE_DESTROY_METHOD(Material, mMaterials)
     DECLARE_DESTROY_METHOD(Mesh, mMeshes)
+    DECLARE_DESTROY_METHOD(MaterialDefinition, mMaterialDefinitions)
     DECLARE_DESTROY_METHOD(RenderingContext, mRenderingContexts)
     DECLARE_DESTROY_METHOD(Shader, mShaders)
     DECLARE_DESTROY_METHOD(Texture, mTextures)
+
+    void OpenGLRenderingSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
+    {
+        const auto *pMaterialConstantBuffer = pMaterial->GetConstantBuffer();
+        if (pMaterialConstantBuffer != nullptr)
+        {
+            DestroyBuffer(pMaterialConstantBuffer);
+        }
+
+        auto it = std::find(mMaterials.cbegin(), mMaterials.cend(), pMaterial);
+        if (it != mMaterials.cend())
+        {
+            mMaterials.erase(it);
+            delete pMaterial;
+        }
+        else
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy material");
+        }
+    }
 
     GLuint OpenGLRenderingSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
     {
@@ -568,7 +606,7 @@ namespace FastCG
         glGetQueryObjectui64v(mPresentTimestampQuery, GL_QUERY_RESULT, &presentEnd);
 
         mPresentElapsedTime = (presentEnd - (GLuint64)presentStart) * 1e-9;
-        
+
         for (auto *pRenderingContext : mRenderingContexts)
         {
             pRenderingContext->RetrieveElapsedTime();

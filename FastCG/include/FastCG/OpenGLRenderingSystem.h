@@ -9,6 +9,7 @@
 #include <FastCG/OpenGLShader.h>
 #include <FastCG/OpenGLRenderingContext.h>
 #include <FastCG/OpenGLMesh.h>
+#include <FastCG/OpenGLMaterialDefinition.h>
 #include <FastCG/OpenGLMaterial.h>
 #include <FastCG/OpenGLBuffer.h>
 #include <FastCG/BaseRenderingSystem.h>
@@ -44,16 +45,28 @@ namespace FastCG
         }
         OpenGLBuffer *CreateBuffer(const BufferArgs &rArgs);
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
+        OpenGLMaterialDefinition *CreateMaterialDefinition(const OpenGLMaterialDefinition::MaterialDefinitionArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
         OpenGLRenderingContext *CreateRenderingContext();
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const OpenGLBuffer *pBuffer);
         void DestroyMaterial(const OpenGLMaterial *pMaterial);
+        void DestroyMaterialDefinition(const OpenGLMaterialDefinition *pMaterialDefinition);
         void DestroyMesh(const OpenGLMesh *pMesh);
         void DestroyRenderingContext(const OpenGLRenderingContext *pRenderingContext);
         void DestroyShader(const OpenGLShader *pShader);
         void DestroyTexture(const OpenGLTexture *pTexture);
+        inline const OpenGLMaterialDefinition *FindMaterialDefinition(const std::string &rName) const
+        {
+            auto it = std::find_if(mMaterialDefinitions.cbegin(), mMaterialDefinitions.cend(), [&rName](const auto &pMaterialDefinition)
+                                   { return strcmp(pMaterialDefinition->GetName().c_str(), rName.c_str()) == 0; });
+            if (it == mMaterialDefinitions.cend())
+            {
+                return nullptr;
+            }
+            return *it;
+        }
         inline const OpenGLShader *FindShader(const std::string &rName) const
         {
             auto it = std::find_if(mShaders.cbegin(), mShaders.cend(), [&rName](const auto &pShader)
@@ -86,6 +99,7 @@ namespace FastCG
 #endif
         std::vector<OpenGLBuffer *> mBuffers;
         std::vector<OpenGLMaterial *> mMaterials;
+        std::vector<OpenGLMaterialDefinition *> mMaterialDefinitions;
         std::vector<OpenGLMesh *> mMeshes;
         std::vector<OpenGLRenderingContext *> mRenderingContexts;
         std::vector<OpenGLShader *> mShaders;

@@ -8,9 +8,6 @@
 #include <FastCG/OpenGLBuffer.h>
 #include <FastCG/BaseMaterial.h>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 namespace FastCG
 {
     class OpenGLRenderingSystem;
@@ -18,12 +15,9 @@ namespace FastCG
     class OpenGLMaterial : public BaseMaterial<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
     private:
-        OpenGLMaterial(const MaterialArgs &rArgs);
-        OpenGLMaterial(const OpenGLMaterial &rOther) = delete;
-        OpenGLMaterial(const OpenGLMaterial &&rOther) = delete;
-        virtual ~OpenGLMaterial();
-
-        OpenGLMaterial operator=(const OpenGLMaterial &rOther) = delete;
+        OpenGLMaterial(const MaterialArgs &rArgs, const OpenGLBuffer *pConstantsBuffer) : BaseMaterial(rArgs, pConstantsBuffer)
+        {
+        }
 
         friend class OpenGLRenderingSystem;
     };

@@ -147,17 +147,17 @@ namespace FastCG
 				pBumpMapTexture = TextureImporter::Import(material.bump_texname);
 			}
 
-			const Shader *pShader;
+			const MaterialDefinition *pMaterialDefinition;
 			if (pBumpMapTexture != nullptr)
 			{
 				// TODO:
 				if (shininess != 0.0f)
 				{
-					pShader = RenderingSystem::GetInstance()->FindShader("BumpedSpecular");
+					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular");
 				}
 				else
 				{
-					pShader = RenderingSystem::GetInstance()->FindShader("BumpedDiffuse");
+					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedDiffuse");
 				}
 			}
 			else if (pColorMapTexture != nullptr)
@@ -165,30 +165,30 @@ namespace FastCG
 				// TODO:
 				if (shininess != 0.0f)
 				{
-					pShader = RenderingSystem::GetInstance()->FindShader("Specular");
+					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSpecular");
 				}
 				else
 				{
-					pShader = RenderingSystem::GetInstance()->FindShader("Diffuse");
+					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueDiffuse");
 				}
 			}
 			else
 			{
-				pShader = RenderingSystem::GetInstance()->FindShader("SolidColor");
+				pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor");
 			}
 
-			auto *pManagedMaterial = RenderingSystem::GetInstance()->CreateMaterial({rName + " (" + std::to_string(materialIdx) + ")", pShader});
-			pManagedMaterial->SetDiffuseColor(diffuseColor);
-			pManagedMaterial->SetSpecularColor(specularColor);
-			pManagedMaterial->SetShininess(shininess);
+			auto *pManagedMaterial = RenderingSystem::GetInstance()->CreateMaterial({rName + " (" + std::to_string(materialIdx) + ")", pMaterialDefinition});
+			pManagedMaterial->SetConstant("uDiffuseColor", diffuseColor);
+			pManagedMaterial->SetConstant("uSpecularColor", specularColor);
+			pManagedMaterial->SetConstant("uShininess", shininess);
 
 			if (pColorMapTexture != nullptr)
 			{
-				pManagedMaterial->SetColorMap(pColorMapTexture);
+				pManagedMaterial->SetTexture("uColorMap", pColorMapTexture);
 			}
 			if (pBumpMapTexture != nullptr)
 			{
-				pManagedMaterial->SetBumpMap(pBumpMapTexture);
+				pManagedMaterial->SetTexture("uBumpMap", pBumpMapTexture);
 			}
 
 			rMaterialCatalog.emplace((uint32_t)materialIdx, pManagedMaterial);

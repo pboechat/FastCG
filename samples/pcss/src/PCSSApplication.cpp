@@ -20,8 +20,7 @@ namespace
 
     void LoadModel()
     {
-        auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material",
-                                                                                 RenderingSystem::GetInstance()->FindShader("SolidColor")});
+        auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
         auto *pModel = ModelImporter::Import("objs/bunny.obj", pDefaultMaterial, (ModelImporterOptionMaskType)ModelImporterOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
@@ -44,7 +43,7 @@ namespace
 
     void CreateGround()
     {
-        auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindShader("SolidColor")});
+        auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
         auto *pGroundGameObject = GameObject::Instantiate("Ground");
         auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE);

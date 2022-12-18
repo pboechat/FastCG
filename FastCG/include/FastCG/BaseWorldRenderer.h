@@ -2,6 +2,7 @@
 #define FASTCG_BASE_WORLD_RENDERER_H
 
 #include <FastCG/RenderingStatistics.h>
+#include <FastCG/RenderingState.h>
 #include <FastCG/RenderBatch.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
@@ -124,7 +125,7 @@ namespace FastCG
 		inline void GenerateShadowMaps(RenderingContext *pRenderingContext);
 		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
-		inline void SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
+		inline void BindMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
 		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 		inline uint32_t UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
 		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
@@ -194,6 +195,7 @@ namespace FastCG
 		bool mSSAOBlurEnabled{true};
 		const Shader *mpTonemapShader{nullptr};
 
+		inline void SetRenderingState(const RenderingState &rRenderingState, RenderingContext *pRenderingContext) const;
 		inline void CreateSSAORenderTargets();
 		inline void DestroySSAORenderTargets();
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;

@@ -1,67 +1,24 @@
 #ifndef FASTCG_BASE_MATERIAL_H
 #define FASTCG_BASE_MATERIAL_H
 
-#include <FastCG/ShaderConstants.h>
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/RenderingState.h>
+#include <FastCG/BaseMaterialDefinition.h>
+#include <FastCG/ConstantBuffer.h>
 #include <FastCG/Colors.h>
 
 #include <glm/glm.hpp>
 
+#include <unordered_map>
+#include <string>
 #include <cassert>
-#include <array>
 
 namespace FastCG
 {
-	struct StencilFaceFunc
-	{
-		Face face;
-		CompareOp stencilFunc;
-		int32_t ref;
-		uint32_t mask;
-	};
-
-	struct StencilFaceOp
-	{
-		Face face;
-		StencilOp stencilFail;
-		StencilOp depthFail;
-		StencilOp depthPass;
-	};
-
-	struct BlendFuncs
-	{
-		BlendFunc color;
-		BlendFunc alpha;
-	};
-
-	struct BlendFactors
-	{
-		BlendFactor srcColor;
-		BlendFactor dstColor;
-		BlendFactor srcAlpha;
-		BlendFactor dstAlpha;
-	};
-
 	template <class ShaderT, class TextureT>
 	struct BaseMaterialArgs
 	{
 		std::string name;
-		const ShaderT *pShader;
-		MaterialConstants materialConstants{};
-		const TextureT *pColorMap{nullptr};
-		const TextureT *pBumpMap{nullptr};
-		bool depthTest{true};
-		bool depthWrite{true};
-		CompareOp depthFunc{CompareOp::LEQUAL};
-		bool scissorTest{false};
-		bool stencilTest{false};
-		std::array<StencilFaceFunc, (size_t)Face::MAX> stencilFuncs{};
-		std::array<StencilFaceOp, (size_t)Face::MAX> stencilOps{};
-		uint32_t stencilWriteMask{0};
-		Face cullMode{Face::BACK};
-		bool blend{false};
-		BlendFuncs blendFuncs{};
-		BlendFactors blendFactors{};
+		const BaseMaterialDefinition<ShaderT, TextureT> *pMaterialDefinition;
 	};
 
 	template <class BufferT, class ShaderT, class TextureT>
@@ -72,6 +29,7 @@ namespace FastCG
 		using Shader = ShaderT;
 		using Texture = TextureT;
 		using MaterialArgs = BaseMaterialArgs<ShaderT, TextureT>;
+		using MaterialDefinition = BaseMaterialDefinition<ShaderT, TextureT>;
 
 		inline const std::string &GetName() const
 		{
@@ -80,165 +38,110 @@ namespace FastCG
 
 		inline const Shader *GetShader() const
 		{
-			return mpShader;
+			return mpMaterialDefinition->GetShader();
 		}
 
-		inline const MaterialConstants &GetMaterialConstants() const
+		inline const void *GetConstantBufferData() const
 		{
-			return mMaterialConstants;
+			return mConstantBuffer.GetData();
 		}
 
-		inline const Buffer *GetMaterialConstantsBuffer() const
+		inline uint32_t GetConstantBufferSize() const
 		{
-			return mpMaterialConstantsBuffer;
+			return mConstantBuffer.GetSize();
 		}
 
-		inline void SetDiffuseColor(const glm::vec4 &diffuseColor)
+		inline const Buffer *GetConstantBuffer() const
 		{
-			mMaterialConstants.diffuseColor = diffuseColor;
+			return mpConstantBuffer;
 		}
 
-		inline void SetSpecularColor(const glm::vec4 &specularColor)
+		inline bool GetConstant(const std::string &rName, float &rValue) const
 		{
-			mMaterialConstants.specularColor = specularColor;
+			return mConstantBuffer.GetMemberValue(rName, rValue);
 		}
 
-		inline void SetColorMapTiling(const glm::vec2 &colorMapTiling)
+		inline bool GetConstant(const std::string &rName, glm::vec2 &rValue) const
 		{
-			mMaterialConstants.colorMapTiling = colorMapTiling;
+			return mConstantBuffer.GetMemberValue(rName, rValue);
 		}
 
-		inline void SetBumpMapTiling(const glm::vec2 &bumpMapTiling)
+		inline bool GetConstant(const std::string &rName, glm::vec4 &rValue) const
 		{
-			mMaterialConstants.bumpMapTiling = bumpMapTiling;
+			return mConstantBuffer.GetMemberValue(rName, rValue);
 		}
 
-		inline void SetShininess(float shininess)
+		inline bool SetConstant(const std::string &rName, float value)
 		{
-			mMaterialConstants.shininess = shininess;
+			return mConstantBuffer.SetMemberValue(rName, value);
 		}
 
-		inline void SetColorMap(const Texture *colorMap)
+		inline bool SetConstant(const std::string &rName, const glm::vec2 &rValue)
 		{
-			mpColorMap = colorMap;
+			return mConstantBuffer.SetMemberValue(rName, rValue);
 		}
 
-		inline const Texture *GetColorMap() const
+		inline bool SetConstant(const std::string &rName, const glm::vec4 &rValue)
 		{
-			return mpColorMap;
+			return mConstantBuffer.SetMemberValue(rName, rValue);
 		}
 
-		inline void SetBumpMap(const Texture *bumpMap)
+		inline size_t GetTextureCount() const
 		{
-			mpBumpMap = bumpMap;
+			return mTextures.size();
 		}
 
-		inline const Texture *GetBumpMap() const
+		inline void GetTextureAt(size_t i, std::string &rName, const Texture *&rpTexture) const
 		{
-			return mpBumpMap;
+			assert(i < mTextures.size());
+			auto it = std::next(mTextures.cbegin(), i);
+			rName = it->first;
+			rpTexture = it->second;
 		}
 
-		inline auto GetDepthTest() const
+		inline bool GetTexture(const std::string &rName, const Texture *&rpTexture) const
 		{
-			return mDepthTest;
+			auto it = mTextures.find(rName);
+			if (it == mTextures.end())
+			{
+				assert(false);
+				return false;
+			}
+			rpTexture = it->second;
+			return true;
 		}
 
-		inline auto GetDepthWrite() const
+		inline bool SetTexture(const std::string &rName, const Texture *pTexture)
 		{
-			return mDepthWrite;
+			auto it = mTextures.find(rName);
+			if (it == mTextures.end())
+			{
+				assert(false);
+				return false;
+			}
+			it->second = pTexture;
+			return true;
 		}
 
-		inline auto GetDepthFunc() const
+		inline const RenderingState &GetRenderingState() const
 		{
-			return mDepthFunc;
-		}
-
-		inline auto GetScissorTest() const
-		{
-			return mScissorTest;
-		}
-
-		inline auto GetStencilTest() const
-		{
-			return mStencilTest;
-		}
-
-		inline const auto &GetStencilFuncs() const
-		{
-			return mStencilFuncs;
-		}
-
-		inline auto GetStencilWriteMask() const
-		{
-			return mStencilWriteMask;
-		}
-
-		inline const auto &GetStencilOps() const
-		{
-			return mStencilOps;
-		}
-
-		inline auto GetCullMode() const
-		{
-			return mCullMode;
-		}
-
-		inline auto GetBlend() const
-		{
-			return mBlend;
-		}
-
-		inline const auto &GetBlendFuncs() const
-		{
-			return mBlendFuncs;
-		}
-
-		inline const auto &GetBlendFactors() const
-		{
-			return mBlendFactors;
+			return mpMaterialDefinition->GetRenderingState();
 		}
 
 	protected:
-		const std::string mName;
-		const Shader *mpShader;
-		MaterialConstants mMaterialConstants{};
-		const Buffer *mpMaterialConstantsBuffer{nullptr};
-		const Texture *mpColorMap{nullptr};
-		const Texture *mpBumpMap{nullptr};
-		bool mDepthTest;
-		bool mDepthWrite;
-		CompareOp mDepthFunc;
-		bool mScissorTest;
-		bool mStencilTest;
-		std::array<StencilFaceFunc, (size_t)Face::MAX> mStencilFuncs;
-		std::array<StencilFaceOp, (size_t)Face::MAX> mStencilOps;
-		uint32_t mStencilWriteMask;
-		Face mCullMode;
-		bool mBlend;
-		BlendFuncs mBlendFuncs;
-		BlendFactors mBlendFactors;
+		std::string mName;
+		const MaterialDefinition *mpMaterialDefinition;
+		const Buffer *mpConstantBuffer;
+		ConstantBuffer mConstantBuffer;
+		std::unordered_map<std::string, const Texture *> mTextures;
 
-		BaseMaterial(const MaterialArgs &rArgs, const Buffer *pMaterialConstantsBuffer) : mName(rArgs.name),
-																						  mpShader(rArgs.pShader),
-																						  mMaterialConstants(rArgs.materialConstants),
-																						  mpMaterialConstantsBuffer(pMaterialConstantsBuffer),
-																						  mpColorMap(rArgs.pColorMap),
-																						  mpBumpMap(rArgs.pBumpMap),
-																						  mDepthTest(rArgs.depthTest),
-																						  mDepthWrite(rArgs.depthWrite),
-																						  mDepthFunc(rArgs.depthFunc),
-																						  mScissorTest(rArgs.scissorTest),
-																						  mStencilTest(rArgs.stencilTest),
-																						  mStencilFuncs(rArgs.stencilFuncs),
-																						  mStencilOps(rArgs.stencilOps),
-																						  mStencilWriteMask(rArgs.stencilWriteMask),
-																						  mCullMode(rArgs.cullMode),
-																						  mBlend(rArgs.blend),
-																						  mBlendFuncs(rArgs.blendFuncs),
-																						  mBlendFactors(rArgs.blendFactors)
+		BaseMaterial(const MaterialArgs &rArgs, const Buffer *pConstantsBuffer) : mName(rArgs.name),
+																				  mpMaterialDefinition(rArgs.pMaterialDefinition),
+																				  mpConstantBuffer(pConstantsBuffer),
+																				  mConstantBuffer(rArgs.pMaterialDefinition->GetConstantBuffer()),
+																				  mTextures(rArgs.pMaterialDefinition->GetTextures())
 		{
-			assert(mpShader != nullptr);
-			assert(pMaterialConstantsBuffer != nullptr);
+			assert(mpMaterialDefinition != nullptr);
 		}
 		virtual ~BaseMaterial() = default;
 	};

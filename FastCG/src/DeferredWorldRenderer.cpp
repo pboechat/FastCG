@@ -180,7 +180,7 @@ namespace FastCG
             pRenderingContext->SetDepthTest(true);
             pRenderingContext->SetDepthWrite(true);
             pRenderingContext->SetStencilTest(false);
-            pRenderingContext->SetStencilWriteMask(0);
+            pRenderingContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0);
             pRenderingContext->SetScissorTest(false);
             pRenderingContext->SetCullMode(Face::BACK);
             pRenderingContext->SetBlend(false);
@@ -209,9 +209,9 @@ namespace FastCG
 
                         pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                         {
-                            assert(renderBatchIt->type == RenderBatchType::MATERIAL_BASED);
+                            assert(renderBatchIt->type != RenderBatchType::SHADOW_CASTERS);
 
-                            SetupMaterial(pMaterial, pRenderingContext);
+                            BindMaterial(pMaterial, pRenderingContext);
 
                             pRenderingContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
 
@@ -275,7 +275,7 @@ namespace FastCG
                             pRenderingContext->SetRenderTargets(&mGBufferRenderTargets[5], 1);
                             pRenderingContext->ClearStencilTarget(0, 0);
 
-                            pRenderingContext->SetStencilWriteMask(0xff);
+                            pRenderingContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
                             pRenderingContext->SetDepthTest(true);
                             pRenderingContext->SetDepthWrite(false);
                             pRenderingContext->SetStencilTest(true);
@@ -305,7 +305,7 @@ namespace FastCG
                             pRenderingContext->SetDepthTest(false);
                             pRenderingContext->SetDepthWrite(false);
                             pRenderingContext->SetStencilTest(true);
-                            pRenderingContext->SetStencilWriteMask(0);
+                            pRenderingContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0);
                             pRenderingContext->SetStencilFunc(Face::FRONT_AND_BACK, CompareOp::NOT_EQUAL, 0, 0xff);
                             pRenderingContext->SetBlend(true);
                             pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
@@ -343,7 +343,7 @@ namespace FastCG
                 pRenderingContext->SetDepthTest(false);
                 pRenderingContext->SetDepthWrite(false);
                 pRenderingContext->SetStencilTest(false);
-                pRenderingContext->SetStencilWriteMask(0);
+                pRenderingContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0);
                 pRenderingContext->SetBlend(true);
                 pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
                 pRenderingContext->SetBlendFactors(BlendFactor::ONE, BlendFactor::ONE, BlendFactor::ZERO, BlendFactor::ZERO);

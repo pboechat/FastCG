@@ -148,6 +148,40 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::SetRenderingState(const RenderingState &rRenderingState, RenderingContext *pRenderingContext) const
+    {
+        pRenderingContext->SetDepthTest(rRenderingState.depthTest);
+        pRenderingContext->SetDepthWrite(rRenderingState.depthWrite);
+        pRenderingContext->SetDepthFunc(rRenderingState.depthFunc);
+        pRenderingContext->SetScissorTest(rRenderingState.scissorTest);
+        if (rRenderingState.stencilTest)
+        {
+            pRenderingContext->SetStencilTest(true);
+            pRenderingContext->SetStencilFunc(Face::BACK, rRenderingState.stencilBackState.compareOp, rRenderingState.stencilBackState.reference, rRenderingState.stencilBackState.compareMask);
+            pRenderingContext->SetStencilOp(Face::BACK, rRenderingState.stencilBackState.stencilFailOp, rRenderingState.stencilBackState.depthFailOp, rRenderingState.stencilBackState.passOp);
+            pRenderingContext->SetStencilWriteMask(Face::BACK, rRenderingState.stencilBackState.writeMask);
+            pRenderingContext->SetStencilFunc(Face::FRONT, rRenderingState.stencilFrontState.compareOp, rRenderingState.stencilFrontState.reference, rRenderingState.stencilFrontState.compareMask);
+            pRenderingContext->SetStencilOp(Face::FRONT, rRenderingState.stencilFrontState.stencilFailOp, rRenderingState.stencilFrontState.depthFailOp, rRenderingState.stencilFrontState.passOp);
+            pRenderingContext->SetStencilWriteMask(Face::FRONT, rRenderingState.stencilFrontState.writeMask);
+        }
+        else
+        {
+            pRenderingContext->SetStencilTest(false);
+        }
+        pRenderingContext->SetCullMode(rRenderingState.cullMode);
+        if (rRenderingState.blend)
+        {
+            pRenderingContext->SetBlend(true);
+            pRenderingContext->SetBlendFunc(rRenderingState.blendState.colorOp, rRenderingState.blendState.alphaOp);
+            pRenderingContext->SetBlendFactors(rRenderingState.blendState.srcColorFactor, rRenderingState.blendState.dstColorFactor, rRenderingState.blendState.srcAlphaFactor, rRenderingState.blendState.dstAlphaFactor);
+        }
+        else
+        {
+            pRenderingContext->SetBlend(false);
+        }
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::CreateSSAORenderTargets()
     {
         mSSAORenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"Ambient Occlusion Map",
@@ -453,67 +487,32 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::SetupMaterial(const Material *pMaterial, RenderingContext *pRenderingContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindMaterial(const Material *pMaterial, RenderingContext *pRenderingContext)
     {
-        pRenderingContext->SetDepthTest(pMaterial->GetDepthTest());
-        pRenderingContext->SetDepthWrite(pMaterial->GetDepthWrite());
-        pRenderingContext->SetDepthFunc(pMaterial->GetDepthFunc());
-        pRenderingContext->SetScissorTest(pMaterial->GetScissorTest());
-        if (pMaterial->GetStencilTest())
-        {
-            pRenderingContext->SetStencilTest(true);
-            for (const auto &rStencilFunc : pMaterial->GetStencilFuncs())
-            {
-                if (rStencilFunc.face == Face::NONE)
-                {
-                    continue;
-                }
-                pRenderingContext->SetStencilFunc(rStencilFunc.face, rStencilFunc.stencilFunc, rStencilFunc.ref, rStencilFunc.mask);
-            }
-            for (const auto &rStencilOps : pMaterial->GetStencilOps())
-            {
-                if (rStencilOps.face == Face::NONE)
-                {
-                    continue;
-                }
-                pRenderingContext->SetStencilOp(rStencilOps.face, rStencilOps.stencilFail, rStencilOps.depthFail, rStencilOps.depthPass);
-            }
-            pRenderingContext->SetStencilWriteMask(pMaterial->GetStencilWriteMask());
-        }
-        else
-        {
-            pRenderingContext->SetStencilTest(false);
-        }
-        pRenderingContext->SetCullMode(pMaterial->GetCullMode());
-        if (pMaterial->GetBlend())
-        {
-            pRenderingContext->SetBlend(true);
-            const auto &rBlendFuncs = pMaterial->GetBlendFuncs();
-            pRenderingContext->SetBlendFunc(rBlendFuncs.color, rBlendFuncs.alpha);
-            const auto &rBlendFactors = pMaterial->GetBlendFactors();
-            pRenderingContext->SetBlendFactors(rBlendFactors.srcColor, rBlendFactors.dstColor, rBlendFactors.srcAlpha, rBlendFactors.dstAlpha);
-        }
-        else
-        {
-            pRenderingContext->SetBlend(false);
-        }
+        SetRenderingState(pMaterial->GetRenderingState(), pRenderingContext);
 
-        pRenderingContext->Copy(pMaterial->GetMaterialConstantsBuffer(), sizeof(MaterialConstants), &pMaterial->GetMaterialConstants());
+        const auto *pConstantBuffer = pMaterial->GetConstantBuffer();
+        if (pConstantBuffer != nullptr)
+        {
+            pRenderingContext->Copy(pMaterial->GetConstantBuffer(), pMaterial->GetConstantBufferSize(), pMaterial->GetConstantBufferData());
+        }
 
         pRenderingContext->BindShader(pMaterial->GetShader());
 
-        pRenderingContext->BindResource(pMaterial->GetMaterialConstantsBuffer(), MATERIAL_CONSTANTS_SHADER_RESOURCE_INDEX);
-        
-        auto *pColorMap = pMaterial->GetColorMap();
-        if (pColorMap != nullptr)
+        if (pConstantBuffer != nullptr)
         {
-            pRenderingContext->BindResource(pColorMap, "uColorMap", 0);
+            pRenderingContext->BindResource(pMaterial->GetConstantBuffer(), MATERIAL_CONSTANTS_SHADER_RESOURCE_INDEX);
         }
-        
-        auto *pBumpMap = pMaterial->GetBumpMap();
-        if (pBumpMap != nullptr)
+
+        for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)
         {
-            pRenderingContext->BindResource(pBumpMap, "uBumpMap", 1);
+            std::string name;
+            const Texture *pTexture;
+            pMaterial->GetTextureAt(i, name, pTexture);
+            if (pTexture != nullptr)
+            {
+                pRenderingContext->BindResource(pTexture, name.c_str(), (uint32_t)i);
+            }
         }
     }
 

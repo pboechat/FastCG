@@ -1,0 +1,63 @@
+{
+    "shader": "Diffuse",
+    "constantBuffer": [
+        [
+            "uDiffuseColor",
+            [
+                1,
+                1,
+                1,
+                1
+            ]
+        ],
+        [
+            "uSpecularColor",
+            [
+                1,
+                1,
+                1,
+                1
+            ]
+        ],
+        [
+            "uColorMapTiling",
+            [
+                1,
+                1
+            ]
+        ],
+        [
+            "uBumpMapTiling",
+            [
+                1,
+                1
+            ]
+        ],
+        [
+            "uShininess",
+            1
+        ]
+    ],
+    "textures": [
+        [
+            "uColorMap",
+            null
+        ],
+        [
+            "uBumpMap",
+            null
+        ]
+    ],
+    "renderingState": {
+        "depthWrite": false,
+        "blend": true,
+        "blendState": {
+            "colorOp": "ADD",
+            "srcColorFactor": "SRC_COLOR",
+            "dstColorFactor": "ONE_MINUS_SRC_COLOR",
+            "alphaOp": "ADD",
+            "srcAlphaFactor": "ONE",
+            "dstAlphaFactor": "ZERO"
+        }
+    }
+}

@@ -166,6 +166,8 @@ namespace FastCG
             return GL_SRC_ALPHA;
         case BlendFactor::DST_ALPHA:
             return GL_DST_ALPHA;
+        case BlendFactor::ONE_MINUS_SRC_COLOR:
+            return GL_ONE_MINUS_SRC_COLOR;
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return GL_ONE_MINUS_SRC_ALPHA;
         default:

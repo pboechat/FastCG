@@ -89,16 +89,6 @@ namespace FastCG
 
     }
 
-    struct MaterialConstants
-    {
-        glm::vec4 diffuseColor{FastCG::Colors::WHITE};
-        glm::vec4 specularColor{FastCG::Colors::WHITE};
-        glm::vec2 colorMapTiling{1, 1};
-        glm::vec2 bumpMapTiling{1, 1};
-        float shininess{1};
-        float padding[3];
-    };
-
     struct ShadowMapPassInstanceData
     {
         glm::mat4 modelViewProjection;

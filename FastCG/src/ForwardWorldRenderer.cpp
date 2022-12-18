@@ -6,12 +6,6 @@
 
 namespace
 {
-    void SetupMeshMainSubPass(FastCG::RenderingContext *pRenderingContext)
-    {
-        pRenderingContext->SetDepthFunc(FastCG::CompareOp::LEQUAL);
-        pRenderingContext->SetBlend(false);
-    }
-
     void SetupMeshSecondarySubPasses(FastCG::RenderingContext *pRenderingContext)
     {
         pRenderingContext->SetDepthFunc(FastCG::CompareOp::EQUAL);
@@ -136,13 +130,13 @@ namespace FastCG
 
                     for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
-                        assert(renderBatchIt->type == RenderBatchType::MATERIAL_BASED);
+                        assert(renderBatchIt->type != RenderBatchType::SHADOW_CASTERS);
 
                         const auto *pMaterial = renderBatchIt->pMaterial;
 
                         pRenderingContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                         {
-                            SetupMaterial(pMaterial, pRenderingContext);
+                            BindMaterial(pMaterial, pRenderingContext);
 
                             pRenderingContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
 
@@ -198,9 +192,6 @@ namespace FastCG
                                         {
                                             switch (lastSubpassType)
                                             {
-                                            case SubpassType::ST_NONE:
-                                                SetupMeshMainSubPass(pRenderingContext);
-                                                break;
                                             case SubpassType::ST_MAIN:
                                                 SetupMeshSecondarySubPasses(pRenderingContext);
                                                 break;
@@ -247,9 +238,6 @@ namespace FastCG
                                         {
                                             switch (lastSubpassType)
                                             {
-                                            case SubpassType::ST_NONE:
-                                                SetupMeshMainSubPass(pRenderingContext);
-                                                break;
                                             case SubpassType::ST_MAIN:
                                                 SetupMeshSecondarySubPasses(pRenderingContext);
                                                 break;

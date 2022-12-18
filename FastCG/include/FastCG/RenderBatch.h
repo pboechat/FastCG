@@ -6,13 +6,15 @@
 
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 
 namespace FastCG
 {
-    enum class RenderBatchType
+    enum class RenderBatchType : uint8_t
     {
         SHADOW_CASTERS = 0,
-        MATERIAL_BASED
+        OPAQUE_MATERIAL,
+        TRANSPARENT_MATERIAL
 
     };
 
