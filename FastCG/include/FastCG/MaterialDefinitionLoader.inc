@@ -6,6 +6,12 @@
 #include <FastCG/ConstantBuffer.h>
 #include <FastCG/AssetSystem.h>
 
+#ifdef FASTCG_LINUX
+// X11 defines Bool and rapidjson uses Bool as a member-function identifier
+#ifdef Bool
+#undef Bool
+#endif
+#endif
 #include <rapidjson/document.h>
 #include <glm/glm.hpp>
 
