@@ -1,6 +1,8 @@
 #ifndef FASTCG_BASE_BUFFER_H
 #define FASTCG_BASE_BUFFER_H
 
+#include <FastCG/RenderingEnums.h>
+
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -9,28 +11,6 @@
 
 namespace FastCG
 {
-    enum class BufferType : uint8_t
-    {
-        UNIFORM = 0,
-        SHADER_STORAGE,
-        VERTEX_ATTRIBUTE,
-        INDICES
-    };
-
-    enum class BufferUsage : uint8_t
-    {
-        STATIC = 0,
-        DYNAMIC,
-        STREAM
-    };
-
-    enum class VertexDataType : uint8_t
-    {
-        NONE = 0,
-        FLOAT,
-        UNSIGNED_BYTE
-    };
-
     struct VertexBindingDescriptor
     {
         uint32_t binding;

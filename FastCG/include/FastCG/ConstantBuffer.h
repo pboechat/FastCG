@@ -47,6 +47,21 @@ namespace FastCG
                 return mName;
             }
 
+            inline bool IsFloat() const
+            {
+                return mType == Type::FLOAT;
+            }
+
+            inline bool IsVec2() const
+            {
+                return mType == Type::VEC2;
+            }
+
+            inline bool IsVec4() const
+            {
+                return mType == Type::VEC4;
+            }
+
         private:
             enum class Type : uint8_t
             {

@@ -88,6 +88,24 @@ namespace FastCG
 #elif defined FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
+        inline size_t GetTextureCount() const override
+        {
+            return mTextures.size();
+        }
+        inline const OpenGLTexture *GetTextureAt(size_t i) const override
+        {
+            assert(i < mTextures.size());
+            return mTextures[i];
+        }
+        inline size_t GetMaterialCount() const override
+        {
+            return mMaterials.size();
+        }
+        inline const OpenGLMaterial *GetMaterialAt(size_t i) const override
+        {
+            assert(i < mMaterials.size());
+            return mMaterials[i];
+        }
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
         inline const DeviceProperties &GetDeviceProperties() const
@@ -125,7 +143,7 @@ namespace FastCG
 #endif
         DeviceProperties mDeviceProperties{};
 
-        void Initialize();
+        void Initialize() override;
         void Resize() {}
         void Present();
         void Finalize();

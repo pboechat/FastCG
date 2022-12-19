@@ -49,21 +49,22 @@ namespace
                                          //   end and XOR into h
         h = h ^ ki;                      // XOR h and ki
     }
-}
 
-namespace FastCG
-{
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam)
     {
         printf(
             "[%s] - %s - %s - %d - %s\n",
-            GetOpenGLDebugOutputMessageSeverity(severity),
-            GetOpenGLDebugOutputMessageSourceString(source),
-            GetOpenGLDebugOutputMessageTypeString(type),
+            FastCG::GetOpenGLDebugOutputMessageSeverity(severity),
+            FastCG::GetOpenGLDebugOutputMessageSourceString(source),
+            FastCG::GetOpenGLDebugOutputMessageTypeString(type),
             id,
             message);
     }
 
+}
+
+namespace FastCG
+{
     OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs)
     {
     }
@@ -72,6 +73,8 @@ namespace FastCG
 
     void OpenGLRenderingSystem::Initialize()
     {
+        BaseRenderingSystem::Initialize();
+
         CreateOpenGLContext(true);
 
         GLenum glewInitRes;

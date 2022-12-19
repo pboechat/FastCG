@@ -1,52 +1,13 @@
 #ifndef FASTCG_BASE_TEXTURE_H
 #define FASTCG_BASE_TEXTURE_H
 
+#include <FastCG/RenderingEnums.h>
+
 #include <string>
 #include <cstdint>
 
 namespace FastCG
 {
-	enum class TextureType : uint8_t
-	{
-		TEXTURE_2D
-
-	};
-
-	enum class TextureWrapMode : uint8_t
-	{
-		CLAMP = 0,
-		REPEAT
-
-	};
-
-	enum class TextureFilter : uint8_t
-	{
-		POINT_FILTER = 0,
-		LINEAR_FILTER
-
-	};
-
-	enum class TextureFormat : uint8_t
-	{
-		R = 0,
-		RG,
-		RGB,
-		RGBA,
-		BGR,
-		BGRA,
-		DEPTH_STENCIL,
-		DEPTH
-
-	};
-
-	enum class TextureDataType : uint8_t
-	{
-		FLOAT = 0,
-		UNSIGNED_CHAR,
-		UNSIGNED_INT
-
-	};
-
 	struct BitsPerPixel
 	{
 		uint8_t r;
@@ -98,7 +59,7 @@ namespace FastCG
 			return mFormat;
 		}
 
-		inline const BitsPerPixel& GetBitsPerPixel() const
+		inline const BitsPerPixel &GetBitsPerPixel() const
 		{
 			return mBitsPerPixel;
 		}
@@ -108,7 +69,7 @@ namespace FastCG
 			return mDataType;
 		}
 
-		inline TextureFilter GetFilterMode() const
+		inline TextureFilter GetFilter() const
 		{
 			return mFilter;
 		}

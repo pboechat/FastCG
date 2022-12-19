@@ -49,7 +49,7 @@ namespace FastCG
         static_assert(std::is_same<typename RenderingContext::Shader, Shader>::value, "RenderingContext::Shader type must be the same as Shader type");
         static_assert(std::is_same<typename RenderingContext::Texture, Texture>::value, "RenderingContext::Texture type must be the same as Texture type");
 
-        // Template interface
+        // Template interface methods
         bool IsInitialized() const;
         const Texture *GetBackbuffer() const;
         inline uint32_t GetScreenWidth() const
@@ -80,14 +80,33 @@ namespace FastCG
 #elif defined FASTCG_LINUX
         XVisualInfo *GetVisualInfo();
 #endif
+        virtual size_t GetTextureCount() const = 0;
+        virtual const Texture *GetTextureAt(size_t i) const = 0;
+        virtual size_t GetMaterialCount() const = 0;
+        virtual const Material *GetMaterialAt(size_t i) const = 0;
 
     protected:
         const RenderingSystemArgs mArgs;
+#ifdef _DEBUG
+        const Texture *mpSelectedTexture{nullptr};
+        const Material *mpSelectedMaterial{nullptr};
+        bool mShowTextureBrowser{false};
+        bool mShowMaterialBrowser{false};
+#endif
 
-        BaseRenderingSystem(const RenderingSystemArgs &rArgs) : mArgs(rArgs) {}
+        BaseRenderingSystem(const RenderingSystemArgs &rArgs) : mArgs(rArgs)
+        {
+        }
+        virtual ~BaseRenderingSystem() = default;
 
-        // Template interface
-        void Initialize();
+        // Non-interface methods
+        virtual void Initialize();
+#ifdef _DEBUG
+        inline void DebugMenuCallback(int result);
+        inline void DebugMenuItemCallback(int &result);
+#endif
+
+        // Template interface methods
         void Resize();
         void Present();
         void Finalize();
@@ -97,5 +116,7 @@ namespace FastCG
     };
 
 }
+
+#include <FastCG/BaseRenderingSystem.inc>
 
 #endif

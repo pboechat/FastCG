@@ -1,6 +1,8 @@
 #ifndef FASTCG_BASE_SHADER_H
 #define FASTCG_BASE_SHADER_H
 
+#include <FastCG/RenderingEnums.h>
+
 #include <type_traits>
 #include <string>
 #include <array>
@@ -8,13 +10,6 @@
 
 namespace FastCG
 {
-	enum class ShaderType : uint8_t
-	{
-		VERTEX = 0,
-		FRAGMENT,
-		MAX
-	};
-
 	using ShaderTypeInt = std::underlying_type_t<ShaderType>;
 
 	template <typename T>

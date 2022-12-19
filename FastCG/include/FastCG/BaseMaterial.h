@@ -56,6 +56,17 @@ namespace FastCG
 			return mpConstantBuffer;
 		}
 
+		inline size_t GetConstantCount() const
+		{
+			return mConstantBuffer.GetMembers().size();
+		}
+
+		inline const auto &GetConstantAt(size_t i) const
+		{
+			assert(i < mConstantBuffer.GetMembers().size());
+			return mConstantBuffer.GetMembers()[i];
+		}
+
 		inline bool GetConstant(const std::string &rName, float &rValue) const
 		{
 			return mConstantBuffer.GetMemberValue(rName, rValue);

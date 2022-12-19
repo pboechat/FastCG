@@ -34,37 +34,10 @@
         m##className##s.erase(it);                                                      \
     }
 
-namespace FastCG
+namespace
 {
-    WorldSystem::~WorldSystem()
-    {
-        auto gameObjectsToDestroy = mGameObjects;
-        for (auto *pGameObject : gameObjectsToDestroy)
-        {
-            GameObject::Destroy(pGameObject);
-        }
-
-        mpMainCamera = nullptr;
-
-        assert(mGameObjects.empty());
-        assert(mCameras.empty());
-        assert(mDirectionalLights.empty());
-        assert(mPointLights.empty());
-        assert(mRenderables.empty());
-        assert(mBehaviours.empty());
-        assert(mComponents.empty());
-    }
-
-    void WorldSystem::Initialize()
-    {
 #ifdef _DEBUG
-        DebugMenuSystem::GetInstance()->AddCallback("World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
-        DebugMenuSystem::GetInstance()->AddItem("World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));
-#endif
-    }
-
-#ifdef _DEBUG
-    void DisplaySceneHierarchy(GameObject *pGameObject, GameObject *&rpSelectedGameObject, std::unordered_set<GameObject *> &rVisitedGameObjects)
+    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, std::unordered_set<FastCG::GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -115,13 +88,17 @@ namespace FastCG
         ImGui::PopID();
     }
 
-    void DisplaySceneHierarchy(const std::vector<GameObject *> &rGameObjects, GameObject *&rpSelectedGameObject)
+    void DisplaySceneHierarchy(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::GameObject *&rpSelectedGameObject)
     {
-        std::unordered_set<GameObject *> visitedGameObjects;
-        for (auto *pGameObject : rGameObjects)
+        if (ImGui::Begin("Scene Hierarchy"))
         {
-            DisplaySceneHierarchy(pGameObject, rpSelectedGameObject, visitedGameObjects);
+            std::unordered_set<FastCG::GameObject *> visitedGameObjects;
+            for (auto *pGameObject : rGameObjects)
+            {
+                DisplaySceneHierarchy(pGameObject, rpSelectedGameObject, visitedGameObjects);
+            }
         }
+        ImGui::End();
     }
 
     template <typename T>
@@ -189,9 +166,9 @@ namespace FastCG
     template <typename T, typename U>
     struct InspectablePropertyDragScalarFnSelector
     {
-        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
-            auto *pInspectableDelimitedProperty = static_cast<IInspectableDelimitedProperty *>(pInspectableProperty);
+            auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
             pInspectableDelimitedProperty->GetMax(&max);
@@ -208,9 +185,9 @@ namespace FastCG
     template <typename T>
     struct InspectablePropertyDragScalarFnSelector<T, void>
     {
-        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
-            auto *pInspectableDelimitedProperty = static_cast<IInspectableDelimitedProperty *>(pInspectableProperty);
+            auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
             pInspectableDelimitedProperty->GetMax(&max);
@@ -225,9 +202,9 @@ namespace FastCG
     template <typename T>
     struct InspectablePropertyDragVectorFnSelector
     {
-        static void value(IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
-            auto *pInspectableDelimitedProperty = static_cast<IInspectableDelimitedProperty *>(pInspectableProperty);
+            auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
             pInspectableDelimitedProperty->GetMax(&max);
@@ -267,7 +244,7 @@ namespace FastCG
     template <>
     struct InspectablePropertyDisplayFnSelector<bool>
     {
-        static void value(IInspectableProperty *pInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
             bool value;
             pInspectableProperty->GetValue(&value);
@@ -281,7 +258,7 @@ namespace FastCG
     template <>
     struct InspectablePropertyDisplayFnSelector<std::string>
     {
-        static void value(IInspectableProperty *pInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
             std::string value;
             pInspectableProperty->GetValue((void *)&value);
@@ -307,7 +284,7 @@ namespace FastCG
     {
     };
 
-    void DisplayInspectable(const std::string &rName, Inspectable *pInspectable)
+    void DisplayInspectable(const std::string &rName, FastCG::Inspectable *pInspectable)
     {
         if (ImGui::TreeNode(rName.c_str()))
         {
@@ -323,16 +300,16 @@ namespace FastCG
                     }
                     switch (pInspectableProperty->GetType())
                     {
-                    case InspectablePropertyType::INSPECTABLE:
+                    case FastCG::InspectablePropertyType::INSPECTABLE:
                     {
-                        Inspectable *pOtherInspectable;
+                        FastCG::Inspectable *pOtherInspectable;
                         pInspectableProperty->GetValue(&pOtherInspectable);
                         DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable);
                     }
                     break;
-                    case InspectablePropertyType::ENUM:
+                    case FastCG::InspectablePropertyType::ENUM:
                     {
-                        auto pInspectableEnumProperty = static_cast<IInspectableEnumProperty *>(pInspectableProperty);
+                        auto pInspectableEnumProperty = static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
                         auto ppItems = pInspectableEnumProperty->GetItems();
                         int currentItem = (int)pInspectableEnumProperty->GetSelectedItem();
                         if (ImGui::Combo(pInspectableEnumProperty->GetName().c_str(), &currentItem, ppItems, (int)pInspectableEnumProperty->GetItemCount()))
@@ -341,37 +318,37 @@ namespace FastCG
                         }
                     }
                     break;
-                    case InspectablePropertyType::BOOL:
+                    case FastCG::InspectablePropertyType::BOOL:
                         InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::STRING:
+                    case FastCG::InspectablePropertyType::STRING:
                         InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::INT32:
+                    case FastCG::InspectablePropertyType::INT32:
                         InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::UINT32:
+                    case FastCG::InspectablePropertyType::UINT32:
                         InspectablePropertyDisplayFnSelector<uint32_t>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::INT64:
+                    case FastCG::InspectablePropertyType::INT64:
                         InspectablePropertyDisplayFnSelector<int64_t>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::UINT64:
+                    case FastCG::InspectablePropertyType::UINT64:
                         InspectablePropertyDisplayFnSelector<uint64_t>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::FLOAT:
+                    case FastCG::InspectablePropertyType::FLOAT:
                         InspectablePropertyDisplayFnSelector<float>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::DOUBLE:
+                    case FastCG::InspectablePropertyType::DOUBLE:
                         InspectablePropertyDisplayFnSelector<double>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::VEC2:
+                    case FastCG::InspectablePropertyType::VEC2:
                         InspectablePropertyDisplayFnSelector<glm::vec2>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::VEC3:
+                    case FastCG::InspectablePropertyType::VEC3:
                         InspectablePropertyDisplayFnSelector<glm::vec3>::value(pInspectableProperty);
                         break;
-                    case InspectablePropertyType::VEC4:
+                    case FastCG::InspectablePropertyType::VEC4:
                         InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
                         break;
                     default:
@@ -387,60 +364,86 @@ namespace FastCG
         }
     }
 
-    void DisplayObjectInspector(GameObject *pGameObject)
+    void DisplayObjectInspector(FastCG::GameObject *pGameObject)
     {
-        if (pGameObject != nullptr)
+        if (ImGui::Begin("Object Inspector"))
         {
-            if (ImGui::TreeNode("Transform"))
+            if (pGameObject != nullptr)
             {
-                auto *pTransform = pGameObject->GetTransform();
-
-                auto scale = pTransform->GetScale();
-                if (ImGui::DragFloat3("Scale", &scale[0], 0.1f))
+                if (ImGui::TreeNode("Transform"))
                 {
-                    pTransform->SetScale(scale);
+                    auto *pTransform = pGameObject->GetTransform();
+
+                    auto scale = pTransform->GetScale();
+                    if (ImGui::DragFloat3("Scale", &scale[0], 0.1f))
+                    {
+                        pTransform->SetScale(scale);
+                    }
+
+                    auto rotation = pTransform->GetRotation();
+                    auto eulerAngles = glm::eulerAngles(rotation);
+                    if (ImGui::DragFloat3("Rotation", &eulerAngles[0], 0.1f))
+                    {
+                        eulerAngles = glm::radians(eulerAngles);
+                        pTransform->SetRotation(glm::quat(eulerAngles));
+                    }
+
+                    auto position = pTransform->GetPosition();
+                    if (ImGui::DragFloat3("Position", &position[0], 0.1f))
+                    {
+                        pTransform->SetPosition(position);
+                    }
+                    ImGui::TreePop();
                 }
 
-                auto rotation = pTransform->GetRotation();
-                auto eulerAngles = glm::eulerAngles(rotation);
-                if (ImGui::DragFloat3("Rotation", &eulerAngles[0], 0.1f))
+                for (auto *pComponent : pGameObject->GetComponents())
                 {
-                    eulerAngles = glm::radians(eulerAngles);
-                    pTransform->SetRotation(glm::quat(eulerAngles));
+                    DisplayInspectable(pComponent->GetType().GetName(), pComponent);
                 }
-
-                auto position = pTransform->GetPosition();
-                if (ImGui::DragFloat3("Position", &position[0], 0.1f))
-                {
-                    pTransform->SetPosition(position);
-                }
-                ImGui::TreePop();
-            }
-
-            for (auto *pComponent : pGameObject->GetComponents())
-            {
-                DisplayInspectable(pComponent->GetType().GetName(), pComponent);
             }
         }
+        ImGui::End();
+    }
+}
+
+namespace FastCG
+{
+    WorldSystem::~WorldSystem()
+    {
+        auto gameObjectsToDestroy = mGameObjects;
+        for (auto *pGameObject : gameObjectsToDestroy)
+        {
+            GameObject::Destroy(pGameObject);
+        }
+
+        mpMainCamera = nullptr;
+
+        assert(mGameObjects.empty());
+        assert(mCameras.empty());
+        assert(mDirectionalLights.empty());
+        assert(mPointLights.empty());
+        assert(mRenderables.empty());
+        assert(mBehaviours.empty());
+        assert(mComponents.empty());
+    }
+
+    void WorldSystem::Initialize()
+    {
+#ifdef _DEBUG
+        DebugMenuSystem::GetInstance()->AddCallback("World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
+        DebugMenuSystem::GetInstance()->AddItem("World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));
+#endif
     }
 
     void WorldSystem::DebugMenuCallback(int result)
     {
         if (mShowSceneHierarchy)
         {
-            if (ImGui::Begin("Scene Hierarchy"))
-            {
-                DisplaySceneHierarchy(mGameObjects, mpSelectedGameObject);
-            }
-            ImGui::End();
+            DisplaySceneHierarchy(mGameObjects, mpSelectedGameObject);
         }
         if (mShowObjectInspector)
         {
-            if (ImGui::Begin("Object Inspector"))
-            {
-                DisplayObjectInspector(mpSelectedGameObject);
-            }
-            ImGui::End();
+            DisplayObjectInspector(mpSelectedGameObject);
         }
     }
 
