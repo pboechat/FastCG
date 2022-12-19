@@ -334,6 +334,7 @@ namespace FastCG
         attachments.reserve(textureCount);
         std::for_each(pTextures, pTextures + textureCount, [&attachments, i = 0](const auto *pTexture) mutable
                       { if (pTexture->GetFormat() != TextureFormat::DEPTH_STENCIL) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
+        assert(attachments.size() <= (size_t)OpenGLRenderingSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
         {
             glDrawBuffers((GLsizei)attachments.size(), &attachments[0]);

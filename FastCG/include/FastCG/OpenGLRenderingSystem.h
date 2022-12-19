@@ -35,6 +35,12 @@ namespace FastCG
         FASTCG_DECLARE_SYSTEM(OpenGLRenderingSystem, RenderingSystemArgs);
 
     public:
+        struct DeviceProperties
+        {
+            GLint maxColorAttachments;
+            GLint maxDrawBuffers;
+        };
+
         inline bool IsInitialized() const
         {
             return mInitialized;
@@ -84,6 +90,10 @@ namespace FastCG
 #endif
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
+        inline const DeviceProperties &GetDeviceProperties() const
+        {
+            return mDeviceProperties;
+        }
 
     protected:
         OpenGLRenderingSystem(const RenderingSystemArgs &rArgs);
@@ -107,11 +117,13 @@ namespace FastCG
         bool mInitialized{false};
         const OpenGLTexture *mpBackbuffer;
         std::unordered_map<uint32_t, GLuint> mFboIds;
+        std::unordered_map<GLint, std::vector<GLuint>> mTextureToFboHashes;
         std::unordered_map<uint32_t, GLuint> mVaoIds;
 #ifdef _DEBUG
         GLuint mPresentTimestampQuery{~0u};
         double mPresentElapsedTime{0};
 #endif
+        DeviceProperties mDeviceProperties{};
 
         void Initialize();
         void Resize() {}
@@ -122,6 +134,7 @@ namespace FastCG
         void AcquireVisualInfoAndFbConfig();
 #endif
         void CreateOpenGLContext(bool temporary = false);
+        void InitializeDeviceProperties();
         void DestroyOpenGLContext();
 
         friend class BaseApplication;

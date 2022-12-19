@@ -82,6 +82,8 @@ namespace FastCG
 
         CreateOpenGLContext();
 
+        InitializeDeviceProperties();
+
 #ifdef _DEBUG
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallbackARB(OpenGLDebugCallback, nullptr);
@@ -119,18 +121,24 @@ namespace FastCG
     {
         mInitialized = false;
 
+        for (const auto &rKvp : mFboIds)
+        {
+            glDeleteFramebuffers(1, &rKvp.second);
+        }
+        mFboIds.clear();
+
+        for (const auto &rKvp : mVaoIds)
+        {
+            glDeleteVertexArrays(1, &rKvp.second);
+        }
+        mVaoIds.clear();
+
         DESTROY_ALL(mMaterials);
         DESTROY_ALL(mMeshes);
         DESTROY_ALL(mShaders);
         DESTROY_ALL(mBuffers);
         DESTROY_ALL(mTextures);
         DESTROY_ALL(mRenderingContexts);
-
-        for (const auto &kvp : mVaoIds)
-        {
-            glDeleteVertexArrays(1, &kvp.second);
-        }
-        mVaoIds.clear();
 
 #ifdef _DEBUG
         glDeleteQueries(1, &mPresentTimestampQuery);
@@ -305,7 +313,6 @@ namespace FastCG
     DECLARE_DESTROY_METHOD(MaterialDefinition, mMaterialDefinitions)
     DECLARE_DESTROY_METHOD(RenderingContext, mRenderingContexts)
     DECLARE_DESTROY_METHOD(Shader, mShaders)
-    DECLARE_DESTROY_METHOD(Texture, mTextures)
 
     void OpenGLRenderingSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
     {
@@ -327,21 +334,56 @@ namespace FastCG
         }
     }
 
+    void OpenGLRenderingSystem::DestroyTexture(const OpenGLTexture *pTexture)
+    {
+        // Delete fbos that reference the texture to be deleted
+        {
+            auto it = mTextureToFboHashes.find(*pTexture);
+            if (it != mTextureToFboHashes.end())
+            {
+                for (auto fboHash : it->second)
+                {
+                    if (mFboIds.find(fboHash) != mFboIds.end())
+                    {
+                        glDeleteFramebuffers(1, &mFboIds[fboHash]);
+                        mFboIds.erase(fboHash);
+                    }
+                }
+            }
+        }
+        {
+            auto it = std::find(mTextures.cbegin(), mTextures.cend(), pTexture);
+            if (it != mTextures.cend())
+            {
+                mTextures.erase(it);
+                delete pTexture;
+            }
+            else
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy texture");
+            }
+        }
+    }
+
     GLuint OpenGLRenderingSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
     {
         assert(textureCount > 0);
+        assert(textureCount <= mDeviceProperties.maxColorAttachments);
         assert(std::all_of(pTextures, pTextures + textureCount, [](const auto *pTexture)
                            { return pTexture != nullptr; }));
 
-        uint32_t h = 0;
-        std::for_each(pTextures, pTextures + textureCount, [&h](const auto *pTexture)
-                      { CRC(h, *pTexture); });
+        uint32_t fboHash = 0;
+        std::for_each(pTextures, pTextures + textureCount, [&fboHash](const auto *pTexture)
+                      { CRC(fboHash, *pTexture); });
 
-        auto it = mFboIds.find(h);
+        auto it = mFboIds.find(fboHash);
         if (it != mFboIds.end())
         {
             return it->second;
         }
+
+        GLint oldFboId;
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFboId);
 
         GLuint fboId;
         glGenFramebuffers(1, &fboId);
@@ -369,13 +411,18 @@ namespace FastCG
             }
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GetOpenGLTarget(pTexture->GetType()), *pTexture, 0); });
 
-        auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId);
+
+        auto status = glCheckNamedFramebufferStatusEXT(fboId, GL_DRAW_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE)
         {
             FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating FBO: 0x%x\n", status);
         }
 
-        mFboIds.emplace(h, fboId);
+        mFboIds[fboHash] = fboId;
+
+        std::for_each(pTextures, pTextures + textureCount, [&](const auto *pTexture)
+                      { mTextureToFboHashes[*pTexture].emplace_back(fboHash); });
 
         return fboId;
     }
@@ -390,11 +437,11 @@ namespace FastCG
                             return pBuffer->GetType() == BufferType::VERTEX_ATTRIBUTE && 
                                 std::all_of(rVbDescs.cbegin(), rVbDescs.cend(), [](const auto& rVbDesc) { return rVbDesc.IsValid(); }); }));
 
-        uint32_t h = 0;
-        std::for_each(pBuffers, pBuffers + bufferCount, [&h](const auto *pBuffer)
-                      { CRC(h, *pBuffer); });
+        uint32_t vaoHash = 0;
+        std::for_each(pBuffers, pBuffers + bufferCount, [&vaoHash](const auto *pBuffer)
+                      { CRC(vaoHash, *pBuffer); });
 
-        auto it = mVaoIds.find(h);
+        auto it = mVaoIds.find(vaoHash);
         if (it != mVaoIds.end())
         {
             return it->second;
@@ -419,7 +466,7 @@ namespace FastCG
                 glVertexAttribPointer(rVbDesc.binding, rVbDesc.size, GetOpenGLType(rVbDesc.type), (GLboolean)rVbDesc.normalized, rVbDesc.stride, (const GLvoid*)(uintptr_t)rVbDesc.offset);
             } });
 
-        mVaoIds.emplace(h, vaoId);
+        mVaoIds.emplace(vaoHash, vaoId);
 
         return vaoId;
     }
@@ -553,6 +600,12 @@ namespace FastCG
 #else
 #error FastCG::OpenGLRenderingSystem::CreateOpenGLContext() is not implemented on the current platform
 #endif
+    }
+
+    void OpenGLRenderingSystem::InitializeDeviceProperties()
+    {
+        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &mDeviceProperties.maxColorAttachments);
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &mDeviceProperties.maxDrawBuffers);
     }
 
     void OpenGLRenderingSystem::DestroyOpenGLContext()
