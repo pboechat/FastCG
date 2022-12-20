@@ -62,7 +62,7 @@ namespace
 
 }
 
-PCSSApplication::PCSSApplication() : Application({"pcss", 1024, 768, 60, false, RenderingPath::FORWARD, {"pcss"}})
+PCSSApplication::PCSSApplication() : Application({"pcss", 1024, 768, 60, false, {RenderingPath::FORWARD}, {{"pcss"}}})
 {
 }
 

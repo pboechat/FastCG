@@ -96,7 +96,7 @@ namespace
 
 }
 
-DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, false, RenderingPath::DEFERRED, {"deferred_rendering"}})
+DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, false, {RenderingPath::DEFERRED}, {{"deferred_rendering"}}})
 {
 }
 

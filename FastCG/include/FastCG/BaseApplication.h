@@ -2,9 +2,11 @@
 #define FASTCG_BASE_APPLICATION_H
 
 #include <FastCG/Timer.h>
+#include <FastCG/ShaderImporter.h>
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/RenderingPath.h>
 #include <FastCG/MouseButton.h>
+#include <FastCG/MaterialDefinitionImporter.h>
 #include <FastCG/Key.h>
 #include <FastCG/FastCG.h>
 #include <FastCG/Colors.h>
@@ -22,7 +24,11 @@ namespace FastCG
 	class ImGuiRenderer;
 	class IWorldRenderer;
 
+	using ImportCallback = void (*)(void);
+
 	constexpr uint32_t UNLOCKED_FRAMERATE = ~0u;
+	constexpr ImportCallback DEFAULT_IMPORT_CALLBACKS[] = {&ShaderImporter::Import,
+														   &MaterialDefinitionImporter::Import};
 
 	struct ApplicationSettings
 	{
@@ -31,10 +37,17 @@ namespace FastCG
 		uint32_t screenHeight{768};
 		uint32_t frameRate{60};
 		bool vsync{false};
-		RenderingPath renderingPath{RenderingPath::FORWARD};
-		std::vector<std::string> assetBundles{};
-		glm::vec4 clearColor{Colors::BLACK};
-		glm::vec4 ambientLight{Colors::BLACK};
+		struct
+		{
+			RenderingPath path{RenderingPath::FORWARD};
+			glm::vec4 clearColor{Colors::BLACK};
+			glm::vec4 ambientLight{Colors::BLACK};
+		} rendering{};
+		struct
+		{
+			std::vector<std::string> bundles{};
+			std::vector<ImportCallback> importCallbacks{DEFAULT_IMPORT_CALLBACKS, DEFAULT_IMPORT_CALLBACKS + FASTCG_ARRAYSIZE(DEFAULT_IMPORT_CALLBACKS)};
+		} assets{};
 	};
 
 	class BaseApplication
@@ -101,7 +114,7 @@ namespace FastCG
 
 		inline RenderingPath GetRenderingPath() const
 		{
-			return mSettings.renderingPath;
+			return mSettings.rendering.path;
 		}
 
 		int Run(int argc, char **argv);

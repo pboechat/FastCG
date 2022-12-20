@@ -2,11 +2,9 @@
 #include <FastCG/Thread.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/System.h>
-#include <FastCG/ShaderImporter.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/ModelLoader.h>
-#include <FastCG/MaterialDefinitionImporter.h>
 #include <FastCG/RenderBatchStrategy.h>
 #include <FastCG/Light.h>
 #include <FastCG/Key.h>
@@ -68,8 +66,8 @@ namespace FastCG
 																			mWindowTitle(settings.windowTitle),
 																			mScreenWidth(settings.screenWidth),
 																			mScreenHeight(settings.screenHeight),
-																			mClearColor(settings.clearColor),
-																			mAmbientLight(settings.ambientLight),
+																			mClearColor(settings.rendering.clearColor),
+																			mAmbientLight(settings.rendering.ambientLight),
 																			mFrameRate(settings.frameRate),
 																			mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate),
 																			mpRenderBatchStrategy(std::make_unique<RenderBatchStrategy>())
@@ -121,7 +119,7 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
-		AssetSystem::Create({mSettings.assetBundles});
+		AssetSystem::Create({mSettings.assets.bundles});
 #ifdef _DEBUG
 		DebugMenuSystem::Create({});
 #endif
@@ -137,10 +135,12 @@ namespace FastCG
 		RenderingSystem::GetInstance()->Initialize();
 		WorldSystem::GetInstance()->Initialize();
 
-		ShaderImporter::Import();
-		MaterialDefinitionImporter::Import();
+		for (const auto &rImportCallback : mSettings.assets.importCallbacks)
+		{
+			rImportCallback();
+		}
 
-		switch (mSettings.renderingPath)
+		switch (mSettings.rendering.path)
 		{
 		case RenderingPath::FORWARD:
 			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mScreenWidth,
@@ -159,7 +159,7 @@ namespace FastCG
 																						 mRenderingStatistics}));
 			break;
 		default:
-			FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mSettings.renderingPath);
+			FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mSettings.rendering.path);
 			break;
 		}
 		mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mScreenWidth,
