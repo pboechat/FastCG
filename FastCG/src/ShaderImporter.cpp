@@ -1,5 +1,7 @@
 #include <FastCG/StringUtils.h>
+#include <FastCG/ShaderImporter.h>
 #include <FastCG/File.h>
+#include <FastCG/Application.h>
 #include <FastCG/AssetSystem.h>
 
 #include <unordered_map>
@@ -45,9 +47,9 @@ namespace
 
 namespace FastCG
 {
-    void ShaderImporter::Import(RenderingPath renderingPath)
+    void ShaderImporter::Import()
     {
-        const auto renderingPathMask = 1 << (RenderingPathMask)renderingPath;
+        const auto renderingPathMask = 1 << (RenderingPathMask)Application::GetInstance()->GetRenderingPath();
         std::unordered_map<std::string, ShaderTypeValueArray<std::string>> shaderInfos;
         for (const auto &rShaderFileName : AssetSystem::GetInstance()->List("shaders", true))
         {

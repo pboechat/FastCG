@@ -9,7 +9,7 @@ namespace FastCG
     class ShaderImporter
     {
     public:
-        inline static void Import(RenderingPath renderingPath);
+        static void Import();
 
     private:
         ShaderImporter() = delete;
@@ -17,7 +17,5 @@ namespace FastCG
     };
 
 }
-
-#include <FastCG/ShaderImporter.inc>
 
 #endif

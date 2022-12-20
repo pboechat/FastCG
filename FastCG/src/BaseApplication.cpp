@@ -137,7 +137,7 @@ namespace FastCG
 		RenderingSystem::GetInstance()->Initialize();
 		WorldSystem::GetInstance()->Initialize();
 
-		ShaderImporter::Import(mSettings.renderingPath);
+		ShaderImporter::Import();
 		MaterialDefinitionImporter::Import();
 
 		switch (mSettings.renderingPath)

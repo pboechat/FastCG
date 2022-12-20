@@ -99,6 +99,11 @@ namespace FastCG
 			return mpWorldRenderer.get();
 		}
 
+		inline RenderingPath GetRenderingPath() const
+		{
+			return mSettings.renderingPath;
+		}
+
 		int Run(int argc, char **argv);
 
 		inline void Exit()
