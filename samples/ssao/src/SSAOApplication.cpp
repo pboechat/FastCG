@@ -11,6 +11,7 @@
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
+#include <FastCG/AssetSystem.h>
 
 using namespace FastCG;
 
@@ -20,7 +21,7 @@ namespace
 	{
 		auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
-		auto *pModel = ModelLoader::Load("objs/armadillo.obj", pDefaultMaterial);
+		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/armadillo.obj"), pDefaultMaterial);
 		if (pModel == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing armadillo model");

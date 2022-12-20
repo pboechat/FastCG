@@ -6,7 +6,7 @@ namespace FastCG
     class MaterialDefinitionImporter
     {
     public:
-        inline static void Import();
+        static void Import();
 
     private:
         MaterialDefinitionImporter() = delete;
@@ -14,7 +14,5 @@ namespace FastCG
     };
 
 }
-
-#include <FastCG/MaterialDefinitionImporter.inc>
 
 #endif

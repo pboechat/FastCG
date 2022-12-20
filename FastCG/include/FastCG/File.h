@@ -2,6 +2,7 @@
 #define FASTCG_FILE_H
 
 #include <string>
+#include <initializer_list>
 
 namespace FastCG
 {
@@ -12,6 +13,7 @@ namespace FastCG
 		inline static std::string GetFileName(const std::string &rFilePath);
 		inline static std::string GetFileNameWithoutExtension(const std::string &rFilePath);
 		inline static bool Exists(const std::string &rFilePath);
+		inline static std::string Join(const std::initializer_list<std::string> &rParts);
 
 	private:
 		File() = delete;

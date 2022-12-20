@@ -9,6 +9,28 @@
 #endif
 
 #include <vector>
+#include <sstream>
+#include <cstdarg>
+
+namespace
+{
+	void StripDelimiterFromHeadAndTail(std::string &rPath)
+	{
+		if (rPath.empty())
+		{
+			return;
+		}
+		while (rPath[0] == '/')
+		{
+			rPath = rPath.substr(1);
+		}
+		while (rPath[rPath.size() - 1] == '/')
+		{
+			rPath = rPath.substr(0, rPath.size() - 1);
+		}
+	}
+
+}
 
 namespace FastCG
 {
@@ -56,6 +78,27 @@ namespace FastCG
 #else
 #error "FastCG::File::Exists() not implemented on this platform"
 #endif
+	}
+
+	std::string File::Join(const std::initializer_list<std::string> &rParts)
+	{
+		if (rParts.size() == 0)
+		{
+			return {};
+		}
+
+		std::stringstream pathStream;
+		auto it = rParts.begin();
+		std::string part = *it;
+		StripDelimiterFromHeadAndTail(part);
+		pathStream << part;
+		for (++it; it != rParts.end(); ++it)
+		{
+			part = *it;
+			StripDelimiterFromHeadAndTail(part);
+			pathStream << '/' << part;
+		}
+		return pathStream.str();
 	}
 
 }

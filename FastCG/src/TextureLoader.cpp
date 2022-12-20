@@ -1,7 +1,6 @@
 #include <FastCG/TextureLoader.h>
 #include <FastCG/File.h>
 #include <FastCG/Exception.h>
-#include <FastCG/AssetSystem.h>
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -54,8 +53,7 @@ namespace FastCG
 	Texture *TextureLoader::Load(const std::string &rFilePath)
 	{
 		int width, height, components;
-		auto absFilePath = AssetSystem::GetInstance()->Resolve(rFilePath);
-		auto *pData = stbi_load(absFilePath.c_str(), &width, &height, &components, 0);
+		auto *pData = stbi_load(rFilePath.c_str(), &width, &height, &components, 0);
 		if (pData == nullptr)
 		{
 			return nullptr;

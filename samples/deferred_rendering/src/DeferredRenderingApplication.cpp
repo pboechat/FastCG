@@ -14,6 +14,7 @@
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Camera.h>
 #include <FastCG/Colors.h>
+#include <FastCG/AssetSystem.h>
 
 #include <vector>
 #include <cstdint>
@@ -31,7 +32,7 @@ namespace
 
 	void CreateGround()
 	{
-		auto *pCheckersColorMap = TextureLoader::Load("textures/checkers.png");
+		auto *pCheckersColorMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/checkers.png"));
 		if (pCheckersColorMap == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");

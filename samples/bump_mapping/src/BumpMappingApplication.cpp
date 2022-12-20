@@ -12,6 +12,7 @@
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
+#include <FastCG/AssetSystem.h>
 
 using namespace FastCG;
 
@@ -50,8 +51,8 @@ namespace
 
 		auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
 
-		auto *pGroundColorMap = TextureLoader::Load("textures/ground_d.png");
-		auto *pGroupBumpMap = TextureLoader::Load("textures/ground_n.png");
+		auto *pGroundColorMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_d.png"));
+		auto *pGroupBumpMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_n.png"));
 
 		auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular")});
 		pGroundMaterial->SetTexture("uColorMap", pGroundColorMap);
@@ -70,7 +71,7 @@ namespace
 		auto *pMissingMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Missing Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 		pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
-		auto *pModel = ModelLoader::Load("objs/doomsday.obj", pMissingMaterial);
+		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/doomsday.obj"), pMissingMaterial);
 		if (pModel == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");

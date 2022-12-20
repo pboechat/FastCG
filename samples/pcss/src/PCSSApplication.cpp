@@ -11,6 +11,7 @@
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
+#include <FastCG/AssetSystem.h>
 
 using namespace FastCG;
 
@@ -22,7 +23,7 @@ namespace
     {
         auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
-        auto *pModel = ModelLoader::Load("objs/bunny.obj", pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
+        auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Missing bunny model");

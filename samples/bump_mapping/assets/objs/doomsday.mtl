@@ -6,5 +6,5 @@ Ks 1.000000 1.000000 1.000000
 Ni 1.000000
 d 1.000000
 illum 1
-map_Kd textures/doomsday_d.jpg
-map_bump textures/doomsday_n.tga
+map_Kd ../textures/doomsday_d.jpg
+map_bump ../textures/doomsday_n.tga

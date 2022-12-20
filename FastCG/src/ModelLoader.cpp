@@ -24,6 +24,7 @@ namespace FastCG
 {
 	struct LoadContext
 	{
+		std::string basePath;
 		std::vector<std::unique_ptr<char[]>> fileData;
 	};
 
@@ -34,10 +35,10 @@ namespace FastCG
 							char **pBuffer,
 							size_t *pLength)
 	{
-		auto *pLoadontext = (LoadContext *)pContext;
-		auto data = FileReader::ReadText(AssetSystem::GetInstance()->Resolve(pFilename), *pLength);
+		auto *pLoadContext = (LoadContext *)pContext;
+		auto data = FileReader::ReadText(File::Join({pLoadContext->basePath, pFilename}), *pLength);
 		*pBuffer = data.get();
-		pLoadontext->fileData.emplace_back(std::move(data));
+		pLoadContext->fileData.emplace_back(std::move(data));
 	}
 
 	using MeshCatalog = std::unordered_map<size_t, Mesh *>;
@@ -121,11 +122,13 @@ namespace FastCG
 
 	using MaterialCatalog = std::unordered_map<uint32_t, Material *>;
 
-	void BuildMaterialCatalog(const std::string &rName,
+	void BuildMaterialCatalog(const std::string &rFilePath,
 							  const tinyobj_material_t *pMaterials,
 							  size_t numMaterials,
 							  MaterialCatalog &rMaterialCatalog)
 	{
+		auto name = File::GetFileNameWithoutExtension(rFilePath);
+		auto basePath = File::GetBasePath(rFilePath);
 		for (size_t materialIdx = 0; materialIdx < numMaterials; materialIdx++)
 		{
 			auto &material = pMaterials[materialIdx];
@@ -138,13 +141,13 @@ namespace FastCG
 			Texture *pColorMapTexture = nullptr;
 			if (material.diffuse_texname != nullptr)
 			{
-				pColorMapTexture = TextureLoader::Load(material.diffuse_texname);
+				pColorMapTexture = TextureLoader::Load(File::Join({basePath, material.diffuse_texname}));
 			}
 
 			Texture *pBumpMapTexture = nullptr;
 			if (material.bump_texname != nullptr)
 			{
-				pBumpMapTexture = TextureLoader::Load(material.bump_texname);
+				pBumpMapTexture = TextureLoader::Load(File::Join({basePath, material.bump_texname}));
 			}
 
 			const MaterialDefinition *pMaterialDefinition;
@@ -177,7 +180,7 @@ namespace FastCG
 				pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor");
 			}
 
-			auto *pManagedMaterial = RenderingSystem::GetInstance()->CreateMaterial({rName + " (" + std::to_string(materialIdx) + ")", pMaterialDefinition});
+			auto *pManagedMaterial = RenderingSystem::GetInstance()->CreateMaterial({name + " (" + std::to_string(materialIdx) + ")", pMaterialDefinition});
 			pManagedMaterial->SetConstant("uDiffuseColor", diffuseColor);
 			pManagedMaterial->SetConstant("uSpecularColor", specularColor);
 			pManagedMaterial->SetConstant("uShininess", shininess);
@@ -252,14 +255,14 @@ namespace FastCG
 		tinyobj_material_t *pMaterials;
 		size_t numShapes, numMaterials;
 
-		LoadContext loadContext{};
+		LoadContext loadContext{File::GetBasePath(rFilePath)};
 
 		if (tinyobj_parse_obj(&attributes,
 							  &pShapes,
 							  &numShapes,
 							  &pMaterials,
 							  &numMaterials,
-							  rFilePath.c_str(),
+							  File::GetFileName(rFilePath).c_str(),
 							  &FileReaderCallback,
 							  (void *)&loadContext,
 							  TINYOBJ_FLAG_TRIANGULATE) != TINYOBJ_SUCCESS)
