@@ -1,12 +1,12 @@
 #include <FastCG/WorldSystem.h>
 #include <FastCG/Thread.h>
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/System.h>
-#include <FastCG/ShaderLoader.h>
+#include <FastCG/ShaderImporter.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/MouseButton.h>
-#include <FastCG/ModelImporter.h>
-#include <FastCG/MaterialDefinitionLoader.h>
+#include <FastCG/ModelLoader.h>
+#include <FastCG/MaterialDefinitionImporter.h>
 #include <FastCG/RenderBatchStrategy.h>
 #include <FastCG/Light.h>
 #include <FastCG/Key.h>
@@ -137,8 +137,8 @@ namespace FastCG
 		RenderingSystem::GetInstance()->Initialize();
 		WorldSystem::GetInstance()->Initialize();
 
-		ShaderLoader::LoadShaders(mSettings.renderingPath);
-		MaterialDefinitionLoader::LoadMaterialDefinitions();
+		ShaderImporter::Import(mSettings.renderingPath);
+		MaterialDefinitionImporter::Import();
 
 		switch (mSettings.renderingPath)
 		{

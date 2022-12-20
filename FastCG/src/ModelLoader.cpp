@@ -1,9 +1,9 @@
 #include <FastCG/Transform.h>
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/ShaderConstants.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
-#include <FastCG/ModelImporter.h>
+#include <FastCG/ModelLoader.h>
 #include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FileWriter.h>
@@ -22,22 +22,22 @@
 
 namespace FastCG
 {
-	struct ImportContext
+	struct LoadContext
 	{
 		std::vector<std::unique_ptr<char[]>> fileData;
 	};
 
-	void FileReaderCallback(void *context,
-							const char *filename,
+	void FileReaderCallback(void *pContext,
+							const char *pFilename,
 							int isMtl,
-							const char *objFilename,
-							char **buffer,
-							size_t *length)
+							const char *pObjFilename,
+							char **pBuffer,
+							size_t *pLength)
 	{
-		auto *importContext = (ImportContext *)context;
-		auto data = FileReader::ReadText(AssetSystem::GetInstance()->Resolve(filename), *length);
-		*buffer = data.get();
-		importContext->fileData.emplace_back(std::move(data));
+		auto *pLoadontext = (LoadContext *)pContext;
+		auto data = FileReader::ReadText(AssetSystem::GetInstance()->Resolve(pFilename), *pLength);
+		*pBuffer = data.get();
+		pLoadontext->fileData.emplace_back(std::move(data));
 	}
 
 	using MeshCatalog = std::unordered_map<size_t, Mesh *>;
@@ -138,13 +138,13 @@ namespace FastCG
 			Texture *pColorMapTexture = nullptr;
 			if (material.diffuse_texname != nullptr)
 			{
-				pColorMapTexture = TextureImporter::Import(material.diffuse_texname);
+				pColorMapTexture = TextureLoader::Load(material.diffuse_texname);
 			}
 
 			Texture *pBumpMapTexture = nullptr;
 			if (material.bump_texname != nullptr)
 			{
-				pBumpMapTexture = TextureImporter::Import(material.bump_texname);
+				pBumpMapTexture = TextureLoader::Load(material.bump_texname);
 			}
 
 			const MaterialDefinition *pMaterialDefinition;
@@ -202,7 +202,7 @@ namespace FastCG
 									   const MaterialCatalog &rMaterialCatalog,
 									   const MeshCatalog &rMeshCatalog,
 									   const Material *pDefaultMaterial,
-									   ModelImporterOptionMaskType options)
+									   ModelLoaderOptionMaskType options)
 	{
 		auto *pModelGameObject = GameObject::Instantiate(rModelName);
 		auto *pModelTransform = pModelGameObject->GetTransform();
@@ -240,19 +240,19 @@ namespace FastCG
 			Renderable::Instantiate(pShapeGameObject,
 									pMaterial,
 									pMesh,
-									(options & (ModelImporterOptionMaskType)ModelImporterOption::IS_SHADOW_CASTER) != 0);
+									(options & (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER) != 0);
 		}
 		return pModelGameObject;
 	}
 
-	GameObject *ModelImporter::Import(const std::string &rFilePath, const Material *pDefaultMaterial, ModelImporterOptionMaskType options)
+	GameObject *ModelLoader::Load(const std::string &rFilePath, const Material *pDefaultMaterial, ModelLoaderOptionMaskType options)
 	{
 		tinyobj_attrib_t attributes;
 		tinyobj_shape_t *pShapes;
 		tinyobj_material_t *pMaterials;
 		size_t numShapes, numMaterials;
 
-		ImportContext importContext{};
+		LoadContext loadContext{};
 
 		if (tinyobj_parse_obj(&attributes,
 							  &pShapes,
@@ -261,7 +261,7 @@ namespace FastCG
 							  &numMaterials,
 							  rFilePath.c_str(),
 							  &FileReaderCallback,
-							  (void *)&importContext,
+							  (void *)&loadContext,
 							  TINYOBJ_FLAG_TRIANGULATE) != TINYOBJ_SUCCESS)
 		{
 			return nullptr;

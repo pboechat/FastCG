@@ -45,7 +45,7 @@ namespace
 
 namespace FastCG
 {
-    void ShaderLoader::LoadShaders(RenderingPath renderingPath)
+    void ShaderImporter::Import(RenderingPath renderingPath)
     {
         const auto renderingPathMask = 1 << (RenderingPathMask)renderingPath;
         std::unordered_map<std::string, ShaderTypeValueArray<std::string>> shaderInfos;

@@ -1,4 +1,4 @@
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/RenderingState.h>
 #include <FastCG/FileReader.h>
@@ -88,7 +88,7 @@ namespace
 
 namespace FastCG
 {
-    void MaterialDefinitionLoader::LoadMaterialDefinitions()
+    void MaterialDefinitionImporter::Import()
     {
         for (const auto &rMaterialFileName : AssetSystem::GetInstance()->List("materials", true))
         {
@@ -147,7 +147,7 @@ namespace FastCG
                     assert(textureArray[0].GetType() == rapidjson::Type::kStringType);
                     if (textureArray[1].GetType() == rapidjson::Type::kStringType)
                     {
-                        textures.emplace(textureArray[0].GetString(), TextureImporter::Import(textureArray[1].GetString()));
+                        textures.emplace(textureArray[0].GetString(), TextureLoader::Load(textureArray[1].GetString()));
                     }
                     else
                     {

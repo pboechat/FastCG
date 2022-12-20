@@ -2,13 +2,13 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/Random.h>
 #include <FastCG/PointLight.h>
-#include <FastCG/ModelImporter.h>
+#include <FastCG/ModelLoader.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
@@ -31,7 +31,7 @@ namespace
 
 	void CreateGround()
 	{
-		auto *pCheckersColorMap = TextureImporter::Import("textures/checkers.png");
+		auto *pCheckersColorMap = TextureLoader::Load("textures/checkers.png");
 		if (pCheckersColorMap == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");

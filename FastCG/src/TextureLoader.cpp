@@ -1,4 +1,4 @@
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/File.h>
 #include <FastCG/Exception.h>
 #include <FastCG/AssetSystem.h>
@@ -51,11 +51,11 @@ namespace
 
 namespace FastCG
 {
-	Texture *TextureImporter::Import(const std::string &rFilePath)
+	Texture *TextureLoader::Load(const std::string &rFilePath)
 	{
 		int width, height, components;
-		auto absFfilePath = AssetSystem::GetInstance()->Resolve(rFilePath);
-		auto *pData = stbi_load(absFfilePath.c_str(), &width, &height, &components, 0);
+		auto absFilePath = AssetSystem::GetInstance()->Resolve(rFilePath);
+		auto *pData = stbi_load(absFilePath.c_str(), &width, &height, &components, 0);
 		if (pData == nullptr)
 		{
 			return nullptr;

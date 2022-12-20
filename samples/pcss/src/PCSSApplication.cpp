@@ -1,11 +1,11 @@
 #include "PCSSApplication.h"
 #include "Controls.h"
 
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
-#include <FastCG/ModelImporter.h>
+#include <FastCG/ModelLoader.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
@@ -22,7 +22,7 @@ namespace
     {
         auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
-        auto *pModel = ModelImporter::Import("objs/bunny.obj", pDefaultMaterial, (ModelImporterOptionMaskType)ModelImporterOption::IS_SHADOW_CASTER);
+        auto *pModel = ModelLoader::Load("objs/bunny.obj", pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Missing bunny model");

@@ -2,12 +2,12 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
-#include <FastCG/TextureImporter.h>
+#include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
-#include <FastCG/ModelImporter.h>
+#include <FastCG/ModelLoader.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
@@ -50,8 +50,8 @@ namespace
 
 		auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
 
-		auto *pGroundColorMap = TextureImporter::Import("textures/ground_d.png");
-		auto *pGroupBumpMap = TextureImporter::Import("textures/ground_n.png");
+		auto *pGroundColorMap = TextureLoader::Load("textures/ground_d.png");
+		auto *pGroupBumpMap = TextureLoader::Load("textures/ground_n.png");
 
 		auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular")});
 		pGroundMaterial->SetTexture("uColorMap", pGroundColorMap);
@@ -70,7 +70,7 @@ namespace
 		auto *pMissingMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Missing Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 		pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
-		auto *pModel = ModelImporter::Import("objs/doomsday.obj", pMissingMaterial);
+		auto *pModel = ModelLoader::Load("objs/doomsday.obj", pMissingMaterial);
 		if (pModel == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
