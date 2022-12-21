@@ -110,7 +110,8 @@ namespace FastCG
         void Resize();
         void Present();
         void Finalize();
-        double GetLastPresentElapsedTime();
+        double GetPresentElapsedTime() const;
+        double GetGpuElapsedTime() const;
 
         friend class BaseApplication;
     };

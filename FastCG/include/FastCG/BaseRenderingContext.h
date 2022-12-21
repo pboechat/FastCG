@@ -56,7 +56,7 @@ namespace FastCG
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void End();
-        double GetElapsedTime();
+        double GetElapsedTime() const;
     };
 
 }

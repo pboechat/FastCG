@@ -405,7 +405,7 @@ namespace FastCG
     }
 #endif
 
-    double OpenGLRenderingContext::GetElapsedTime()
+    double OpenGLRenderingContext::GetElapsedTime() const
     {
 #ifdef _DEBUG
         return mElapsedTime;

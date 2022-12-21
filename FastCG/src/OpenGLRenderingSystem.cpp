@@ -670,10 +670,24 @@ namespace FastCG
 #endif
     }
 
-    double OpenGLRenderingSystem::GetLastPresentElapsedTime()
+    double OpenGLRenderingSystem::GetPresentElapsedTime() const
     {
 #ifdef _DEBUG
         return mPresentElapsedTime;
+#else
+        return 0;
+#endif
+    }
+
+    double OpenGLRenderingSystem::GetGpuElapsedTime() const
+    {
+#ifdef _DEBUG
+        double elapsedTime = 0;
+        for (auto *pRenderingContext : mRenderingContexts)
+        {
+            elapsedTime += pRenderingContext->GetElapsedTime();
+        }
+        return elapsedTime;
 #else
         return 0;
 #endif

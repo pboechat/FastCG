@@ -147,7 +147,8 @@ namespace FastCG
         void Resize() {}
         void Present();
         void Finalize();
-        double GetLastPresentElapsedTime();
+        double GetPresentElapsedTime() const;
+        double GetGpuElapsedTime() const;
 #ifdef FASTCG_LINUX
         void AcquireVisualInfoAndFbConfig();
 #endif

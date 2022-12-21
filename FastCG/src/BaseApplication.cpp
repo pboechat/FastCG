@@ -224,7 +224,7 @@ namespace FastCG
 								frameDeltaTime,
 								mLastCpuElapsedTime,
 								mLastGpuElapsedTime,
-								RenderingSystem::GetInstance()->GetLastPresentElapsedTime(),
+								RenderingSystem::GetInstance()->GetPresentElapsedTime(),
 								mRenderingStatistics);
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif
