@@ -2,10 +2,10 @@
 #define FASTCG_WORLD_SYSTEM
 
 #include <FastCG/System.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/RenderingPath.h>
 #include <FastCG/IWorldRenderer.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/GameObject.h>
 
 #include <vector>

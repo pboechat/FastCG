@@ -2,8 +2,8 @@
 #define FASTCG_IMGUI_SYSTEM_H
 
 #include <FastCG/System.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/InputSystem.h>
+#include <FastCG/GraphicsSystem.h>
 
 #include <memory>
 #include <cstdint>

@@ -192,7 +192,7 @@ namespace FastCG
 
         mpImGuiRenderer->Initialize();
 
-        mpRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
+        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext();
     }
 
     void ImGuiSystem::BeginFrame(double deltaTime, KeyChange keyChanges[KEY_COUNT])

@@ -11,7 +11,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLBuffer : public BaseBuffer
     {
@@ -31,7 +31,7 @@ namespace FastCG
 
         OpenGLBuffer &operator=(const OpenGLBuffer &rOther) = delete;
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 
 }

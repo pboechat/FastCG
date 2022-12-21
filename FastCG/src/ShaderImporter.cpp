@@ -63,7 +63,7 @@ namespace FastCG
         }
         for (const auto &rShaderInfo : shaderInfos)
         {
-            RenderingSystem::GetInstance()->CreateShader({rShaderInfo.first, rShaderInfo.second});
+            GraphicsSystem::GetInstance()->CreateShader({rShaderInfo.first, rShaderInfo.second});
         }
     }
 }

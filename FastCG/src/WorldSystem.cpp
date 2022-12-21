@@ -454,7 +454,7 @@ namespace FastCG
         }
         mpWorldRenderer->Initialize();
 
-        mpRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
+        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext();
     }
 
     void WorldSystem::DebugMenuCallback(int result)

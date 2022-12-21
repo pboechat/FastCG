@@ -14,30 +14,30 @@ namespace FastCG
         unsigned char *pixels;
         auto &io = ImGui::GetIO();
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-        auto *pImGuiTexture = RenderingSystem::GetInstance()->CreateTexture({"ImGui",
-                                                                             (uint32_t)width,
-                                                                             (uint32_t)height,
-                                                                             TextureType::TEXTURE_2D,
-                                                                             TextureFormat::RGBA,
-                                                                             {32, 32, 32, 32},
-                                                                             TextureDataType::UNSIGNED_CHAR,
-                                                                             TextureFilter::LINEAR_FILTER,
-                                                                             TextureWrapMode::CLAMP,
-                                                                             false,
-                                                                             pixels});
+        auto *pImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture({"ImGui",
+                                                                            (uint32_t)width,
+                                                                            (uint32_t)height,
+                                                                            TextureType::TEXTURE_2D,
+                                                                            TextureFormat::RGBA,
+                                                                            {32, 32, 32, 32},
+                                                                            TextureDataType::UNSIGNED_CHAR,
+                                                                            TextureFilter::LINEAR_FILTER,
+                                                                            TextureWrapMode::CLAMP,
+                                                                            false,
+                                                                            pixels});
         io.Fonts->SetTexID((void *)pImGuiTexture);
 
-        mpImGuiShader = RenderingSystem::GetInstance()->FindShader("ImGui");
+        mpImGuiShader = GraphicsSystem::GetInstance()->FindShader("ImGui");
 
-        mpImGuiMesh = RenderingSystem::GetInstance()->CreateMesh({"ImGui Mesh",
-                                                                  {{"Vertices", BufferUsage::STREAM, MAX_NUM_VERTICES * sizeof(ImDrawVert), nullptr, {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)}, {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)}, {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
-                                                                  {BufferUsage::STREAM, MAX_NUM_VERTICES * 3 * sizeof(ImDrawIdx), nullptr}});
+        mpImGuiMesh = GraphicsSystem::GetInstance()->CreateMesh({"ImGui Mesh",
+                                                                 {{"Vertices", BufferUsage::STREAM, MAX_NUM_VERTICES * sizeof(ImDrawVert), nullptr, {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)}, {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)}, {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
+                                                                 {BufferUsage::STREAM, MAX_NUM_VERTICES * 3 * sizeof(ImDrawIdx), nullptr}});
 
-        mpImGuiConstantsBuffer = RenderingSystem::GetInstance()->CreateBuffer({"ImGui Constants",
-                                                                               BufferType::UNIFORM,
-                                                                               BufferUsage::DYNAMIC,
-                                                                               sizeof(ImGuiConstants),
-                                                                               &mImGuiConstants});
+        mpImGuiConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer({"ImGui Constants",
+                                                                              BufferType::UNIFORM,
+                                                                              BufferUsage::DYNAMIC,
+                                                                              sizeof(ImGuiConstants),
+                                                                              &mImGuiConstants});
     }
 
     void ImGuiRenderer::Render(const ImDrawData *pImDrawData, RenderingContext *pRenderingContext)
@@ -52,7 +52,7 @@ namespace FastCG
             pRenderingContext->SetDepthWrite(false);
             pRenderingContext->SetStencilTest(false);
             pRenderingContext->SetScissorTest(true);
-            const auto *pBackbuffer = RenderingSystem::GetInstance()->GetBackbuffer();
+            const auto *pBackbuffer = GraphicsSystem::GetInstance()->GetBackbuffer();
             pRenderingContext->SetRenderTargets(&pBackbuffer, 1);
 
             auto displayScale = pImDrawData->FramebufferScale;
@@ -114,13 +114,13 @@ namespace FastCG
     {
         if (mpImGuiConstantsBuffer != nullptr)
         {
-            RenderingSystem::GetInstance()->DestroyBuffer(mpImGuiConstantsBuffer);
+            GraphicsSystem::GetInstance()->DestroyBuffer(mpImGuiConstantsBuffer);
             mpImGuiConstantsBuffer = nullptr;
         }
 
         if (mpImGuiMesh != nullptr)
         {
-            RenderingSystem::GetInstance()->DestroyMesh(mpImGuiMesh);
+            GraphicsSystem::GetInstance()->DestroyMesh(mpImGuiMesh);
             mpImGuiMesh = nullptr;
         }
 

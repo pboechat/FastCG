@@ -6,7 +6,7 @@
 #include <FastCG/X11Application.h>
 #endif
 #include <FastCG/OpenGLUtils.h>
-#include <FastCG/OpenGLRenderingSystem.h>
+#include <FastCG/OpenGLGraphicsSystem.h>
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/Exception.h>
 #include <FastCG/FastCG.h>
@@ -65,15 +65,15 @@ namespace
 
 namespace FastCG
 {
-    OpenGLRenderingSystem::OpenGLRenderingSystem(const RenderingSystemArgs &rArgs) : BaseRenderingSystem(rArgs)
+    OpenGLGraphicsSystem::OpenGLGraphicsSystem(const GraphicsSystemArgs &rArgs) : BaseGraphicsSystem(rArgs)
     {
     }
 
-    OpenGLRenderingSystem::~OpenGLRenderingSystem() = default;
+    OpenGLGraphicsSystem::~OpenGLGraphicsSystem() = default;
 
-    void OpenGLRenderingSystem::Initialize()
+    void OpenGLGraphicsSystem::Initialize()
     {
-        BaseRenderingSystem::Initialize();
+        BaseGraphicsSystem::Initialize();
 
         CreateOpenGLContext(true);
 
@@ -120,7 +120,7 @@ namespace FastCG
     }                                          \
     containerName.clear()
 
-    void OpenGLRenderingSystem::Finalize()
+    void OpenGLGraphicsSystem::Finalize()
     {
         mInitialized = false;
 
@@ -163,7 +163,7 @@ namespace FastCG
     }
 
 #if defined FASTCG_WINDOWS
-    void OpenGLRenderingSystem::SetupPixelFormat() const
+    void OpenGLGraphicsSystem::SetupPixelFormat() const
     {
         auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
         PIXELFORMATDESCRIPTOR pixelFormatDescr =
@@ -258,15 +258,15 @@ namespace FastCG
     }
 #endif
 
-#define DECLARE_CREATE_METHOD(className, containerMember)         \
-    OpenGL##className *OpenGLRenderingSystem::Create##className() \
-    {                                                             \
-        containerMember.emplace_back(new OpenGL##className{});    \
-        return containerMember.back();                            \
+#define DECLARE_CREATE_METHOD(className, containerMember)        \
+    OpenGL##className *OpenGLGraphicsSystem::Create##className() \
+    {                                                            \
+        containerMember.emplace_back(new OpenGL##className{});   \
+        return containerMember.back();                           \
     }
 
 #define DECLARE_CREATE_METHOD_WITH_ARGS(className, containerMember, argType, argName) \
-    OpenGL##className *OpenGLRenderingSystem::Create##className(argType argName)      \
+    OpenGL##className *OpenGLGraphicsSystem::Create##className(argType argName)       \
     {                                                                                 \
         containerMember.emplace_back(new OpenGL##className{argName});                 \
         return containerMember.back();                                                \
@@ -279,7 +279,7 @@ namespace FastCG
     DECLARE_CREATE_METHOD_WITH_ARGS(Shader, mShaders, const ShaderArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Texture, mTextures, const TextureArgs &, rArgs)
 
-    OpenGLMaterial *OpenGLRenderingSystem::CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs)
+    OpenGLMaterial *OpenGLGraphicsSystem::CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs)
     {
         OpenGLBuffer *pMaterialConstantBuffer = nullptr;
         const auto &rConstantBuffer = rArgs.pMaterialDefinition->GetConstantBuffer();
@@ -297,7 +297,7 @@ namespace FastCG
     }
 
 #define DECLARE_DESTROY_METHOD(className, containerMember)                                   \
-    void OpenGLRenderingSystem::Destroy##className(const OpenGL##className *p##className)    \
+    void OpenGLGraphicsSystem::Destroy##className(const OpenGL##className *p##className)     \
     {                                                                                        \
         auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className); \
         if (it != containerMember.cend())                                                    \
@@ -317,7 +317,7 @@ namespace FastCG
     DECLARE_DESTROY_METHOD(RenderingContext, mRenderingContexts)
     DECLARE_DESTROY_METHOD(Shader, mShaders)
 
-    void OpenGLRenderingSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
+    void OpenGLGraphicsSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
     {
         const auto *pMaterialConstantBuffer = pMaterial->GetConstantBuffer();
         if (pMaterialConstantBuffer != nullptr)
@@ -337,7 +337,7 @@ namespace FastCG
         }
     }
 
-    void OpenGLRenderingSystem::DestroyTexture(const OpenGLTexture *pTexture)
+    void OpenGLGraphicsSystem::DestroyTexture(const OpenGLTexture *pTexture)
     {
         // Delete fbos that reference the texture to be deleted
         {
@@ -368,7 +368,7 @@ namespace FastCG
         }
     }
 
-    GLuint OpenGLRenderingSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
+    GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
     {
         assert(textureCount > 0);
         assert(textureCount <= mDeviceProperties.maxColorAttachments);
@@ -430,7 +430,7 @@ namespace FastCG
         return fboId;
     }
 
-    GLuint OpenGLRenderingSystem::GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount)
+    GLuint OpenGLGraphicsSystem::GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount)
     {
         assert(bufferCount > 0);
         assert(std::all_of(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
@@ -474,7 +474,7 @@ namespace FastCG
         return vaoId;
     }
 
-    void OpenGLRenderingSystem::CreateOpenGLContext(bool temporary /* = false */)
+    void OpenGLGraphicsSystem::CreateOpenGLContext(bool temporary /* = false */)
     {
 #if defined FASTCG_WINDOWS
         auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
@@ -605,13 +605,13 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLRenderingSystem::InitializeDeviceProperties()
+    void OpenGLGraphicsSystem::InitializeDeviceProperties()
     {
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &mDeviceProperties.maxColorAttachments);
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &mDeviceProperties.maxDrawBuffers);
     }
 
-    void OpenGLRenderingSystem::DestroyOpenGLContext()
+    void OpenGLGraphicsSystem::DestroyOpenGLContext()
     {
 #if defined FASTCG_WINDOWS
         if (mHGLRC != 0)
@@ -634,7 +634,7 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLRenderingSystem::Present()
+    void OpenGLGraphicsSystem::Present()
     {
 #ifdef _DEBUG
         GLint64 presentStart;
@@ -670,7 +670,7 @@ namespace FastCG
 #endif
     }
 
-    double OpenGLRenderingSystem::GetPresentElapsedTime() const
+    double OpenGLGraphicsSystem::GetPresentElapsedTime() const
     {
 #ifdef _DEBUG
         return mPresentElapsedTime;
@@ -679,7 +679,7 @@ namespace FastCG
 #endif
     }
 
-    double OpenGLRenderingSystem::GetGpuElapsedTime() const
+    double OpenGLGraphicsSystem::GetGpuElapsedTime() const
     {
 #ifdef _DEBUG
         double elapsedTime = 0;

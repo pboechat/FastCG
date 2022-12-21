@@ -11,7 +11,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLMesh : public BaseMesh<OpenGLBuffer>
     {
@@ -23,7 +23,7 @@ namespace FastCG
 
         OpenGLMesh operator=(const OpenGLMesh &rOther) = delete;
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 
 }

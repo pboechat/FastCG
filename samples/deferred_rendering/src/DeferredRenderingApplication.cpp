@@ -4,12 +4,12 @@
 
 #include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/Random.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/ModelLoader.h>
 #include <FastCG/MathT.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Camera.h>
@@ -38,7 +38,7 @@ namespace
 			FASTCG_THROW_EXCEPTION(Exception, "Missing checkers texture");
 		}
 
-		auto *pFloorMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSpecular")});
+		auto *pFloorMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Ground", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSpecular")});
 		pFloorMaterial->SetTexture("uColorMap", pCheckersColorMap);
 		pFloorMaterial->SetConstant("uDiffuseColor", Colors::WHITE);
 		pFloorMaterial->SetConstant("uSpecularColor", Colors::WHITE);
@@ -52,7 +52,7 @@ namespace
 
 	void CreateSpheres()
 	{
-		auto *pSphereMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Sphere", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+		auto *pSphereMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Sphere", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 		pSphereMaterial->SetConstant("uDiffuseColor", glm::vec4(1, 1, 1, 0.5f));
 		pSphereMaterial->SetConstant("uSpecularColor", Colors::WHITE);
 		pSphereMaterial->SetConstant("uShininess", 30);

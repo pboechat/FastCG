@@ -2,7 +2,7 @@
 #define FASTCG_IMGUI_RENDERER_H
 
 #include <FastCG/ShaderConstants.h>
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 
 #include <imgui.h>
 

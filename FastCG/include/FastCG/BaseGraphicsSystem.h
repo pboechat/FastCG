@@ -1,5 +1,5 @@
-#ifndef FASTCG_BASE_RENDERING_SYSTEM_H
-#define FASTCG_BASE_RENDERING_SYSTEM_H
+#ifndef FASTCG_BASE_GRAPHICS_SYSTEM_H
+#define FASTCG_BASE_GRAPHICS_SYSTEM_H
 
 #include <FastCG/BaseTexture.h>
 #include <FastCG/BaseShader.h>
@@ -22,7 +22,7 @@ namespace FastCG
 {
     class BaseApplication;
 
-    struct RenderingSystemArgs
+    struct GraphicsSystemArgs
     {
         const uint32_t &rScreenWidth;
         const uint32_t &rScreenHeight;
@@ -30,7 +30,7 @@ namespace FastCG
     };
 
     template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
-    class BaseRenderingSystem
+    class BaseGraphicsSystem
     {
     public:
         using Buffer = BufferT;
@@ -86,7 +86,7 @@ namespace FastCG
         virtual const Material *GetMaterialAt(size_t i) const = 0;
 
     protected:
-        const RenderingSystemArgs mArgs;
+        const GraphicsSystemArgs mArgs;
 #ifdef _DEBUG
         const Texture *mpSelectedTexture{nullptr};
         const Material *mpSelectedMaterial{nullptr};
@@ -94,10 +94,10 @@ namespace FastCG
         bool mShowMaterialBrowser{false};
 #endif
 
-        BaseRenderingSystem(const RenderingSystemArgs &rArgs) : mArgs(rArgs)
+        BaseGraphicsSystem(const GraphicsSystemArgs &rArgs) : mArgs(rArgs)
         {
         }
-        virtual ~BaseRenderingSystem() = default;
+        virtual ~BaseGraphicsSystem() = default;
 
         // Non-interface methods
         virtual void Initialize();
@@ -118,6 +118,6 @@ namespace FastCG
 
 }
 
-#include <FastCG/BaseRenderingSystem.inc>
+#include <FastCG/BaseGraphicsSystem.inc>
 
 #endif

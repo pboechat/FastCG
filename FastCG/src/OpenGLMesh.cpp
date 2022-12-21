@@ -1,7 +1,7 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLRenderingSystem.h>
 #include <FastCG/OpenGLMesh.h>
+#include <FastCG/OpenGLGraphicsSystem.h>
 
 namespace FastCG
 {
@@ -10,30 +10,30 @@ namespace FastCG
 
         for (const auto &vbDesc : rArgs.vertexAttributeDecriptors)
         {
-            mVertexBuffers.emplace_back(OpenGLRenderingSystem::GetInstance()->CreateBuffer({mName + " " + vbDesc.name,
-                                                                                            BufferType::VERTEX_ATTRIBUTE,
-                                                                                            vbDesc.usage,
-                                                                                            vbDesc.dataSize,
-                                                                                            vbDesc.pData,
-                                                                                            vbDesc.bindingDescriptors}));
+            mVertexBuffers.emplace_back(OpenGLGraphicsSystem::GetInstance()->CreateBuffer({mName + " " + vbDesc.name,
+                                                                                           BufferType::VERTEX_ATTRIBUTE,
+                                                                                           vbDesc.usage,
+                                                                                           vbDesc.dataSize,
+                                                                                           vbDesc.pData,
+                                                                                           vbDesc.bindingDescriptors}));
         }
 
-        mpIndexBuffer = OpenGLRenderingSystem::GetInstance()->CreateBuffer({mName + " Indices",
-                                                                            BufferType::INDICES,
-                                                                            rArgs.indices.usage,
-                                                                            rArgs.indices.count * sizeof(uint32_t),
-                                                                            rArgs.indices.pData});
+        mpIndexBuffer = OpenGLGraphicsSystem::GetInstance()->CreateBuffer({mName + " Indices",
+                                                                           BufferType::INDICES,
+                                                                           rArgs.indices.usage,
+                                                                           rArgs.indices.count * sizeof(uint32_t),
+                                                                           rArgs.indices.pData});
     }
 
     OpenGLMesh::~OpenGLMesh()
     {
         if (mpIndexBuffer != nullptr)
         {
-            OpenGLRenderingSystem::GetInstance()->DestroyBuffer(mpIndexBuffer);
+            OpenGLGraphicsSystem::GetInstance()->DestroyBuffer(mpIndexBuffer);
         }
         for (const auto *pVertexBuffer : mVertexBuffers)
         {
-            OpenGLRenderingSystem::GetInstance()->DestroyBuffer(pVertexBuffer);
+            OpenGLGraphicsSystem::GetInstance()->DestroyBuffer(pVertexBuffer);
         }
     }
 }

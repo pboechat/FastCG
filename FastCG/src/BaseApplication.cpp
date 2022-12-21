@@ -2,7 +2,6 @@
 #include <FastCG/Thread.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/System.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/MouseButton.h>
@@ -10,6 +9,7 @@
 #include <FastCG/Key.h>
 #include <FastCG/ImGuiSystem.h>
 #include <FastCG/InputSystem.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/Exception.h>
 #include <FastCG/DirectionalLight.h>
@@ -57,9 +57,9 @@ namespace FastCG
 #ifdef _DEBUG
 	FASTCG_IMPLEMENT_SYSTEM(DebugMenuSystem, DebugMenuSystemArgs);
 #endif
+	FASTCG_IMPLEMENT_SYSTEM(GraphicsSystem, GraphicsSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(InputSystem, InputSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(ImGuiSystem, ImGuiSystemArgs);
-	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(WorldSystem, WorldSystemArgs);
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
@@ -126,12 +126,12 @@ namespace FastCG
 #ifdef _DEBUG
 		DebugMenuSystem::Create({});
 #endif
+		GraphicsSystem::Create({mScreenWidth,
+								mScreenHeight,
+								mSettings.vsync});
 		InputSystem::Create({});
 		ImGuiSystem::Create({mScreenWidth,
 							 mScreenHeight});
-		RenderingSystem::Create({mScreenWidth,
-								 mScreenHeight,
-								 mSettings.vsync});
 		WorldSystem::Create({mSettings.rendering.path,
 							 mScreenWidth,
 							 mScreenHeight,
@@ -139,7 +139,7 @@ namespace FastCG
 							 mSettings.rendering.ambientLight,
 							 mRenderingStatistics});
 
-		RenderingSystem::GetInstance()->Initialize();
+		GraphicsSystem::GetInstance()->Initialize();
 
 		for (const auto &rImportCallback : mSettings.assets.importCallbacks)
 		{
@@ -158,12 +158,12 @@ namespace FastCG
 
 		WorldSystem::GetInstance()->Finalize();
 		ImGuiSystem::GetInstance()->Finalize();
-		RenderingSystem::GetInstance()->Finalize();
+		GraphicsSystem::GetInstance()->Finalize();
 
 		WorldSystem::Destroy();
-		RenderingSystem::Destroy();
 		ImGuiSystem::Destroy();
 		InputSystem::Destroy();
+		GraphicsSystem::Destroy();
 #ifdef _DEBUG
 		DebugMenuSystem::Destroy();
 #endif
@@ -203,7 +203,7 @@ namespace FastCG
 								frameDeltaTime,
 								mLastCpuElapsedTime,
 								mLastGpuElapsedTime,
-								RenderingSystem::GetInstance()->GetPresentElapsedTime(),
+								GraphicsSystem::GetInstance()->GetPresentElapsedTime(),
 								mRenderingStatistics);
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif
@@ -220,9 +220,9 @@ namespace FastCG
 		auto cpuEnd = mStartTimer.GetTime();
 		mLastCpuElapsedTime = cpuEnd - cpuStart;
 
-		RenderingSystem::GetInstance()->Present();
+		GraphicsSystem::GetInstance()->Present();
 
-		mLastGpuElapsedTime = RenderingSystem::GetInstance()->GetGpuElapsedTime();
+		mLastGpuElapsedTime = GraphicsSystem::GetInstance()->GetGpuElapsedTime();
 
 		mTotalFrameElapsedTime += frameDeltaTime;
 		mFrameCount++;
@@ -272,7 +272,7 @@ namespace FastCG
 
 		mScreenWidth = width;
 		mScreenHeight = height;
-		RenderingSystem::GetInstance()->Resize();
+		GraphicsSystem::GetInstance()->Resize();
 		OnResize();
 	}
 }

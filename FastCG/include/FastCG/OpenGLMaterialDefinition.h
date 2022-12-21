@@ -9,7 +9,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLMaterialDefinition : public BaseMaterialDefinition<OpenGLShader, OpenGLTexture>
     {
@@ -19,7 +19,7 @@ namespace FastCG
         }
         virtual ~OpenGLMaterialDefinition() = default;
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 
 }

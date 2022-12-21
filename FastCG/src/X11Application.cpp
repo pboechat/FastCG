@@ -2,7 +2,7 @@
 
 #ifdef FASTCG_LINUX
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 
 #include <X11/Xatom.h>
 #include <X11/extensions/render.h>
@@ -195,7 +195,7 @@ namespace FastCG
 
     void X11Application::CreateWindow()
     {
-        auto *pVisualInfo = RenderingSystem::GetInstance()->GetVisualInfo();
+        auto *pVisualInfo = GraphicsSystem::GetInstance()->GetVisualInfo();
 
         auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
 

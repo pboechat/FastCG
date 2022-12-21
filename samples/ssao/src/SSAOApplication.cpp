@@ -3,10 +3,10 @@
 
 #include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/ModelLoader.h>
 #include <FastCG/MathT.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
@@ -19,7 +19,7 @@ namespace
 {
 	void LoadModel()
 	{
-		auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+		auto *pDefaultMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Default Material", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
 		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/armadillo.obj"), pDefaultMaterial);
 		if (pModel == nullptr)

@@ -27,27 +27,27 @@ namespace FastCG
 
     void ForwardWorldRenderer::CreateRenderTargets()
     {
-        mRenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"Color",
-                                                                           mArgs.rScreenWidth,
-                                                                           mArgs.rScreenHeight,
-                                                                           TextureType::TEXTURE_2D,
-                                                                           TextureFormat::RGBA,
-                                                                           {10, 10, 10, 2},
-                                                                           TextureDataType::FLOAT,
-                                                                           TextureFilter::POINT_FILTER,
-                                                                           TextureWrapMode::CLAMP,
-                                                                           false});
+        mRenderTargets[0] = GraphicsSystem::GetInstance()->CreateTexture({"Color",
+                                                                          mArgs.rScreenWidth,
+                                                                          mArgs.rScreenHeight,
+                                                                          TextureType::TEXTURE_2D,
+                                                                          TextureFormat::RGBA,
+                                                                          {10, 10, 10, 2},
+                                                                          TextureDataType::FLOAT,
+                                                                          TextureFilter::POINT_FILTER,
+                                                                          TextureWrapMode::CLAMP,
+                                                                          false});
 
-        mRenderTargets[1] = RenderingSystem::GetInstance()->CreateTexture({"Depth",
-                                                                           mArgs.rScreenWidth,
-                                                                           mArgs.rScreenHeight,
-                                                                           TextureType::TEXTURE_2D,
-                                                                           TextureFormat::DEPTH_STENCIL,
-                                                                           {24, 8},
-                                                                           TextureDataType::UNSIGNED_INT,
-                                                                           TextureFilter::POINT_FILTER,
-                                                                           TextureWrapMode::CLAMP,
-                                                                           false});
+        mRenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"Depth",
+                                                                          mArgs.rScreenWidth,
+                                                                          mArgs.rScreenHeight,
+                                                                          TextureType::TEXTURE_2D,
+                                                                          TextureFormat::DEPTH_STENCIL,
+                                                                          {24, 8},
+                                                                          TextureDataType::UNSIGNED_INT,
+                                                                          TextureFilter::POINT_FILTER,
+                                                                          TextureWrapMode::CLAMP,
+                                                                          false});
     }
 
     void ForwardWorldRenderer::DestroyRenderTargets()
@@ -56,7 +56,7 @@ namespace FastCG
         {
             if (pRenderTarget != nullptr)
             {
-                RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+                GraphicsSystem::GetInstance()->DestroyTexture(pRenderTarget);
             }
         }
         mRenderTargets = {};
@@ -66,7 +66,7 @@ namespace FastCG
     {
         BaseWorldRenderer::Resize();
 
-        if (RenderingSystem::GetInstance()->IsInitialized())
+        if (GraphicsSystem::GetInstance()->IsInitialized())
         {
             DestroyRenderTargets();
             CreateRenderTargets();
@@ -285,7 +285,7 @@ namespace FastCG
 
             pRenderingContext->PushDebugMarker("Blit Color Render Target into Color Backbuffer");
             {
-                pRenderingContext->Blit(mRenderTargets[0], RenderingSystem::GetInstance()->GetBackbuffer());
+                pRenderingContext->Blit(mRenderTargets[0], GraphicsSystem::GetInstance()->GetBackbuffer());
             }
             pRenderingContext->PopDebugMarker();
         }

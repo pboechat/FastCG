@@ -1,7 +1,7 @@
 #ifndef FASTCG_I_WORLD_RENDERER_H
 #define FASTCG_I_WORLD_RENDERER_H
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/Camera.h>
 
 namespace FastCG

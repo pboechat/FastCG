@@ -10,7 +10,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLMaterial : public BaseMaterial<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
@@ -19,7 +19,7 @@ namespace FastCG
         {
         }
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 
 }

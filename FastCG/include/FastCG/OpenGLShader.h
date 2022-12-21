@@ -12,7 +12,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLShader : public BaseShader
     {
@@ -33,7 +33,7 @@ namespace FastCG
 
         OpenGLShader operator=(const OpenGLShader &rOther) = delete;
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 
 }

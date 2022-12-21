@@ -1,7 +1,7 @@
 #ifndef FASTCG_RENDER_BATCH_H
 #define FASTCG_RENDER_BATCH_H
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/Renderable.h>
 
 #include <vector>

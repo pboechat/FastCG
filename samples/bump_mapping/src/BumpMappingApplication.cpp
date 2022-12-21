@@ -6,10 +6,10 @@
 #include <FastCG/WorldLoader.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/ModelLoader.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/ComponentRegistry.h>
@@ -30,7 +30,7 @@ namespace
 		auto *pGroundColorMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_d.png"));
 		auto *pGroupBumpMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_n.png"));
 
-		auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular")});
+		auto *pGroundMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Ground", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular")});
 		pGroundMaterial->SetTexture("uColorMap", pGroundColorMap);
 		pGroundMaterial->SetConstant("uColorMapTiling", glm::vec2(4, 4));
 		pGroundMaterial->SetTexture("uBumpMap", pGroupBumpMap);
@@ -44,7 +44,7 @@ namespace
 
 	void LoadModel()
 	{
-		auto *pMissingMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Missing Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+		auto *pMissingMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Missing Material", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 		pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
 		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/doomsday.obj"), pMissingMaterial);

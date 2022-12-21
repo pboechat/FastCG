@@ -2,7 +2,7 @@
 
 #ifdef FASTCG_WINDOWS
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 
 #include <unordered_map>
 
@@ -202,7 +202,7 @@ namespace FastCG
 
 		mHDC = GetDC(hWnd);
 
-		RenderingSystem::GetInstance()->SetupPixelFormat();
+		GraphicsSystem::GetInstance()->SetupPixelFormat();
 
 		ShowWindow(hWnd, SW_SHOW);
 		UpdateWindow(hWnd);

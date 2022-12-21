@@ -1,7 +1,7 @@
 #ifndef FASTCG_STANDARD_GEOMETRIES_H
 #define FASTCG_STANDARD_GEOMETRIES_H
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 
 #include <glm/glm.hpp>
 

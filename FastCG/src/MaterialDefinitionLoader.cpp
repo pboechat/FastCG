@@ -102,7 +102,7 @@ namespace FastCG
         document.Parse(jsonStr.c_str());
 
         assert(document.HasMember("shader") && document["shader"].IsString());
-        auto *pShader = RenderingSystem::GetInstance()->FindShader(document["shader"].GetString());
+        auto *pShader = GraphicsSystem::GetInstance()->FindShader(document["shader"].GetString());
         assert(pShader != nullptr);
 
         std::vector<ConstantBuffer::Member> constantBufferMembers;
@@ -206,7 +206,7 @@ namespace FastCG
             }
         }
 
-        return RenderingSystem::GetInstance()->CreateMaterialDefinition({File::GetFileNameWithoutExtension(rFilePath), pShader, {constantBufferMembers}, textures, renderingState});
+        return GraphicsSystem::GetInstance()->CreateMaterialDefinition({File::GetFileNameWithoutExtension(rFilePath), pShader, {constantBufferMembers}, textures, renderingState});
     }
 
     std::string MaterialDefinitionLoader::Dump(const MaterialDefinition *pMaterialDefinition)

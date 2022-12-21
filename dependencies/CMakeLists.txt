@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-if(FASTCG_RENDERING_SYSTEM STREQUAL "OpenGL")
+if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
     add_subdirectory(glew)
 endif()
 add_subdirectory(glm)

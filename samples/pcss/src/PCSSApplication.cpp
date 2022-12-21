@@ -3,11 +3,11 @@
 
 #include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/ModelLoader.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyController.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
@@ -21,7 +21,7 @@ namespace
 
     void LoadModel()
     {
-        auto *pDefaultMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Default Material", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+        auto *pDefaultMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Default Material", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
         auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
@@ -44,7 +44,7 @@ namespace
 
     void CreateGround()
     {
-        auto *pGroundMaterial = RenderingSystem::GetInstance()->CreateMaterial({"Ground", RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+        auto *pGroundMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Ground", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 
         auto *pGroundGameObject = GameObject::Instantiate("Ground");
         auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE);

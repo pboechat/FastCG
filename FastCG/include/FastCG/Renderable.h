@@ -1,7 +1,7 @@
 #ifndef FASTCG_RENDERABLE_H
 #define FASTCG_RENDERABLE_H
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/Component.h>
 
 namespace FastCG

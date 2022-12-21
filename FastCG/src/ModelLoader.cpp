@@ -1,11 +1,11 @@
 #include <FastCG/Transform.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/ShaderConstants.h>
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/ModelLoader.h>
 #include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/FileWriter.h>
 #include <FastCG/FileReader.h>
 #include <FastCG/File.h>
@@ -109,13 +109,13 @@ namespace FastCG
 			}
 			auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
 
-			auto *pMesh = RenderingSystem::GetInstance()->CreateMesh({rName + " (" + std::to_string(shapeIdx) + ")",
-																	  {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																	   {"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																	   {"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_SHADER_INPUT_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
-																	   {"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_SHADER_INPUT_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
-																	  {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
-																	  MeshUtils::CalculateBounds(positions)});
+			auto *pMesh = GraphicsSystem::GetInstance()->CreateMesh({rName + " (" + std::to_string(shapeIdx) + ")",
+																	 {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																	  {"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																	  {"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_SHADER_INPUT_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
+																	  {"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_SHADER_INPUT_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+																	 {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
+																	 MeshUtils::CalculateBounds(positions)});
 			rMeshCatalog.emplace(shapeIdx, pMesh);
 		}
 	}
@@ -156,11 +156,11 @@ namespace FastCG
 				// TODO:
 				if (shininess != 0.0f)
 				{
-					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular");
+					pMaterialDefinition = GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedSpecular");
 				}
 				else
 				{
-					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedDiffuse");
+					pMaterialDefinition = GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueBumpedDiffuse");
 				}
 			}
 			else if (pColorMapTexture != nullptr)
@@ -168,19 +168,19 @@ namespace FastCG
 				// TODO:
 				if (shininess != 0.0f)
 				{
-					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSpecular");
+					pMaterialDefinition = GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSpecular");
 				}
 				else
 				{
-					pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueDiffuse");
+					pMaterialDefinition = GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueDiffuse");
 				}
 			}
 			else
 			{
-				pMaterialDefinition = RenderingSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor");
+				pMaterialDefinition = GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor");
 			}
 
-			auto *pManagedMaterial = RenderingSystem::GetInstance()->CreateMaterial({name + " (" + std::to_string(materialIdx) + ")", pMaterialDefinition});
+			auto *pManagedMaterial = GraphicsSystem::GetInstance()->CreateMaterial({name + " (" + std::to_string(materialIdx) + ")", pMaterialDefinition});
 			pManagedMaterial->SetConstant("uDiffuseColor", diffuseColor);
 			pManagedMaterial->SetConstant("uSpecularColor", specularColor);
 			pManagedMaterial->SetConstant("uShininess", shininess);

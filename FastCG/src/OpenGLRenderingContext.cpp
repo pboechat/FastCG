@@ -1,8 +1,8 @@
 #ifdef FASTCG_OPENGL
 
 #include <FastCG/OpenGLUtils.h>
-#include <FastCG/OpenGLRenderingSystem.h>
 #include <FastCG/OpenGLRenderingContext.h>
+#include <FastCG/OpenGLGraphicsSystem.h>
 #include <FastCG/OpenGLExceptions.h>
 #include <FastCG/Exception.h>
 
@@ -238,18 +238,17 @@ namespace FastCG
 
     void OpenGLRenderingContext::Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst)
     {
-        auto *pRenderingSystem = OpenGLRenderingSystem::GetInstance();
-        const auto *pBackbuffer = pRenderingSystem->GetBackbuffer();
+        const auto *pBackbuffer = OpenGLGraphicsSystem::GetInstance()->GetBackbuffer();
         GLint srcWidth, srcHeight;
         if (pSrc == pBackbuffer)
         {
             glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-            srcWidth = (GLint)pRenderingSystem->GetScreenWidth();
-            srcHeight = (GLint)pRenderingSystem->GetScreenHeight();
+            srcWidth = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenWidth();
+            srcHeight = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenHeight();
         }
         else
         {
-            auto readFbo = pRenderingSystem->GetOrCreateFramebuffer(&pSrc, 1);
+            auto readFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pSrc, 1);
             glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
             glReadBuffer(GL_COLOR_ATTACHMENT0);
             srcWidth = (GLint)pSrc->GetWidth();
@@ -259,12 +258,12 @@ namespace FastCG
         if (pDst == pBackbuffer)
         {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            dstWidth = (GLint)pRenderingSystem->GetScreenWidth();
-            dstHeight = (GLint)pRenderingSystem->GetScreenHeight();
+            dstWidth = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenWidth();
+            dstHeight = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenHeight();
         }
         else
         {
-            auto drawFbo = pRenderingSystem->GetOrCreateFramebuffer(&pDst, 1);
+            auto drawFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pDst, 1);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFbo);
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
             dstWidth = (GLint)pDst->GetWidth();
@@ -322,19 +321,19 @@ namespace FastCG
     {
         assert(pTextures != nullptr);
         assert(textureCount > 0);
-        if (textureCount == 1 && pTextures[0] == OpenGLRenderingSystem::GetInstance()->GetBackbuffer())
+        if (textureCount == 1 && pTextures[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer())
         {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             return;
         }
-        auto fbId = OpenGLRenderingSystem::GetInstance()->GetOrCreateFramebuffer(pTextures, textureCount);
+        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(pTextures, textureCount);
         assert(fbId != ~0u);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbId);
         std::vector<GLenum> attachments;
         attachments.reserve(textureCount);
         std::for_each(pTextures, pTextures + textureCount, [&attachments, i = 0](const auto *pTexture) mutable
                       { if (pTexture->GetFormat() != TextureFormat::DEPTH_STENCIL) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
-        assert(attachments.size() <= (size_t)OpenGLRenderingSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
+        assert(attachments.size() <= (size_t)OpenGLGraphicsSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
         {
             glDrawBuffers((GLsizei)attachments.size(), &attachments[0]);
@@ -346,7 +345,7 @@ namespace FastCG
         assert(pBuffers != nullptr);
         assert(mpBoundShader != nullptr);
         assert(bufferCount > 0);
-        auto vaoId = OpenGLRenderingSystem::GetInstance()->GetOrCreateVertexArray(pBuffers, bufferCount);
+        auto vaoId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateVertexArray(pBuffers, bufferCount);
         assert(vaoId != ~0u);
         glBindVertexArray(vaoId);
     }

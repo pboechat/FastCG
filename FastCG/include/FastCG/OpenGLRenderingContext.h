@@ -13,7 +13,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLRenderingContext : public BaseRenderingContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
@@ -71,7 +71,7 @@ namespace FastCG
         void RetrieveElapsedTime();
 #endif
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 
 }

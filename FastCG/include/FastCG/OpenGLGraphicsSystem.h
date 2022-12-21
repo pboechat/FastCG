@@ -1,5 +1,5 @@
-#ifndef FASTCG_OPENGL_RENDERING_SYSTEM_H
-#define FASTCG_OPENGL_RENDERING_SYSTEM_H
+#ifndef FASTCG_OPENGL_GRAPHICS_SYSTEM_H
+#define FASTCG_OPENGL_GRAPHICS_SYSTEM_H
 
 #ifdef FASTCG_OPENGL
 
@@ -12,7 +12,7 @@
 #include <FastCG/OpenGLMaterialDefinition.h>
 #include <FastCG/OpenGLMaterial.h>
 #include <FastCG/OpenGLBuffer.h>
-#include <FastCG/BaseRenderingSystem.h>
+#include <FastCG/BaseGraphicsSystem.h>
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
@@ -30,9 +30,9 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem : public BaseRenderingSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLRenderingContext, OpenGLShader, OpenGLTexture>
+    class OpenGLGraphicsSystem : public BaseGraphicsSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLRenderingContext, OpenGLShader, OpenGLTexture>
     {
-        FASTCG_DECLARE_SYSTEM(OpenGLRenderingSystem, RenderingSystemArgs);
+        FASTCG_DECLARE_SYSTEM(OpenGLGraphicsSystem, GraphicsSystemArgs);
 
     public:
         struct DeviceProperties
@@ -114,8 +114,8 @@ namespace FastCG
         }
 
     protected:
-        OpenGLRenderingSystem(const RenderingSystemArgs &rArgs);
-        virtual ~OpenGLRenderingSystem();
+        OpenGLGraphicsSystem(const GraphicsSystemArgs &rArgs);
+        virtual ~OpenGLGraphicsSystem();
 
     private:
 #if defined FASTCG_WINDOWS

@@ -11,7 +11,7 @@
 
 namespace FastCG
 {
-    class OpenGLRenderingSystem;
+    class OpenGLGraphicsSystem;
 
     class OpenGLTexture : public BaseTexture
     {
@@ -31,7 +31,7 @@ namespace FastCG
 
         OpenGLTexture operator=(const OpenGLTexture &rOther) = delete;
 
-        friend class OpenGLRenderingSystem;
+        friend class OpenGLGraphicsSystem;
     };
 }
 

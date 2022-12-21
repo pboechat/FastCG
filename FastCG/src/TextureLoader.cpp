@@ -64,17 +64,17 @@ namespace FastCG
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Couldn't get texture format and bits per pixel (components = %d)", components);
 		}
-		auto *pTexture = RenderingSystem::GetInstance()->CreateTexture({File::GetFileNameWithoutExtension(rFilePath),
-																		(uint32_t)width,
-																		(uint32_t)height,
-																		TextureType::TEXTURE_2D,
-																		format,
-																		bitsPerPixel,
-																		TextureDataType::UNSIGNED_CHAR,
-																		TextureFilter::LINEAR_FILTER,
-																		TextureWrapMode::REPEAT,
-																		true,
-																		(void *)pData});
+		auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture({File::GetFileNameWithoutExtension(rFilePath),
+																	   (uint32_t)width,
+																	   (uint32_t)height,
+																	   TextureType::TEXTURE_2D,
+																	   format,
+																	   bitsPerPixel,
+																	   TextureDataType::UNSIGNED_CHAR,
+																	   TextureFilter::LINEAR_FILTER,
+																	   TextureWrapMode::REPEAT,
+																	   true,
+																	   (void *)pData});
 		stbi_image_free(pData);
 		return pTexture;
 	}

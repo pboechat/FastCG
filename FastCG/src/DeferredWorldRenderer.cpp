@@ -25,85 +25,85 @@ namespace FastCG
 
         CreateGBufferRenderTargets();
 
-        mpStencilPassShader = RenderingSystem::GetInstance()->FindShader("StencilPass");
-        mpDirectionalLightPassShader = RenderingSystem::GetInstance()->FindShader("DirectionalLightPass");
-        mpPointLightPassShader = RenderingSystem::GetInstance()->FindShader("PointLightPass");
+        mpStencilPassShader = GraphicsSystem::GetInstance()->FindShader("StencilPass");
+        mpDirectionalLightPassShader = GraphicsSystem::GetInstance()->FindShader("DirectionalLightPass");
+        mpPointLightPassShader = GraphicsSystem::GetInstance()->FindShader("PointLightPass");
 
         mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
     }
 
     void DeferredWorldRenderer::CreateGBufferRenderTargets()
     {
-        mGBufferRenderTargets[0] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Diffuse",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::RGBA,
-                                                                                  {8, 8, 8, 8},
-                                                                                  TextureDataType::FLOAT,
-                                                                                  TextureFilter::LINEAR_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
-        mGBufferRenderTargets[1] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::RGB,
-                                                                                  {8, 8, 8, 8},
-                                                                                  TextureDataType::FLOAT,
-                                                                                  TextureFilter::LINEAR_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
-        mGBufferRenderTargets[2] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::RGBA,
-                                                                                  {8, 8, 8, 8},
-                                                                                  TextureDataType::FLOAT,
-                                                                                  TextureFilter::LINEAR_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
-        mGBufferRenderTargets[3] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::RGBA,
-                                                                                  {8, 8, 8, 8},
-                                                                                  TextureDataType::FLOAT,
-                                                                                  TextureFilter::LINEAR_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
-        mGBufferRenderTargets[4] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::RGBA,
-                                                                                  {8, 8, 8, 8},
-                                                                                  TextureDataType::FLOAT,
-                                                                                  TextureFilter::LINEAR_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
-        mGBufferRenderTargets[5] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Depth",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::DEPTH_STENCIL,
-                                                                                  {24, 8},
-                                                                                  TextureDataType::UNSIGNED_INT,
-                                                                                  TextureFilter::POINT_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
-        mGBufferRenderTargets[6] = RenderingSystem::GetInstance()->CreateTexture({"G-Buffer Final",
-                                                                                  mArgs.rScreenWidth,
-                                                                                  mArgs.rScreenHeight,
-                                                                                  TextureType::TEXTURE_2D,
-                                                                                  TextureFormat::RGBA,
-                                                                                  {10, 10, 10, 2},
-                                                                                  TextureDataType::FLOAT,
-                                                                                  TextureFilter::POINT_FILTER,
-                                                                                  TextureWrapMode::CLAMP,
-                                                                                  false});
+        mGBufferRenderTargets[0] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Diffuse",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::RGBA,
+                                                                                 {8, 8, 8, 8},
+                                                                                 TextureDataType::FLOAT,
+                                                                                 TextureFilter::LINEAR_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
+        mGBufferRenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::RGB,
+                                                                                 {8, 8, 8, 8},
+                                                                                 TextureDataType::FLOAT,
+                                                                                 TextureFilter::LINEAR_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
+        mGBufferRenderTargets[2] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::RGBA,
+                                                                                 {8, 8, 8, 8},
+                                                                                 TextureDataType::FLOAT,
+                                                                                 TextureFilter::LINEAR_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
+        mGBufferRenderTargets[3] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::RGBA,
+                                                                                 {8, 8, 8, 8},
+                                                                                 TextureDataType::FLOAT,
+                                                                                 TextureFilter::LINEAR_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
+        mGBufferRenderTargets[4] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::RGBA,
+                                                                                 {8, 8, 8, 8},
+                                                                                 TextureDataType::FLOAT,
+                                                                                 TextureFilter::LINEAR_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
+        mGBufferRenderTargets[5] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Depth",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::DEPTH_STENCIL,
+                                                                                 {24, 8},
+                                                                                 TextureDataType::UNSIGNED_INT,
+                                                                                 TextureFilter::POINT_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
+        mGBufferRenderTargets[6] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Final",
+                                                                                 mArgs.rScreenWidth,
+                                                                                 mArgs.rScreenHeight,
+                                                                                 TextureType::TEXTURE_2D,
+                                                                                 TextureFormat::RGBA,
+                                                                                 {10, 10, 10, 2},
+                                                                                 TextureDataType::FLOAT,
+                                                                                 TextureFilter::POINT_FILTER,
+                                                                                 TextureWrapMode::CLAMP,
+                                                                                 false});
     }
 
     void DeferredWorldRenderer::DestroyGBufferRenderTargets()
@@ -112,7 +112,7 @@ namespace FastCG
         {
             if (pRenderTarget != nullptr)
             {
-                RenderingSystem::GetInstance()->DestroyTexture(pRenderTarget);
+                GraphicsSystem::GetInstance()->DestroyTexture(pRenderTarget);
             }
         }
         mGBufferRenderTargets = {};
@@ -144,7 +144,7 @@ namespace FastCG
     {
         BaseWorldRenderer::Resize();
 
-        if (RenderingSystem::GetInstance()->IsInitialized())
+        if (GraphicsSystem::GetInstance()->IsInitialized())
         {
             DestroyGBufferRenderTargets();
             CreateGBufferRenderTargets();
@@ -375,7 +375,7 @@ namespace FastCG
 
             pRenderingContext->PushDebugMarker("Blit G-Buffer Final Render Target into Color Backbuffer");
             {
-                pRenderingContext->Blit(mGBufferRenderTargets[6], RenderingSystem::GetInstance()->GetBackbuffer());
+                pRenderingContext->Blit(mGBufferRenderTargets[6], GraphicsSystem::GetInstance()->GetBackbuffer());
             }
             pRenderingContext->PopDebugMarker();
         }
@@ -386,7 +386,7 @@ namespace FastCG
     {
         if (mpSphereMesh != nullptr)
         {
-            RenderingSystem::GetInstance()->DestroyMesh(mpSphereMesh);
+            GraphicsSystem::GetInstance()->DestroyMesh(mpSphereMesh);
         }
 
         DestroyGBufferRenderTargets();
