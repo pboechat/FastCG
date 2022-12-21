@@ -11,8 +11,6 @@
 
 namespace FastCG
 {
-	class BaseApplication;
-
 	struct InputSystemArgs
 	{
 	};
@@ -144,8 +142,6 @@ namespace FastCG
 		void IncrementMouseWheelDelta();
 		void DecrementMouseWheelDelta();
 		void Swap();
-
-		friend class BaseApplication;
 	};
 
 }

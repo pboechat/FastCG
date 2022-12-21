@@ -80,7 +80,6 @@ namespace FastCG
 #endif
 
         friend class GameObject;
-        friend class BaseApplication;
     };
 
 }

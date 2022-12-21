@@ -24,8 +24,6 @@ namespace FastCG
         inline void Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths, bool includeNonExistant = false) const;
         inline std::vector<std::string> Expand(const std::string &rRelFilePath, bool includeNonExistant = false) const;
 
-        friend class BaseApplication;
-
     private:
         std::vector<std::string> mBundleRoots;
 

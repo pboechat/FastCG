@@ -154,8 +154,6 @@ namespace FastCG
         void CreateOpenGLContext(bool temporary = false);
         void InitializeDeviceProperties();
         void DestroyOpenGLContext();
-
-        friend class BaseApplication;
     };
 
 }

@@ -8,8 +8,6 @@
 
 namespace FastCG
 {
-    class BaseApplication;
-
     struct ImGuiSystemArgs
     {
         const uint32_t &rScreenWidth;
@@ -29,8 +27,6 @@ namespace FastCG
         void BeginFrame(double deltaTime, KeyChange keyChanges[KEY_COUNT]);
         void EndFrame();
         void Finalize();
-
-        friend class BaseApplication;
     };
 
 }

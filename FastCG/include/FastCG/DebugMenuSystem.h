@@ -13,8 +13,6 @@
 
 namespace FastCG
 {
-    class BaseApplication;
-
     struct DebugMenuSystemArgs
     {
     };
@@ -63,8 +61,6 @@ namespace FastCG
         DebugMenuSystem(const DebugMenuSystemArgs &rArgs) : mArgs(rArgs) {}
 
         void DrawMenu();
-
-        friend class BaseApplication;
     };
 
 }
