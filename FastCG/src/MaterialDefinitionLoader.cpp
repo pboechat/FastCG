@@ -22,26 +22,26 @@
 
 namespace
 {
-    template <typename ObjectT>
-    void GetBoolMember(const ObjectT &rGenericObj, const char *pName, bool &rValue)
+    template <typename GenericObjectT>
+    void GetBoolMember(const GenericObjectT &rGenericObj, const char *pName, bool &rValue)
     {
         if (rGenericObj.HasMember(pName))
         {
             auto &rGenericVal = rGenericObj.FindMember(pName)->value;
-            assert(rGenericVal.GetType() == rapidjson::Type::kFalseType || rGenericVal.GetType() == rapidjson::Type::kTrueType);
+            assert(rGenericVal.IsFalse() || rGenericVal.IsTrue());
             rValue = rGenericVal.GetBool();
         }
     }
 
-    template <typename ValueT>
-    void GetInt32Value(const ValueT &rGenericVal, int32_t &rValue)
+    template <typename GenericValueT>
+    void GetInt32Value(const GenericValueT &rGenericVal, int32_t &rValue)
     {
-        assert(rGenericVal.GetType() == rapidjson::Type::kNumberType);
+        assert(rGenericVal.IsInt());
         rValue = rGenericVal.GetInt();
     }
 
-    template <typename ObjectT>
-    void GetInt32Member(const ObjectT &rGenericObj, const char *pName, int32_t &rValue)
+    template <typename GenericObjectT>
+    void GetInt32Member(const GenericObjectT &rGenericObj, const char *pName, int32_t &rValue)
     {
         if (rGenericObj.HasMember(pName))
         {
@@ -50,15 +50,15 @@ namespace
         }
     }
 
-    template <typename ValueT>
-    void GetUint32Value(const ValueT &rGenericVal, uint32_t &rValue)
+    template <typename GenericValueT>
+    void GetUint32Value(const GenericValueT &rGenericVal, uint32_t &rValue)
     {
-        assert(rGenericVal.GetType() == rapidjson::Type::kNumberType);
+        assert(rGenericVal.IsUint());
         rValue = rGenericVal.GetUint();
     }
 
-    template <typename ObjectT>
-    void GetUint32Member(const ObjectT &rGenericObj, const char *pName, uint32_t &rValue)
+    template <typename GenericObjectT>
+    void GetUint32Member(const GenericObjectT &rGenericObj, const char *pName, uint32_t &rValue)
     {
         if (rGenericObj.HasMember(pName))
         {
@@ -67,18 +67,18 @@ namespace
         }
     }
 
-    template <typename ValueT, typename EnumT>
-    void GetEnumValue(const ValueT &rGenericValue, EnumT &rValue, const std::initializer_list<std::string> &rValueStrs)
+    template <typename GenericValueT, typename EnumT>
+    void GetEnumValue(const GenericValueT &rGenericValue, EnumT &rValue, const std::initializer_list<std::string> &rValueStrs)
     {
-        assert(rGenericValue.GetType() == rapidjson::Type::kStringType);
+        assert(rGenericValue.IsString());
         std::string valueStr = rGenericValue.GetString();
         auto it = std::find(rValueStrs.begin(), rValueStrs.end(), valueStr);
         assert(it != rValueStrs.end());
         rValue = (EnumT)std::distance(rValueStrs.begin(), it);
     }
 
-    template <typename ObjectT, typename EnumT>
-    void GetEnumMember(const ObjectT &rGenericObj, const char *pName, EnumT &rValue, const std::initializer_list<std::string> &rValueStrs)
+    template <typename GenericObjectT, typename EnumT>
+    void GetEnumMember(const GenericObjectT &rGenericObj, const char *pName, EnumT &rValue, const std::initializer_list<std::string> &rValueStrs)
     {
         if (rGenericObj.HasMember(pName))
         {
@@ -101,29 +101,29 @@ namespace FastCG
         rapidjson::Document document;
         document.Parse(jsonStr.c_str());
 
-        assert(document.HasMember("shader") && document["shader"].GetType() == rapidjson::Type::kStringType);
+        assert(document.HasMember("shader") && document["shader"].IsString());
         auto *pShader = RenderingSystem::GetInstance()->FindShader(document["shader"].GetString());
         assert(pShader != nullptr);
 
         std::vector<ConstantBuffer::Member> constantBufferMembers;
         if (document.HasMember("constantBuffer"))
         {
-            assert(document["constantBuffer"].GetType() == rapidjson::Type::kArrayType);
+            assert(document["constantBuffer"].IsArray());
             auto membersArray = document["constantBuffer"].GetArray();
             constantBufferMembers.reserve(membersArray.Size());
             for (auto &rMemberEl : membersArray)
             {
-                assert(rMemberEl.GetType() == rapidjson::Type::kArrayType);
+                assert(rMemberEl.IsArray());
                 auto memberArray = rMemberEl.GetArray();
                 assert(memberArray.Size() == 2);
-                assert(memberArray[0].GetType() == rapidjson::Type::kStringType);
-                if (memberArray[1].GetType() == rapidjson::Type::kNumberType)
+                assert(memberArray[0].IsString());
+                if (memberArray[1].IsNumber())
                 {
                     constantBufferMembers.emplace_back(memberArray[0].GetString(), memberArray[1].GetFloat());
                 }
                 else
                 {
-                    assert(memberArray[1].GetType() == rapidjson::Type::kArrayType);
+                    assert(memberArray[1].IsArray());
                     auto valueArray = memberArray[1].GetArray();
                     if (valueArray.Size() == 2)
                     {
@@ -141,20 +141,20 @@ namespace FastCG
         std::unordered_map<std::string, const Texture *> textures;
         if (document.HasMember("textures"))
         {
-            assert(document["textures"].GetType() == rapidjson::Type::kArrayType);
+            assert(document["textures"].IsArray());
             for (auto &rTextureEl : document["textures"].GetArray())
             {
-                assert(rTextureEl.GetType() == rapidjson::Type::kArrayType);
+                assert(rTextureEl.IsArray());
                 auto textureArray = rTextureEl.GetArray();
                 assert(textureArray.Size() == 2);
-                assert(textureArray[0].GetType() == rapidjson::Type::kStringType);
-                if (textureArray[1].GetType() == rapidjson::Type::kStringType)
+                assert(textureArray[0].IsString());
+                if (textureArray[1].IsString())
                 {
                     textures.emplace(textureArray[0].GetString(), TextureLoader::Load(File::Join({basePath, textureArray[1].GetString()})));
                 }
                 else
                 {
-                    assert(textureArray[1].GetType() == rapidjson::Type::kNullType);
+                    assert(textureArray[1].IsNull());
                     textures.emplace(textureArray[0].GetString(), nullptr);
                 }
             }
@@ -163,7 +163,7 @@ namespace FastCG
         RenderingState renderingState;
         if (document.HasMember("renderingState"))
         {
-            assert(document["renderingState"].GetType() == rapidjson::Type::kObjectType);
+            assert(document["renderingState"].IsObject());
             auto renderingStateObj = document["renderingState"].GetObj();
 
             GetBoolMember(renderingStateObj, "depthTest", renderingState.depthTest);
@@ -180,7 +180,7 @@ namespace FastCG
             {
                 if (renderingStateObj.HasMember(rIter.pMemberName))
                 {
-                    assert(renderingStateObj.FindMember(rIter.pMemberName)->value.GetType() == rapidjson::Type::kObjectType);
+                    assert(renderingStateObj.FindMember(rIter.pMemberName)->value.IsObject());
                     auto stencilStateObj = renderingStateObj.FindMember(rIter.pMemberName)->value.GetObj();
                     GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, {"NEVER", "LESS", "LEQUAL", "GREATER", "GEQUAL", "EQUAL", "NOT_EQU", "ALWAYS"});
                     GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, {});
@@ -195,7 +195,7 @@ namespace FastCG
             GetBoolMember(renderingStateObj, "blend", renderingState.blend);
             if (renderingStateObj.HasMember("blendState"))
             {
-                assert(renderingStateObj.FindMember("blendState")->value.GetType() == rapidjson::Type::kObjectType);
+                assert(renderingStateObj.FindMember("blendState")->value.IsObject());
                 auto blendStateObj = renderingStateObj.FindMember("blendState")->value.GetObj();
                 GetEnumMember(blendStateObj, "alphaOp", renderingState.blendState.alphaOp, {"NONE", "ADD"});
                 GetEnumMember(blendStateObj, "srcAlphaFactor", renderingState.blendState.srcAlphaFactor, {"ZERO", "ONE", "SRC_COLOR", "DST_COLOR", "SRC_ALPHA", "DST_ALPHA", "ONE_MINUS_SRC_COLOR", "ONE_MINUS_SRC_ALPHA"});
