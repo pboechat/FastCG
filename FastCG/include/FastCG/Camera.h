@@ -159,6 +159,11 @@ namespace FastCG
 			return mProjectionMode;
 		}
 
+		inline void SetProjectionMode(ProjectionMode projectionMode)
+		{
+			mProjectionMode = projectionMode;
+		}
+
 		inline void operator=(const Camera &rOther)
 		{
 			mArgs = rOther.mArgs;
@@ -168,7 +173,7 @@ namespace FastCG
 	protected:
 		void OnRegisterInspectableProperties() override
 		{
-			RegisterInspectableProperty(this, "Projection Mode", &Camera::GetProjectionMode, {{ProjectionMode::ORTHOGRAPHIC, "Orthographic"}, {ProjectionMode::PERSPECTIVE, "Perspective"}});
+			RegisterInspectableProperty(this, "Projection Mode", &Camera::GetProjectionMode, &Camera::SetProjectionMode, {{ProjectionMode::ORTHOGRAPHIC, "Orthographic"}, {ProjectionMode::PERSPECTIVE, "Perspective"}});
 			RegisterInspectableProperty(this, "Field Of View", &Camera::GetFieldOfView, &Camera::SetFieldOfView, 1.0f, 179.0f);
 			RegisterInspectableProperty(this, "Aspect Ratio", &Camera::GetAspectRatio, &Camera::SetAspectRatio, 0.1f, 10.0f);
 			RegisterInspectableProperty(this, "Near Clip", &Camera::GetNearClip, &Camera::SetNearClip, 0.1f, 10.0f);
