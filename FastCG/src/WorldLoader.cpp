@@ -5,6 +5,12 @@
 #include <FastCG/ComponentRegistry.h>
 #include <FastCG/Component.h>
 
+#ifdef FASTCG_LINUX
+// X11 defines Bool and rapidjson uses Bool as a member-function identifier
+#ifdef Bool
+#undef Bool
+#endif
+#endif
 #include <rapidjson/document.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/glm.hpp>

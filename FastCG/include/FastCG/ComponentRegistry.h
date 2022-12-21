@@ -67,9 +67,13 @@ namespace FastCG
         inline static void RegisterComponent()
         {
             auto &rComponentRegisters = GetComponentRegisters();
-            auto it = std::find_if(rComponentRegisters.cbegin(), rComponentRegisters.cend(), [](const auto &rComponentRegister)
-                                   { return rComponentRegister.RefersTo<ComponentT>(); });
-            assert(it == rComponentRegisters.cend());
+            for (auto &rComponentRegister : rComponentRegisters)
+            {
+                if (rComponentRegister.RefersTo<ComponentT>())
+                {
+                    assert(false);
+                }
+            }
             rComponentRegisters.emplace_back(ComponentT::TYPE, &ComponentT::GenericInstantiate);
         }
 
