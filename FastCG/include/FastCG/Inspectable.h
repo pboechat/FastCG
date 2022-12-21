@@ -95,7 +95,9 @@ namespace FastCG
         virtual size_t GetItemCount() const = 0;
         virtual const char *const *GetItems() const = 0;
         virtual size_t GetSelectedItem() const = 0;
+        virtual const char *GetSelectedItemName() const = 0;
         virtual void SetSelectedItem(size_t selectedItem) = 0;
+        virtual void SetSelectedItem(const char *) = 0;
     };
 
     class IInspectableDelimitedProperty : public IInspectableProperty
@@ -400,10 +402,32 @@ namespace FastCG
             return size_t(~0);
         }
 
+        inline const char *GetSelectedItemName() const override
+        {
+            auto value = GetValue();
+            for (size_t idx = 0; idx < mItemValues.size(); idx++)
+            {
+                if (mItemValues[idx] == value)
+                {
+                    return mItemNamePtrs[idx];
+                }
+            }
+            return nullptr;
+        }
+
         inline void SetSelectedItem(size_t selectedItem) override
         {
             assert(selectedItem < mItemValues.size());
             SetValue(mItemValues[selectedItem]);
+        }
+
+        inline void SetSelectedItem(const char *pSelectedItemName) override
+        {
+            auto it = std::find_if(mItemNamePtrs.cbegin(), mItemNamePtrs.cend(), [pSelectedItemName](const auto *pItemName)
+                                   { return strcmp(pSelectedItemName, pItemName) == 0; });
+            assert(it != mItemNamePtrs.cend());
+            auto idx = (size_t)std::distance(mItemNamePtrs.cbegin(), it);
+            SetSelectedItem(idx);
         }
 
         // This method can cause misaligned accesses!
@@ -441,7 +465,6 @@ namespace FastCG
     public:
         virtual ~Inspectable() = default;
 
-#ifdef _DEBUG
         inline size_t GetInspectablePropertyCount() const
         {
             return mInspectableProperties.size();
@@ -457,7 +480,16 @@ namespace FastCG
             assert(i < mInspectableProperties.size());
             return mInspectableProperties[i].get();
         }
-#endif
+
+        inline IInspectableProperty *GetInspectableProperty(const std::string &rName)
+        {
+            auto it = GetInspectablePropertyIterator(rName);
+            if (it == mInspectableProperties.end())
+            {
+                return nullptr;
+            }
+            return it->get();
+        }
 
     protected:
 #ifdef min
@@ -469,78 +501,64 @@ namespace FastCG
         template <typename T, typename U>
         inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter = nullptr, const U &rMin = std::numeric_limits<U>::min(), const U &rMax = std::numeric_limits<U>::max())
         {
-#ifdef _DEBUG
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectableProperty<T, U>(pOwner, rName, rGetter, rSetter, rMin, rMax));
-#endif
         }
 
         template <typename T, typename U>
         inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetterCR<T, U> &rGetterCR, const InspectablePropertySetterCR<T, U> &rSetterCR = nullptr, const U &rMin = std::numeric_limits<U>::min(), const U &rMax = std::numeric_limits<U>::max())
         {
-#ifdef _DEBUG
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectablePropertyCR<T, U>(pOwner, rName, rGetterCR, rSetterCR, rMin, rMax));
-#endif
         }
 
         template <typename T, typename U>
         inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetterCP<T, U> &rGetterCP, const InspectablePropertySetterCP<T, U> &rSetterCP = nullptr)
         {
-#ifdef _DEBUG
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectablePropertyCP<T, U>(pOwner, rName, rGetterCP, rSetterCP));
-#endif
         }
 
         template <typename T, typename U>
         inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const InspectablePropertySetter<T, U> &rSetter, const std::initializer_list<InspectableEnumPropertyItem<U>> &rItems)
         {
-#ifdef _DEBUG
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectableEnumProperty<T, U>(pOwner, rName, rGetter, rSetter, rItems));
-#endif
         }
 
         template <typename T, typename U>
         inline void RegisterInspectableProperty(T *pOwner, const std::string &rName, const InspectablePropertyGetter<T, U> &rGetter, const std::initializer_list<InspectableEnumPropertyItem<U>> &rItems)
         {
-#ifdef _DEBUG
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectableEnumProperty<T, U>(pOwner, rName, rGetter, nullptr, rItems));
-#endif
         }
 
         template <typename T, typename U>
         inline void UnregisterInspectableProperty(const std::string &rName)
         {
-#ifdef _DEBUG
             auto it = GetInspectablePropertyIterator(rName);
             assert(it != mInspectableProperties.cend());
             mInspectableProperties.erase(it);
-#endif
         }
 
     private:
-#ifdef _DEBUG
         std::vector<std::unique_ptr<IInspectableProperty>> mInspectableProperties;
 
-        auto GetInspectablePropertyIterator(const std::string &rName) const
+        auto GetInspectablePropertyIterator(const std::string &rName) -> decltype(mInspectableProperties.begin())
         {
-            return std::find_if(mInspectableProperties.cbegin(), mInspectableProperties.cend(), [&rName](const auto &pInspectableProperty)
+            return std::find_if(mInspectableProperties.begin(), mInspectableProperties.end(), [&rName](const auto &pInspectableProperty)
                                 { return pInspectableProperty->GetName() == rName; });
         }
-#endif
     };
 }
 

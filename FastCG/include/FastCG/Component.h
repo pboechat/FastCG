@@ -6,14 +6,6 @@
 #include <FastCG/Exception.h>
 
 #include <string>
-#include <algorithm>
-
-#ifdef _DEBUG
-#define FASTCG_REGISTER_INSPECTABLE_PROPERTIES(component) \
-	component->OnRegisterInspectableProperties()
-#else
-#define FASTCG_REGISTER_INSPECTABLE_PROPERTIES(component)
-#endif
 
 #define FASTCG_DECLARE_COMPONENT(className, baseClassName)                        \
 public:                                                                           \
@@ -27,9 +19,13 @@ public:                                                                         
 	{                                                                             \
 		className *pComponent = new className(pGameObject, args...);              \
 		pComponent->OnInstantiate();                                              \
-		FASTCG_REGISTER_INSPECTABLE_PROPERTIES(pComponent);                       \
+		pComponent->OnRegisterInspectableProperties();                            \
 		FastCG::Component::AddToGameObject(pGameObject, pComponent);              \
 		return pComponent;                                                        \
+	}                                                                             \
+	static FastCG::Component *GenericInstantiate(FastCG::GameObject *pGameObject) \
+	{                                                                             \
+		return Instantiate(pGameObject);                                          \
 	}                                                                             \
                                                                                   \
 private:                                                                          \
@@ -51,6 +47,9 @@ protected:                                                                  \
 	{                                                                       \
 	}                                                                       \
 	virtual ~className() = default
+
+#define FASTCG_IMPLEMENT_ABSTRACT_COMPONENT(className, baseClassName) \
+	const FastCG::ComponentType className::TYPE(#className, &baseClassName::TYPE)
 
 #define FASTCG_IMPLEMENT_COMPONENT(className, baseClassName) \
 	const FastCG::ComponentType className::TYPE(#className, &baseClassName::TYPE)
