@@ -23,12 +23,12 @@ namespace FastCG
 
 	void StringUtils::LeftTrim(std::string &rString)
 	{
-		rString.erase(rString.begin(), std::find_if(rString.begin(), rString.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+		rString.erase(rString.begin(), std::find_if(rString.begin(), rString.end(), [](char c) { return !std::isspace(c); }));
 	}
 
 	void StringUtils::RightTrim(std::string &rString)
 	{
-		rString.erase(std::find_if(rString.rbegin(), rString.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), rString.end());
+		rString.erase(std::find_if(rString.rbegin(), rString.rend(), [](char c) { return !std::isspace(c); }).base(), rString.end());
 	}
 
 	void StringUtils::Trim(std::string &rString)
