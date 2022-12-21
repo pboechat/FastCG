@@ -3,18 +3,11 @@
 
 #include <FastCG/Behaviour.h>
 
-#include <vector>
-
 class LightsAnimator : public FastCG::Behaviour
 {
     FASTCG_DECLARE_COMPONENT(LightsAnimator, FastCG::Behaviour);
 
 public:
-    inline void SetLights(const std::vector<FastCG::GameObject *> &rSceneLights)
-    {
-        mSceneLights = rSceneLights;
-    }
-
     inline bool IsEnabled() const
     {
         return mEnabled;
@@ -35,7 +28,6 @@ protected:
 
 private:
     bool mEnabled{true};
-    std::vector<FastCG::GameObject *> mSceneLights;
 };
 
 #endif

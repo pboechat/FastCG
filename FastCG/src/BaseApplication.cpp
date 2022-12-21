@@ -3,13 +3,18 @@
 #include <FastCG/TextureLoader.h>
 #include <FastCG/System.h>
 #include <FastCG/RenderingSystem.h>
+#include <FastCG/Renderable.h>
+#include <FastCG/PointLight.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/ModelLoader.h>
 #include <FastCG/Key.h>
 #include <FastCG/ImGuiSystem.h>
 #include <FastCG/InputSystem.h>
+#include <FastCG/FlyController.h>
 #include <FastCG/Exception.h>
+#include <FastCG/DirectionalLight.h>
 #include <FastCG/DebugMenuSystem.h>
+#include <FastCG/ComponentRegistry.h>
 #include <FastCG/BaseApplication.h>
 #include <FastCG/AssetSystem.h>
 
@@ -70,6 +75,12 @@ namespace FastCG
 		}
 
 		smpInstance = this;
+
+		ComponentRegistry::RegisterComponent<Camera>();
+		ComponentRegistry::RegisterComponent<DirectionalLight>();
+		ComponentRegistry::RegisterComponent<FlyController>();
+		ComponentRegistry::RegisterComponent<PointLight>();
+		ComponentRegistry::RegisterComponent<Renderable>();
 	}
 
 	BaseApplication::~BaseApplication()

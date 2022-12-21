@@ -2,6 +2,8 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
+#include <FastCG/WorldSystem.h>
+#include <FastCG/WorldLoader.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/RenderingSystem.h>
@@ -10,6 +12,7 @@
 #include <FastCG/ModelLoader.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
+#include <FastCG/ComponentRegistry.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
 #include <FastCG/AssetSystem.h>
@@ -18,33 +21,6 @@ using namespace FastCG;
 
 namespace
 {
-	void CreateLights(std::vector<GameObject *> &rSceneLights)
-	{
-		auto *pSceneLights = GameObject::Instantiate("Scene Lights");
-
-		auto *pLightGameObject = GameObject::Instantiate("Point Light 1");
-		pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
-		pLightGameObject->GetTransform()->SetPosition(glm::vec3(2, 2, 0));
-		rSceneLights.emplace_back(pLightGameObject);
-
-		auto *pPointLight = PointLight::Instantiate(pLightGameObject);
-		pPointLight->SetDiffuseColor(Colors::WHITE);
-		pPointLight->SetSpecularColor(Colors::WHITE);
-		pPointLight->SetIntensity(1);
-		pPointLight->SetQuadraticAttenuation(0.25f);
-
-		pLightGameObject = GameObject::Instantiate("Point Light 2");
-		pLightGameObject->GetTransform()->SetParent(pSceneLights->GetTransform());
-		pLightGameObject->GetTransform()->SetPosition(glm::vec3(-2, 2, 0));
-		rSceneLights.emplace_back(pLightGameObject);
-
-		pPointLight = PointLight::Instantiate(pLightGameObject);
-		pPointLight->SetDiffuseColor(Colors::RED);
-		pPointLight->SetSpecularColor(Colors::RED);
-		pPointLight->SetIntensity(1);
-		pPointLight->SetQuadraticAttenuation(0.25f);
-	}
-
 	void CreateGround()
 	{
 		auto *pGround = GameObject::Instantiate("Ground");
@@ -94,26 +70,14 @@ namespace
 
 BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 1024, 768, 60, false, {RenderingPath::FORWARD}, {{"bump_mapping"}}})
 {
+	ComponentRegistry::RegisterComponent<Controls>();
+	ComponentRegistry::RegisterComponent<LightsAnimator>();
 }
 
 void BumpMappingApplication::OnStart()
 {
-	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
-	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, 0.5f, 1));
-
-	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
-
-	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
-	pFlyController->SetMoveSpeed(5);
-	pFlyController->SetTurnSpeed(0.25f);
+	WorldLoader::Load(AssetSystem::GetInstance()->Resolve("worlds/default.world"));
 
 	LoadModel();
 	CreateGround();
-	std::vector<GameObject *> lights;
-	CreateLights(lights);
-
-	auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
-	Controls::Instantiate(pGeneralBehavioursGameObject);
-	auto *pLightsAnimator = LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
-	pLightsAnimator->SetLights(lights);
 }

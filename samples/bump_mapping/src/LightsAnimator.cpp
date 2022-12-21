@@ -1,8 +1,12 @@
 #include "LightsAnimator.h"
 
+#include <FastCG/WorldSystem.h>
 #include <FastCG/Transform.h>
+#include <FastCG/Light.h>
 
 #include <glm/glm.hpp>
+
+#include <vector>
 
 using namespace FastCG;
 
@@ -15,8 +19,10 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 		return;
 	}
 
-	for (auto *pSceneLight : mSceneLights)
+	std::vector<Light *> mLights;
+	WorldSystem::GetInstance()->FindComponents<Light>(mLights);
+	for (auto *pLight : mLights)
 	{
-		pSceneLight->GetTransform()->RotateAroundLocal(deltaTime * 100, glm::vec3(0, 1, 0));
+		pLight->GetGameObject()->GetTransform()->RotateAroundLocal(deltaTime * 100, glm::vec3(0, 1, 0));
 	}
 }

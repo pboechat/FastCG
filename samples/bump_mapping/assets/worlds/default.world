@@ -1,0 +1,100 @@
+[
+    {
+        "name": "Main Camera",
+        "transform": {
+            "position": [
+                0,
+                0.5,
+                1
+            ]
+        },
+        "components": [
+            {
+                "name": "Camera",
+                "Field Of View": 60,
+                "Near Clip": 0.3,
+                "Far Clip": 1000,
+                "Projection Mode": "Perspective"
+            },
+            {
+                "name": "FlyController",
+                "Move Speed": 5,
+                "Turn Speed": 0.25
+            }
+        ]
+    },
+    {
+        "name": "Lights",
+        "children": [
+            {
+                "name": "Light 1",
+                "transform": {
+                    "position": [
+                        2,
+                        2,
+                        0
+                    ]
+                },
+                "components": [
+                    {
+                        "name": "PointLight",
+                        "Diffuse Color": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "Specular Color": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "Intensity": 1,
+                        "Quadratic Attenuation": 0.25
+                    }
+                ]
+            },
+            {
+                "name": "Light 2",
+                "transform": {
+                    "position": [
+                        -2,
+                        2,
+                        0
+                    ]
+                },
+                "components": [
+                    {
+                        "name": "PointLight",
+                        "Diffuse Color": [
+                            1,
+                            0,
+                            0,
+                            1
+                        ],
+                        "Specular Color": [
+                            1,
+                            1,
+                            1,
+                            1
+                        ],
+                        "Intensity": 1,
+                        "Quadratic Attenuation": 0.25
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "General Behaviours",
+        "components": [
+            {
+                "name": "Controls"
+            },
+            {
+                "name": "LightsAnimator"
+            }
+        ]
+    }
+]
