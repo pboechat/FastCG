@@ -2,11 +2,18 @@
 #define FASTCG_WORLD_SYSTEM
 
 #include <FastCG/System.h>
+#include <FastCG/RenderingSystem.h>
+#include <FastCG/RenderingStatistics.h>
+#include <FastCG/RenderingPath.h>
+#include <FastCG/IWorldRenderer.h>
+#include <FastCG/GameObject.h>
 
 #include <vector>
+#include <string>
 #include <memory>
+#include <algorithm>
 
-#define FASTCG_TRACK_COMPONENT(className)                            \
+#define FASTCG_SUPPORT_COMPONENT_TRACKING(className)                 \
 public:                                                              \
     inline const std::vector<className *> &Get##className##s() const \
     {                                                                \
@@ -21,40 +28,91 @@ namespace FastCG
     class RenderBatchStrategy;
     class Renderable;
     class PointLight;
-    class GameObject;
     class DirectionalLight;
     class Component;
     class Camera;
     class Behaviour;
-    class BaseApplication;
 
     struct WorldSystemArgs
     {
-        const std::unique_ptr<RenderBatchStrategy> &pRenderBatchStrategy;
+        RenderingPath renderingPath;
+        const uint32_t &rScreenWidth;
+        const uint32_t &rScreenHeight;
+        const glm::vec4 &rClearColor;
+        const glm::vec4 &rAmbientLight;
+        RenderingStatistics &rRenderingStatistics;
     };
 
     class WorldSystem
     {
         FASTCG_DECLARE_SYSTEM(WorldSystem, WorldSystemArgs);
-        FASTCG_TRACK_COMPONENT(Renderable);
-        FASTCG_TRACK_COMPONENT(DirectionalLight);
-        FASTCG_TRACK_COMPONENT(PointLight);
-        FASTCG_TRACK_COMPONENT(Camera);
-        FASTCG_TRACK_COMPONENT(Behaviour);
+        FASTCG_SUPPORT_COMPONENT_TRACKING(Renderable);
+        FASTCG_SUPPORT_COMPONENT_TRACKING(DirectionalLight);
+        FASTCG_SUPPORT_COMPONENT_TRACKING(PointLight);
+        FASTCG_SUPPORT_COMPONENT_TRACKING(Camera);
+        FASTCG_SUPPORT_COMPONENT_TRACKING(Behaviour);
 
     public:
+        inline const IWorldRenderer *GetWorldRenderer() const
+        {
+            return const_cast<WorldSystem *>(this)->GetWorldRenderer();
+        }
+
+        inline IWorldRenderer *GetWorldRenderer()
+        {
+            return mpWorldRenderer.get();
+        }
+
+        inline const Camera *GetMainCamera() const
+        {
+            return const_cast<WorldSystem *>(this)->GetMainCamera();
+        }
+
         inline Camera *GetMainCamera()
         {
             return mpMainCamera;
         }
 
+        inline GameObject *FindFirstGameObject(const std::string &rGameObjectName) const
+        {
+            for (auto *pGameObject : mGameObjects)
+            {
+                if (pGameObject->GetName() == rGameObjectName)
+                {
+                    return pGameObject;
+                }
+            }
+            return nullptr;
+        }
+        inline void FindGameObjects(const std::string &rGameObjectName, std::vector<GameObject *> &rGameObjects) const
+        {
+            for (auto *pGameObject : mGameObjects)
+            {
+                if (pGameObject->GetName() == rGameObjectName)
+                {
+                    rGameObjects.emplace_back(pGameObject);
+                }
+            }
+        }
+        template <typename ComponentT>
+        inline void FindComponents(std::vector<ComponentT *> &rComponents) const
+        {
+            for (auto *pGameObject : mGameObjects)
+            {
+                auto *pComponent = pGameObject->GetComponent<ComponentT>();
+                if (pComponent != nullptr)
+                {
+                    rComponents.emplace_back(pComponent);
+                }
+            }
+        }
         void SetMainCamera(Camera *pCamera);
-        void Initialize();
-        void Update(float cpuStart, float frameDeltaTime);
 
     private:
         const WorldSystemArgs mArgs;
-
+        std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy;
+        std::unique_ptr<IWorldRenderer> mpWorldRenderer;
+        RenderingContext *mpRenderingContext;
         Camera *mpMainCamera{nullptr};
         std::vector<GameObject *> mGameObjects;
         std::vector<Component *> mComponents;
@@ -64,11 +122,17 @@ namespace FastCG
         bool mShowObjectInspector{false};
 #endif
 
-        WorldSystem(const WorldSystemArgs &rArgs) : mArgs(rArgs)
-        {
-        }
-        ~WorldSystem();
+        WorldSystem(const WorldSystemArgs &rArgs);
+        virtual ~WorldSystem();
 
+        inline float GetAspectRatio() const
+        {
+            return mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
+        }
+
+        void Initialize();
+        void Update(float cpuStart, float frameDeltaTime);
+        void Render();
         void RegisterGameObject(GameObject *pGameObject);
         void UnregisterGameObject(GameObject *pGameObject);
         void RegisterComponent(Component *pComponent);
@@ -78,6 +142,7 @@ namespace FastCG
         void DebugMenuCallback(int result);
         void DebugMenuItemCallback(int &result);
 #endif
+        void Finalize();
 
         friend class GameObject;
     };

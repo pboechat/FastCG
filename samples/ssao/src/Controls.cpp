@@ -4,7 +4,6 @@
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Key.h>
-#include <FastCG/IWorldRenderer.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Camera.h>
 #include <FastCG/Application.h>
@@ -24,7 +23,7 @@ void Controls::OnUpdate(float time, float deltaTime)
 	}
 
 	auto *pMainCamera = WorldSystem::GetInstance()->GetMainCamera();
-	auto *pWorldRenderer = Application::GetInstance()->GetWorldRenderer();
+	auto *pWorldRenderer = WorldSystem::GetInstance()->GetWorldRenderer();
 
 	if (ImGui::Begin("Controls"))
 	{

@@ -1,4 +1,5 @@
 #include <FastCG/ImGuiSystem.h>
+#include <FastCG/ImGuiRenderer.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 
@@ -175,10 +176,23 @@ namespace
 
 namespace FastCG
 {
+    ImGuiSystem::ImGuiSystem(const ImGuiSystemArgs &rArgs) : mArgs(rArgs)
+    {
+    }
+
+    ImGuiSystem::~ImGuiSystem() = default;
+
     void ImGuiSystem::Initialize()
     {
         ImGui::CreateContext();
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+        mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mArgs.rScreenWidth,
+                                                                            mArgs.rScreenHeight});
+
+        mpImGuiRenderer->Initialize();
+
+        mpRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
     }
 
     void ImGuiSystem::BeginFrame(double deltaTime, KeyChange keyChanges[KEY_COUNT])
@@ -215,11 +229,22 @@ namespace FastCG
     void ImGuiSystem::EndFrame()
     {
         ImGui::EndFrame();
+    }
+
+    void ImGuiSystem::Render()
+    {
         ImGui::Render();
+        mpRenderingContext->Begin();
+        {
+            mpImGuiRenderer->Render(ImGui::GetDrawData(), mpRenderingContext);
+        }
+        mpRenderingContext->End();
     }
 
     void ImGuiSystem::Finalize()
     {
+        mpImGuiRenderer->Finalize();
+
         ImGui::DestroyContext();
     }
 

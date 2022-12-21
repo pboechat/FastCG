@@ -20,10 +20,6 @@
 
 namespace FastCG
 {
-	class RenderBatchStrategy;
-	class ImGuiRenderer;
-	class IWorldRenderer;
-
 	using ImportCallback = void (*)(void);
 
 	constexpr uint32_t UNLOCKED_FRAMERATE = ~0u;
@@ -81,16 +77,6 @@ namespace FastCG
 			return mScreenWidth / (float)mScreenHeight;
 		}
 
-		inline const glm::vec4 &GetClearColor() const
-		{
-			return mClearColor;
-		}
-
-		inline void SetClearColor(const glm::vec4 &clearColor)
-		{
-			mClearColor = clearColor;
-		}
-
 		inline uint32_t GetFrameRate() const
 		{
 			return mFrameRate;
@@ -100,16 +86,6 @@ namespace FastCG
 		{
 			mFrameRate = frameRate;
 			mSecondsPerFrame = 1 / (double)frameRate;
-		}
-
-		inline IWorldRenderer *GetWorldRenderer()
-		{
-			return mpWorldRenderer.get();
-		}
-
-		inline const IWorldRenderer *GetWorldRenderer() const
-		{
-			return mpWorldRenderer.get();
 		}
 
 		inline RenderingPath GetRenderingPath() const
@@ -128,13 +104,10 @@ namespace FastCG
 
 	protected:
 		const ApplicationSettings mSettings;
-		glm::vec4 mClearColor;
-		glm::vec4 mAmbientLight;
 		uint32_t mFrameRate;
 		bool mRunning{false};
 
 		virtual bool ParseCommandLineArguments(int argc, char **argv);
-		virtual void OnRegisterComponent() {}
 		virtual void OnResize() {}
 		virtual void OnStart() {}
 		virtual void OnEnd() {}
@@ -159,9 +132,6 @@ namespace FastCG
 		uint32_t mScreenWidth;
 		uint32_t mScreenHeight;
 		double mSecondsPerFrame;
-		std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy;
-		std::unique_ptr<IWorldRenderer> mpWorldRenderer;
-		std::unique_ptr<ImGuiRenderer> mpImGuiRenderer;
 		Timer mStartTimer;
 		Timer mFrameRateTimer;
 		size_t mFrameCount{0};

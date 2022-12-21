@@ -5,15 +5,10 @@
 #include <FastCG/RenderingSystem.h>
 #include <FastCG/MouseButton.h>
 #include <FastCG/ModelLoader.h>
-#include <FastCG/RenderBatchStrategy.h>
-#include <FastCG/Light.h>
 #include <FastCG/Key.h>
 #include <FastCG/ImGuiSystem.h>
-#include <FastCG/ImGuiRenderer.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/ForwardWorldRenderer.h>
 #include <FastCG/Exception.h>
-#include <FastCG/DeferredWorldRenderer.h>
 #include <FastCG/DebugMenuSystem.h>
 #include <FastCG/BaseApplication.h>
 #include <FastCG/AssetSystem.h>
@@ -66,11 +61,8 @@ namespace FastCG
 																			mWindowTitle(settings.windowTitle),
 																			mScreenWidth(settings.screenWidth),
 																			mScreenHeight(settings.screenHeight),
-																			mClearColor(settings.rendering.clearColor),
-																			mAmbientLight(settings.rendering.ambientLight),
 																			mFrameRate(settings.frameRate),
-																			mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate),
-																			mpRenderBatchStrategy(std::make_unique<RenderBatchStrategy>())
+																			mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate)
 	{
 		if (smpInstance != nullptr)
 		{
@@ -129,44 +121,22 @@ namespace FastCG
 		RenderingSystem::Create({mScreenWidth,
 								 mScreenHeight,
 								 mSettings.vsync});
-		WorldSystem::Create({mpRenderBatchStrategy});
+		WorldSystem::Create({mSettings.rendering.path,
+							 mScreenWidth,
+							 mScreenHeight,
+							 mSettings.rendering.clearColor,
+							 mSettings.rendering.ambientLight,
+							 mRenderingStatistics});
 
-		ImGuiSystem::GetInstance()->Initialize();
 		RenderingSystem::GetInstance()->Initialize();
-		WorldSystem::GetInstance()->Initialize();
 
 		for (const auto &rImportCallback : mSettings.assets.importCallbacks)
 		{
 			rImportCallback();
 		}
 
-		switch (mSettings.rendering.path)
-		{
-		case RenderingPath::FORWARD:
-			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mScreenWidth,
-																						mScreenHeight,
-																						mClearColor,
-																						mAmbientLight,
-																						mpRenderBatchStrategy->GetRenderBatches(),
-																						mRenderingStatistics}));
-			break;
-		case RenderingPath::DEFERRED:
-			mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mScreenWidth,
-																						 mScreenHeight,
-																						 mClearColor,
-																						 mAmbientLight,
-																						 mpRenderBatchStrategy->GetRenderBatches(),
-																						 mRenderingStatistics}));
-			break;
-		default:
-			FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mSettings.rendering.path);
-			break;
-		}
-		mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mScreenWidth,
-																			mScreenHeight});
-
-		mpWorldRenderer->Initialize();
-		mpImGuiRenderer->Initialize();
+		ImGuiSystem::GetInstance()->Initialize();
+		WorldSystem::GetInstance()->Initialize();
 
 		OnInitialize();
 	}
@@ -175,9 +145,7 @@ namespace FastCG
 	{
 		OnFinalize();
 
-		mpImGuiRenderer->Finalize();
-		mpWorldRenderer->Finalize();
-
+		WorldSystem::GetInstance()->Finalize();
 		ImGuiSystem::GetInstance()->Finalize();
 		RenderingSystem::GetInstance()->Finalize();
 
@@ -235,22 +203,15 @@ namespace FastCG
 
 		mRenderingStatistics.Reset();
 
-		auto *pRenderingContext = RenderingSystem::GetInstance()->CreateRenderingContext();
-		pRenderingContext->Begin();
-		{
-			mpWorldRenderer->Render(WorldSystem::GetInstance()->GetMainCamera(), pRenderingContext);
-			mpImGuiRenderer->Render(ImGui::GetDrawData(), pRenderingContext);
-		}
-		pRenderingContext->End();
+		WorldSystem::GetInstance()->Render();
+		ImGuiSystem::GetInstance()->Render();
 
 		auto cpuEnd = mStartTimer.GetTime();
 		mLastCpuElapsedTime = cpuEnd - cpuStart;
 
 		RenderingSystem::GetInstance()->Present();
 
-		mLastGpuElapsedTime = pRenderingContext->GetElapsedTime();
-
-		RenderingSystem::GetInstance()->DestroyRenderingContext(pRenderingContext);
+		mLastGpuElapsedTime = RenderingSystem::GetInstance()->GetGpuElapsedTime();
 
 		mTotalFrameElapsedTime += frameDeltaTime;
 		mFrameCount++;
@@ -300,13 +261,7 @@ namespace FastCG
 
 		mScreenWidth = width;
 		mScreenHeight = height;
-		auto *pMainCamera = WorldSystem::GetInstance()->GetMainCamera();
-		if (pMainCamera != nullptr)
-		{
-			pMainCamera->SetAspectRatio(GetAspectRatio());
-		}
 		RenderingSystem::GetInstance()->Resize();
-		mpWorldRenderer->Resize();
 		OnResize();
 	}
 }
