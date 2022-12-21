@@ -250,6 +250,8 @@ namespace FastCG
 
 		mLastGpuElapsedTime = pRenderingContext->GetElapsedTime();
 
+		RenderingSystem::GetInstance()->DestroyRenderingContext(pRenderingContext);
+
 		mTotalFrameElapsedTime += frameDeltaTime;
 		mFrameCount++;
 
