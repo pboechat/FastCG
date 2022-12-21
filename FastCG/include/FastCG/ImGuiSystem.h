@@ -3,15 +3,11 @@
 
 #include <FastCG/System.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/GraphicsSystem.h>
 
-#include <memory>
 #include <cstdint>
 
 namespace FastCG
 {
-    class ImGuiRenderer;
-
     struct ImGuiSystemArgs
     {
         const uint32_t &rScreenWidth;
@@ -24,16 +20,13 @@ namespace FastCG
 
     private:
         const ImGuiSystemArgs mArgs;
-        std::unique_ptr<ImGuiRenderer> mpImGuiRenderer;
-        RenderingContext *mpRenderingContext;
 
         ImGuiSystem(const ImGuiSystemArgs &rArgs);
-        virtual ~ImGuiSystem();
+        ~ImGuiSystem();
 
         void Initialize();
         void BeginFrame(double deltaTime, KeyChange keyChanges[KEY_COUNT]);
         void EndFrame();
-        void Render();
         void Finalize();
     };
 

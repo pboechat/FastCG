@@ -2,6 +2,7 @@
 #include <FastCG/Thread.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/System.h>
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/MouseButton.h>
@@ -60,6 +61,7 @@ namespace FastCG
 	FASTCG_IMPLEMENT_SYSTEM(GraphicsSystem, GraphicsSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(InputSystem, InputSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(ImGuiSystem, ImGuiSystemArgs);
+	FASTCG_IMPLEMENT_SYSTEM(RenderingSystem, RenderingSystemArgs);
 	FASTCG_IMPLEMENT_SYSTEM(WorldSystem, WorldSystemArgs);
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
@@ -132,12 +134,14 @@ namespace FastCG
 		InputSystem::Create({});
 		ImGuiSystem::Create({mScreenWidth,
 							 mScreenHeight});
-		WorldSystem::Create({mSettings.rendering.path,
-							 mScreenWidth,
-							 mScreenHeight,
-							 mSettings.rendering.clearColor,
-							 mSettings.rendering.ambientLight,
-							 mRenderingStatistics});
+		RenderingSystem::Create({mSettings.rendering.path,
+								 mScreenWidth,
+								 mScreenHeight,
+								 mSettings.rendering.clearColor,
+								 mSettings.rendering.ambientLight,
+								 mRenderingStatistics});
+		WorldSystem::Create({mScreenWidth,
+							 mScreenHeight});
 
 		GraphicsSystem::GetInstance()->Initialize();
 
@@ -147,6 +151,7 @@ namespace FastCG
 		}
 
 		ImGuiSystem::GetInstance()->Initialize();
+		RenderingSystem::GetInstance()->Initialize();
 		WorldSystem::GetInstance()->Initialize();
 
 		OnInitialize();
@@ -157,10 +162,12 @@ namespace FastCG
 		OnFinalize();
 
 		WorldSystem::GetInstance()->Finalize();
+		RenderingSystem::GetInstance()->Finalize();
 		ImGuiSystem::GetInstance()->Finalize();
 		GraphicsSystem::GetInstance()->Finalize();
 
 		WorldSystem::Destroy();
+		RenderingSystem::Destroy();
 		ImGuiSystem::Destroy();
 		InputSystem::Destroy();
 		GraphicsSystem::Destroy();
@@ -214,8 +221,7 @@ namespace FastCG
 
 		mRenderingStatistics.Reset();
 
-		WorldSystem::GetInstance()->Render();
-		ImGuiSystem::GetInstance()->Render();
+		RenderingSystem::GetInstance()->Render();
 
 		auto cpuEnd = mStartTimer.GetTime();
 		mLastCpuElapsedTime = cpuEnd - cpuStart;

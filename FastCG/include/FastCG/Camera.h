@@ -1,8 +1,9 @@
 #ifndef FASTCG_CAMERA_H
 #define FASTCG_CAMERA_H
 
-#include <FastCG/Component.h>
+#include <FastCG/WorldSystem.h>
 #include <FastCG/Transform.h>
+#include <FastCG/Component.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -171,6 +172,11 @@ namespace FastCG
 		}
 
 	protected:
+		void OnInstantiate() override
+		{
+			WorldSystem::GetInstance()->RegisterCamera(this);
+		}
+
 		void OnRegisterInspectableProperties() override
 		{
 			RegisterInspectableProperty(this, "Projection Mode", &Camera::GetProjectionMode, &Camera::SetProjectionMode, {{ProjectionMode::ORTHOGRAPHIC, "Orthographic"}, {ProjectionMode::PERSPECTIVE, "Perspective"}});
@@ -179,6 +185,11 @@ namespace FastCG
 			RegisterInspectableProperty(this, "Near Clip", &Camera::GetNearClip, &Camera::SetNearClip, 0.1f, 10.0f);
 			RegisterInspectableProperty(this, "Far Clip", &Camera::GetFarClip, &Camera::SetFarClip, 10.0f, 1000.0f);
 			RegisterInspectableProperty(this, "SSAO Enabled", &Camera::IsSSAOEnabled, &Camera::SetSSAOEnabled);
+		}
+
+		void OnDestroy() override
+		{
+			WorldSystem::GetInstance()->UnregisterCamera(this);
 		}
 
 	private:

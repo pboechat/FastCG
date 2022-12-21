@@ -186,13 +186,6 @@ namespace FastCG
     {
         ImGui::CreateContext();
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-        mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mArgs.rScreenWidth,
-                                                                            mArgs.rScreenHeight});
-
-        mpImGuiRenderer->Initialize();
-
-        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext();
     }
 
     void ImGuiSystem::BeginFrame(double deltaTime, KeyChange keyChanges[KEY_COUNT])
@@ -231,20 +224,8 @@ namespace FastCG
         ImGui::EndFrame();
     }
 
-    void ImGuiSystem::Render()
-    {
-        ImGui::Render();
-        mpRenderingContext->Begin();
-        {
-            mpImGuiRenderer->Render(ImGui::GetDrawData(), mpRenderingContext);
-        }
-        mpRenderingContext->End();
-    }
-
     void ImGuiSystem::Finalize()
     {
-        mpImGuiRenderer->Finalize();
-
         ImGui::DestroyContext();
     }
 

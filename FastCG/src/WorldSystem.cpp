@@ -1,14 +1,11 @@
 #include <FastCG/WorldSystem.h>
 #include <FastCG/Transform.h>
-#include <FastCG/RenderBatchStrategy.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Inspectable.h>
 #include <FastCG/GameObject.h>
-#include <FastCG/ForwardWorldRenderer.h>
 #include <FastCG/DirectionalLight.h>
-#include <FastCG/DeferredWorldRenderer.h>
 #include <FastCG/DebugMenuSystem.h>
 #include <FastCG/Component.h>
 #include <FastCG/Camera.h>
@@ -416,8 +413,7 @@ namespace
 
 namespace FastCG
 {
-    WorldSystem::WorldSystem(const WorldSystemArgs &rArgs) : mArgs(rArgs),
-                                                             mpRenderBatchStrategy(std::make_unique<RenderBatchStrategy>())
+    WorldSystem::WorldSystem(const WorldSystemArgs &rArgs) : mArgs(rArgs)
     {
     }
 
@@ -429,32 +425,6 @@ namespace FastCG
         DebugMenuSystem::GetInstance()->AddCallback("World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
         DebugMenuSystem::GetInstance()->AddItem("World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
-
-        switch (mArgs.renderingPath)
-        {
-        case RenderingPath::FORWARD:
-            mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mArgs.rScreenWidth,
-                                                                                        mArgs.rScreenHeight,
-                                                                                        mArgs.rClearColor,
-                                                                                        mArgs.rAmbientLight,
-                                                                                        mpRenderBatchStrategy->GetRenderBatches(),
-                                                                                        mArgs.rRenderingStatistics}));
-            break;
-        case RenderingPath::DEFERRED:
-            mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mArgs.rScreenWidth,
-                                                                                         mArgs.rScreenHeight,
-                                                                                         mArgs.rClearColor,
-                                                                                         mArgs.rAmbientLight,
-                                                                                         mpRenderBatchStrategy->GetRenderBatches(),
-                                                                                         mArgs.rRenderingStatistics}));
-            break;
-        default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mArgs.renderingPath);
-            break;
-        }
-        mpWorldRenderer->Initialize();
-
-        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext();
     }
 
     void WorldSystem::DebugMenuCallback(int result)
@@ -502,17 +472,7 @@ namespace FastCG
 
         FASTCG_TRACK_COMPONENT(DirectionalLight, pComponent);
         FASTCG_TRACK_COMPONENT(PointLight, pComponent);
-        FASTCG_TRACK_COMPONENT(Renderable, pComponent);
         FASTCG_TRACK_COMPONENT(Behaviour, pComponent);
-
-        if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
-        {
-            RegisterCamera(static_cast<Camera *>(pComponent));
-        }
-        else if (pComponent->GetType().IsExactly(Renderable::TYPE))
-        {
-            mpRenderBatchStrategy->AddRenderable(static_cast<Renderable *>(pComponent));
-        }
 
         mComponents.emplace_back(pComponent);
     }
@@ -523,28 +483,34 @@ namespace FastCG
         SetMainCamera(pCamera);
     }
 
+    void WorldSystem::UnregisterCamera(Camera *pCamera)
+    {
+        auto it = std::find(mCameras.cbegin(), mCameras.cend(), pCamera);
+        assert(it != mCameras.cend());
+
+        if (mpMainCamera == pCamera)
+        {
+            if (mCameras.empty())
+            {
+                mpMainCamera = nullptr;
+            }
+            else
+            {
+                mpMainCamera = mCameras[0];
+            }
+        }
+
+        mCameras.erase(it);
+    }
+
     void WorldSystem::UnregisterComponent(Component *pComponent)
     {
         assert(pComponent != nullptr);
 
-        FASTCG_UNTRACK_COMPONENT(Camera, pComponent);
         FASTCG_UNTRACK_COMPONENT(DirectionalLight, pComponent);
         FASTCG_UNTRACK_COMPONENT(PointLight, pComponent);
-        FASTCG_UNTRACK_COMPONENT(Renderable, pComponent);
         FASTCG_UNTRACK_COMPONENT(Behaviour, pComponent);
         FASTCG_UNTRACK_COMPONENT(Component, pComponent);
-
-        if (pComponent->GetType().IsExactly(Camera::TYPE) && pComponent->IsEnabled())
-        {
-            if (mCameras.size() > 1)
-            {
-                SetMainCamera(mCameras[0]);
-            }
-        }
-        else if (pComponent->GetType().IsExactly(Renderable::TYPE))
-        {
-            mpRenderBatchStrategy->RemoveRenderable(static_cast<Renderable *>(pComponent));
-        }
     }
 
     void WorldSystem::SetMainCamera(Camera *pCamera)
@@ -590,16 +556,6 @@ namespace FastCG
         }
     }
 
-    void WorldSystem::Render()
-    {
-        assert(mpWorldRenderer != nullptr);
-        mpRenderingContext->Begin();
-        {
-            mpWorldRenderer->Render(mpMainCamera, mpRenderingContext);
-        }
-        mpRenderingContext->End();
-    }
-
     void WorldSystem::Finalize()
     {
         auto gameObjectsToDestroy = mGameObjects;
@@ -614,10 +570,7 @@ namespace FastCG
         assert(mCameras.empty());
         assert(mDirectionalLights.empty());
         assert(mPointLights.empty());
-        assert(mRenderables.empty());
         assert(mBehaviours.empty());
         assert(mComponents.empty());
-
-        mpWorldRenderer->Finalize();
     }
 }

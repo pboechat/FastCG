@@ -1,6 +1,6 @@
 #include "Controls.h"
 
-#include <FastCG/WorldSystem.h>
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 
@@ -18,7 +18,7 @@ void Controls::OnUpdate(float time, float deltaTime)
         return;
     }
 
-    auto *pWorldRenderer = WorldSystem::GetInstance()->GetWorldRenderer();
+    auto *pWorldRenderer = RenderingSystem::GetInstance()->GetWorldRenderer();
 
     if (ImGui::Begin("Controls"))
     {

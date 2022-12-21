@@ -158,12 +158,11 @@ namespace FastCG
 		{
 		}
 
-		virtual void OnDestroy()
+		virtual void OnRegisterInspectableProperties()
 		{
 		}
 
-	protected:
-		virtual void OnRegisterInspectableProperties()
+		virtual void OnDestroy()
 		{
 		}
 

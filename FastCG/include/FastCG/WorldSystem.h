@@ -2,15 +2,10 @@
 #define FASTCG_WORLD_SYSTEM
 
 #include <FastCG/System.h>
-#include <FastCG/RenderingStatistics.h>
-#include <FastCG/RenderingPath.h>
-#include <FastCG/IWorldRenderer.h>
-#include <FastCG/GraphicsSystem.h>
 #include <FastCG/GameObject.h>
 
 #include <vector>
 #include <string>
-#include <memory>
 #include <algorithm>
 
 #define FASTCG_SUPPORT_COMPONENT_TRACKING(className)                 \
@@ -35,34 +30,19 @@ namespace FastCG
 
     struct WorldSystemArgs
     {
-        RenderingPath renderingPath;
         const uint32_t &rScreenWidth;
         const uint32_t &rScreenHeight;
-        const glm::vec4 &rClearColor;
-        const glm::vec4 &rAmbientLight;
-        RenderingStatistics &rRenderingStatistics;
     };
 
     class WorldSystem
     {
         FASTCG_DECLARE_SYSTEM(WorldSystem, WorldSystemArgs);
-        FASTCG_SUPPORT_COMPONENT_TRACKING(Renderable);
         FASTCG_SUPPORT_COMPONENT_TRACKING(DirectionalLight);
         FASTCG_SUPPORT_COMPONENT_TRACKING(PointLight);
         FASTCG_SUPPORT_COMPONENT_TRACKING(Camera);
         FASTCG_SUPPORT_COMPONENT_TRACKING(Behaviour);
 
     public:
-        inline const IWorldRenderer *GetWorldRenderer() const
-        {
-            return const_cast<WorldSystem *>(this)->GetWorldRenderer();
-        }
-
-        inline IWorldRenderer *GetWorldRenderer()
-        {
-            return mpWorldRenderer.get();
-        }
-
         inline const Camera *GetMainCamera() const
         {
             return const_cast<WorldSystem *>(this)->GetMainCamera();
@@ -107,12 +87,11 @@ namespace FastCG
             }
         }
         void SetMainCamera(Camera *pCamera);
+        void RegisterCamera(Camera *pCamera);
+        void UnregisterCamera(Camera *pCamera);
 
     private:
         const WorldSystemArgs mArgs;
-        std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy;
-        std::unique_ptr<IWorldRenderer> mpWorldRenderer;
-        RenderingContext *mpRenderingContext;
         Camera *mpMainCamera{nullptr};
         std::vector<GameObject *> mGameObjects;
         std::vector<Component *> mComponents;
@@ -123,7 +102,7 @@ namespace FastCG
 #endif
 
         WorldSystem(const WorldSystemArgs &rArgs);
-        virtual ~WorldSystem();
+        ~WorldSystem();
 
         inline float GetAspectRatio() const
         {
@@ -131,13 +110,11 @@ namespace FastCG
         }
 
         void Initialize();
-        void Update(float cpuStart, float frameDeltaTime);
-        void Render();
         void RegisterGameObject(GameObject *pGameObject);
         void UnregisterGameObject(GameObject *pGameObject);
         void RegisterComponent(Component *pComponent);
-        void RegisterCamera(Camera *pCamera);
         void UnregisterComponent(Component *pComponent);
+        void Update(float cpuStart, float frameDeltaTime);
 #ifdef _DEBUG
         void DebugMenuCallback(int result);
         void DebugMenuItemCallback(int &result);

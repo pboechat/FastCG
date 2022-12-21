@@ -1,6 +1,7 @@
 #ifndef FASTCG_RENDERABLE_H
 #define FASTCG_RENDERABLE_H
 
+#include <FastCG/RenderingSystem.h>
 #include <FastCG/GraphicsSystem.h>
 #include <FastCG/Component.h>
 
@@ -27,11 +28,21 @@ namespace FastCG
 		}
 
 	protected:
+		void OnInstantiate() override
+		{
+			RenderingSystem::GetInstance()->RegisterRenderable(this);
+		}
+
 		void OnRegisterInspectableProperties() override
 		{
 			RegisterInspectableProperty(this, "Material", &Renderable::GetMaterialName);
 			RegisterInspectableProperty(this, "Mesh", &Renderable::GetMeshName);
 			RegisterInspectableProperty(this, "Shadow Caster", &Renderable::IsShadowCaster);
+		}
+
+		void OnDestroy() override
+		{
+			RenderingSystem::GetInstance()->UnregisterRenderable(this);
 		}
 
 	private:
