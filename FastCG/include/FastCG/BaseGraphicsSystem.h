@@ -84,6 +84,30 @@ namespace FastCG
         virtual const Texture *GetTextureAt(size_t i) const = 0;
         virtual size_t GetMaterialCount() const = 0;
         virtual const Material *GetMaterialAt(size_t i) const = 0;
+#ifdef _DEBUG
+        inline const Texture *GetSelectedTexture() const
+        {
+            return mSelectedTexture;
+        }
+
+        inline void SetSelectedTexture(const Texture* pTexture)
+        {
+            mShowTextureBrowser = true;
+            mpSelectedTexture = pTexture;
+        }
+
+        inline const Material *GetSelectedMaterial() const
+        {
+            return mSelectedMaterial;
+        }
+
+        inline void SetSelectedMaterial(const Material* pMaterial)
+        {
+            mShowMaterialBrowser = true;
+            mpSelectedMaterial = pMaterial;
+        }
+        
+#endif
 
     protected:
         const GraphicsSystemArgs mArgs;

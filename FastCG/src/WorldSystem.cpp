@@ -4,6 +4,7 @@
 #include <FastCG/PointLight.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Inspectable.h>
+#include <FastCG/GraphicsSystem.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/DebugMenuSystem.h>
@@ -53,7 +54,7 @@ namespace
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
         if (pGameObject == rpSelectedGameObject)
         {
-            flags |= ImGuiTreeNodeFlags_Selected;
+            flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
         }
         if (rChildren.empty())
         {
@@ -173,6 +174,11 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
+            auto readonly = pInspectableProperty->IsReadOnly();
+            if (readonly)
+            {
+                ImGui::BeginDisabled();
+            }
             auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
@@ -184,6 +190,10 @@ namespace
                 value = (T)proxyValue;
                 pInspectableDelimitedProperty->SetValue((void *)&value);
             }
+            if (readonly)
+            {
+                ImGui::EndDisabled();
+            }
         }
     };
 
@@ -192,6 +202,11 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
+            auto readonly = pInspectableProperty->IsReadOnly();
+            if (readonly)
+            {
+                ImGui::BeginDisabled();
+            }
             auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
@@ -201,6 +216,10 @@ namespace
             {
                 pInspectableDelimitedProperty->SetValue((void *)&value);
             }
+            if (readonly)
+            {
+                ImGui::EndDisabled();
+            }
         }
     };
 
@@ -209,6 +228,11 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
+            auto readonly = pInspectableProperty->IsReadOnly();
+            if (readonly)
+            {
+                ImGui::BeginDisabled();
+            }
             auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
@@ -219,6 +243,10 @@ namespace
             if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value[0], speed, scalarMin, scalarMax, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
             {
                 pInspectableDelimitedProperty->SetValue((void *)&value);
+            }
+            if (readonly)
+            {
+                ImGui::EndDisabled();
             }
         }
     };
@@ -251,11 +279,20 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
+            auto readonly = pInspectableProperty->IsReadOnly();
+            if (readonly)
+            {
+                ImGui::BeginDisabled();
+            }
             bool value;
             pInspectableProperty->GetValue(&value);
             if (ImGui::Checkbox(pInspectableProperty->GetName().c_str(), &value))
             {
                 pInspectableProperty->SetValue(&value);
+            }
+            if (readonly)
+            {
+                ImGui::EndDisabled();
             }
         }
     };
@@ -265,11 +302,71 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
+            auto readonly = pInspectableProperty->IsReadOnly();
+            if (readonly)
+            {
+                ImGui::BeginDisabled();
+            }
             std::string value;
             pInspectableProperty->GetValue((void *)&value);
             if (ImGui::InputText(pInspectableProperty->GetName().c_str(), &value[0], value.size()) && !pInspectableProperty->IsReadOnly())
             {
                 pInspectableProperty->SetValue((void *)&value[0]);
+            }
+            if (readonly)
+            {
+                ImGui::EndDisabled();
+            }
+        }
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<FastCG::Material>
+    {
+        static void value(FastCG::IInspectableProperty *pInspectableProperty)
+        {
+            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsPtr());
+            const FastCG::Material *pMaterial;
+            pInspectableProperty->GetValue((void *)&pMaterial);
+            ImGui::Text("Material: %s", pMaterial->GetName().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("View"))
+            {
+                FastCG::GraphicsSystem::GetInstance()->SetSelectedMaterial(pMaterial);
+            }
+        }
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<FastCG::Texture>
+    {
+        static void value(FastCG::IInspectableProperty *pInspectableProperty)
+        {
+            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsPtr());
+            const FastCG::Texture *pTexture;
+            pInspectableProperty->GetValue((void *)&pTexture);
+            ImGui::Text("Texture: %s", pTexture->GetName().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("View"))
+            {
+                FastCG::GraphicsSystem::GetInstance()->SetSelectedTexture(pTexture);
+            }
+        }
+    };
+
+    template <>
+    struct InspectablePropertyDisplayFnSelector<FastCG::Mesh>
+    {
+        static void value(FastCG::IInspectableProperty *pInspectableProperty)
+        {
+            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsPtr());
+            const FastCG::Mesh *pMesh;
+            pInspectableProperty->GetValue((void *)&pMesh);
+            ImGui::Text("Mesh: %s", pMesh->GetName().c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("View"))
+            {
+                // TODO:
             }
         }
     };
@@ -298,22 +395,31 @@ namespace
                 for (size_t i = 0; i < pInspectable->GetInspectablePropertyCount(); ++i)
                 {
                     auto *pInspectableProperty = pInspectable->GetInspectableProperty(i);
-                    auto readonly = pInspectableProperty->IsReadOnly();
-                    if (readonly)
-                    {
-                        ImGui::BeginDisabled();
-                    }
                     switch (pInspectableProperty->GetType())
                     {
                     case FastCG::InspectablePropertyType::INSPECTABLE:
                     {
+                        auto readonly = pInspectableProperty->IsReadOnly();
+                        if (readonly)
+                        {
+                            ImGui::BeginDisabled();
+                        }
                         FastCG::Inspectable *pOtherInspectable;
                         pInspectableProperty->GetValue(&pOtherInspectable);
                         DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable);
+                        if (readonly)
+                        {
+                            ImGui::EndDisabled();
+                        }
                     }
                     break;
                     case FastCG::InspectablePropertyType::ENUM:
                     {
+                        auto readonly = pInspectableProperty->IsReadOnly();
+                        if (readonly)
+                        {
+                            ImGui::BeginDisabled();
+                        }
                         auto pInspectableEnumProperty = static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
                         auto ppItems = pInspectableEnumProperty->GetItems();
                         int currentItem = (int)pInspectableEnumProperty->GetSelectedItem();
@@ -321,13 +427,14 @@ namespace
                         {
                             pInspectableEnumProperty->SetSelectedItem((size_t)currentItem);
                         }
+                        if (readonly)
+                        {
+                            ImGui::EndDisabled();
+                        }
                     }
                     break;
                     case FastCG::InspectablePropertyType::BOOL:
                         InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::STRING:
-                        InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
                         break;
                     case FastCG::InspectablePropertyType::INT32:
                         InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
@@ -356,12 +463,20 @@ namespace
                     case FastCG::InspectablePropertyType::VEC4:
                         InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
                         break;
+                    case FastCG::InspectablePropertyType::STRING:
+                        InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
+                        break;
+                    case FastCG::InspectablePropertyType::MATERIAL:
+                        InspectablePropertyDisplayFnSelector<FastCG::Material>::value(pInspectableProperty);
+                        break;
+                    case FastCG::InspectablePropertyType::MESH:
+                        InspectablePropertyDisplayFnSelector<FastCG::Mesh>::value(pInspectableProperty);
+                        break;
+                    case FastCG::InspectablePropertyType::TEXTURE:
+                        InspectablePropertyDisplayFnSelector<FastCG::Texture>::value(pInspectableProperty);
+                        break;
                     default:
                         assert(false);
-                    }
-                    if (readonly)
-                    {
-                        ImGui::EndDisabled();
                     }
                 }
             }

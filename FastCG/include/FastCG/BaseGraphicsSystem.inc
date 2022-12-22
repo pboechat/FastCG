@@ -30,7 +30,7 @@ namespace
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
                 if (pTexture == rpSelectedTexture)
                 {
-                    flags |= ImGuiTreeNodeFlags_Selected;
+                    flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
                 }
                 if (ImGui::TreeNodeEx(pTexture->GetName().c_str(), flags))
                 {
@@ -72,7 +72,7 @@ namespace
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
                 if (pMaterial == rpSelectedMaterial)
                 {
-                    flags |= ImGuiTreeNodeFlags_Selected;
+                    flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
                 }
                 if (ImGui::TreeNodeEx(pMaterial->GetName().c_str(), flags))
                 {
