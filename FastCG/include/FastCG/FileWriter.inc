@@ -5,18 +5,18 @@
 namespace
 {
 	template <typename T>
-	void Write(const std::string &rFileName, const T *pData, size_t dataSize)
+	void Write(const std::string &rFilePath, std::ios_base::open_mode openMode, const T *pData, size_t dataSize)
 	{
-		if (rFileName.empty())
+		if (rFilePath.empty())
 		{
 			return;
 		}
 
-		std::ofstream fileStream(rFileName.c_str());
+		std::ofstream fileStream(rFilePath.c_str(), openMode);
 
 		if (!fileStream.is_open())
 		{
-			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error opening file: %s", rFileName.c_str());
+			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error opening file: %s", rFilePath.c_str());
 		}
 
 		fileStream.write((const char *)pData, dataSize);
@@ -27,14 +27,14 @@ namespace
 
 namespace FastCG
 {
-	void FileWriter::WriteText(const std::string &rFileName, const char *pData, size_t dataSize)
+	void FileWriter::WriteText(const std::string &rFilePath, const char *pData, size_t dataSize)
 	{
-		Write(rFileName, pData, dataSize);
+		Write(rFilePath, std::ios_base::out, pData, dataSize);
 	}
 
-	void FileWriter::WriteBinary(const std::string &rFileName, const uint8_t *pData, size_t dataSize)
+	void FileWriter::WriteBinary(const std::string &rFilePath, const uint8_t *pData, size_t dataSize)
 	{
-		Write(rFileName, pData, dataSize);
+		Write(rFilePath, std::ios_base::out | std::ios_base::binary, pData, dataSize);
 	}
 
 }
