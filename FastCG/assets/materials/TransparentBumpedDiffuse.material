@@ -52,12 +52,12 @@
         "depthWrite": false,
         "blend": true,
         "blendState": {
-            "colorOp": "ADD",
-            "srcColorFactor": "SRC_COLOR",
-            "dstColorFactor": "ONE_MINUS_SRC_COLOR",
-            "alphaOp": "ADD",
-            "srcAlphaFactor": "ONE",
-            "dstAlphaFactor": "ZERO"
+            "colorOp": "BlendFunc::ADD",
+            "srcColorFactor": "BlendFactor::SRC_COLOR",
+            "dstColorFactor": "BlendFactor::ONE_MINUS_SRC_COLOR",
+            "alphaOp": "BlendFunc::ADD",
+            "srcAlphaFactor": "BlendFactor::ONE",
+            "dstAlphaFactor": "BlendFactor::ZERO"
         }
     }
 }

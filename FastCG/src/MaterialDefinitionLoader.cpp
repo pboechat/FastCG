@@ -68,21 +68,24 @@ namespace
     }
 
     template <typename GenericValueT, typename EnumT>
-    void GetEnumValue(const GenericValueT &rGenericValue, EnumT &rValue, const std::initializer_list<std::string> &rValueStrs)
+    void GetEnumValue(const GenericValueT &rGenericValue, EnumT &rValue, const char *const *pValues, size_t valueCount)
     {
+        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enumerator");
         assert(rGenericValue.IsString());
         std::string valueStr = rGenericValue.GetString();
-        auto it = std::find(rValueStrs.begin(), rValueStrs.end(), valueStr);
-        assert(it != rValueStrs.end());
-        rValue = (EnumT)std::distance(rValueStrs.begin(), it);
+        auto pValuesEnd = pValues + valueCount;
+        auto it = std::find(pValues, pValuesEnd, valueStr);
+        assert(it != pValuesEnd);
+        rValue = (EnumT)std::distance(pValues, it);
     }
 
     template <typename GenericObjectT, typename EnumT>
-    void GetEnumMember(const GenericObjectT &rGenericObj, const char *pName, EnumT &rValue, const std::initializer_list<std::string> &rValueStrs)
+    void GetEnumMember(const GenericObjectT &rGenericObj, const char *pName, EnumT &rValue, const char *const *rValues, size_t valueCount)
     {
+        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enumerator");
         if (rGenericObj.HasMember(pName))
         {
-            GetEnumValue(rGenericObj.FindMember(pName)->value, rValue, rValueStrs);
+            GetEnumValue(rGenericObj.FindMember(pName)->value, rValue, rValues, valueCount);
         }
     }
 
@@ -168,7 +171,7 @@ namespace FastCG
 
             GetBoolMember(renderingStateObj, "depthTest", renderingState.depthTest);
             GetBoolMember(renderingStateObj, "depthWrite", renderingState.depthWrite);
-            GetEnumMember(renderingStateObj, "depthFunc", renderingState.depthFunc, {"NEVER", "LESS", "LEQUAL", "GREATER", "GEQUAL", "EQUAL", "NOT_EQU", "ALWAYS"});
+            GetEnumMember(renderingStateObj, "depthFunc", renderingState.depthFunc, COMPARE_OP_STRINGS, FASTCG_ARRAYSIZE(COMPARE_OP_STRINGS));
             GetBoolMember(renderingStateObj, "scissorTest", renderingState.scissorTest);
             GetBoolMember(renderingStateObj, "stencilTest", renderingState.stencilTest);
             struct Iter
@@ -182,27 +185,27 @@ namespace FastCG
                 {
                     assert(renderingStateObj.FindMember(rIter.pMemberName)->value.IsObject());
                     auto stencilStateObj = renderingStateObj.FindMember(rIter.pMemberName)->value.GetObj();
-                    GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, {"NEVER", "LESS", "LEQUAL", "GREATER", "GEQUAL", "EQUAL", "NOT_EQU", "ALWAYS"});
-                    GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, {});
-                    GetEnumMember(stencilStateObj, "stencilFailOp", rIter.rStencilState.stencilFailOp, {});
-                    GetEnumMember(stencilStateObj, "depthFailOp", rIter.rStencilState.depthFailOp, {});
+                    GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, COMPARE_OP_STRINGS, FASTCG_ARRAYSIZE(COMPARE_OP_STRINGS));
+                    GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, STENCIL_OP_STRINGS, FASTCG_ARRAYSIZE(STENCIL_OP_STRINGS));
+                    GetEnumMember(stencilStateObj, "stencilFailOp", rIter.rStencilState.stencilFailOp, STENCIL_OP_STRINGS, FASTCG_ARRAYSIZE(STENCIL_OP_STRINGS));
+                    GetEnumMember(stencilStateObj, "depthFailOp", rIter.rStencilState.depthFailOp, STENCIL_OP_STRINGS, FASTCG_ARRAYSIZE(STENCIL_OP_STRINGS));
                     GetInt32Member(stencilStateObj, "reference", rIter.rStencilState.reference);
                     GetUint32Member(stencilStateObj, "compareMask", rIter.rStencilState.compareMask);
                     GetUint32Member(stencilStateObj, "writeMask", rIter.rStencilState.writeMask);
                 }
             }
-            GetEnumMember(renderingStateObj, "cullMode", renderingState.cullMode, {"NONE", "FRONT", "BACK", "FRONT_AND_BACK"});
+            GetEnumMember(renderingStateObj, "cullMode", renderingState.cullMode, FACE_STRINGS, FASTCG_ARRAYSIZE(FACE_STRINGS));
             GetBoolMember(renderingStateObj, "blend", renderingState.blend);
             if (renderingStateObj.HasMember("blendState"))
             {
                 assert(renderingStateObj.FindMember("blendState")->value.IsObject());
                 auto blendStateObj = renderingStateObj.FindMember("blendState")->value.GetObj();
-                GetEnumMember(blendStateObj, "alphaOp", renderingState.blendState.alphaOp, {"NONE", "ADD"});
-                GetEnumMember(blendStateObj, "srcAlphaFactor", renderingState.blendState.srcAlphaFactor, {"ZERO", "ONE", "SRC_COLOR", "DST_COLOR", "SRC_ALPHA", "DST_ALPHA", "ONE_MINUS_SRC_COLOR", "ONE_MINUS_SRC_ALPHA"});
-                GetEnumMember(blendStateObj, "dstAlphaFactor", renderingState.blendState.dstAlphaFactor, {"ZERO", "ONE", "SRC_COLOR", "DST_COLOR", "SRC_ALPHA", "DST_ALPHA", "ONE_MINUS_SRC_COLOR", "ONE_MINUS_SRC_ALPHA"});
-                GetEnumMember(blendStateObj, "colorOp", renderingState.blendState.colorOp, {"NONE", "ADD"});
-                GetEnumMember(blendStateObj, "srcColorFactor", renderingState.blendState.srcColorFactor, {"ZERO", "ONE", "SRC_COLOR", "DST_COLOR", "SRC_ALPHA", "DST_ALPHA", "ONE_MINUS_SRC_COLOR", "ONE_MINUS_SRC_ALPHA"});
-                GetEnumMember(blendStateObj, "dstColorFactor", renderingState.blendState.dstColorFactor, {"ZERO", "ONE", "SRC_COLOR", "DST_COLOR", "SRC_ALPHA", "DST_ALPHA", "ONE_MINUS_SRC_COLOR", "ONE_MINUS_SRC_ALPHA"});
+                GetEnumMember(blendStateObj, "alphaOp", renderingState.blendState.alphaOp, BLEND_FUNC_STRINGS, FASTCG_ARRAYSIZE(BLEND_FUNC_STRINGS));
+                GetEnumMember(blendStateObj, "srcAlphaFactor", renderingState.blendState.srcAlphaFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
+                GetEnumMember(blendStateObj, "dstAlphaFactor", renderingState.blendState.dstAlphaFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
+                GetEnumMember(blendStateObj, "colorOp", renderingState.blendState.colorOp, BLEND_FUNC_STRINGS, FASTCG_ARRAYSIZE(BLEND_FUNC_STRINGS));
+                GetEnumMember(blendStateObj, "srcColorFactor", renderingState.blendState.srcColorFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
+                GetEnumMember(blendStateObj, "dstColorFactor", renderingState.blendState.dstColorFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
             }
         }
 
