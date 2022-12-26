@@ -23,11 +23,11 @@ namespace FastCG
 	private:
 		std::vector<RenderBatch> mRenderBatches{{RenderBatchType::SHADOW_CASTERS}};
 
-		void AddToShadowCastersRenderBatch(const std::initializer_list<const Renderable *> &rRenderablesToAdd);
+		void AddToShadowCastersRenderBatch(const Renderable *pRenderable);
 		void RemoveFromShadowCastersRenderBatch(const Renderable *pRenderable);
-		void AddToMaterialBasedRenderBatch(const Material *pMaterial, const std::initializer_list<const Renderable *> &rRenderablesToAdd);
-		void RemoveFromMaterialBasedRenderBatch(const Material *pMaterial, const Renderable *pRenderable);
-		void AddToRenderBatch(RenderBatch &rRenderBatch, const std::initializer_list<const Renderable *> &rRenderablesToAdd);
+		void AddToMaterialBasedRenderBatch(const Renderable *pRenderable);
+		void RemoveFromMaterialBasedRenderBatch(const Renderable *pRenderable);
+		void AddToRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable);
 		bool RemoveFromRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable);
 	};
 

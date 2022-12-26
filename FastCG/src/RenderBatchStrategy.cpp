@@ -20,37 +20,49 @@ namespace FastCG
     {
         assert(pRenderable != nullptr);
 
-        if (pRenderable->IsShadowCaster())
+        if (pRenderable->GetMesh() == nullptr)
         {
-            AddToShadowCastersRenderBatch({pRenderable});
+            return;
         }
 
-        const auto *pMaterial = pRenderable->GetMaterial();
-        if (pMaterial != nullptr)
+        if (pRenderable->IsShadowCaster())
         {
-            AddToMaterialBasedRenderBatch(pMaterial, {pRenderable});
+            AddToShadowCastersRenderBatch(pRenderable);
         }
+
+        if (pRenderable->GetMaterial() == nullptr)
+        {
+            return;
+        }
+
+        AddToMaterialBasedRenderBatch(pRenderable);
     }
 
     void RenderBatchStrategy::RemoveRenderable(const Renderable *pRenderable)
     {
         assert(pRenderable != nullptr);
 
-        const auto *pMaterial = pRenderable->GetMaterial();
-        if (pMaterial != nullptr)
+        if (pRenderable->GetMesh() == nullptr)
         {
-            RemoveFromMaterialBasedRenderBatch(pMaterial, pRenderable);
+            return;
         }
 
         if (pRenderable->IsShadowCaster())
         {
             RemoveFromShadowCastersRenderBatch(pRenderable);
         }
+
+        if (pRenderable->GetMaterial() == nullptr)
+        {
+            return;
+        }
+
+        RemoveFromMaterialBasedRenderBatch(pRenderable);
     }
 
-    void RenderBatchStrategy::AddToShadowCastersRenderBatch(const std::initializer_list<const Renderable *> &rRenderablesToAdd)
+    void RenderBatchStrategy::AddToShadowCastersRenderBatch(const Renderable *pRenderable)
     {
-        AddToRenderBatch(*mRenderBatches.begin(), rRenderablesToAdd);
+        AddToRenderBatch(*mRenderBatches.begin(), pRenderable);
     }
 
     void RenderBatchStrategy::RemoveFromShadowCastersRenderBatch(const Renderable *pRenderable)
@@ -58,47 +70,45 @@ namespace FastCG
         RemoveFromRenderBatch(*mRenderBatches.begin(), pRenderable);
     }
 
-    void RenderBatchStrategy::AddToMaterialBasedRenderBatch(const Material *pMaterial, const std::initializer_list<const Renderable *> &rRenderablesToAdd)
+    void RenderBatchStrategy::AddToMaterialBasedRenderBatch(const Renderable *pRenderable)
     {
+        const auto *pMaterial = pRenderable->GetMaterial();
         auto it = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
                                { return rRenderBatch.pMaterial == pMaterial; });
         if (it == mRenderBatches.end())
         {
             mRenderBatches.emplace_back(RenderBatch{pMaterial->GetRenderingState().blend ? RenderBatchType::TRANSPARENT_MATERIAL : RenderBatchType::OPAQUE_MATERIAL, pMaterial});
             it = std::prev(mRenderBatches.end());
-            AddToRenderBatch(*it, rRenderablesToAdd);
+            AddToRenderBatch(*it, pRenderable);
             std::sort(mRenderBatches.begin(), mRenderBatches.end(), RenderBatchComparer());
         }
         else
         {
-            AddToRenderBatch(*it, rRenderablesToAdd);
+            AddToRenderBatch(*it, pRenderable);
         }
     }
 
-    void RenderBatchStrategy::RemoveFromMaterialBasedRenderBatch(const Material *pMaterial, const Renderable *pRenderable)
+    void RenderBatchStrategy::RemoveFromMaterialBasedRenderBatch(const Renderable *pRenderable)
     {
+        const auto *pMaterial = pRenderable->GetMaterial();
         auto it = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
                                { return rRenderBatch.pMaterial == pMaterial; });
         if (it != mRenderBatches.end())
         {
-            auto removed = RemoveFromRenderBatch(*it, pRenderable);
-            assert(removed);
+            RemoveFromRenderBatch(*it, pRenderable);
         }
     }
 
-    void RenderBatchStrategy::AddToRenderBatch(RenderBatch &rRenderBatch, const std::initializer_list<const Renderable *> &rRenderablesToAdd)
+    void RenderBatchStrategy::AddToRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable)
     {
         auto &rRenderablesPerMesh = rRenderBatch.renderablesPerMesh;
-        for (const auto *pRenderable : rRenderablesToAdd)
+        const auto *pMesh = pRenderable->GetMesh();
+        auto it = rRenderablesPerMesh.find(pMesh);
+        if (it == rRenderablesPerMesh.end())
         {
-            const auto *pMesh = pRenderable->GetMesh();
-            auto it = rRenderablesPerMesh.find(pMesh);
-            if (it == rRenderablesPerMesh.end())
-            {
-                it = rRenderablesPerMesh.emplace(pMesh, std::vector<const Renderable *>{}).first;
-            }
-            it->second.emplace_back(pRenderable);
+            it = rRenderablesPerMesh.emplace(pMesh, std::vector<const Renderable *>{}).first;
         }
+        it->second.emplace_back(pRenderable);
     }
 
     inline bool RenderBatchStrategy::RemoveFromRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable)
@@ -106,7 +116,10 @@ namespace FastCG
         auto &rRenderablesPerMesh = rRenderBatch.renderablesPerMesh;
         const auto *pMesh = pRenderable->GetMesh();
         auto renderablesPerMeshIt = rRenderablesPerMesh.find(pMesh);
-        assert(renderablesPerMeshIt != rRenderablesPerMesh.end());
+        if (renderablesPerMeshIt == rRenderablesPerMesh.end())
+        {
+            return false;
+        }
         auto &rRenderables = renderablesPerMeshIt->second;
         auto renderableIt = std::find(rRenderables.cbegin(), rRenderables.cend(), pRenderable);
         assert(renderableIt != rRenderables.cend());
@@ -116,7 +129,10 @@ namespace FastCG
             auto renderBatchIt = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [&rRenderBatch](const auto &rOtherRenderBatch)
                                               { return &rRenderBatch == &rOtherRenderBatch; });
             assert(renderBatchIt != mRenderBatches.end());
-            mRenderBatches.erase(renderBatchIt);
+            if (renderBatchIt->type != RenderBatchType::SHADOW_CASTERS)
+            {
+                mRenderBatches.erase(renderBatchIt);
+            }
         }
         return true;
     }

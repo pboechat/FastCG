@@ -17,14 +17,35 @@ namespace FastCG
 			return mpMaterial;
 		}
 
+		inline void SetMaterial(const Material *pMaterial)
+		{
+			RenderingSystem::GetInstance()->UnregisterRenderable(this);
+			mpMaterial = pMaterial;
+			RenderingSystem::GetInstance()->RegisterRenderable(this);
+		}
+
 		inline const Mesh *GetMesh() const
 		{
 			return mpMesh;
 		}
 
+		inline void SetMesh(const Mesh *pMesh)
+		{
+			RenderingSystem::GetInstance()->UnregisterRenderable(this);
+			mpMesh = pMesh;
+			RenderingSystem::GetInstance()->RegisterRenderable(this);
+		}
+
 		inline bool IsShadowCaster() const
 		{
-			return mIsShadowCaster;
+			return mShadowCaster;
+		}
+
+		inline void SetShadowCaster(bool shadowCaster)
+		{
+			RenderingSystem::GetInstance()->UnregisterRenderable(this);
+			mShadowCaster = shadowCaster;
+			RenderingSystem::GetInstance()->RegisterRenderable(this);
 		}
 
 	protected:
@@ -35,9 +56,9 @@ namespace FastCG
 
 		void OnRegisterInspectableProperties() override
 		{
-			RegisterInspectableProperty(this, "Material", &Renderable::GetMaterial);
-			RegisterInspectableProperty(this, "Mesh", &Renderable::GetMesh);
-			RegisterInspectableProperty(this, "Shadow Caster", &Renderable::IsShadowCaster);
+			RegisterInspectableProperty(this, "Material", &Renderable::GetMaterial, &Renderable::SetMaterial);
+			RegisterInspectableProperty(this, "Mesh", &Renderable::GetMesh, &Renderable::SetMesh);
+			RegisterInspectableProperty(this, "Shadow Caster", &Renderable::IsShadowCaster, &Renderable::SetShadowCaster);
 		}
 
 		void OnDestroy() override
@@ -46,14 +67,14 @@ namespace FastCG
 		}
 
 	private:
-		const Material *const mpMaterial{nullptr};
-		const Mesh *const mpMesh{nullptr};
-		const bool mIsShadowCaster{false};
+		const Material *mpMaterial{nullptr};
+		const Mesh *mpMesh{nullptr};
+		bool mShadowCaster{false};
 
 		Renderable(GameObject *pGameObject, const Material *pMaterial, const Mesh *pMesh, bool isShadowCaster = false) : Component(pGameObject),
 																														 mpMaterial(pMaterial),
 																														 mpMesh(pMesh),
-																														 mIsShadowCaster(isShadowCaster)
+																														 mShadowCaster(isShadowCaster)
 		{
 		}
 	};
