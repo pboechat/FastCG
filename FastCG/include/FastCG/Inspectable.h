@@ -495,7 +495,7 @@ namespace FastCG
     class InspectableEnumProperty : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>, public IInspectableEnumProperty
     {
     public:
-        static_assert(std::is_enum_v<InspectablePropertyTypeT>, "Inspectable property type must be an enum");
+        static_assert(std::is_enum<InspectablePropertyTypeT>::value, "Inspectable property type must be an enum");
 
         InspectableEnumProperty(InspectablePropertyOwnerT *pOwner,
                                 const std::string &rName,

@@ -190,6 +190,13 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
+    void DumpTexture(const FastCG::Texture *,
+                     const std::string &,
+                     FastCG::GameObjectDumperOptionMaskType,
+                     AllocatorT &,
+                     GenericObjectT &);
+
+    template <typename AllocatorT, typename GenericObjectT>
     void DumpMaterial(const FastCG::Material *pMaterial,
                       const std::string &rBasePath,
                       FastCG::GameObjectDumperOptionMaskType options,
@@ -340,6 +347,16 @@ namespace
             AddValueMember(rAlloc, rTextureObj, "dataPath", fileName);
         }
     }
+
+    template <typename AllocatorT, typename GenericObjectT>
+    void DumpInspectable(const FastCG::Inspectable *,
+                         const std::string &,
+                         FastCG::GameObjectDumperOptionMaskType,
+                         AllocatorT &,
+                         GenericObjectT &,
+                         std::unordered_map<std::string, rapidjson::Value> &,
+                         std::unordered_map<std::string, rapidjson::Value> &,
+                         std::unordered_map<std::string, rapidjson::Value> &);
 
     template <typename AllocatorT, typename GenericValueT>
     void DumpInspectableProperty(const FastCG::IInspectableProperty *pInspectableProperty,

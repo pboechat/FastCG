@@ -20,6 +20,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/glm.hpp>
 
+#include <type_traits>
 #include <unordered_map>
 #include <string>
 #include <cassert>
@@ -32,7 +33,7 @@ namespace
     template <typename GenericValueT, typename EnumT>
     void GetValue(const GenericValueT &rGenericValue, EnumT &rValue, const char *const *pValues, size_t valueCount)
     {
-        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enumerator");
+        static_assert(std::is_enum<EnumT>::value, "EnumT must be an enumerator");
         assert(rGenericValue.IsString());
         std::string valueStr = rGenericValue.GetString();
         auto pValuesEnd = pValues + valueCount;
@@ -188,11 +189,11 @@ namespace
             assert(boundsObj.HasMember("min") && boundsObj["min"].IsArray());
             auto minArray = boundsObj["min"].GetArray();
             assert(minArray.Size() == 3);
-            args.bounds.min = {minArray[0].GetFloat(), minArray[1].GetFloat(), minArray[2].GetFloat()};
+            args.bounds.min = glm::vec3{minArray[0].GetFloat(), minArray[1].GetFloat(), minArray[2].GetFloat()};
             assert(boundsObj.HasMember("max") && boundsObj["max"].IsArray());
             auto maxArray = boundsObj["min"].GetArray();
             assert(maxArray.Size() == 3);
-            args.bounds.max = {maxArray[0].GetFloat(), maxArray[1].GetFloat(), maxArray[2].GetFloat()};
+            args.bounds.max = glm::vec3{maxArray[0].GetFloat(), maxArray[1].GetFloat(), maxArray[2].GetFloat()};
         }
         auto *pMesh = FastCG::GraphicsSystem::GetInstance()->CreateMesh(args);
         return pMesh;
@@ -246,6 +247,14 @@ namespace
         }
         return pTexture;
     }
+
+    template <typename GenericObjectT>
+    void LoadInspectable(const GenericObjectT &,
+                         const std::string &,
+                         const std::unordered_map<std::string, FastCG::Material *> &,
+                         const std::unordered_map<std::string, FastCG::Mesh *> &,
+                         const std::unordered_map<std::string, FastCG::Texture *> &,
+                         FastCG::Inspectable *);
 
     template <typename GenericValueT>
     void LoadInspectableProperty(const GenericValueT &rGenericValue,

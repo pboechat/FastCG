@@ -70,7 +70,7 @@ namespace
     template <typename GenericValueT, typename EnumT>
     void GetEnumValue(const GenericValueT &rGenericValue, EnumT &rValue, const char *const *pValues, size_t valueCount)
     {
-        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enumerator");
+        static_assert(std::is_enum<EnumT>::value, "EnumT must be an enumerator");
         assert(rGenericValue.IsString());
         std::string valueStr = rGenericValue.GetString();
         auto pValuesEnd = pValues + valueCount;
@@ -82,7 +82,7 @@ namespace
     template <typename GenericObjectT, typename EnumT>
     void GetEnumMember(const GenericObjectT &rGenericObj, const char *pName, EnumT &rValue, const char *const *rValues, size_t valueCount)
     {
-        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enumerator");
+        static_assert(std::is_enum<EnumT>::value, "EnumT must be an enumerator");
         if (rGenericObj.HasMember(pName))
         {
             GetEnumValue(rGenericObj.FindMember(pName)->value, rValue, rValues, valueCount);
