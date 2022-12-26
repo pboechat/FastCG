@@ -19,7 +19,7 @@ namespace FastCG
                                                                             (uint32_t)height,
                                                                             TextureType::TEXTURE_2D,
                                                                             TextureFormat::RGBA,
-                                                                            {32, 32, 32, 32},
+                                                                            {8, 8, 8, 8},
                                                                             TextureDataType::UNSIGNED_CHAR,
                                                                             TextureFilter::LINEAR_FILTER,
                                                                             TextureWrapMode::CLAMP,
