@@ -36,14 +36,24 @@ namespace FastCG
 			return mName;
 		}
 
+		inline const MaterialDefinition *GetMaterialDefinition() const
+		{
+			return mpMaterialDefinition;
+		}
+
 		inline const Shader *GetShader() const
 		{
 			return mpMaterialDefinition->GetShader();
 		}
 
-		inline const void *GetConstantBufferData() const
+		inline const uint8_t *GetConstantBufferData() const
 		{
 			return mConstantBuffer.GetData();
+		}
+
+		inline void SetConstantBufferData(const uint8_t *pData, size_t offset, size_t size)
+		{
+			mConstantBuffer.SetData(pData, offset, size);
 		}
 
 		inline uint32_t GetConstantBufferSize() const

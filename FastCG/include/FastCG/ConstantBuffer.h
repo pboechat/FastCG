@@ -169,9 +169,15 @@ namespace FastCG
             return mSize;
         }
 
-        inline const void *GetData() const
+        inline const uint8_t *GetData() const
         {
-            return (const void *)mData.get();
+            return mData.get();
+        }
+
+        inline void SetData(const uint8_t *data, size_t offset, size_t size)
+        {
+            assert((offset + size) <= mSize);
+            memcpy(mData.get() + offset, data, size);
         }
 
     private:
