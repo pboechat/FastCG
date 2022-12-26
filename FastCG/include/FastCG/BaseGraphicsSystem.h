@@ -87,7 +87,7 @@ namespace FastCG
 #ifdef _DEBUG
         inline const Texture *GetSelectedTexture() const
         {
-            return mSelectedTexture;
+            return mpSelectedTexture;
         }
 
         inline void SetSelectedTexture(const Texture* pTexture)
@@ -98,7 +98,7 @@ namespace FastCG
 
         inline const Material *GetSelectedMaterial() const
         {
-            return mSelectedMaterial;
+            return mpSelectedMaterial;
         }
 
         inline void SetSelectedMaterial(const Material* pMaterial)

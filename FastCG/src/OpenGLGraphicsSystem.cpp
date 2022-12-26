@@ -190,7 +190,7 @@ namespace FastCG
         }
     }
 #elif defined FASTCG_LINUX
-    XVisualInfo *OpenGLRenderingSystem::GetVisualInfo()
+    XVisualInfo *OpenGLGraphicsSystem::GetVisualInfo()
     {
         if (mpVisualInfo != nullptr)
         {
@@ -202,7 +202,7 @@ namespace FastCG
         return mpVisualInfo;
     }
 
-    void OpenGLRenderingSystem::AcquireVisualInfoAndFbConfig()
+    void OpenGLGraphicsSystem::AcquireVisualInfoAndFbConfig()
     {
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
 
