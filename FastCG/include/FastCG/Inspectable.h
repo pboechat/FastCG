@@ -460,7 +460,7 @@ namespace FastCG
             assert(!IsReadOnly());
             assert(pValue != nullptr);
             assert((intptr_t)pValue % alignof(const InspectablePropertyTypeT *) == 0);
-            SetValueCP(*reinterpret_cast<const InspectablePropertyTypeT **>(&pValue));
+            SetValueCP(*reinterpret_cast<const InspectablePropertyTypeT *const *>(pValue));
         }
 
         inline bool IsReadOnly() const override
