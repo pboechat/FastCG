@@ -5,7 +5,7 @@
 namespace
 {
 	template <typename T>
-	void Write(const std::string &rFilePath, std::ios_base::open_mode openMode, const T *pData, size_t dataSize)
+	void Write(const std::string &rFilePath, std::ios_base::openmode openMode, const T *pData, size_t dataSize)
 	{
 		if (rFilePath.empty())
 		{
