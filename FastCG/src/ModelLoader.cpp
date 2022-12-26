@@ -43,12 +43,13 @@ namespace FastCG
 
 	using MeshCatalog = std::unordered_map<size_t, Mesh *>;
 
-	void BuildMeshCatalog(const std::string &rName,
+	void BuildMeshCatalog(const std::string &rFilePath,
 						  const tinyobj_attrib_t &attributes,
 						  const tinyobj_shape_t *pShapes,
 						  size_t numShapes,
 						  MeshCatalog &rMeshCatalog)
 	{
+		auto name = File::GetFileNameWithoutExtension(rFilePath);
 		for (size_t shapeIdx = 0; shapeIdx < numShapes; shapeIdx++)
 		{
 			auto &shape = pShapes[shapeIdx];
@@ -109,7 +110,7 @@ namespace FastCG
 			}
 			auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
 
-			auto *pMesh = GraphicsSystem::GetInstance()->CreateMesh({rName + " (" + std::to_string(shapeIdx) + ")",
+			auto *pMesh = GraphicsSystem::GetInstance()->CreateMesh({name + " (" + std::to_string(shapeIdx) + ")",
 																	 {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
 																	  {"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
 																	  {"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_SHADER_INPUT_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},

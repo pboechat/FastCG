@@ -2,8 +2,6 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
-#include <FastCG/WorldSystem.h>
-#include <FastCG/WorldLoader.h>
 #include <FastCG/TextureLoader.h>
 #include <FastCG/StandardGeometries.h>
 #include <FastCG/Renderable.h>
@@ -21,9 +19,38 @@ using namespace FastCG;
 
 namespace
 {
-	void CreateGround()
+	void CreateLights(Transform *pParent)
 	{
-		auto *pGround = GameObject::Instantiate("Ground");
+		auto *pLightsGameObject = GameObject::Instantiate("Lights");
+		pLightsGameObject->GetTransform()->SetParent(pParent);
+
+		auto *pLightGameObject = GameObject::Instantiate("Light 1");
+		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
+		pLightGameObject->GetTransform()->SetPosition(glm::vec3(2, 2, 0));
+		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
+
+		auto *pLight = PointLight::Instantiate(pLightGameObject);
+		pLight->SetDiffuseColor(Colors::WHITE);
+		pLight->SetSpecularColor(Colors::WHITE);
+		pLight->SetIntensity(1);
+		pLight->SetQuadraticAttenuation(0.25f);
+
+		pLightGameObject = GameObject::Instantiate("Light 2");
+		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
+		pLightGameObject->GetTransform()->SetPosition(glm::vec3(-2, 2, 0));
+		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
+
+		pLight = PointLight::Instantiate(pLightGameObject);
+		pLight->SetDiffuseColor(Colors::RED);
+		pLight->SetSpecularColor(Colors::RED);
+		pLight->SetIntensity(1);
+		pLight->SetQuadraticAttenuation(0.25f);
+	}
+
+	void CreateGround(Transform *pParent)
+	{
+		auto *pGroundGameObject = GameObject::Instantiate("Ground");
+		pGroundGameObject->GetTransform()->SetParent(pParent);
 
 		auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
 
@@ -39,22 +66,22 @@ namespace
 		pGroundMaterial->SetConstant("uSpecularColor", Colors::WHITE);
 		pGroundMaterial->SetConstant("uShininess", 30);
 
-		Renderable::Instantiate(pGround, pGroundMaterial, pGroundMesh);
+		Renderable::Instantiate(pGroundGameObject, pGroundMaterial, pGroundMesh);
 	}
 
-	void LoadModel()
+	void LoadModel(Transform *pParent)
 	{
 		auto *pMissingMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Missing Material", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
 		pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
-		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/doomsday.obj"), pMissingMaterial);
-		if (pModel == nullptr)
+		auto *pModelGameObject = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/doomsday.obj"), pMissingMaterial);
+		if (pModelGameObject == nullptr)
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
 		}
 
-		const auto &bounds = pModel->GetBounds();
-		auto *pTransform = pModel->GetTransform();
+		const auto &bounds = pModelGameObject->GetBounds();
+		auto *pTransform = pModelGameObject->GetTransform();
 		float scale = 0;
 		scale = bounds.max.x - bounds.min.x;
 		scale = MathF::Max(bounds.max.y - bounds.min.y, scale);
@@ -64,6 +91,8 @@ namespace
 		pTransform->SetScale(glm::vec3(scale, scale, scale));
 		auto center = bounds.getCenter();
 		pTransform->SetPosition(glm::vec3(-center.x * scale, 0, -center.z * scale));
+
+		pTransform->SetParent(pParent);
 	}
 
 }
@@ -76,8 +105,26 @@ BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 
 
 void BumpMappingApplication::OnStart()
 {
-	WorldLoader::Load(AssetSystem::GetInstance()->Resolve("worlds/default.world"));
+	auto *pSceneRootGameObject = GameObject::Instantiate("Scene Root");
+	auto *pParent = pSceneRootGameObject->GetTransform();
 
-	LoadModel();
-	CreateGround();
+	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
+	auto *pTransform = pMainCameraGameObject->GetTransform();
+	pTransform->SetPosition(glm::vec3(0, 0.5f, 1));
+	pTransform->SetParent(pParent);
+
+	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
+
+	auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
+	pFlyController->SetMoveSpeed(5);
+	pFlyController->SetTurnSpeed(0.25f);
+
+	LoadModel(pParent);
+	CreateGround(pParent);
+	CreateLights(pParent);
+
+	auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
+	pGeneralBehavioursGameObject->GetTransform()->SetParent(pParent);
+	Controls::Instantiate(pGeneralBehavioursGameObject);
+	LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
 }
