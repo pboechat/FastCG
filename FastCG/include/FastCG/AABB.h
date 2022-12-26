@@ -20,10 +20,15 @@ namespace FastCG
 			return min + getExtent() * 0.5f;
 		}
 
-		void Expand(const AABB &other)
+		inline void Expand(const AABB &other)
 		{
 			max = glm::max(max, other.max);
 			min = glm::min(min, other.min);
+		}
+
+		inline bool IsDegenerated() const
+		{
+			return max.x <= min.x || max.y <= min.y || max.z <= min.z;
 		}
 	};
 
