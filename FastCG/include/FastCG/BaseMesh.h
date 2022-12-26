@@ -1,14 +1,14 @@
 #ifndef FASTCG_BASE_MESH_H
 #define FASTCG_BASE_MESH_H
 
-#include <FastCG/BaseBuffer.h>
+#include <FastCG/RenderingEnums.h>
 #include <FastCG/AABB.h>
-
-#include <glm/glm.hpp>
 
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <cassert>
+#include <algorithm>
 
 namespace FastCG
 {
@@ -17,7 +17,7 @@ namespace FastCG
 		std::string name;
 		BufferUsage usage;
 		size_t dataSize;
-		void *pData;
+		const void *pData;
 		std::vector<VertexBindingDescriptor> bindingDescriptors;
 	};
 
@@ -29,7 +29,7 @@ namespace FastCG
 		{
 			BufferUsage usage;
 			uint32_t count;
-			uint32_t *pData;
+			const uint32_t *pData;
 		} indices;
 		AABB bounds{};
 	};
@@ -86,6 +86,8 @@ namespace FastCG
 										  mIndexCount(rArgs.indices.count),
 										  mBounds(rArgs.bounds)
 		{
+			assert(std::none_of(mVertexBuffers.begin(), mVertexBuffers.end(), [](const auto *pBuffer)
+								{ return pBuffer->GetVertexBindingDescriptors().empty(); }));
 		}
 		virtual ~BaseMesh() = default;
 	};

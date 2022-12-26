@@ -4,6 +4,8 @@
 #include <FastCG/RenderingEnums.h>
 
 #include <string>
+#include <string.h>
+#include <memory>
 #include <cstdint>
 
 namespace FastCG
@@ -27,7 +29,7 @@ namespace FastCG
 		TextureDataType dataType{TextureDataType::UNSIGNED_CHAR};
 		TextureFilter filter{TextureFilter::LINEAR_FILTER};
 		TextureWrapMode wrapMode{TextureWrapMode::CLAMP};
-		bool generateMipmaps{true};
+		bool generateMipmap{true};
 		const void *pData{nullptr};
 	};
 
@@ -79,6 +81,21 @@ namespace FastCG
 			return mWrapMode;
 		}
 
+		inline bool HasGeneratedMipmap() const
+		{
+			return mGenerateMipmap;
+		}
+
+		inline size_t GetDataSize() const
+		{
+			return (size_t)(mWidth * mHeight * ((mBitsPerPixel.r + mBitsPerPixel.g + mBitsPerPixel.b + mBitsPerPixel.a) / 8));
+		}
+
+		inline const uint8_t *GetData() const
+		{
+			return mpData.get();
+		}
+
 	protected:
 		const std::string mName;
 		uint32_t mWidth;
@@ -89,6 +106,9 @@ namespace FastCG
 		TextureDataType mDataType;
 		TextureFilter mFilter;
 		TextureWrapMode mWrapMode;
+		bool mGenerateMipmap;
+		size_t mDataSize;
+		std::unique_ptr<uint8_t[]> mpData;
 
 		BaseTexture(const TextureArgs &rArgs) : mName(rArgs.name),
 												mWidth(rArgs.width),
@@ -98,8 +118,18 @@ namespace FastCG
 												mBitsPerPixel(rArgs.bitsPerPixel),
 												mDataType(rArgs.dataType),
 												mFilter(rArgs.filter),
-												mWrapMode(rArgs.wrapMode)
+												mWrapMode(rArgs.wrapMode),
+												mGenerateMipmap(rArgs.generateMipmap)
 		{
+			auto dataSize = GetDataSize();
+			if (dataSize > 0)
+			{
+				mpData = std::make_unique<uint8_t[]>(dataSize);
+				if (rArgs.pData != nullptr)
+				{
+					memcpy((void *)mpData.get(), rArgs.pData, dataSize);
+				}
+			}
 		}
 		virtual ~BaseTexture() = default;
 	};

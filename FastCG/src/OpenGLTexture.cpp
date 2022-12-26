@@ -34,7 +34,7 @@ namespace FastCG
         }
         glTexImage2D(target, 0, internalFormat, (GLsizei)mWidth, (GLsizei)mHeight, 0, format, dataType, rArgs.pData);
 
-        if (rArgs.generateMipmaps)
+        if (rArgs.generateMipmap)
         {
             glGenerateMipmap(target);
         }

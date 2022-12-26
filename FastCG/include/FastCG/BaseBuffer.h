@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <string>
+#include <string.h>
 #include <cstdint>
 #include <cassert>
 #include <algorithm>
@@ -54,6 +55,16 @@ namespace FastCG
             return mUsage;
         }
 
+        inline size_t GetDataSize() const
+        {
+            return mDataSize;
+        }
+
+        inline const uint8_t *GetData() const
+        {
+            return mpData.get();
+        }
+
         inline const std::vector<VertexBindingDescriptor> &GetVertexBindingDescriptors() const
         {
             return mVertexBindingDescriptors;
@@ -63,15 +74,26 @@ namespace FastCG
         const std::string mName;
         const BufferType mType;
         const BufferUsage mUsage;
+        size_t mDataSize;
+        std::unique_ptr<uint8_t[]> mpData;
         const std::vector<VertexBindingDescriptor> mVertexBindingDescriptors;
 
         BaseBuffer(const BufferArgs &rArgs) : mName(rArgs.name),
                                               mType(rArgs.type),
                                               mUsage(rArgs.usage),
+                                              mDataSize(rArgs.dataSize),
                                               mVertexBindingDescriptors(rArgs.vertexBindingDescriptors)
         {
             assert(mType != BufferType::VERTEX_ATTRIBUTE || std::all_of(mVertexBindingDescriptors.cbegin(), mVertexBindingDescriptors.cend(), [](const auto &vbDesc)
                                                                         { return vbDesc.IsValid(); }));
+            if (mDataSize > 0)
+            {
+                mpData = std::make_unique<uint8_t[]>(mDataSize);
+                if (rArgs.pData != nullptr)
+                {
+                    memcpy((void *)mpData.get(), rArgs.pData, mDataSize);
+                }
+            }
         }
         virtual ~BaseBuffer() = default;
     };
