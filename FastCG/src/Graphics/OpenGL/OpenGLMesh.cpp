@@ -1,7 +1,7 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLMesh.h>
-#include <FastCG/OpenGLGraphicsSystem.h>
+#include <FastCG/Graphics/OpenGL/OpenGLMesh.h>
+#include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 
 namespace FastCG
 {

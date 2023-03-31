@@ -1,7 +1,7 @@
 #ifndef FASTCG_TEXTURE_LOADER_H
 #define FASTCG_TEXTURE_LOADER_H
 
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <vector>
 #include <string>

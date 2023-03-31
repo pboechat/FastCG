@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 
 project(FastCG)
 
-file(GLOB HEADERS 
+file(GLOB_RECURSE HEADERS 
 	"${PROJECT_SOURCE_DIR}/include/**/*.h" 
 	"${PROJECT_SOURCE_DIR}/include/*.h" 
 	"${PROJECT_SOURCE_DIR}/include/**/*.hpp" 
@@ -10,7 +10,7 @@ file(GLOB HEADERS
 	"${PROJECT_SOURCE_DIR}/include/**/*.inc" 
 	"${PROJECT_SOURCE_DIR}/include/*.inc"
 )
-file(GLOB SOURCES 
+file(GLOB_RECURSE SOURCES 
 	"${PROJECT_SOURCE_DIR}/src/**/*.cpp" 
 	"${PROJECT_SOURCE_DIR}/src/*.cpp" 
 	"${PROJECT_SOURCE_DIR}/src/**/*.c"

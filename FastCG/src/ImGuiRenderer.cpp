@@ -40,45 +40,45 @@ namespace FastCG
                                                                               &mImGuiConstants});
     }
 
-    void ImGuiRenderer::Render(const ImDrawData *pImDrawData, RenderingContext *pRenderingContext)
+    void ImGuiRenderer::Render(const ImDrawData *pImDrawData, GraphicsContext *pGraphicsContext)
     {
-        pRenderingContext->PushDebugMarker("ImGui Rendering");
+        pGraphicsContext->PushDebugMarker("ImGui Rendering");
         {
-            pRenderingContext->SetBlend(true);
-            pRenderingContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
-            pRenderingContext->SetBlendFactors(BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA, BlendFactor::ZERO, BlendFactor::ZERO);
-            pRenderingContext->SetCullMode(Face::NONE);
-            pRenderingContext->SetDepthTest(false);
-            pRenderingContext->SetDepthWrite(false);
-            pRenderingContext->SetStencilTest(false);
-            pRenderingContext->SetScissorTest(true);
+            pGraphicsContext->SetBlend(true);
+            pGraphicsContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
+            pGraphicsContext->SetBlendFactors(BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA, BlendFactor::ZERO, BlendFactor::ZERO);
+            pGraphicsContext->SetCullMode(Face::NONE);
+            pGraphicsContext->SetDepthTest(false);
+            pGraphicsContext->SetDepthWrite(false);
+            pGraphicsContext->SetStencilTest(false);
+            pGraphicsContext->SetScissorTest(true);
             const auto *pBackbuffer = GraphicsSystem::GetInstance()->GetBackbuffer();
-            pRenderingContext->SetRenderTargets(&pBackbuffer, 1);
+            pGraphicsContext->SetRenderTargets(&pBackbuffer, 1);
 
             auto displayScale = pImDrawData->FramebufferScale;
             auto displayPos = ImVec2(pImDrawData->DisplayPos.x * displayScale.x, pImDrawData->DisplayPos.y * displayScale.y);
             auto displaySize = ImVec2(pImDrawData->DisplaySize.x * displayScale.x, pImDrawData->DisplaySize.y * displayScale.y);
 
-            pRenderingContext->SetViewport((int32_t)displayPos.x, (int32_t)displayPos.y, (uint32_t)displaySize.x, (uint32_t)displaySize.y);
+            pGraphicsContext->SetViewport((int32_t)displayPos.x, (int32_t)displayPos.y, (uint32_t)displaySize.x, (uint32_t)displaySize.y);
 
-            pRenderingContext->PushDebugMarker("ImGui Passes");
+            pGraphicsContext->PushDebugMarker("ImGui Passes");
             {
                 mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
-                pRenderingContext->Copy(mpImGuiConstantsBuffer, sizeof(ImGuiConstants), &mImGuiConstants);
+                pGraphicsContext->Copy(mpImGuiConstantsBuffer, sizeof(ImGuiConstants), &mImGuiConstants);
 
-                pRenderingContext->BindShader(mpImGuiShader);
+                pGraphicsContext->BindShader(mpImGuiShader);
 
-                pRenderingContext->BindResource(mpImGuiConstantsBuffer, 0u);
+                pGraphicsContext->BindResource(mpImGuiConstantsBuffer, 0u);
 
-                pRenderingContext->SetVertexBuffers(mpImGuiMesh->GetVertexBuffers(), mpImGuiMesh->GetVertexBufferCount());
-                pRenderingContext->SetIndexBuffer(mpImGuiMesh->GetIndexBuffer());
+                pGraphicsContext->SetVertexBuffers(mpImGuiMesh->GetVertexBuffers(), mpImGuiMesh->GetVertexBufferCount());
+                pGraphicsContext->SetIndexBuffer(mpImGuiMesh->GetIndexBuffer());
 
                 for (int n = 0; n < pImDrawData->CmdListsCount; n++)
                 {
                     const auto *cmdList = pImDrawData->CmdLists[n];
 
-                    pRenderingContext->Copy(mpImGuiMesh->GetVertexBuffers()[0], cmdList->VtxBuffer.size_in_bytes(), cmdList->VtxBuffer.Data);
-                    pRenderingContext->Copy(mpImGuiMesh->GetIndexBuffer(), cmdList->IdxBuffer.size_in_bytes(), cmdList->IdxBuffer.Data);
+                    pGraphicsContext->Copy(mpImGuiMesh->GetVertexBuffers()[0], cmdList->VtxBuffer.size_in_bytes(), cmdList->VtxBuffer.Data);
+                    pGraphicsContext->Copy(mpImGuiMesh->GetIndexBuffer(), cmdList->IdxBuffer.size_in_bytes(), cmdList->IdxBuffer.Data);
 
                     for (int cmdIdx = 0; cmdIdx < cmdList->CmdBuffer.Size; cmdIdx++)
                     {
@@ -96,18 +96,18 @@ namespace FastCG
                                 continue;
                             }
 
-                            pRenderingContext->SetScissor((int32_t)clipMin.x, (int32_t)(displaySize.y - clipMax.y), (uint32_t)(clipMax.x - clipMin.x), (uint32_t)(clipMax.y - clipMin.y));
+                            pGraphicsContext->SetScissor((int32_t)clipMin.x, (int32_t)(displaySize.y - clipMax.y), (uint32_t)(clipMax.x - clipMin.x), (uint32_t)(clipMax.y - clipMin.y));
 
-                            pRenderingContext->BindResource((OpenGLTexture *)pCmd->GetTexID(), "uColorMap", 0);
+                            pGraphicsContext->BindResource((OpenGLTexture *)pCmd->GetTexID(), "uColorMap", 0);
 
-                            pRenderingContext->DrawIndexed(PrimitiveType::TRIANGLES, (uint32_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset);
+                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, (uint32_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset);
                         }
                     }
                 }
             }
-            pRenderingContext->PopDebugMarker();
+            pGraphicsContext->PopDebugMarker();
         }
-        pRenderingContext->PopDebugMarker();
+        pGraphicsContext->PopDebugMarker();
     }
 
     void ImGuiRenderer::Finalize()

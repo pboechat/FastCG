@@ -1,7 +1,7 @@
-#ifndef FASTCG_RENDERING_STATE_H
-#define FASTCG_RENDERING_STATE_H
+#ifndef FASTCG_GRAPHICS_CONTEXT_STATE_H
+#define FASTCG_GRAPHICS_CONTEXT_STATE_H
 
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 
 #include <cstdint>
 
@@ -28,7 +28,7 @@ namespace FastCG
         BlendFactor dstAlphaFactor;
     };
 
-    struct RenderingState
+    struct GraphicsContextState
     {
         bool depthTest{true};
         bool depthWrite{true};

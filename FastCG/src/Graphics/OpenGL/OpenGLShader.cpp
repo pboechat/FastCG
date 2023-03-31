@@ -1,9 +1,9 @@
 #ifdef FASTCG_OPENGL
 
 #include <FastCG/ShaderSource.h>
-#include <FastCG/OpenGLUtils.h>
-#include <FastCG/OpenGLShader.h>
-#include <FastCG/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
+#include <FastCG/Graphics/OpenGL/OpenGLShader.h>
+#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 #include <FastCG/FastCG.h>
 
 namespace

@@ -47,7 +47,7 @@ namespace FastCG
 
         mpImGuiRenderer->Initialize();
 
-        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext({"Default Rendering Context"});
+        mpGraphicsContext = GraphicsSystem::GetInstance()->CreateGraphicsContext({"Default Rendering Context"});
     }
 
     void RenderingSystem::RegisterRenderable(const Renderable *pRenderable)
@@ -70,17 +70,17 @@ namespace FastCG
         ImGui::Render();
         auto *pImDrawData = ImGui::GetDrawData();
 
-        mpRenderingContext->Begin();
+        mpGraphicsContext->Begin();
         {
-            mpWorldRenderer->Render(pMainCamera, mpRenderingContext);
-            mpImGuiRenderer->Render(pImDrawData, mpRenderingContext);
+            mpWorldRenderer->Render(pMainCamera, mpGraphicsContext);
+            mpImGuiRenderer->Render(pImDrawData, mpGraphicsContext);
         }
-        mpRenderingContext->End();
+        mpGraphicsContext->End();
     }
 
     void RenderingSystem::Finalize()
     {
-        GraphicsSystem::GetInstance()->DestroyRenderingContext(mpRenderingContext);
+        GraphicsSystem::GetInstance()->DestroyGraphicsContext(mpGraphicsContext);
 
         mpImGuiRenderer->Finalize();
         mpWorldRenderer->Finalize();

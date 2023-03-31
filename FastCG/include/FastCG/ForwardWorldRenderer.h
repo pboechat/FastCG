@@ -15,7 +15,7 @@ namespace FastCG
 
         void Initialize() override;
         void Resize() override;
-        void Render(const Camera *pCamera, RenderingContext *pRenderingContext) override;
+        void Render(const Camera *pCamera, GraphicsContext *pGraphicsContext) override;
         void Finalize() override;
 
     private:

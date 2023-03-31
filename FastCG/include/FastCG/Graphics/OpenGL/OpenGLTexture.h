@@ -3,8 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Graphics/BaseTexture.h>
 #include <FastCG/Exception.h>
-#include <FastCG/BaseTexture.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

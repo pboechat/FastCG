@@ -1,7 +1,7 @@
 #ifndef FASTCG_BASE_MATERIAL_DEFINITION_H
 #define FASTCG_BASE_MATERIAL_DEFINITION_H
 
-#include <FastCG/RenderingState.h>
+#include <FastCG/Graphics/GraphicsContextState.h>
 #include <FastCG/ConstantBuffer.h>
 
 #include <vector>
@@ -17,7 +17,7 @@ namespace FastCG
         const ShaderT *pShader;
         std::vector<ConstantBuffer::Member> constantBufferMembers;
         std::unordered_map<std::string, const TextureT *> textures;
-        RenderingState renderingState;
+        GraphicsContextState graphicsContextState;
     };
 
     template <typename ShaderT, typename TextureT>
@@ -46,9 +46,9 @@ namespace FastCG
             return mTextures;
         }
 
-        inline const RenderingState &GetRenderingState() const
+        inline const GraphicsContextState &GetGraphicsContextState() const
         {
-            return mRenderingState;
+            return mGraphicsContextState;
         }
 
     protected:
@@ -56,13 +56,13 @@ namespace FastCG
         const ShaderT *mpShader;
         const ConstantBuffer mConstantBuffer;
         const std::unordered_map<std::string, const TextureT *> mTextures;
-        const RenderingState mRenderingState;
+        const GraphicsContextState mGraphicsContextState;
 
         BaseMaterialDefinition(const MaterialDefinitionArgs &rArgs) : mName(rArgs.name),
                                                                       mpShader(rArgs.pShader),
                                                                       mConstantBuffer(rArgs.constantBufferMembers),
                                                                       mTextures(rArgs.textures),
-                                                                      mRenderingState(rArgs.renderingState)
+                                                                      mGraphicsContextState(rArgs.graphicsContextState)
         {
             assert(mpShader != nullptr);
         }

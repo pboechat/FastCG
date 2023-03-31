@@ -1,7 +1,7 @@
-#ifndef FASTCG_BASE_RENDERING_CONTEXT_H
-#define FASTCG_BASE_RENDERING_CONTEXT_H
+#ifndef FASTCG_BASE_GRAPHICS_CONTEXT_H
+#define FASTCG_BASE_GRAPHICS_CONTEXT_H
 
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 
 #include <glm/glm.hpp>
 
@@ -10,13 +10,13 @@
 
 namespace FastCG
 {
-    struct RenderingContextArgs
+    struct GraphicsContextArgs
     {
         std::string name;
     };
 
     template <class BufferT, class ShaderT, class TextureT>
-    class BaseRenderingContext
+    class BaseGraphicsContext
     {
     public:
         using Buffer = BufferT;
@@ -68,10 +68,10 @@ namespace FastCG
         double GetElapsedTime() const;
 
     protected:
-        const RenderingContextArgs mArgs;
+        const GraphicsContextArgs mArgs;
 
-        BaseRenderingContext(const RenderingContextArgs &rArgs) : mArgs(rArgs) {}
-        virtual ~BaseRenderingContext() = default;
+        BaseGraphicsContext(const GraphicsContextArgs &rArgs) : mArgs(rArgs) {}
+        virtual ~BaseGraphicsContext() = default;
     };
 
 }

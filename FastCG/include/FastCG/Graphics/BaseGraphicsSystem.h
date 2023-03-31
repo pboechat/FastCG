@@ -1,12 +1,12 @@
 #ifndef FASTCG_BASE_GRAPHICS_SYSTEM_H
 #define FASTCG_BASE_GRAPHICS_SYSTEM_H
 
-#include <FastCG/BaseTexture.h>
-#include <FastCG/BaseShader.h>
-#include <FastCG/BaseMesh.h>
-#include <FastCG/BaseMaterialDefinition.h>
-#include <FastCG/BaseMaterial.h>
-#include <FastCG/BaseBuffer.h>
+#include <FastCG/Graphics/BaseTexture.h>
+#include <FastCG/Graphics/BaseShader.h>
+#include <FastCG/Graphics/BaseMesh.h>
+#include <FastCG/Graphics/BaseMaterialDefinition.h>
+#include <FastCG/Graphics/BaseMaterial.h>
+#include <FastCG/Graphics/BaseBuffer.h>
 
 #include <glm/glm.hpp>
 
@@ -29,7 +29,7 @@ namespace FastCG
         bool vsync;
     };
 
-    template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
+    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
     class BaseGraphicsSystem
     {
     public:
@@ -37,7 +37,7 @@ namespace FastCG
         using Material = MaterialT;
         using MaterialDefinition = typename MaterialT::MaterialDefinition;
         using Mesh = MeshT;
-        using RenderingContext = RenderingContextT;
+        using GraphicsContext = GraphicsContextT;
         using Shader = ShaderT;
         using Texture = TextureT;
 
@@ -45,9 +45,9 @@ namespace FastCG
         static_assert(std::is_same<typename Material::Shader, Shader>::value, "Material::Shader type must be the same as Shader type");
         static_assert(std::is_same<typename Material::Texture, Texture>::value, "Material::Texture type must be the same as Texture type");
         static_assert(std::is_same<typename Mesh::Buffer, Buffer>::value, "Mesh::Buffer type must be the same as Buffer type");
-        static_assert(std::is_same<typename RenderingContext::Buffer, Buffer>::value, "RenderingContext::Buffer type must be the same as Buffer type");
-        static_assert(std::is_same<typename RenderingContext::Shader, Shader>::value, "RenderingContext::Shader type must be the same as Shader type");
-        static_assert(std::is_same<typename RenderingContext::Texture, Texture>::value, "RenderingContext::Texture type must be the same as Texture type");
+        static_assert(std::is_same<typename GraphicsContext::Shader, Shader>::value, "GraphicsContext::Shader type must be the same as Shader type");
+        static_assert(std::is_same<typename GraphicsContext::Texture, Texture>::value, "GraphicsContext::Texture type must be the same as Texture type");
+        static_assert(std::is_same<typename GraphicsContext::Buffer, Buffer>::value, "GraphicsContext::Buffer type must be the same as Buffer type");
 
         // Template interface methods
         bool IsInitialized() const;
@@ -64,13 +64,13 @@ namespace FastCG
         MaterialDefinition *CreateMaterialDefinition(const typename MaterialDefinition::MaterialDefinitionArgs &rArgs);
         Material *CreateMaterial(const typename Material::MaterialArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
-        RenderingContext *CreateRenderingContext(const RenderingContextArgs& rArgs);
+        GraphicsContext *CreateGraphicsContext(const GraphicsContextArgs& rArgs);
         Shader *CreateShader(const ShaderArgs &rArgs);
         Texture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const Buffer *pBuffer);
         void DestroyMaterial(const Material *pMaterial);
         void DestroyMesh(const Mesh *pMesh);
-        void DestroyRenderingContext(const RenderingContext *pRenderingContext);
+        void DestroyGraphicsContext(const GraphicsContext *pGraphicsContext);
         void DestroyShader(const Shader *pShader);
         void DestroyTexture(const Texture *pTexture);
         const MaterialDefinition *FindMaterialDefinition(const std::string &rName) const;
@@ -142,6 +142,6 @@ namespace FastCG
 
 }
 
-#include <FastCG/BaseGraphicsSystem.inc>
+#include <FastCG/Graphics/BaseGraphicsSystem.inc>
 
 #endif

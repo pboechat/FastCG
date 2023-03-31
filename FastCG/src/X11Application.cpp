@@ -2,7 +2,7 @@
 
 #ifdef FASTCG_LINUX
 
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <X11/Xatom.h>
 #include <X11/extensions/render.h>

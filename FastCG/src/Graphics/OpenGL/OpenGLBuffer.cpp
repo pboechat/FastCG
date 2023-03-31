@@ -1,8 +1,8 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLUtils.h>
-#include <FastCG/OpenGLBuffer.h>
-#include <FastCG/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
+#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
+#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 
 namespace FastCG
 {

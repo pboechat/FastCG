@@ -1,7 +1,7 @@
 #ifndef FASTCG_INSPECTABLE_H
 #define FASTCG_INSPECTABLE_H
 
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <glm/glm.hpp>
 

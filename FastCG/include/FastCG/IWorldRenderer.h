@@ -1,7 +1,7 @@
 #ifndef FASTCG_I_WORLD_RENDERER_H
 #define FASTCG_I_WORLD_RENDERER_H
 
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Camera.h>
 
 namespace FastCG
@@ -26,7 +26,7 @@ namespace FastCG
         virtual void Initialize() = 0;
         virtual void Resize() = 0;
         virtual void Finalize() = 0;
-        virtual void Render(const Camera *pCamera, RenderingContext *pRenderingContext) = 0;
+        virtual void Render(const Camera *pCamera, GraphicsContext *pGraphicsContext) = 0;
     };
 
 }

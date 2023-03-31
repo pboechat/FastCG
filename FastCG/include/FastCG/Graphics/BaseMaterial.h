@@ -1,8 +1,8 @@
 #ifndef FASTCG_BASE_MATERIAL_H
 #define FASTCG_BASE_MATERIAL_H
 
-#include <FastCG/RenderingState.h>
-#include <FastCG/BaseMaterialDefinition.h>
+#include <FastCG/Graphics/GraphicsContextState.h>
+#include <FastCG/Graphics/BaseMaterialDefinition.h>
 #include <FastCG/ConstantBuffer.h>
 #include <FastCG/Colors.h>
 
@@ -144,9 +144,9 @@ namespace FastCG
 			return true;
 		}
 
-		inline const RenderingState &GetRenderingState() const
+		inline const GraphicsContextState &GetGraphicsContextState() const
 		{
-			return mpMaterialDefinition->GetRenderingState();
+			return mpMaterialDefinition->GetGraphicsContextState();
 		}
 
 	protected:

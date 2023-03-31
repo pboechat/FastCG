@@ -5,14 +5,14 @@
 
 #include <FastCG/System.h>
 #include <FastCG/ShaderConstants.h>
-#include <FastCG/OpenGLTexture.h>
-#include <FastCG/OpenGLShader.h>
-#include <FastCG/OpenGLRenderingContext.h>
-#include <FastCG/OpenGLMesh.h>
-#include <FastCG/OpenGLMaterialDefinition.h>
-#include <FastCG/OpenGLMaterial.h>
-#include <FastCG/OpenGLBuffer.h>
-#include <FastCG/BaseGraphicsSystem.h>
+#include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
+#include <FastCG/Graphics/OpenGL/OpenGLShader.h>
+#include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
+#include <FastCG/Graphics/OpenGL/OpenGLMesh.h>
+#include <FastCG/Graphics/OpenGL/OpenGLMaterialDefinition.h>
+#include <FastCG/Graphics/OpenGL/OpenGLMaterial.h>
+#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
+#include <FastCG/Graphics/BaseGraphicsSystem.h>
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
@@ -30,7 +30,7 @@
 
 namespace FastCG
 {
-    class OpenGLGraphicsSystem : public BaseGraphicsSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLRenderingContext, OpenGLShader, OpenGLTexture>
+    class OpenGLGraphicsSystem : public BaseGraphicsSystem<OpenGLBuffer, OpenGLMaterial, OpenGLMesh, OpenGLGraphicsContext, OpenGLShader, OpenGLTexture>
     {
         FASTCG_DECLARE_SYSTEM(OpenGLGraphicsSystem, GraphicsSystemArgs);
 
@@ -53,14 +53,14 @@ namespace FastCG
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMaterialDefinition *CreateMaterialDefinition(const OpenGLMaterialDefinition::MaterialDefinitionArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
-        OpenGLRenderingContext *CreateRenderingContext(const RenderingContextArgs& rArgs);
+        OpenGLGraphicsContext *CreateGraphicsContext(const GraphicsContextArgs& rArgs);
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const OpenGLBuffer *pBuffer);
         void DestroyMaterial(const OpenGLMaterial *pMaterial);
         void DestroyMaterialDefinition(const OpenGLMaterialDefinition *pMaterialDefinition);
         void DestroyMesh(const OpenGLMesh *pMesh);
-        void DestroyRenderingContext(const OpenGLRenderingContext *pRenderingContext);
+        void DestroyGraphicsContext(const OpenGLGraphicsContext *pGraphicsContext);
         void DestroyShader(const OpenGLShader *pShader);
         void DestroyTexture(const OpenGLTexture *pTexture);
         inline const OpenGLMaterialDefinition *FindMaterialDefinition(const std::string &rName) const
@@ -129,7 +129,7 @@ namespace FastCG
         std::vector<OpenGLMaterial *> mMaterials;
         std::vector<OpenGLMaterialDefinition *> mMaterialDefinitions;
         std::vector<OpenGLMesh *> mMeshes;
-        std::vector<OpenGLRenderingContext *> mRenderingContexts;
+        std::vector<OpenGLGraphicsContext *> mGraphicsContexts;
         std::vector<OpenGLShader *> mShaders;
         std::vector<OpenGLTexture *> mTextures;
         bool mInitialized{false};

@@ -3,11 +3,11 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Graphics/BaseGraphicsContext.h>
+#include <FastCG/Graphics/BaseShader.h>
+#include <FastCG/Graphics/BaseTexture.h>
+#include <FastCG/Graphics/BaseBuffer.h>
 #include <FastCG/Exception.h>
-#include <FastCG/BaseRenderingContext.h>
-#include <FastCG/BaseShader.h>
-#include <FastCG/BaseTexture.h>
-#include <FastCG/BaseBuffer.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

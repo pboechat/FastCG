@@ -1,7 +1,7 @@
 #ifndef FASTCG_MATERIAL_DEFINITION_LOADER_H
 #define FASTCG_MATERIAL_DEFINITION_LOADER_H
 
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <string>
 

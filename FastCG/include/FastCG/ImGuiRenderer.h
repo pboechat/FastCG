@@ -2,7 +2,7 @@
 #define FASTCG_IMGUI_RENDERER_H
 
 #include <FastCG/ShaderConstants.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <imgui.h>
 
@@ -22,7 +22,7 @@ namespace FastCG
         ImGuiRenderer(const ImGuiRendererArgs &rArgs) : mArgs(rArgs) {}
 
         void Initialize();
-        void Render(const ImDrawData *pImDrawData, RenderingContext *pRenderingContext);
+        void Render(const ImDrawData *pImDrawData, GraphicsContext *pGraphicsContext);
         void Finalize();
 
     private:

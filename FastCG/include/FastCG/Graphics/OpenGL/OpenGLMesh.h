@@ -3,8 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLBuffer.h>
-#include <FastCG/BaseMesh.h>
+#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
+#include <FastCG/Graphics/BaseMesh.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

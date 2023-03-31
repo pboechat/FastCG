@@ -1,4 +1,4 @@
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 #include <FastCG/DebugMenuSystem.h>
 
 #include <imgui.h>
@@ -16,8 +16,8 @@ namespace
         ImGui::Image((void *)pTexture, ImVec2((float)textureWidth, textureHeight), ImVec2(0, 1), ImVec2(1, 0));
     }
 
-    template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
-    void DisplayTextureBrowser(const FastCG::BaseGraphicsSystem<BufferT, MaterialT, MeshT, RenderingContextT, ShaderT, TextureT> *pRenderingSystem, const TextureT *&rpSelectedTexture)
+    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
+    void DisplayTextureBrowser(const FastCG::BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem, const TextureT *&rpSelectedTexture)
     {
         if (ImGui::Begin("Texture Browser"))
         {
@@ -58,8 +58,8 @@ namespace
         ImGui::End();
     }
 
-    template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
-    void DisplayMaterialBrowser(const FastCG::BaseGraphicsSystem<BufferT, MaterialT, MeshT, RenderingContextT, ShaderT, TextureT> *pRenderingSystem, const MaterialT *&rpSelectedMaterial)
+    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
+    void DisplayMaterialBrowser(const FastCG::BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem, const MaterialT *&rpSelectedMaterial)
     {
         if (ImGui::Begin("Material Browser"))
         {
@@ -127,8 +127,8 @@ namespace
 
 namespace FastCG
 {
-    template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, RenderingContextT, ShaderT, TextureT>::Initialize()
+    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::Initialize()
     {
 #ifdef _DEBUG
         DebugMenuSystem::GetInstance()->AddCallback("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuCallback, this, std::placeholders::_1));
@@ -137,8 +137,8 @@ namespace FastCG
     }
 
 #ifdef _DEBUG
-    template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, RenderingContextT, ShaderT, TextureT>::DebugMenuCallback(int result)
+    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::DebugMenuCallback(int result)
     {
         if (mShowTextureBrowser)
         {
@@ -150,8 +150,8 @@ namespace FastCG
         }
     }
 
-    template <class BufferT, class MaterialT, class MeshT, class RenderingContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, RenderingContextT, ShaderT, TextureT>::DebugMenuItemCallback(int &result)
+    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::DebugMenuItemCallback(int &result)
     {
         ImGui::Checkbox("Texture Browser", &mShowTextureBrowser);
         ImGui::Checkbox("Material Browser", &mShowMaterialBrowser);

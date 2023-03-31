@@ -2,7 +2,7 @@
 
 #ifdef FASTCG_WINDOWS
 
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <unordered_map>
 

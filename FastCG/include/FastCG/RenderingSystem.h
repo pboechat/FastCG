@@ -5,7 +5,7 @@
 #include <FastCG/RenderingStatistics.h>
 #include <FastCG/RenderingPath.h>
 #include <FastCG/IWorldRenderer.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <memory>
 #include <cstdint>
@@ -48,7 +48,7 @@ namespace FastCG
         std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy;
         std::unique_ptr<IWorldRenderer> mpWorldRenderer;
         std::unique_ptr<ImGuiRenderer> mpImGuiRenderer;
-        RenderingContext *mpRenderingContext;
+        GraphicsContext *mpGraphicsContext;
 
         RenderingSystem(const RenderingSystemArgs &rArgs);
         ~RenderingSystem();

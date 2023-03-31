@@ -1,7 +1,7 @@
 #ifndef FASTCG_BASE_TEXTURE_H
 #define FASTCG_BASE_TEXTURE_H
 
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 
 #include <string>
 #include <string.h>

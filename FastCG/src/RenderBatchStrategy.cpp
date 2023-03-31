@@ -77,7 +77,7 @@ namespace FastCG
                                { return rRenderBatch.pMaterial == pMaterial; });
         if (it == mRenderBatches.end())
         {
-            mRenderBatches.emplace_back(RenderBatch{pMaterial->GetRenderingState().blend ? RenderBatchType::TRANSPARENT_MATERIAL : RenderBatchType::OPAQUE_MATERIAL, pMaterial});
+            mRenderBatches.emplace_back(RenderBatch{pMaterial->GetGraphicsContextState().blend ? RenderBatchType::TRANSPARENT_MATERIAL : RenderBatchType::OPAQUE_MATERIAL, pMaterial});
             it = std::prev(mRenderBatches.end());
             AddToRenderBatch(*it, pRenderable);
             std::sort(mRenderBatches.begin(), mRenderBatches.end(), RenderBatchComparer());

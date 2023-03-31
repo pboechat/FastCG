@@ -7,7 +7,7 @@
 #include <FastCG/ModelLoader.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyController.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>

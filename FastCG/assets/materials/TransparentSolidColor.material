@@ -48,7 +48,7 @@
             null
         ]
     ],
-    "renderingState": {
+    "graphicsContextState": {
         "depthWrite": false,
         "blend": true,
         "blendState": {

@@ -3,8 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Graphics/BaseBuffer.h>
 #include <FastCG/Exception.h>
-#include <FastCG/BaseBuffer.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

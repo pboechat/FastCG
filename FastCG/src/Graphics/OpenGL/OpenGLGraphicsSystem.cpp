@@ -5,9 +5,9 @@
 #elif defined FASTCG_LINUX
 #include <FastCG/X11Application.h>
 #endif
-#include <FastCG/OpenGLUtils.h>
-#include <FastCG/OpenGLGraphicsSystem.h>
-#include <FastCG/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
+#include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
+#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 #include <FastCG/Exception.h>
 #include <FastCG/FastCG.h>
 #include <FastCG/AssetSystem.h>
@@ -141,7 +141,7 @@ namespace FastCG
         DESTROY_ALL(mShaders);
         DESTROY_ALL(mBuffers);
         DESTROY_ALL(mTextures);
-        DESTROY_ALL(mRenderingContexts);
+        DESTROY_ALL(mGraphicsContexts);
 
 #ifdef _DEBUG
         glDeleteQueries(1, &mPresentTimestampQuery);
@@ -275,7 +275,7 @@ namespace FastCG
     DECLARE_CREATE_METHOD_WITH_ARGS(Buffer, mBuffers, const BufferArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Mesh, mMeshes, const MeshArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(MaterialDefinition, mMaterialDefinitions, const OpenGLMaterialDefinition::MaterialDefinitionArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(RenderingContext, mRenderingContexts, const RenderingContextArgs &, rArgs)
+    DECLARE_CREATE_METHOD_WITH_ARGS(GraphicsContext, mGraphicsContexts, const GraphicsContextArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Shader, mShaders, const ShaderArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Texture, mTextures, const TextureArgs &, rArgs)
 
@@ -315,7 +315,7 @@ namespace FastCG
     DECLARE_DESTROY_METHOD(Buffer, mBuffers)
     DECLARE_DESTROY_METHOD(Mesh, mMeshes)
     DECLARE_DESTROY_METHOD(MaterialDefinition, mMaterialDefinitions)
-    DECLARE_DESTROY_METHOD(RenderingContext, mRenderingContexts)
+    DECLARE_DESTROY_METHOD(GraphicsContext, mGraphicsContexts)
     DECLARE_DESTROY_METHOD(Shader, mShaders)
 
     void OpenGLGraphicsSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
@@ -666,9 +666,9 @@ namespace FastCG
 
         mPresentElapsedTime = (presentEnd - (GLuint64)presentStart) * 1e-9;
 
-        for (auto *pRenderingContext : mRenderingContexts)
+        for (auto *pGraphicsContext : mGraphicsContexts)
         {
-            pRenderingContext->RetrieveElapsedTime();
+            pGraphicsContext->RetrieveElapsedTime();
         }
 #endif
     }
@@ -686,9 +686,9 @@ namespace FastCG
     {
 #ifdef _DEBUG
         double elapsedTime = 0;
-        for (auto *pRenderingContext : mRenderingContexts)
+        for (auto *pGraphicsContext : mGraphicsContexts)
         {
-            elapsedTime += pRenderingContext->GetElapsedTime();
+            elapsedTime += pGraphicsContext->GetElapsedTime();
         }
         return elapsedTime;
 #else

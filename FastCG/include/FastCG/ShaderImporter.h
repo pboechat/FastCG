@@ -1,8 +1,8 @@
 #ifndef FASTCG_SHADER_IMPORTER_H
 #define FASTCG_SHADER_IMPORTER_H
 
-#include <FastCG/GraphicsSystem.h>
 #include <FastCG/RenderingPath.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 namespace FastCG
 {

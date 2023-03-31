@@ -1,12 +1,12 @@
-#ifndef FASTCG_OPENGL_RENDERING_CONTEXT_H
-#define FASTCG_OPENGL_RENDERING_CONTEXT_H
+#ifndef FASTCG_OPENGL_GRAPHICS_CONTEXT_H
+#define FASTCG_OPENGL_GRAPHICS_CONTEXT_H
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLTexture.h>
-#include <FastCG/OpenGLShader.h>
-#include <FastCG/OpenGLBuffer.h>
-#include <FastCG/BaseRenderingContext.h>
+#include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
+#include <FastCG/Graphics/OpenGL/OpenGLShader.h>
+#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
+#include <FastCG/Graphics/BaseGraphicsContext.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -15,7 +15,7 @@ namespace FastCG
 {
     class OpenGLGraphicsSystem;
 
-    class OpenGLRenderingContext : public BaseRenderingContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>
+    class OpenGLGraphicsContext : public BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
     public:
         void Begin();
@@ -64,8 +64,8 @@ namespace FastCG
         double mElapsedTime{0};
 #endif
 
-        OpenGLRenderingContext(const RenderingContextArgs& rArgs);
-        virtual ~OpenGLRenderingContext();
+        OpenGLGraphicsContext(const GraphicsContextArgs& rArgs);
+        virtual ~OpenGLGraphicsContext();
 
 #ifdef _DEBUG
         void RetrieveElapsedTime();

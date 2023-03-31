@@ -5,7 +5,7 @@
 #include <FastCG/ModelLoader.h>
 #include <FastCG/MeshUtils.h>
 #include <FastCG/MathT.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/FileWriter.h>
 #include <FastCG/FileReader.h>
 #include <FastCG/File.h>

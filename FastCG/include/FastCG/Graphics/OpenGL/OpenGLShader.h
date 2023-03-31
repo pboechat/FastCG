@@ -3,7 +3,7 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/BaseShader.h>
+#include <FastCG/Graphics/BaseShader.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

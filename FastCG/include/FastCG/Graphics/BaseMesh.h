@@ -1,7 +1,7 @@
 #ifndef FASTCG_BASE_MESH_H
 #define FASTCG_BASE_MESH_H
 
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 #include <FastCG/AABB.h>
 
 #include <vector>

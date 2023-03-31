@@ -4,7 +4,7 @@
 #include <FastCG/PointLight.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Inspectable.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/DebugMenuSystem.h>

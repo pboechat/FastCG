@@ -3,10 +3,10 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/OpenGLTexture.h>
-#include <FastCG/OpenGLShader.h>
-#include <FastCG/OpenGLBuffer.h>
-#include <FastCG/BaseMaterial.h>
+#include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
+#include <FastCG/Graphics/OpenGL/OpenGLShader.h>
+#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
+#include <FastCG/Graphics/BaseMaterial.h>
 
 namespace FastCG
 {

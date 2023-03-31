@@ -2,12 +2,12 @@
 #define FASTCG_BASE_WORLD_RENDERER_H
 
 #include <FastCG/RenderingStatistics.h>
-#include <FastCG/RenderingState.h>
 #include <FastCG/RenderBatch.h>
 #include <FastCG/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/Light.h>
 #include <FastCG/IWorldRenderer.h>
+#include <FastCG/Graphics/GraphicsContextState.h>
 #include <FastCG/DirectionalLight.h>
 
 #include <glm/glm.hpp>
@@ -122,15 +122,15 @@ namespace FastCG
 		SceneConstants mSceneConstants{};
 		const Mesh *mpQuadMesh{nullptr};
 
-		inline void GenerateShadowMaps(RenderingContext *pRenderingContext);
-		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
-		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, RenderingContext *pRenderingContext);
-		inline void BindMaterial(const Material *pMaterial, RenderingContext *pRenderingContext);
-		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline uint32_t UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
-		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, RenderingContext *pRenderingContext);
-		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
+		inline void GenerateShadowMaps(GraphicsContext *pGraphicsContext);
+		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext);
+		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext);
+		inline void BindMaterial(const Material *pMaterial, GraphicsContext *pGraphicsContext);
+		inline void UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
+		inline uint32_t UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
+		inline virtual void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext);
+		inline virtual void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext);
+		inline virtual void UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
 
 	private:
 		using ShadowMapKey = uint64_t;
@@ -195,17 +195,17 @@ namespace FastCG
 		bool mSSAOBlurEnabled{true};
 		const Shader *mpTonemapShader{nullptr};
 
-		inline void SetRenderingState(const RenderingState &rRenderingState, RenderingContext *pRenderingContext) const;
+		inline void SetGraphicsContextState(const GraphicsContextState &rGraphicsContextState, GraphicsContext *pGraphicsContext) const;
 		inline void CreateSSAORenderTargets();
 		inline void DestroySSAORenderTargets();
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
-		inline uint32_t UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, RenderingContext *pRenderingContext);
-		inline void UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, RenderingContext *pRenderingContext);
-		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, RenderingContext *pRenderingContext);
-		inline void UpdateSSAOConstants(bool isSSAOEnabled, RenderingContext *pRenderingContext) const;
-		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, RenderingContext *pRenderingContext);
+		inline uint32_t UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
+		inline void UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext);
+		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext);
+		inline void UpdateSSAOConstants(bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const;
+		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext);
 #ifdef _DEBUG
 		inline void DebugMenuItemCallback(int &result);
 #endif

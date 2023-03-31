@@ -1,8 +1,8 @@
-#include <FastCG/GameObjectLoader.h>
 #include <FastCG/Transform.h>
-#include <FastCG/RenderingEnums.h>
 #include <FastCG/Inspectable.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/GameObjectLoader.h>
 #include <FastCG/FileReader.h>
 #include <FastCG/File.h>
 #include <FastCG/FastCG.h>

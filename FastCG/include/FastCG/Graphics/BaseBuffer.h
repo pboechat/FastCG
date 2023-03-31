@@ -1,7 +1,7 @@
 #ifndef FASTCG_BASE_BUFFER_H
 #define FASTCG_BASE_BUFFER_H
 
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 
 #include <vector>
 #include <string>

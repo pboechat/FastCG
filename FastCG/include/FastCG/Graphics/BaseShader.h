@@ -1,7 +1,7 @@
 #ifndef FASTCG_BASE_SHADER_H
 #define FASTCG_BASE_SHADER_H
 
-#include <FastCG/RenderingEnums.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 
 #include <type_traits>
 #include <string>

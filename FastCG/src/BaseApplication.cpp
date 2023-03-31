@@ -10,7 +10,7 @@
 #include <FastCG/Key.h>
 #include <FastCG/ImGuiSystem.h>
 #include <FastCG/InputSystem.h>
-#include <FastCG/GraphicsSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/Exception.h>
 #include <FastCG/DirectionalLight.h>

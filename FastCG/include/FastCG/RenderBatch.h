@@ -1,8 +1,8 @@
 #ifndef FASTCG_RENDER_BATCH_H
 #define FASTCG_RENDER_BATCH_H
 
-#include <FastCG/GraphicsSystem.h>
 #include <FastCG/Renderable.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <vector>
 #include <unordered_map>
