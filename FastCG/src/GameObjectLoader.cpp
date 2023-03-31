@@ -101,6 +101,7 @@ namespace
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
         args.name = rGenericObj["name"].GetString();
         std::array<std::unique_ptr<uint8_t[]>, MAX_MESH_BUFFERS> buffersData;
+        std::unique_ptr<uint32_t[]> indexBufferData;
         size_t bufferIdx = 0;
         if (rGenericObj.HasMember("vertexBuffers"))
         {
@@ -167,9 +168,11 @@ namespace
             assert(indexBufferObj["dataPath"].IsString());
             auto filePath = FastCG::File::Join({rBasePath, indexBufferObj["dataPath"].GetString()});
             size_t dataSize;
-            buffersData[bufferIdx] = FastCG::FileReader::ReadBinary(filePath, dataSize);
+            auto data = FastCG::FileReader::ReadBinary(filePath, dataSize);
             assert(dataSize % sizeof(uint32_t) == 0);
             args.indices.count = (uint32_t)(dataSize / sizeof(uint32_t));
+            indexBufferData = std::make_unique<uint32_t[]>(dataSize);
+            memcpy((void *)indexBufferData.get(), (const void *)data.get(), dataSize);
         }
         else
         {
@@ -177,11 +180,11 @@ namespace
             args.indices.count = indexBufferObj["count"].GetUint();
             assert(indexBufferObj.HasMember("data") && indexBufferObj["data"].IsString());
             auto data = FastCG::DecodeBase64(indexBufferObj["data"].GetString());
-            auto bufferData = std::make_unique<uint8_t[]>(data.size());
-            memcpy((void *)bufferData.get(), (const void *)data.data(), data.size());
-            buffersData[bufferIdx] = std::move(bufferData);
+            assert(data.size() % sizeof(uint32_t) == 0);
+            indexBufferData = std::make_unique<uint32_t[]>(args.indices.count);
+            memcpy((void *)indexBufferData.get(), (const void *)data.data(), data.size());
         }
-        args.indices.pData = (const uint32_t *)buffersData[bufferIdx++].get();
+        args.indices.pData = (const uint32_t *)indexBufferData.get();
         if (rGenericObj.HasMember("bounds"))
         {
             assert(rGenericObj["bounds"].IsObject());
