@@ -47,7 +47,7 @@ namespace FastCG
 
         mpImGuiRenderer->Initialize();
 
-        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext();
+        mpRenderingContext = GraphicsSystem::GetInstance()->CreateRenderingContext({"Default Rendering Context"});
     }
 
     void RenderingSystem::RegisterRenderable(const Renderable *pRenderable)

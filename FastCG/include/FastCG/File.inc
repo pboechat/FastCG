@@ -57,7 +57,7 @@ namespace FastCG
 	{
 		std::string fileName = GetFileName(rFilePath);
 		size_t position;
-		if ((position = fileName.find(".")) != std::string::npos)
+		if ((position = fileName.rfind(".")) != std::string::npos)
 		{
 			return fileName.substr(0, position);
 		}

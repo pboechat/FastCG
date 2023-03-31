@@ -64,7 +64,7 @@ namespace FastCG
         MaterialDefinition *CreateMaterialDefinition(const typename MaterialDefinition::MaterialDefinitionArgs &rArgs);
         Material *CreateMaterial(const typename Material::MaterialArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
-        RenderingContext *CreateRenderingContext();
+        RenderingContext *CreateRenderingContext(const RenderingContextArgs& rArgs);
         Shader *CreateShader(const ShaderArgs &rArgs);
         Texture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const Buffer *pBuffer);

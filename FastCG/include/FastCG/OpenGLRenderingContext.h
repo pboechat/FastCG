@@ -64,7 +64,7 @@ namespace FastCG
         double mElapsedTime{0};
 #endif
 
-        OpenGLRenderingContext();
+        OpenGLRenderingContext(const RenderingContextArgs& rArgs);
         virtual ~OpenGLRenderingContext();
 
 #ifdef _DEBUG

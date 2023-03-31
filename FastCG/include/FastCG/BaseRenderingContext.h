@@ -5,10 +5,16 @@
 
 #include <glm/glm.hpp>
 
+#include <string>
 #include <cstdint>
 
 namespace FastCG
 {
+    struct RenderingContextArgs
+    {
+        std::string name;
+    };
+
     template <class BufferT, class ShaderT, class TextureT>
     class BaseRenderingContext
     {
@@ -17,7 +23,10 @@ namespace FastCG
         using Shader = ShaderT;
         using Texture = TextureT;
 
-        virtual ~BaseRenderingContext() = default;
+        inline const std::string &GetName() const
+        {
+            return mArgs.name;
+        }
 
         // Template interface
         void Begin();
@@ -57,6 +66,12 @@ namespace FastCG
         void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void End();
         double GetElapsedTime() const;
+
+    protected:
+        const RenderingContextArgs mArgs;
+
+        BaseRenderingContext(const RenderingContextArgs &rArgs) : mArgs(rArgs) {}
+        virtual ~BaseRenderingContext() = default;
     };
 
 }

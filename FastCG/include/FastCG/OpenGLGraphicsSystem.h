@@ -53,7 +53,7 @@ namespace FastCG
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMaterialDefinition *CreateMaterialDefinition(const OpenGLMaterialDefinition::MaterialDefinitionArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
-        OpenGLRenderingContext *CreateRenderingContext();
+        OpenGLRenderingContext *CreateRenderingContext(const RenderingContextArgs& rArgs);
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const OpenGLBuffer *pBuffer);

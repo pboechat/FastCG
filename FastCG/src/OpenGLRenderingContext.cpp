@@ -12,7 +12,8 @@
 
 namespace FastCG
 {
-    OpenGLRenderingContext::OpenGLRenderingContext()
+    OpenGLRenderingContext::OpenGLRenderingContext(const RenderingContextArgs& rArgs)
+        : BaseRenderingContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>(rArgs)
     {
 #ifdef _DEBUG
         glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);

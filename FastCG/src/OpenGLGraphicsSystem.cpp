@@ -275,7 +275,7 @@ namespace FastCG
     DECLARE_CREATE_METHOD_WITH_ARGS(Buffer, mBuffers, const BufferArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Mesh, mMeshes, const MeshArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(MaterialDefinition, mMaterialDefinitions, const OpenGLMaterialDefinition::MaterialDefinitionArgs &, rArgs)
-    DECLARE_CREATE_METHOD(RenderingContext, mRenderingContexts)
+    DECLARE_CREATE_METHOD_WITH_ARGS(RenderingContext, mRenderingContexts, const RenderingContextArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Shader, mShaders, const ShaderArgs &, rArgs)
     DECLARE_CREATE_METHOD_WITH_ARGS(Texture, mTextures, const TextureArgs &, rArgs)
 
@@ -296,19 +296,20 @@ namespace FastCG
         return mMaterials.back();
     }
 
-#define DECLARE_DESTROY_METHOD(className, containerMember)                                   \
-    void OpenGLGraphicsSystem::Destroy##className(const OpenGL##className *p##className)     \
-    {                                                                                        \
-        auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className); \
-        if (it != containerMember.cend())                                                    \
-        {                                                                                    \
-            containerMember.erase(it);                                                       \
-            delete p##className;                                                             \
-        }                                                                                    \
-        else                                                                                 \
-        {                                                                                    \
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy " #className);               \
-        }                                                                                    \
+#define DECLARE_DESTROY_METHOD(className, containerMember)                                                              \
+    void OpenGLGraphicsSystem::Destroy##className(const OpenGL##className *p##className)                                \
+    {                                                                                                                   \
+        assert(p##className != nullptr);                                                                                \
+        auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className);                            \
+        if (it != containerMember.cend())                                                                               \
+        {                                                                                                               \
+            containerMember.erase(it);                                                                                  \
+            delete p##className;                                                                                        \
+        }                                                                                                               \
+        else                                                                                                            \
+        {                                                                                                               \
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy " #className " '%s'", p##className->GetName().c_str()); \
+        }                                                                                                               \
     }
 
     DECLARE_DESTROY_METHOD(Buffer, mBuffers)
@@ -319,6 +320,7 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
     {
+        assert(pMaterial != nullptr);
         const auto *pMaterialConstantBuffer = pMaterial->GetConstantBuffer();
         if (pMaterialConstantBuffer != nullptr)
         {
@@ -333,12 +335,13 @@ namespace FastCG
         }
         else
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy material");
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy material '%s'", pMaterial->GetName().c_str());
         }
     }
 
     void OpenGLGraphicsSystem::DestroyTexture(const OpenGLTexture *pTexture)
     {
+        assert(pTexture != nullptr);
         // Delete fbos that reference the texture to be deleted
         {
             auto it = mTextureToFboHashes.find(*pTexture);
@@ -363,7 +366,7 @@ namespace FastCG
             }
             else
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy texture");
+                FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy texture '%s'", pTexture->GetName().c_str());
             }
         }
     }

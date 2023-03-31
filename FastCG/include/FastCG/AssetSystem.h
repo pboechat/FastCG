@@ -10,7 +10,7 @@ namespace FastCG
 {
     struct AssetSystemArgs
     {
-        const std::vector<std::string> &bundles;
+        const std::vector<std::string> &rBundles;
     };
 
     class AssetSystem
