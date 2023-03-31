@@ -35,7 +35,7 @@ namespace FastCG
         case BufferType::INDICES:
             return GL_ELEMENT_ARRAY_BUFFER;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled buffer type: %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled buffer type %d", (int)type);
             return (GLenum)0;
         }
     }
@@ -51,7 +51,7 @@ namespace FastCG
         case BufferUsage::STREAM:
             return GL_STREAM_DRAW;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled buffer usage: %d", (int)usage);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled buffer usage %d", (int)usage);
             return (GLenum)0;
         }
     }
@@ -65,7 +65,7 @@ namespace FastCG
         case VertexDataType::UNSIGNED_BYTE:
             return GL_UNSIGNED_BYTE;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled vertex data type: %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled vertex data type %d", (int)type);
             return (GLenum)0;
         }
     }
@@ -91,7 +91,7 @@ namespace FastCG
         case StencilOp::DECREMENT_AND_WRAP:
             return GL_DECR_WRAP;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled stencil func: %d", (int)stencilFunc);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled stencil func %d", (int)stencilFunc);
             return (GLenum)0;
         }
     }
@@ -107,7 +107,7 @@ namespace FastCG
         case Face::FRONT_AND_BACK:
             return GL_FRONT_AND_BACK;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled face: %d", (int)face);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled face %d", (int)face);
             return (GLenum)0;
         }
     }
@@ -133,7 +133,7 @@ namespace FastCG
         case CompareOp::ALWAYS:
             return GL_ALWAYS;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled compare op: %d", (int)compareOp);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled compare op %d", (int)compareOp);
             return (GLenum)0;
         }
     }
@@ -145,7 +145,7 @@ namespace FastCG
         case BlendFunc::ADD:
             return GL_FUNC_ADD;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled blend func: %d", (int)blendFunc);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled blend func %d", (int)blendFunc);
             return (GLenum)0;
         }
     }
@@ -171,7 +171,7 @@ namespace FastCG
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return GL_ONE_MINUS_SRC_ALPHA;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled blend factor: %d", (int)blendFactor);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled blend factor %d", (int)blendFactor);
             return (GLenum)0;
         }
     }
@@ -183,7 +183,7 @@ namespace FastCG
         case PrimitiveType::TRIANGLES:
             return GL_TRIANGLES;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled primitive type: %d", (int)primitiveType);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled primitive type %d", (int)primitiveType);
             return (GLenum)0;
         }
     }
@@ -195,7 +195,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_VERTEX_SHADER);
             CASE_RETURN_STRING(GL_FRAGMENT_SHADER);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled OpenGL shader type");
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled shader type %d", (int)shaderType);
             return nullptr;
         }
     }
@@ -209,7 +209,7 @@ namespace FastCG
         case ShaderType::FRAGMENT:
             return GL_FRAGMENT_SHADER;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled shader type");
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled shader type %d", (int)shaderType);
             return 0;
         }
     }
@@ -221,7 +221,7 @@ namespace FastCG
         case TextureType::TEXTURE_2D:
             return GL_TEXTURE_2D;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled texture type: %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture type %d", (int)type);
             return 0;
         }
     }
@@ -235,7 +235,7 @@ namespace FastCG
         case TextureFilter::LINEAR_FILTER:
             return GL_LINEAR;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled filter: %d", (int)filter);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled filter %d", (int)filter);
             return 0;
         }
     }
@@ -249,7 +249,7 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return GL_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled wrapping mode: %d", (int)wrapMode);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled wrapping mode %d", (int)wrapMode);
             return 0;
         }
     }
@@ -375,7 +375,7 @@ namespace FastCG
                 return GL_DEPTH_COMPONENT;
             }
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled texture format: %d", (int)format);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);
             return 0;
         }
     }
@@ -401,7 +401,7 @@ namespace FastCG
         case TextureFormat::DEPTH:
             return GL_DEPTH_COMPONENT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled texture format: %d", (int)format);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);
             return 0;
         }
     }
@@ -424,7 +424,7 @@ namespace FastCG
                 return GL_UNSIGNED_INT;
             }
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Unhandled data type: %d", (int)dataType);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled data type %d", (int)dataType);
             return 0;
         }
     }
@@ -444,7 +444,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_SOURCE_APPLICATION);
             CASE_RETURN_STRING(GL_DEBUG_SOURCE_OTHER);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpengGL debug output message source");
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGL: Unhandled debug output message source %d", (int)source);
             return nullptr;
         }
     }
@@ -463,7 +463,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_TYPE_PUSH_GROUP);
             CASE_RETURN_STRING(GL_DEBUG_TYPE_POP_GROUP);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpengGL debug output message type");
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGL: Unhandled debug output message type %d", (int)type);
             return nullptr;
         }
     }
@@ -477,7 +477,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_SEVERITY_LOW);
             CASE_RETURN_STRING(GL_DEBUG_SEVERITY_NOTIFICATION);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled OpengGL debug output message severity");
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGL: Unhandled debug output message severity %d", (int)severity);
             return nullptr;
         }
     }
