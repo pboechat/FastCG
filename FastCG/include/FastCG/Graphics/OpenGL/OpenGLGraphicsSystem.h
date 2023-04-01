@@ -53,7 +53,7 @@ namespace FastCG
         OpenGLMaterial *CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs);
         OpenGLMaterialDefinition *CreateMaterialDefinition(const OpenGLMaterialDefinition::MaterialDefinitionArgs &rArgs);
         OpenGLMesh *CreateMesh(const MeshArgs &rArgs);
-        OpenGLGraphicsContext *CreateGraphicsContext(const GraphicsContextArgs& rArgs);
+        OpenGLGraphicsContext *CreateGraphicsContext(const GraphicsContextArgs &rArgs);
         OpenGLShader *CreateShader(const ShaderArgs &rArgs);
         OpenGLTexture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const OpenGLBuffer *pBuffer);
@@ -83,10 +83,8 @@ namespace FastCG
             }
             return *it;
         }
-#if defined FASTCG_WINDOWS
-        void SetupPixelFormat() const;
-#elif defined FASTCG_LINUX
-        XVisualInfo *GetVisualInfo();
+#ifdef FASTCG_LINUX
+        XVisualInfo *GetVisualInfo() override;
 #endif
         inline size_t GetTextureCount() const override
         {

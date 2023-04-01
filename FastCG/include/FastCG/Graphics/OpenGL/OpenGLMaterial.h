@@ -15,9 +15,7 @@ namespace FastCG
     class OpenGLMaterial : public BaseMaterial<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
     private:
-        OpenGLMaterial(const MaterialArgs &rArgs, const OpenGLBuffer *pConstantsBuffer) : BaseMaterial(rArgs, pConstantsBuffer)
-        {
-        }
+        OpenGLMaterial(const MaterialArgs &rArgs, const OpenGLBuffer *pConstantsBuffer) : BaseMaterial(rArgs, pConstantsBuffer) {}
 
         friend class OpenGLGraphicsSystem;
     };

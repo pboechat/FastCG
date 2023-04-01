@@ -196,6 +196,7 @@ namespace FastCG
     void X11Application::CreateWindow()
     {
         auto *pVisualInfo = GraphicsSystem::GetInstance()->GetVisualInfo();
+        assert(pVisualInfo != nullptr);
 
         auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
 

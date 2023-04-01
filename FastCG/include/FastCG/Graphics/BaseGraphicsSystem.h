@@ -64,7 +64,7 @@ namespace FastCG
         MaterialDefinition *CreateMaterialDefinition(const typename MaterialDefinition::MaterialDefinitionArgs &rArgs);
         Material *CreateMaterial(const typename Material::MaterialArgs &rArgs);
         Mesh *CreateMesh(const MeshArgs &rArgs);
-        GraphicsContext *CreateGraphicsContext(const GraphicsContextArgs& rArgs);
+        GraphicsContext *CreateGraphicsContext(const GraphicsContextArgs &rArgs);
         Shader *CreateShader(const ShaderArgs &rArgs);
         Texture *CreateTexture(const TextureArgs &rArgs);
         void DestroyBuffer(const Buffer *pBuffer);
@@ -75,10 +75,11 @@ namespace FastCG
         void DestroyTexture(const Texture *pTexture);
         const MaterialDefinition *FindMaterialDefinition(const std::string &rName) const;
         const Shader *FindShader(const std::string &rName) const;
+
 #if defined FASTCG_WINDOWS
         void SetupPixelFormat() const;
 #elif defined FASTCG_LINUX
-        XVisualInfo *GetVisualInfo();
+        virtual XVisualInfo *GetVisualInfo();
 #endif
         virtual size_t GetTextureCount() const = 0;
         virtual const Texture *GetTextureAt(size_t i) const = 0;
@@ -90,7 +91,7 @@ namespace FastCG
             return mpSelectedTexture;
         }
 
-        inline void SetSelectedTexture(const Texture* pTexture)
+        inline void SetSelectedTexture(const Texture *pTexture)
         {
             mShowTextureBrowser = true;
             mpSelectedTexture = pTexture;
@@ -101,12 +102,12 @@ namespace FastCG
             return mpSelectedMaterial;
         }
 
-        inline void SetSelectedMaterial(const Material* pMaterial)
+        inline void SetSelectedMaterial(const Material *pMaterial)
         {
             mShowMaterialBrowser = true;
             mpSelectedMaterial = pMaterial;
         }
-        
+
 #endif
 
     protected:

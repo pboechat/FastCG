@@ -50,7 +50,7 @@ namespace
         h = h ^ ki;                      // XOR h and ki
     }
 
-    void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam)
+    void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam)
     {
         printf(
             "[%s] - %s - %s - %d - %s\n",
@@ -162,34 +162,7 @@ namespace FastCG
 #endif
     }
 
-#if defined FASTCG_WINDOWS
-    void OpenGLGraphicsSystem::SetupPixelFormat() const
-    {
-        auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
-        PIXELFORMATDESCRIPTOR pixelFormatDescr =
-            {
-                sizeof(PIXELFORMATDESCRIPTOR),
-                1,
-                PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-                PFD_TYPE_RGBA,
-                32,                     // color bits
-                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
-                0,                      // accum bits
-                0, 0, 0, 0,             // per-channel accum bits
-                0,                      // depth bits
-                0,                      // stencil bits
-                0,                      // auxiliary buffers
-                PFD_MAIN_PLANE,         // layer type
-                0,                      // reserved
-                0, 0, 0,                // layer mask, visible mask, damage mask
-            };
-        auto pixelFormat = ChoosePixelFormat(hDC, &pixelFormatDescr);
-        if (!SetPixelFormat(hDC, pixelFormat, &pixelFormatDescr))
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
-        }
-    }
-#elif defined FASTCG_LINUX
+#if defined FASTCG_LINUX
     XVisualInfo *OpenGLGraphicsSystem::GetVisualInfo()
     {
         if (mpVisualInfo != nullptr)
@@ -197,14 +170,8 @@ namespace FastCG
             return mpVisualInfo;
         }
 
-        AcquireVisualInfoAndFbConfig();
-
-        return mpVisualInfo;
-    }
-
-    void OpenGLGraphicsSystem::AcquireVisualInfoAndFbConfig()
-    {
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
 
         int dummy;
         if (!glXQueryExtension(pDisplay, &dummy, &dummy))
@@ -255,6 +222,8 @@ namespace FastCG
         {
             FASTCG_THROW_EXCEPTION(Exception, "No matching FB config");
         }
+
+        return mpVisualInfo;
     }
 #endif
 

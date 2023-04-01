@@ -98,7 +98,7 @@ namespace FastCG
 
                             pGraphicsContext->SetScissor((int32_t)clipMin.x, (int32_t)(displaySize.y - clipMax.y), (uint32_t)(clipMax.x - clipMin.x), (uint32_t)(clipMax.y - clipMin.y));
 
-                            pGraphicsContext->BindResource((OpenGLTexture *)pCmd->GetTexID(), "uColorMap", 0);
+                            pGraphicsContext->BindResource((Texture *)pCmd->GetTexID(), "uColorMap", 0);
 
                             pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, (uint32_t)(pCmd->IdxOffset * sizeof(ImDrawIdx)), (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset);
                         }
