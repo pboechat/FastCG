@@ -12,11 +12,12 @@
 
 namespace FastCG
 {
-    OpenGLGraphicsContext::OpenGLGraphicsContext(const GraphicsContextArgs& rArgs)
+    OpenGLGraphicsContext::OpenGLGraphicsContext(const GraphicsContextArgs &rArgs)
         : BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>(rArgs)
     {
 #ifdef _DEBUG
         glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
+        FASTCG_CHECK_OPENGL_ERROR();
 #endif
     }
 
@@ -34,6 +35,7 @@ namespace FastCG
 #ifdef _DEBUG
         mElapsedTime = 0;
         glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[mCurrentQuery]);
+        FASTCG_CHECK_OPENGL_ERROR();
 #endif
     }
 
@@ -379,6 +381,8 @@ namespace FastCG
 
 #ifdef _DEBUG
         glEndQuery(GL_TIME_ELAPSED);
+        FASTCG_CHECK_OPENGL_ERROR();
+        mEndedQuery[mCurrentQuery] = true;
 #endif
         mEnded = true;
     }
@@ -388,18 +392,21 @@ namespace FastCG
     {
         assert(mEnded);
 
-        // retrieves the result of the previous query
-
         mCurrentQuery = (mCurrentQuery + 1) % FASTCG_ARRAYSIZE(mTimeElapsedQueries);
 
-        GLint done = 0;
-        while (!done)
+        GLuint64 elapsedTime = 0;
+        if (mEndedQuery[mCurrentQuery])
         {
-            glGetQueryObjectiv(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT_AVAILABLE, &done);
-        }
+            // retrieves the result of the previous query
 
-        GLuint64 elapsedTime;
-        glGetQueryObjectui64v(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT, &elapsedTime);
+            GLint done = 0;
+            while (!done)
+            {
+                glGetQueryObjectiv(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT_AVAILABLE, &done);
+            }
+
+            glGetQueryObjectui64v(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT, &elapsedTime);
+        }
 
         mElapsedTime = elapsedTime * 1e-9;
     }
