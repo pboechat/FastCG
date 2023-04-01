@@ -4,7 +4,7 @@
 
 namespace FastCG
 {
-	void StringUtils::Tokenize(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens)
+	void StringUtils::Split(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens)
 	{
 		size_t currentPosition = 0;
 		size_t nextPosition = std::string::npos;
@@ -21,14 +21,33 @@ namespace FastCG
 		}
 	}
 
+	std::string StringUtils::Join(const std::vector<std::string> &rTokens, const std::string &rDelimiter /* = "" */)
+	{
+		if (rTokens.empty())
+		{
+			return {};
+		}
+
+		auto joined = rTokens.front();
+		for (size_t i = 1; i < rTokens.size(); ++i)
+		{
+			joined += rDelimiter + rTokens[i];
+		}
+		return joined;
+	}
+
 	void StringUtils::LeftTrim(std::string &rString)
 	{
-		rString.erase(rString.begin(), std::find_if(rString.begin(), rString.end(), [](char c) { return !std::isspace(c); }));
+		rString.erase(rString.begin(), std::find_if(rString.begin(), rString.end(), [](char c)
+													{ return !std::isspace(c); }));
 	}
 
 	void StringUtils::RightTrim(std::string &rString)
 	{
-		rString.erase(std::find_if(rString.rbegin(), rString.rend(), [](char c) { return !std::isspace(c); }).base(), rString.end());
+		rString.erase(std::find_if(rString.rbegin(), rString.rend(), [](char c)
+								   { return !std::isspace(c); })
+						  .base(),
+					  rString.end());
 	}
 
 	void StringUtils::Trim(std::string &rString)

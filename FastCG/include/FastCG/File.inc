@@ -37,7 +37,7 @@ namespace FastCG
 	std::string File::GetBasePath(const std::string &rFilePath)
 	{
 		std::vector<std::string> tokens;
-		StringUtils::Tokenize(rFilePath, "/", tokens);
+		StringUtils::Split(rFilePath, "/", tokens);
 		std::string path;
 		for (size_t i = 0; i < tokens.size() - 1; i++)
 		{
@@ -49,7 +49,7 @@ namespace FastCG
 	std::string File::GetFileName(const std::string &rFilePath)
 	{
 		std::vector<std::string> rTokens;
-		StringUtils::Tokenize(rFilePath, "/", rTokens);
+		StringUtils::Split(rFilePath, "/", rTokens);
 		return rTokens.back();
 	}
 

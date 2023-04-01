@@ -9,7 +9,8 @@ namespace FastCG
 	class StringUtils
 	{
 	public:
-		inline static void Tokenize(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens);
+		inline static void Split(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens);
+		inline static std::string Join(const std::vector<std::string> &rTokens, const std::string &rDelimiter = "");
 		inline static void LeftTrim(std::string &rString);
 		inline static void RightTrim(std::string &rString);
 		inline static void Trim(std::string &rString);
