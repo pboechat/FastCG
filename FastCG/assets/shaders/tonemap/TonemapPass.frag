@@ -1,12 +1,12 @@
 #version 430 core
 
-#ifdef VULKAN
-#extension GL_GOOGLE_include_directive : enable
+#ifdef ENABLE_INCLUDE_EXTENSION_DIRECTIVE
+#extension GL_GOOGLE_include_directive : enable 
 #endif
 
 #include "../FastCG.glsl"
 
-layout(BINDING(0, 0)) uniform sampler2D uSource;
+layout(BINDING_0_0) uniform sampler2D uSource;
 
 layout(location = 0) in vec2 vUV;
 

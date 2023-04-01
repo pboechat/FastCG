@@ -122,8 +122,10 @@ namespace FastCG
 		void MouseButtonCallback(MouseButton button, MouseButtonState state);
 		void MouseMoveCallback(uint32_t x, uint32_t y);
 		void KeyboardCallback(Key key, bool pressed);
-		virtual void OnInitialize() {}
-		virtual void OnFinalize() {}
+		virtual void OnPreInitialize() {}
+		virtual void OnPostInitialize() {}
+		virtual void OnPreFinalize() {}
+		virtual void OnPostFinalize() {}
 
 	private:
 		static BaseApplication *smpInstance;
@@ -140,7 +142,6 @@ namespace FastCG
 		double mLastCpuElapsedTime{0};
 		double mLastGpuElapsedTime{0};
 		RenderingStatistics mRenderingStatistics;
-
 		void Initialize();
 		void Finalize();
 	};

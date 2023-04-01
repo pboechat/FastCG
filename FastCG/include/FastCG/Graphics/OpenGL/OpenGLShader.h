@@ -26,7 +26,7 @@ namespace FastCG
         GLuint mProgramId{~0u};
         ShaderTypeValueArray<GLuint> mShadersIds{};
 
-        OpenGLShader(const ShaderArgs &rName);
+        OpenGLShader(const ShaderArgs &rArgs);
         OpenGLShader(const OpenGLShader &rOther) = delete;
         OpenGLShader(const OpenGLShader &&rOther) = delete;
         virtual ~OpenGLShader();

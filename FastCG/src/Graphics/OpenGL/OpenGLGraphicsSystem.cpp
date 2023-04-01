@@ -148,29 +148,11 @@ namespace FastCG
 #endif
 
         DestroyOpenGLContext();
-
-#if defined FASTCG_WINDOWS
-        WindowsApplication::GetInstance()->DestroyDeviceContext();
-#elif defined FASTCG_LINUX
-        if (mpVisualInfo != nullptr)
-        {
-            XFree(mpVisualInfo);
-            mpVisualInfo = nullptr;
-            mpFbConfig = nullptr;
-        }
-        X11Application::GetInstance()->CloseDisplay();
-#endif
     }
 
 #if defined FASTCG_LINUX
-    XVisualInfo *OpenGLGraphicsSystem::GetVisualInfo()
+    XVisualInfo *OpenGLGraphicsSystem::GetVisualInfo(XDisplay *pDisplay)
     {
-        if (mpVisualInfo != nullptr)
-        {
-            return mpVisualInfo;
-        }
-
-        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         assert(pDisplay != nullptr);
 
         int dummy;
@@ -194,15 +176,17 @@ namespace FastCG
 
         int numFbConfigs;
         auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
+        XVisualInfo *pVisualInfo;
+        GLXFBConfig fbConfig;
         for (int i = 0; i < numFbConfigs; i++)
         {
-            auto *pVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
-            if (pVisualInfo == nullptr)
+            auto *pCurrVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
+            if (pCurrVisualInfo == nullptr)
             {
                 continue;
             }
 
-            auto *pVisualFormat = XRenderFindVisualFormat(pDisplay, pVisualInfo->visual);
+            auto *pVisualFormat = XRenderFindVisualFormat(pDisplay, pCurrVisualInfo->visual);
             if (pVisualFormat == nullptr)
             {
                 continue;
@@ -210,20 +194,20 @@ namespace FastCG
 
             if (pVisualFormat->direct.alphaMask == 0)
             {
-                mpFbConfig = fbConfigs[i];
-                mpVisualInfo = pVisualInfo;
+                fbConfig = fbConfigs[i];
+                pVisualInfo = pCurrVisualInfo;
                 break;
             }
 
-            XFree(pVisualInfo);
+            XFree(pCurrVisualInfo);
         }
 
-        if (mpFbConfig == nullptr)
+        if (fbConfig == nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "No matching FB config");
+            FASTCG_THROW_EXCEPTION(Exception, "No matching framebuffer config");
         }
 
-        return mpVisualInfo;
+        return pVisualInfo;
     }
 #endif
 
@@ -449,18 +433,44 @@ namespace FastCG
     void OpenGLGraphicsSystem::CreateOpenGLContext(bool temporary /* = false */)
     {
 #if defined FASTCG_WINDOWS
-        auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
+        if (mHDC == 0)
+        {
+            mHDC = GetDC(WindowsApplication::GetInstance()->GetWindow());
+        }
+
+        PIXELFORMATDESCRIPTOR pixelFormatDescr =
+            {
+                sizeof(PIXELFORMATDESCRIPTOR),
+                1,
+                PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+                PFD_TYPE_RGBA,
+                32,                     // color bits
+                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
+                0,                      // accum bits
+                0, 0, 0, 0,             // per-channel accum bits
+                0,                      // depth bits
+                0,                      // stencil bits
+                0,                      // auxiliary buffers
+                PFD_MAIN_PLANE,         // layer type
+                0,                      // reserved
+                0, 0, 0,                // layer mask, visible mask, damage mask
+            };
+        auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
+        if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
+        }
 
         auto oldHGLRC = mHGLRC;
         if (temporary)
         {
-            mHGLRC = wglCreateContext(hDC);
+            mHGLRC = wglCreateContext(mHDC);
             if (mHGLRC == 0)
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary WGL context");
             }
 
-            if (!wglMakeCurrent(hDC, mHGLRC))
+            if (!wglMakeCurrent(mHDC, mHGLRC))
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Error making a temporary WGL context current");
             }
@@ -478,13 +488,13 @@ namespace FastCG
                 ,
                 0};
 
-            mHGLRC = wglCreateContextAttribsARB(hDC, mHGLRC, attribs);
+            mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
             if (mHGLRC == 0)
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Error creating a final WGL context");
             }
 
-            if (!wglMakeCurrent(hDC, mHGLRC))
+            if (!wglMakeCurrent(mHDC, mHGLRC))
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Error making a final WGL context current");
             }
@@ -498,6 +508,8 @@ namespace FastCG
         }
 #elif defined FASTCG_LINUX
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
+
         static Window sTempWindow{None};
         if (sTempWindow != None)
         {
@@ -505,6 +517,7 @@ namespace FastCG
             XSync(pDisplay, False);
             sTempWindow = None;
         }
+
         auto *pOldRenderContext = mpRenderContext;
         if (temporary)
         {
@@ -588,13 +601,21 @@ namespace FastCG
 #if defined FASTCG_WINDOWS
         if (mHGLRC != 0)
         {
-            wglMakeCurrent(WindowsApplication::GetInstance()->GetDeviceContext(), nullptr);
+            wglMakeCurrent(mHDC, nullptr);
             wglDeleteContext(mHGLRC);
+            mHGLRC = 0;
+        }
+
+        if (mHDC != 0)
+        {
+            ReleaseDC(WindowsApplication::GetInstance()->GetWindow(), mHDC);
+            mHDC = 0;
         }
 #elif defined FASTCG_LINUX
         if (mpRenderContext != nullptr)
         {
             auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+            assert(pDisplay != nullptr);
 
             glXMakeContextCurrent(pDisplay, None, None, nullptr);
             glXDestroyContext(pDisplay, mpRenderContext);
@@ -602,7 +623,7 @@ namespace FastCG
             mpRenderContext = nullptr;
         }
 #else
-#error "FastCG::OpenGLRenderingSystem::~DestroyOpenGLContext() is not implemented on the current platform"
+#error "FastCG::OpenGLRenderingSystem::DestroyOpenGLContext() is not implemented on the current platform"
 #endif
     }
 
@@ -614,8 +635,7 @@ namespace FastCG
         glGetInteger64v(GL_TIMESTAMP, &presentStart);
 #endif
 #if defined FASTCG_WINDOWS
-        auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
-        SwapBuffers(hDC);
+        SwapBuffers(mHDC);
 #elif defined FASTCG_LINUX
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         auto &rWindow = X11Application::GetInstance()->GetWindow();

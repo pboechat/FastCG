@@ -124,6 +124,8 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
+		OnPreInitialize();
+
 		AssetSystem::Create({mSettings.assets.bundles});
 #ifdef _DEBUG
 		DebugMenuSystem::Create({});
@@ -154,12 +156,12 @@ namespace FastCG
 		RenderingSystem::GetInstance()->Initialize();
 		WorldSystem::GetInstance()->Initialize();
 
-		OnInitialize();
+		OnPostInitialize();
 	}
 
 	void BaseApplication::Finalize()
 	{
-		OnFinalize();
+		OnPreFinalize();
 
 		WorldSystem::GetInstance()->Finalize();
 		RenderingSystem::GetInstance()->Finalize();
@@ -175,6 +177,8 @@ namespace FastCG
 		DebugMenuSystem::Destroy();
 #endif
 		AssetSystem::Destroy();
+
+		OnPostFinalize();
 	}
 
 	bool BaseApplication::ParseCommandLineArguments(int argc, char **argv)

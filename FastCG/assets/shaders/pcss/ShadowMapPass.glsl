@@ -8,11 +8,11 @@ struct ShadowMapPassInstanceaData
 	mat4 modelViewProjection;
 };
 
-layout(BINDING(0, 0)) buffer ShadowMapPassConstants
+layout(BINDING_0_0) buffer ShadowMapPassConstants
 {
 	ShadowMapPassInstanceaData uInstanceData[];
 };
 
-#define GetShadowMapPassInstanceData() uInstanceData[gl_InstanceID]
+#define GetShadowMapPassInstanceData() uInstanceData[GetInstanceIndex()]
 
 #endif

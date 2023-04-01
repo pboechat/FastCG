@@ -18,24 +18,22 @@ namespace FastCG
         {
             return static_cast<WindowsApplication *>(BaseApplication::GetInstance());
         }
-
-        HDC GetDeviceContext();
-        HWND GetWindow();
-        void DestroyDeviceContext();
+        inline HWND GetWindow()
+        {
+            return mHWnd;
+        }
         uint64_t GetNativeKey(Key key) const override;
 
         friend LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);
 
     protected:
+        void OnPreInitialize() override;
+        void OnPostFinalize() override;
         void RunMainLoop() override;
 
     private:
         HINSTANCE mHInstance{0};
         HWND mHWnd{0};
-        HDC mHDC{0};
-
-        void CreateAndSetupDeviceContext();
-        void CreateWindow_();
     };
 
 }

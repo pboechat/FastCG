@@ -8,7 +8,7 @@
 #define NOISE_TEXTURE_SIZE NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT
 #define NUMBER_OF_RANDOM_SAMPLES 32
 
-layout(BINDING(0, 0)) uniform SSAOHighFrequencyPassConstants
+layout(BINDING_0_0) uniform SSAOHighFrequencyPassConstants
 {
 	mat4 uProjection;
     vec4 uRandomSamples[NUMBER_OF_RANDOM_SAMPLES];
@@ -17,7 +17,7 @@ layout(BINDING(0, 0)) uniform SSAOHighFrequencyPassConstants
 	float uAspectRatio;
 	float uTanHalfFov;
 };
-layout(BINDING(0, 0)) uniform sampler2D uNoiseMap;
-layout(BINDING(0, 2)) uniform sampler2D uDepth;
+layout(BINDING_0_0) uniform sampler2D uNoiseMap;
+layout(BINDING_0_2) uniform sampler2D uDepth;
 
 #endif

@@ -3,6 +3,7 @@
 if (DEFINED FASTCG_PLATFORM)
     unset(FASTCG_PLATFORM)
 endif()
+
 if(WIN32)
     set(FASTCG_PLATFORM "Windows" CACHE STRING "FastCG platform")
 elseif(UNIX AND NOT APPLE)
@@ -32,6 +33,7 @@ if (DEFINED FASTCG_DEPLOY)
 else()
     set(FASTCG_DEPLOY_VALUE ${CMAKE_SOURCE_DIR}/deploy)
 endif()
+
 set(FASTCG_DEPLOY ${FASTCG_DEPLOY_VALUE} CACHE STRING "FastCG deploy directory")
 message("FastCG deploy directory: ${FASTCG_DEPLOY}")
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${FASTCG_DEPLOY})
@@ -44,4 +46,5 @@ if (DEFINED FASTCG_BUILD_SAMPLES)
 else()
     set(FASTCG_BUILD_SAMPLES_VALUE true)
 endif()
+
 set(FASTCG_BUILD_SAMPLES ${FASTCG_BUILD_SAMPLES_VALUE} CACHE BOOL "Build FastCG samples")

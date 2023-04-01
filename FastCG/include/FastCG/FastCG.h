@@ -12,7 +12,7 @@
 
 #include <cstdio>
 
-#define FASTCG_ARRAYSIZE(x) sizeof(x) / sizeof(x[0])
+#define FASTCG_ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
 
 #if defined FASTCG_WINDOWS
 #define FASTCG_MSG_BOX(title, fmt, ...)                            \

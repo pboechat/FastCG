@@ -3,7 +3,7 @@
 
 #include "FastCG.glsl"
 
-layout(BINDING(1, 0)) uniform MaterialConstants
+layout(BINDING_1_0) uniform MaterialConstants
 {
 	vec4 uDiffuseColor;
     vec4 uSpecularColor;
@@ -11,7 +11,7 @@ layout(BINDING(1, 0)) uniform MaterialConstants
 	vec2 uBumpMapTiling;
 	float uShininess;
 };
-layout(BINDING(1, 0)) uniform sampler2D uColorMap;
-layout(BINDING(1, 1)) uniform sampler2D uBumpMap;
+layout(BINDING_1_0) uniform sampler2D uColorMap;
+layout(BINDING_1_1) uniform sampler2D uBumpMap;
 
 #endif

@@ -84,7 +84,7 @@ namespace FastCG
             return *it;
         }
 #ifdef FASTCG_LINUX
-        XVisualInfo *GetVisualInfo() override;
+        static XVisualInfo *GetVisualInfo(XDisplay *pDisplay);
 #endif
         inline size_t GetTextureCount() const override
         {
@@ -117,10 +117,9 @@ namespace FastCG
 
     private:
 #if defined FASTCG_WINDOWS
+        HDC mHDC{0};
         HGLRC mHGLRC{0};
 #elif defined FASTCG_LINUX
-        XVisualInfo *mpVisualInfo{nullptr};
-        GLXFBConfig mpFbConfig{nullptr};
         GLXContext mpRenderContext{nullptr};
 #endif
         std::vector<OpenGLBuffer *> mBuffers;

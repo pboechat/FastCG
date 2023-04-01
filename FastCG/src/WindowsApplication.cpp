@@ -151,65 +151,10 @@ namespace FastCG
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
 
-	void WindowsApplication::RunMainLoop()
+	void WindowsApplication::OnPreInitialize()
 	{
-		MSG msg;
-		while (mRunning)
-		{
-			while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
-			{
-				if (!GetMessage(&msg, NULL, 0, 0))
-				{
-					mRunning = false;
-					break;
-				}
+		BaseApplication::OnPreInitialize();
 
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-
-			RunMainLoopIteration();
-		}
-	}
-
-	HDC WindowsApplication::GetDeviceContext()
-	{
-		if (mHDC != 0)
-		{
-			return mHDC;
-		}
-
-		CreateAndSetupDeviceContext();
-
-		return mHDC;
-	}
-
-	HWND WindowsApplication::GetWindow()
-	{
-		if (mHWnd != 0)
-		{
-			return mHWnd;
-		}
-
-		CreateWindow_();
-
-		return mHWnd;
-	}
-
-	void WindowsApplication::CreateAndSetupDeviceContext()
-	{
-		auto hWnd = GetWindow();
-
-		mHDC = GetDC(hWnd);
-
-		GraphicsSystem::GetInstance()->SetupPixelFormat();
-
-		ShowWindow(hWnd, SW_SHOW);
-		UpdateWindow(hWnd);
-	}
-
-	void WindowsApplication::CreateWindow_()
-	{
 		mHInstance = GetModuleHandle(NULL);
 
 		RECT windowRect;
@@ -257,12 +202,41 @@ namespace FastCG
 		{
 			FASTCG_THROW_EXCEPTION(Exception, "Error creating window");
 		}
+
+		ShowWindow(mHWnd, SW_SHOW);
+		UpdateWindow(mHWnd);
 	}
 
-	void WindowsApplication::DestroyDeviceContext()
+	void WindowsApplication::OnPostFinalize()
 	{
-		ReleaseDC(mHWnd, mHDC);
-		mHDC = 0;
+		if (mHWnd != 0)
+		{
+			DestroyWindow(mHWnd);
+			mHWnd = 0;
+		}
+
+		BaseApplication::OnPostFinalize();
+	}
+
+	void WindowsApplication::RunMainLoop()
+	{
+		MSG msg;
+		while (mRunning)
+		{
+			while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+			{
+				if (!GetMessage(&msg, NULL, 0, 0))
+				{
+					mRunning = false;
+					break;
+				}
+
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+
+			RunMainLoopIteration();
+		}
 	}
 
 	uint64_t WindowsApplication::GetNativeKey(Key key) const

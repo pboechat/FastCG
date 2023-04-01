@@ -11,11 +11,11 @@ struct InstanceData
 	mat4 modelViewProjection;
 };
 
-layout(BINDING(0, 1)) buffer InstanceConstants
+layout(BINDING_0_1) buffer InstanceConstants
 {
     InstanceData uInstanceData[];
 };
 
-#define GetInstanceData() uInstanceData[gl_InstanceID]
+#define GetInstanceData() uInstanceData[GetInstanceIndex()]
 
 #endif

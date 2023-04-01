@@ -1,31 +1,49 @@
-function(_fastcg_compile_shaders)
-    get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
-    get_target_property(BINARY_DIR ${ARGV0} BINARY_DIR)
+function(_fastcg_remove)
+    foreach(FILE IN LISTS ARGN)
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E remove ${FILE}
+        )
+    endforeach()
+endfunction()
 
-    set(SPIRV_DIR "${BINARY_DIR}/spirv")
+function(_fastcg_compile_glsl_shaders)
+    get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
+
     set(SRC_SHADERS_DIR "${SOURCE_DIR}/assets/shaders")
     set(DST_SHADERS_DIR "${FASTCG_DEPLOY}/assets/${ARGV0}/shaders")
 
-    file(GLOB_RECURSE GLSL_FILES "${SRC_SHADERS_DIR}/*.vert" "${SRC_SHADERS_DIR}/*.frag")
-    foreach(GLSL_FILE IN LISTS GLSL_FILES)
-        file(RELATIVE_PATH REL_GLSL_FILE ${SRC_SHADERS_DIR} ${GLSL_FILE})
-        set(SPIRV_FILE "${SPIRV_DIR}/${REL_GLSL_FILE}.spv")
+    if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
+        set(FASTCG_SHADER_COMPILER_ARGS --target-env opengl)
+    elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
+        set(FASTCG_SHADER_COMPILER_ARGS --target-env vulkan1.3)
+    else()
+        message(FATAL_ERROR "Don't know how to compile GLSL shaders for ${FASTCG_GRAPHICS_SYSTEM}")
+    endif()
+
+    set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -g -DENABLE_INCLUDE_EXTENSION_DIRECTIVE)
+
+    file(GLOB_RECURSE GLSL_HEADERS "${SRC_SHADERS_DIR}/*.glsl")
+    file(GLOB_RECURSE GLSL_SOURCES "${SRC_SHADERS_DIR}/*.vert" "${SRC_SHADERS_DIR}/*.frag")
+    foreach(GLSL_SOURCE IN LISTS GLSL_SOURCES)
+        file(RELATIVE_PATH REL_GLSL_SOURCE ${SRC_SHADERS_DIR} ${GLSL_SOURCE})
+        get_filename_component(GLSL_SOURCE_DIR ${REL_GLSL_SOURCE} DIRECTORY)
+        get_filename_component(GLSL_SOURCE_BASENAME ${REL_GLSL_SOURCE} NAME_WE)
+        get_filename_component(GLSL_SOURCE_EXT ${REL_GLSL_SOURCE} EXT)
+        string(SUBSTRING ${GLSL_SOURCE_EXT} 1 -1 GLSL_SOURCE_EXT)
+        set(SPIRV_FILE "${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
         add_custom_command(
             OUTPUT ${SPIRV_FILE}
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${SPIRV_DIR}"
-            COMMAND glslangValidator -V ${GLSL_FILE} -o ${SPIRV_FILE}
-            DEPENDS ${GLSL_FILE}
+            COMMAND glslangValidator ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE}
+            DEPENDS ${GLSL_SOURCE} ${GLSL_HEADERS}
         )
         list(APPEND GLSL_SPIRV_FILES ${SPIRV_FILE})
-    endforeach(GLSL_FILE)
+    endforeach(GLSL_SOURCE)
     if(GLSL_SPIRV_FILES)
         add_custom_target(
-            ${ARGV0}_FASTCG_COMPILE_SHADERS
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${DST_SHADERS_DIR}"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${SPIRV_DIR}" "${DST_SHADERS_DIR}"
+            ${ARGV0}_FASTCG_COMPILE_GLSL_SHADERS
             DEPENDS ${GLSL_SPIRV_FILES}
         )
-        add_dependencies(${ARGV0} ${ARGV0}_FASTCG_COMPILE_SHADERS)
+        add_dependencies(${ARGV0} ${ARGV0}_FASTCG_COMPILE_GLSL_SHADERS)
     endif()
 endfunction()
 
@@ -38,7 +56,7 @@ function(_fastcg_copy_assets)
     file(GLOB_RECURSE SRC_ASSET_FILES "${SRC_ASSETS_DIR}/*.*")
     foreach(SRC_ASSET_FILE IN LISTS SRC_ASSET_FILES)
         file(RELATIVE_PATH REL_ASSET_FILE ${SRC_ASSETS_DIR} ${SRC_ASSET_FILE})
-        if(NOT FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL" AND REL_ASSET_FILE MATCHES "shaders")
+        if(REL_ASSET_FILE MATCHES "shaders" AND NOT FASTCG_USE_TEXT_SHADERS)
             continue()
         endif()
         set(DST_ASSET_FILE "${DST_ASSETS_DIR}/${REL_ASSET_FILE}")
@@ -59,8 +77,8 @@ function(_fastcg_copy_assets)
 endfunction()
 
 function(_fastcg_prepare_assets)
-    if(NOT FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
-        _fastcg_compile_shaders(${ARGV0})
+    if(NOT FASTCG_USE_TEXT_SHADERS)
+        _fastcg_compile_glsl_shaders(${ARGV})
     endif()
     _fastcg_copy_assets(${ARGV})
 endfunction()
@@ -73,6 +91,8 @@ function(_fastcg_add_definitions)
     endif()
     if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
         add_definitions(-DFASTCG_OPENGL)
+    elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
+        add_definitions(-DFASTCG_VULKAN)
     endif()
 endfunction()
 
@@ -115,3 +135,10 @@ function(fastcg_add_library)
     _fastcg_add_library(${ARGN})
     _fastcg_add_definitions(${ARGV0})
 endfunction()
+
+if(DEFINED FASTCG_EXEC)
+    separate_arguments(FASTCG_EXEC_ARGS)
+    if(FASTCG_EXEC STREQUAL "remove")
+        _fastcg_remove(${FASTCG_EXEC_ARGS})
+    endif()
+endif()

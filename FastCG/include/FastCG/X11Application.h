@@ -23,23 +23,27 @@ namespace FastCG
         {
             return static_cast<X11Application *>(BaseApplication::GetInstance());
         }
-
-        Display *GetDisplay();
-        Window &GetWindow();
-        void CloseDisplay();
+        inline Display *GetDisplay()
+        {
+            return mpDisplay;
+        }
+        inline Window &GetWindow()
+        {
+            return mWindow;
+        }
         uint64_t GetNativeKey(Key key) const override;
 
     protected:
+        void OnPreInitialize() override;
+        void OnPostFinalize() override;
         void RunMainLoop() override;
 
     private:
         Display *mpDisplay{nullptr};
+        XVisualInfo *mpVisualInfo{nullptr};
         Colormap mpColorMap{None};
         Window mWindow{None};
         Atom mDeleteWindowAtom{None};
-
-        void OpenDisplay();
-        void CreateWindow();
     };
 }
 

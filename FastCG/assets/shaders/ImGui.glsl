@@ -3,7 +3,7 @@
 
 #include "FastCG.glsl"
 
-layout(BINDING(0, 0)) uniform ImGuiConstants
+layout(BINDING_0_0) uniform ImGuiConstants
 {
     mat4 uProjection;
 };

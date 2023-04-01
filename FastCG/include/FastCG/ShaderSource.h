@@ -8,15 +8,16 @@ namespace FastCG
 	class ShaderSource
 	{
 	public:
-		static std::string Parse(const std::string &rFileName);
+		inline static std::string ParseFile(const std::string &rFileName);
+		inline static void ParseSource(std::string &rSource, const std::string &rIncludePath);
 
 	private:
-		static std::string s_mShaderFolderPath;
-
 		ShaderSource() = delete;
 		~ShaderSource() = delete;
 	};
 
 }
+
+#include <FastCG/ShaderSource.inc>
 
 #endif

@@ -6,7 +6,6 @@
 #include <type_traits>
 #include <string>
 #include <array>
-#include <cstdint>
 
 namespace FastCG
 {
@@ -15,26 +14,17 @@ namespace FastCG
 	template <typename T>
 	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::MAX>;
 
-	template <ShaderType ShaderTypeT>
-	struct ShaderFileExtension;
-
-#define FASTCG_DECLARE_SHADER_FILE_EXTENSION(shaderType, ext) \
-	template <>                                               \
-	struct ShaderFileExtension<shaderType>                    \
-	{                                                         \
-		static const char *value()                            \
-		{                                                     \
-			return ext;                                       \
-		}                                                     \
-	}
-
-	FASTCG_DECLARE_SHADER_FILE_EXTENSION(ShaderType::VERTEX, ".vert");
-	FASTCG_DECLARE_SHADER_FILE_EXTENSION(ShaderType::FRAGMENT, ".frag");
+	struct ShaderProgramData
+	{
+		size_t dataSize{0};
+		const void *pData{nullptr};
+	};
 
 	struct ShaderArgs
 	{
 		std::string name;
-		ShaderTypeValueArray<std::string> shaderFileNames;
+		ShaderTypeValueArray<ShaderProgramData> programsData;
+		bool text{false};
 	};
 
 	class BaseShader
@@ -42,13 +32,13 @@ namespace FastCG
 	public:
 		inline const std::string &GetName() const
 		{
-			return mArgs.name;
+			return mName;
 		}
 
 	protected:
-		const ShaderArgs mArgs;
+		const std::string mName;
 
-		BaseShader(const ShaderArgs &rArgs) : mArgs(rArgs) {}
+		BaseShader(const ShaderArgs &rArgs) : mName(rArgs.name) {}
 		virtual ~BaseShader() = default;
 	};
 

@@ -1,46 +1,60 @@
-#include <FastCG/StringUtils.h>
+#include <FastCG/ShaderSource.h>
 #include <FastCG/ShaderImporter.h>
+#include <FastCG/FileReader.h>
 #include <FastCG/File.h>
+#include <FastCG/FastCG.h>
 #include <FastCG/Application.h>
 #include <FastCG/AssetSystem.h>
 
+#include <vector>
 #include <unordered_map>
+#include <string>
+#include <memory>
+#include <algorithm>
 
 namespace
 {
-    bool ExtractShaderInfo(const std::string &rShaderFileName, std::string &rShaderName, FastCG::ShaderType &rShaderType, FastCG::RenderingPathMask &shaderRenderingPathMask)
-    {
-        rShaderName = FastCG::File::GetFileNameWithoutExtension(rShaderFileName);
+#define DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...) \
+    constexpr arrayType array##[] = {__VA_ARGS__};                      \
+    static_assert((size_t) enum## ::MAX == FASTCG_ARRAYSIZE(array),     \
+                  "Missing element in " #array)
 
-        shaderRenderingPathMask = 0;
-        for (FastCG::RenderingPathInt i = 0; i < (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX; i++)
+    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert", ".frag");
+    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS, ".vert_spv", ".frag_spv");
+
+    FastCG::RenderingPathMask GetSuitableRenderingPathMask(const std::string &rFileName)
+    {
+        for (FastCG::RenderingPathInt i = 0; i < (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX; ++i)
         {
-            if (rShaderFileName.find(FastCG::RENDERING_PATH_PATH_PATTERNS[i]) != std::string::npos)
+            if (rFileName.find(FastCG::RENDERING_PATH_PATH_PATTERNS[i]) != std::string::npos)
             {
-                shaderRenderingPathMask = (1 << i);
-                break;
+                return (1 << i);
             }
         }
 
-        if (shaderRenderingPathMask == 0)
+        // if it didn't match any specific rendering path pattern, then it's suitable to all
+        return (1 << (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX) - 1;
+    }
+
+    bool GetShaderInfo(const std::string &rExt, FastCG::ShaderType &rShaderType, bool &rIsText)
+    {
+        for (FastCG::ShaderTypeInt i = 0; i < (FastCG::ShaderTypeInt)FastCG::ShaderType::MAX; ++i)
         {
-            shaderRenderingPathMask = (1 << (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX) - 1;
+            if (rExt == SHADER_TYPE_TEXT_FILE_EXTENSIONS[i])
+            {
+                rShaderType = (FastCG::ShaderType)i;
+                rIsText = true;
+                return true;
+            }
+            else if (rExt == SHADER_TYPE_BINARY_FILE_EXTENSIONS[i])
+            {
+                rShaderType = (FastCG::ShaderType)i;
+                rIsText = false;
+                return true;
+            }
         }
 
-        if (rShaderFileName.find(FastCG::ShaderFileExtension<FastCG::ShaderType::VERTEX>::value()) != std::string::npos)
-        {
-            rShaderType = FastCG::ShaderType::VERTEX;
-            return true;
-        }
-        else if (rShaderFileName.find(FastCG::ShaderFileExtension<FastCG::ShaderType::FRAGMENT>::value()) != std::string::npos)
-        {
-            rShaderType = FastCG::ShaderType::FRAGMENT;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 
 }
@@ -49,21 +63,76 @@ namespace FastCG
 {
     void ShaderImporter::Import()
     {
-        const auto renderingPathMask = 1 << (RenderingPathMask)Application::GetInstance()->GetRenderingPath();
-        std::unordered_map<std::string, ShaderTypeValueArray<std::string>> shaderInfos;
+        struct ShaderInfo
+        {
+            bool text;
+            ShaderTypeValueArray<std::string> programFileNames;
+        };
+
+        const auto allowedRenderingPathMask = 1 << (RenderingPathMask)Application::GetInstance()->GetRenderingPath();
+        std::unordered_map<std::string, ShaderInfo> shaderInfos;
         for (const auto &rShaderFileName : AssetSystem::GetInstance()->List("shaders", true))
         {
-            std::string shaderName;
-            ShaderType shaderType;
-            RenderingPathMask shaderRenderingPathMask;
-            if (ExtractShaderInfo(rShaderFileName, shaderName, shaderType, shaderRenderingPathMask) && (renderingPathMask & shaderRenderingPathMask) != 0)
+            // only import shaders fro mthe selected rendering path
+            if ((allowedRenderingPathMask & GetSuitableRenderingPathMask(rShaderFileName)) == 0)
             {
-                shaderInfos[shaderName][(ShaderTypeInt)shaderType] = rShaderFileName;
+                continue;
             }
+
+            std::string shaderName;
+            std::string shaderExt;
+            FastCG::File::SplitExt(rShaderFileName, shaderName, shaderExt);
+
+            ShaderType shaderType;
+            bool text;
+            if (!GetShaderInfo(shaderExt, shaderType, text))
+            {
+                continue;
+            }
+
+            auto it = shaderInfos.find(shaderName);
+            if (it == shaderInfos.end())
+            {
+                it = shaderInfos.emplace(shaderName, ShaderInfo{text}).first;
+            }
+
+            auto &rShaderInfo = it->second;
+            if (rShaderInfo.text != text)
+            {
+                FASTCG_THROW_EXCEPTION(Exception, "Shader %s mixes both text and binary sources, which is not supported", shaderName.c_str());
+            }
+
+            rShaderInfo.programFileNames[(ShaderTypeInt)shaderType] = rShaderFileName;
         }
-        for (const auto &rShaderInfo : shaderInfos)
+        for (const auto &rEntry : shaderInfos)
         {
-            GraphicsSystem::GetInstance()->CreateShader({rShaderInfo.first, rShaderInfo.second});
+            const auto &rShaderInfo = rEntry.second;
+            ShaderArgs shaderArgs;
+            shaderArgs.name = rEntry.first;
+            shaderArgs.text = rShaderInfo.text;
+            ShaderTypeValueArray<std::unique_ptr<uint8_t[]>> programsData;
+            for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::MAX; ++i)
+            {
+                if (rShaderInfo.programFileNames.empty())
+                {
+                    continue;
+                }
+
+                if (shaderArgs.text)
+                {
+                    auto programSource = ShaderSource::ParseFile(rShaderInfo.programFileNames[i]);
+                    shaderArgs.programsData[i].dataSize = programSource.size() + 1;
+                    programsData[i] = std::make_unique<uint8_t[]>(shaderArgs.programsData[i].dataSize);
+                    std::copy(programSource.cbegin(), programSource.cend(), (char *)programsData[i].get());
+                    programsData[i][shaderArgs.programsData[i].dataSize - 1] = '\0';
+                }
+                else
+                {
+                    programsData[i] = FileReader::ReadBinary(rShaderInfo.programFileNames[i], shaderArgs.programsData[i].dataSize);
+                }
+                shaderArgs.programsData[i].pData = (void *)programsData[i].get();
+            }
+            GraphicsSystem::GetInstance()->CreateShader(shaderArgs);
         }
     }
 }

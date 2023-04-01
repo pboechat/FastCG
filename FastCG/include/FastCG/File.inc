@@ -39,7 +39,7 @@ namespace FastCG
 		std::vector<std::string> tokens;
 		StringUtils::Split(rFilePath, "/", tokens);
 		std::string path;
-		for (size_t i = 0; i < tokens.size() - 1; i++)
+		for (size_t i = 0; i < tokens.size() - 1; ++i)
 		{
 			path += tokens[i] + "/";
 		}
@@ -48,22 +48,31 @@ namespace FastCG
 
 	std::string File::GetFileName(const std::string &rFilePath)
 	{
-		std::vector<std::string> rTokens;
-		StringUtils::Split(rFilePath, "/", rTokens);
-		return rTokens.back();
+		std::vector<std::string> tokens;
+		StringUtils::Split(rFilePath, "/", tokens);
+		return tokens.back();
 	}
 
 	std::string File::GetFileNameWithoutExtension(const std::string &rFilePath)
 	{
-		std::string fileName = GetFileName(rFilePath);
+		std::string fileName, extension;
+		SplitExt(rFilePath, fileName, extension);
+		return fileName;
+	}
+
+	void File::SplitExt(const std::string &rFilePath, std::string &rFileName, std::string &rExtension)
+	{
+		auto fileName = GetFileName(rFilePath);
 		size_t position;
 		if ((position = fileName.rfind(".")) != std::string::npos)
 		{
-			return fileName.substr(0, position);
+			rFileName = fileName.substr(0, position);
+			rExtension = fileName.substr(position);
 		}
 		else
 		{
-			return rFilePath;
+			rFileName = fileName;
+			rExtension = "";
 		}
 	}
 

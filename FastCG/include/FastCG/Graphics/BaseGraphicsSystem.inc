@@ -158,41 +158,4 @@ namespace FastCG
     }
 #endif
 
-#if defined FASTCG_WINDOWS
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::SetupPixelFormat() const
-    {
-        auto hDC = WindowsApplication::GetInstance()->GetDeviceContext();
-        PIXELFORMATDESCRIPTOR pixelFormatDescr =
-            {
-                sizeof(PIXELFORMATDESCRIPTOR),
-                1,
-                PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-                PFD_TYPE_RGBA,
-                32,                     // color bits
-                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
-                0,                      // accum bits
-                0, 0, 0, 0,             // per-channel accum bits
-                0,                      // depth bits
-                0,                      // stencil bits
-                0,                      // auxiliary buffers
-                PFD_MAIN_PLANE,         // layer type
-                0,                      // reserved
-                0, 0, 0,                // layer mask, visible mask, damage mask
-            };
-        auto pixelFormat = ChoosePixelFormat(hDC, &pixelFormatDescr);
-        if (!SetPixelFormat(hDC, pixelFormat, &pixelFormatDescr))
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
-        }
-    }
-#elif defined FASTCG_LINUX
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    XVisualInfo *BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::GetVisualInfo()
-    {
-        int n;
-        return XGetVisualInfo(X11Application::GetInstance()->GetDisplay(), VisualIDMask, &tempVisualInfo, &n);
-    }
-#endif
-
 }

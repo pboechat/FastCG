@@ -1,9 +1,9 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/ShaderSource.h>
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/FileReader.h>
 #include <FastCG/FastCG.h>
 
 namespace
@@ -38,33 +38,34 @@ namespace
 
 namespace FastCG
 {
-    OpenGLShader::OpenGLShader(const ShaderArgs &rName) : BaseShader(rName)
+    OpenGLShader::OpenGLShader(const ShaderArgs &rArgs) : BaseShader(rArgs)
     {
         std::fill(mShadersIds.begin(), mShadersIds.end(), ~0u);
-        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::MAX; i++)
+        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::MAX; ++i)
         {
             auto shaderType = (ShaderType)i;
-            const auto &shaderFileName = mArgs.shaderFileNames[i];
 
-            if (shaderFileName.empty())
+            const auto &rProgramData = rArgs.programsData[i];
+            if (rProgramData.dataSize == 0)
             {
                 continue;
             }
 
-            auto shaderSource = ShaderSource::Parse(shaderFileName);
             auto glShaderType = GetOpenGLShaderType(shaderType);
             auto shaderId = glCreateShader(glShaderType);
 
-            if (shaderSource.empty())
+            if (rArgs.text)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "OpenGLShader file not found: %s", shaderFileName.c_str());
+                glShaderSource(shaderId, 1, (const char **)&rProgramData.pData, nullptr);
+                glCompileShader(shaderId);
+            }
+            else
+            {
+                glShaderBinary(1, &shaderId, GL_SHADER_BINARY_FORMAT_SPIR_V, rProgramData.pData, (GLsizei)rProgramData.dataSize);
+                glSpecializeShader(shaderId, "main", 0, nullptr, nullptr);
             }
 
-            const auto *pShaderSource = shaderSource.c_str();
-            glShaderSource(shaderId, 1, (const char **)&pShaderSource, 0);
-
-            glCompileShader(shaderId);
-            CheckShaderStatus(shaderId, GL_COMPILE_STATUS, shaderFileName);
+            CheckShaderStatus(shaderId, GL_COMPILE_STATUS, mName);
 
             mShadersIds[i] = shaderId;
 

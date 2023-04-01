@@ -17,6 +17,7 @@
 
 #include <type_traits>
 #include <string>
+#include <cassert>
 
 namespace FastCG
 {
@@ -75,11 +76,15 @@ namespace FastCG
         void DestroyTexture(const Texture *pTexture);
         const MaterialDefinition *FindMaterialDefinition(const std::string &rName) const;
         const Shader *FindShader(const std::string &rName) const;
+#ifdef FASTCG_LINUX
+        static XVisualInfo *GetVisualInfo(XDisplay *pDisplay)
+        {
+            assert(pDisplay != nullptr);
 
-#if defined FASTCG_WINDOWS
-        void SetupPixelFormat() const;
-#elif defined FASTCG_LINUX
-        virtual XVisualInfo *GetVisualInfo();
+            int n;
+            XVisualInfo tempVisualInfo;
+            return XGetVisualInfo(pDisplay, VisualIDMask, &tempVisualInfo, &n);
+        }
 #endif
         virtual size_t GetTextureCount() const = 0;
         virtual const Texture *GetTextureAt(size_t i) const = 0;

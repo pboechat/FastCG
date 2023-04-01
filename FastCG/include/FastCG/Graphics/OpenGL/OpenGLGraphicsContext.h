@@ -62,6 +62,7 @@ namespace FastCG
         GLuint mTimeElapsedQueries[2]{}; // double buffered
         size_t mCurrentQuery{0};
         double mElapsedTime{0};
+        bool mEndedQuery[2]{false, false};
 #endif
 
         OpenGLGraphicsContext(const GraphicsContextArgs& rArgs);

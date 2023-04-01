@@ -3,7 +3,7 @@
 
 #include "FastCG.glsl"
 
-layout(BINDING(0, 0)) uniform SceneConstants 
+layout(BINDING_0_0) uniform SceneConstants 
 {
 	mat4 uView;
 	mat4 uInverseView;

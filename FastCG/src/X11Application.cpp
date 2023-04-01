@@ -8,6 +8,7 @@
 #include <X11/extensions/render.h>
 
 #include <unordered_map>
+#include <cassert>
 
 namespace
 {
@@ -119,88 +120,22 @@ namespace
 
 namespace FastCG
 {
-    void X11Application::RunMainLoop()
+    void X11Application::OnPreInitialize()
     {
-        XEvent event;
-        while (mRunning)
-        {
-            while (XPending(mpDisplay))
-            {
-                XNextEvent(mpDisplay, &event);
-                if (event.type == KeyPress || event.type == KeyRelease)
-                {
-                    char buf[128] = {0};
-                    KeySym keySym;
-                    XLookupString(&event.xkey, buf, sizeof buf, &keySym, NULL);
-                    KeyboardCallback(TranslateKey((uint64_t)keySym), event.type == KeyPress);
-                }
-                else if (event.type == ButtonPress || event.type == ButtonRelease)
-                {
-                    MouseButtonCallback((MouseButton)(event.xbutton.button - 1),
-                                        event.xbutton.state == 16 ? MouseButtonState::PRESSED : MouseButtonState::RELEASED);
-                }
-                else if (event.type == MotionNotify)
-                {
-                    MouseMoveCallback((uint32_t)event.xmotion.x, (uint32_t)event.xmotion.y);
-                }
-                else if (event.type == ConfigureNotify)
-                {
-                    WindowResizeCallback((uint32_t)event.xconfigure.width, (uint32_t)event.xconfigure.height);
-                }
-                else if (event.type == ClientMessage)
-                {
-                    if (static_cast<Atom>(event.xclient.data.l[0]) == mDeleteWindowAtom)
-                    {
-                        mRunning = false;
-                    }
-                }
-            }
+        BaseApplication::OnPreInitialize();
 
-            RunMainLoopIteration();
-        }
-    }
-
-    Display *X11Application::GetDisplay()
-    {
-        if (mpDisplay != nullptr)
-        {
-            return mpDisplay;
-        }
-
-        OpenDisplay();
-
-        return mpDisplay;
-    }
-
-    void X11Application::OpenDisplay()
-    {
         mpDisplay = XOpenDisplay(nullptr);
         if (mpDisplay == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't connect to X server");
         }
-    }
 
-    Window &X11Application::GetWindow()
-    {
-        if (mWindow != None)
-        {
-            return mWindow;
-        }
-
-        CreateWindow();
-
-        return mWindow;
-    }
-
-    void X11Application::CreateWindow()
-    {
-        auto *pVisualInfo = GraphicsSystem::GetInstance()->GetVisualInfo();
-        assert(pVisualInfo != nullptr);
+        mpVisualInfo = GraphicsSystem::GetVisualInfo(mpDisplay);
+        assert(mpVisualInfo != nullptr);
 
         auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
 
-        mpColorMap = XCreateColormap(mpDisplay, root, pVisualInfo->visual, AllocNone);
+        mpColorMap = XCreateColormap(mpDisplay, root, mpVisualInfo->visual, AllocNone);
 
         XSetWindowAttributes attr = {
             0,
@@ -221,7 +156,7 @@ namespace FastCG
         int attrMask = CWColormap |
                        CWBorderPixel |
                        CWEventMask;
-        mWindow = XCreateWindow(mpDisplay, root, 0, 0, GetScreenWidth(), GetScreenHeight(), 0, pVisualInfo->depth, InputOutput, pVisualInfo->visual, attrMask, &attr);
+        mWindow = XCreateWindow(mpDisplay, root, 0, 0, GetScreenWidth(), GetScreenHeight(), 0, mpVisualInfo->depth, InputOutput, mpVisualInfo->visual, attrMask, &attr);
         if (mWindow == 0)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Failed to create the window");
@@ -265,24 +200,72 @@ namespace FastCG
         }
     }
 
-    void X11Application::CloseDisplay()
+    void X11Application::OnPostFinalize()
     {
-        if (mpDisplay == nullptr)
+        if (mpDisplay != nullptr)
         {
-            return;
+            if (mpColorMap != None)
+            {
+                XFreeColormap(mpDisplay, mpColorMap);
+                mpColorMap = None;
+            }
+            if (mWindow != None)
+            {
+                XDestroyWindow(mpDisplay, mWindow);
+                mWindow = None;
+            }
+            XCloseDisplay(mpDisplay);
+            mpDisplay = nullptr;
         }
-        if (mpColorMap != None)
+
+        if (mpVisualInfo != nullptr)
         {
-            XFreeColormap(mpDisplay, mpColorMap);
-            mpColorMap = None;
+            XFree(mpVisualInfo);
+            mpVisualInfo = nullptr;
         }
-        if (mWindow != None)
+
+        BaseApplication::OnPostFinalize();
+    }
+
+    void X11Application::RunMainLoop()
+    {
+        XEvent event;
+        while (mRunning)
         {
-            XDestroyWindow(mpDisplay, mWindow);
-            mWindow = None;
+            while (XPending(mpDisplay))
+            {
+                XNextEvent(mpDisplay, &event);
+                if (event.type == KeyPress || event.type == KeyRelease)
+                {
+                    char buf[128] = {0};
+                    KeySym keySym;
+                    XLookupString(&event.xkey, buf, sizeof buf, &keySym, NULL);
+                    KeyboardCallback(TranslateKey((uint64_t)keySym), event.type == KeyPress);
+                }
+                else if (event.type == ButtonPress || event.type == ButtonRelease)
+                {
+                    MouseButtonCallback((MouseButton)(event.xbutton.button - 1),
+                                        event.xbutton.state == 16 ? MouseButtonState::PRESSED : MouseButtonState::RELEASED);
+                }
+                else if (event.type == MotionNotify)
+                {
+                    MouseMoveCallback((uint32_t)event.xmotion.x, (uint32_t)event.xmotion.y);
+                }
+                else if (event.type == ConfigureNotify)
+                {
+                    WindowResizeCallback((uint32_t)event.xconfigure.width, (uint32_t)event.xconfigure.height);
+                }
+                else if (event.type == ClientMessage)
+                {
+                    if (static_cast<Atom>(event.xclient.data.l[0]) == mDeleteWindowAtom)
+                    {
+                        mRunning = false;
+                    }
+                }
+            }
+
+            RunMainLoopIteration();
         }
-        XCloseDisplay(mpDisplay);
-        mpDisplay = nullptr;
     }
 
     uint64_t X11Application::GetNativeKey(Key key) const

@@ -4,7 +4,7 @@
 #include "pcss/PCSS.glsl"
 #include "ssao/SSAO.glsl"
 
-layout(BINDING(0, 2)) uniform LightingConstants 
+layout(BINDING_0_2) uniform LightingConstants 
 {
 	vec4 uLight0Position;
 	vec4 uLight0ViewPosition;
@@ -18,8 +18,8 @@ layout(BINDING(0, 2)) uniform LightingConstants
     PCSSData uPCSSData;
 };
 
-layout(BINDING(0, 3)) uniform sampler2D uShadowMap;
-layout(BINDING(0, 4)) uniform sampler2D uAmbientOcclusionMap;
+layout(BINDING_0_3) uniform sampler2D uShadowMap;
+layout(BINDING_0_4) uniform sampler2D uAmbientOcclusionMap;
 
 // returns 1 if point light and -1 if directional light
 #define GetLightType() uLight0Position.w
