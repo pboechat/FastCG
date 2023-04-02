@@ -30,9 +30,11 @@ function(_fastcg_compile_glsl_shaders)
         get_filename_component(GLSL_SOURCE_BASENAME ${REL_GLSL_SOURCE} NAME_WE)
         get_filename_component(GLSL_SOURCE_EXT ${REL_GLSL_SOURCE} EXT)
         string(SUBSTRING ${GLSL_SOURCE_EXT} 1 -1 GLSL_SOURCE_EXT)
-        set(SPIRV_FILE "${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
+        set(SPIRV_DIR ${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR})
+        set(SPIRV_FILE "${SPIRV_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
         add_custom_command(
             OUTPUT ${SPIRV_FILE}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${SPIRV_DIR}
             COMMAND ${FASTCG_GLSLANGVALIDATOR} ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE}
             DEPENDS ${GLSL_SOURCE} ${GLSL_HEADERS}
         )
