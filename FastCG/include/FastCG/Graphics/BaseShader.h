@@ -12,7 +12,7 @@ namespace FastCG
 	using ShaderTypeInt = std::underlying_type_t<ShaderType>;
 
 	template <typename T>
-	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::MAX>;
+	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::COUNT>;
 
 	struct ShaderProgramData
 	{

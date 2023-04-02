@@ -171,7 +171,7 @@ namespace FastCG
 
             GetBoolMember(graphicsContextStateObj, "depthTest", graphicsContextState.depthTest);
             GetBoolMember(graphicsContextStateObj, "depthWrite", graphicsContextState.depthWrite);
-            GetEnumMember(graphicsContextStateObj, "depthFunc", graphicsContextState.depthFunc, COMPARE_OP_STRINGS, FASTCG_ARRAYSIZE(COMPARE_OP_STRINGS));
+            GetEnumMember(graphicsContextStateObj, "depthFunc", graphicsContextState.depthFunc, CompareOp_STRINGS, FASTCG_ARRAYSIZE(CompareOp_STRINGS));
             GetBoolMember(graphicsContextStateObj, "scissorTest", graphicsContextState.scissorTest);
             GetBoolMember(graphicsContextStateObj, "stencilTest", graphicsContextState.stencilTest);
             struct Iter
@@ -185,27 +185,27 @@ namespace FastCG
                 {
                     assert(graphicsContextStateObj.FindMember(rIter.pMemberName)->value.IsObject());
                     auto stencilStateObj = graphicsContextStateObj.FindMember(rIter.pMemberName)->value.GetObj();
-                    GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, COMPARE_OP_STRINGS, FASTCG_ARRAYSIZE(COMPARE_OP_STRINGS));
-                    GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, STENCIL_OP_STRINGS, FASTCG_ARRAYSIZE(STENCIL_OP_STRINGS));
-                    GetEnumMember(stencilStateObj, "stencilFailOp", rIter.rStencilState.stencilFailOp, STENCIL_OP_STRINGS, FASTCG_ARRAYSIZE(STENCIL_OP_STRINGS));
-                    GetEnumMember(stencilStateObj, "depthFailOp", rIter.rStencilState.depthFailOp, STENCIL_OP_STRINGS, FASTCG_ARRAYSIZE(STENCIL_OP_STRINGS));
+                    GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, CompareOp_STRINGS, FASTCG_ARRAYSIZE(CompareOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "stencilFailOp", rIter.rStencilState.stencilFailOp, StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "depthFailOp", rIter.rStencilState.depthFailOp, StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
                     GetInt32Member(stencilStateObj, "reference", rIter.rStencilState.reference);
                     GetUint32Member(stencilStateObj, "compareMask", rIter.rStencilState.compareMask);
                     GetUint32Member(stencilStateObj, "writeMask", rIter.rStencilState.writeMask);
                 }
             }
-            GetEnumMember(graphicsContextStateObj, "cullMode", graphicsContextState.cullMode, FACE_STRINGS, FASTCG_ARRAYSIZE(FACE_STRINGS));
+            GetEnumMember(graphicsContextStateObj, "cullMode", graphicsContextState.cullMode, Face_STRINGS, FASTCG_ARRAYSIZE(Face_STRINGS));
             GetBoolMember(graphicsContextStateObj, "blend", graphicsContextState.blend);
             if (graphicsContextStateObj.HasMember("blendState"))
             {
                 assert(graphicsContextStateObj.FindMember("blendState")->value.IsObject());
                 auto blendStateObj = graphicsContextStateObj.FindMember("blendState")->value.GetObj();
-                GetEnumMember(blendStateObj, "alphaOp", graphicsContextState.blendState.alphaOp, BLEND_FUNC_STRINGS, FASTCG_ARRAYSIZE(BLEND_FUNC_STRINGS));
-                GetEnumMember(blendStateObj, "srcAlphaFactor", graphicsContextState.blendState.srcAlphaFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
-                GetEnumMember(blendStateObj, "dstAlphaFactor", graphicsContextState.blendState.dstAlphaFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
-                GetEnumMember(blendStateObj, "colorOp", graphicsContextState.blendState.colorOp, BLEND_FUNC_STRINGS, FASTCG_ARRAYSIZE(BLEND_FUNC_STRINGS));
-                GetEnumMember(blendStateObj, "srcColorFactor", graphicsContextState.blendState.srcColorFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
-                GetEnumMember(blendStateObj, "dstColorFactor", graphicsContextState.blendState.dstColorFactor, BLEND_FACTOR_STRINGS, FASTCG_ARRAYSIZE(BLEND_FACTOR_STRINGS));
+                GetEnumMember(blendStateObj, "alphaOp", graphicsContextState.blendState.alphaOp, BlendFunc_STRINGS, FASTCG_ARRAYSIZE(BlendFunc_STRINGS));
+                GetEnumMember(blendStateObj, "srcAlphaFactor", graphicsContextState.blendState.srcAlphaFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "dstAlphaFactor", graphicsContextState.blendState.dstAlphaFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "colorOp", graphicsContextState.blendState.colorOp, BlendFunc_STRINGS, FASTCG_ARRAYSIZE(BlendFunc_STRINGS));
+                GetEnumMember(blendStateObj, "srcColorFactor", graphicsContextState.blendState.srcColorFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "dstColorFactor", graphicsContextState.blendState.dstColorFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
             }
         }
 

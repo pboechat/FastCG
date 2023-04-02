@@ -117,7 +117,7 @@ namespace
                 assert(vertexBufferObj.HasMember("name") && vertexBufferObj["name"].IsString());
                 rVertexAttributeDescriptor.name = vertexBufferObj["name"].GetString();
                 assert(vertexBufferObj.HasMember("usage") && vertexBufferObj["usage"].IsString());
-                GetValue(vertexBufferObj["usage"], rVertexAttributeDescriptor.usage, FastCG::BUFFER_USAGE_STRINGS, FASTCG_ARRAYSIZE(FastCG::BUFFER_USAGE_STRINGS));
+                GetValue(vertexBufferObj["usage"], rVertexAttributeDescriptor.usage, FastCG::BufferUsage_STRINGS, FASTCG_ARRAYSIZE(FastCG::BufferUsage_STRINGS));
                 if (vertexBufferObj.HasMember("dataPath"))
                 {
                     assert(vertexBufferObj["dataPath"].IsString());
@@ -149,7 +149,7 @@ namespace
                     assert(bindingDescriptorObj.HasMember("size") && bindingDescriptorObj["size"].IsUint());
                     rBindingDescriptor.size = bindingDescriptorObj["size"].GetUint();
                     assert(bindingDescriptorObj.HasMember("type") && bindingDescriptorObj["type"].IsString());
-                    GetValue(bindingDescriptorObj["type"], rBindingDescriptor.type, FastCG::VERTEX_DATA_TYPE_STRINGS, FASTCG_ARRAYSIZE(FastCG::VERTEX_DATA_TYPE_STRINGS));
+                    GetValue(bindingDescriptorObj["type"], rBindingDescriptor.type, FastCG::VertexDataType_STRINGS, FASTCG_ARRAYSIZE(FastCG::VertexDataType_STRINGS));
                     assert(bindingDescriptorObj.HasMember("normalized") && bindingDescriptorObj["normalized"].IsBool());
                     rBindingDescriptor.normalized = bindingDescriptorObj["normalized"].GetBool();
                     assert(bindingDescriptorObj.HasMember("stride") && bindingDescriptorObj["stride"].IsUint());
@@ -162,7 +162,7 @@ namespace
         assert(rGenericObj.HasMember("indexBuffer") && rGenericObj["indexBuffer"].IsObject());
         auto indexBufferObj = rGenericObj["indexBuffer"].GetObj();
         assert(indexBufferObj.HasMember("usage") && indexBufferObj["usage"].IsString());
-        GetValue(indexBufferObj["usage"], args.indices.usage, FastCG::BUFFER_USAGE_STRINGS, FASTCG_ARRAYSIZE(FastCG::BUFFER_USAGE_STRINGS));
+        GetValue(indexBufferObj["usage"], args.indices.usage, FastCG::BufferUsage_STRINGS, FASTCG_ARRAYSIZE(FastCG::BufferUsage_STRINGS));
         if (indexBufferObj.HasMember("dataPath"))
         {
             assert(indexBufferObj["dataPath"].IsString());
@@ -213,19 +213,19 @@ namespace
         assert(rGenericObj.HasMember("height") && rGenericObj["height"].IsUint());
         args.height = rGenericObj["height"].GetUint();
         assert(rGenericObj.HasMember("type") && rGenericObj["type"].IsString());
-        GetValue(rGenericObj["type"], args.type, FastCG::TEXTURE_TYPE_STRINGS, FASTCG_ARRAYSIZE(FastCG::TEXTURE_TYPE_STRINGS));
+        GetValue(rGenericObj["type"], args.type, FastCG::TextureType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureType_STRINGS));
         assert(rGenericObj.HasMember("format") && rGenericObj["format"].IsString());
-        GetValue(rGenericObj["format"], args.format, FastCG::TEXTURE_FORMAT_STRINGS, FASTCG_ARRAYSIZE(FastCG::TEXTURE_FORMAT_STRINGS));
+        GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
         assert(rGenericObj.HasMember("bitsPerPixel") && rGenericObj["bitsPerPixel"].IsArray());
         auto bitsPerPixelArray = rGenericObj["bitsPerPixel"].GetArray();
         assert(bitsPerPixelArray.Size() == 4);
         args.bitsPerPixel = FastCG::BitsPerPixel{(uint8_t)bitsPerPixelArray[0].GetUint(), (uint8_t)bitsPerPixelArray[1].GetUint(), (uint8_t)bitsPerPixelArray[2].GetUint(), (uint8_t)bitsPerPixelArray[3].GetUint()};
         assert(rGenericObj.HasMember("dataType") && rGenericObj["dataType"].IsString());
-        GetValue(rGenericObj["dataType"], args.dataType, FastCG::TEXTURE_DATA_TYPE_STRINGS, FASTCG_ARRAYSIZE(FastCG::TEXTURE_DATA_TYPE_STRINGS));
+        GetValue(rGenericObj["dataType"], args.dataType, FastCG::TextureDataType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureDataType_STRINGS));
         assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
-        GetValue(rGenericObj["filter"], args.filter, FastCG::TEXTURE_FILTER_STRINGS, FASTCG_ARRAYSIZE(FastCG::TEXTURE_FILTER_STRINGS));
+        GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
         assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
-        GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TEXTURE_WRAP_MODE_STRINGS, FASTCG_ARRAYSIZE(FastCG::TEXTURE_WRAP_MODE_STRINGS));
+        GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
         if (rGenericObj.HasMember("generateMipmap"))
         {
             assert(rGenericObj["generateMipmap"].IsBool());

@@ -10,14 +10,6 @@
 
 namespace FastCG
 {
-	struct BitsPerPixel
-	{
-		uint8_t r;
-		uint8_t g;
-		uint8_t b;
-		uint8_t a;
-	};
-
 	struct TextureArgs
 	{
 		std::string name;

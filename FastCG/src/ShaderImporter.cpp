@@ -17,7 +17,7 @@ namespace
 {
 #define DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...) \
     constexpr arrayType array[] = {__VA_ARGS__};                        \
-    static_assert((size_t) enum ::MAX == FASTCG_ARRAYSIZE(array),       \
+    static_assert((size_t) enum ::COUNT == FASTCG_ARRAYSIZE(array),       \
                   "Missing element in " #array)
 
     DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert", ".frag");
@@ -25,7 +25,7 @@ namespace
 
     FastCG::RenderingPathMask GetSuitableRenderingPathMask(const std::string &rFileName)
     {
-        for (FastCG::RenderingPathInt i = 0; i < (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX; ++i)
+        for (FastCG::RenderingPathInt i = 0; i < (FastCG::RenderingPathInt)FastCG::RenderingPath::COUNT; ++i)
         {
             if (rFileName.find(FastCG::RENDERING_PATH_PATH_PATTERNS[i]) != std::string::npos)
             {
@@ -34,12 +34,12 @@ namespace
         }
 
         // if it didn't match any specific rendering path pattern, then it's suitable to all
-        return (1 << (FastCG::RenderingPathInt)FastCG::RenderingPath::MAX) - 1;
+        return (1 << (FastCG::RenderingPathInt)FastCG::RenderingPath::COUNT) - 1;
     }
 
     bool GetShaderInfo(const std::string &rExt, FastCG::ShaderType &rShaderType, bool &rIsText)
     {
-        for (FastCG::ShaderTypeInt i = 0; i < (FastCG::ShaderTypeInt)FastCG::ShaderType::MAX; ++i)
+        for (FastCG::ShaderTypeInt i = 0; i < (FastCG::ShaderTypeInt)FastCG::ShaderType::COUNT; ++i)
         {
             if (rExt == SHADER_TYPE_TEXT_FILE_EXTENSIONS[i])
             {
@@ -112,7 +112,7 @@ namespace FastCG
             shaderArgs.name = rEntry.first;
             shaderArgs.text = rShaderInfo.text;
             ShaderTypeValueArray<std::unique_ptr<uint8_t[]>> programsData;
-            for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::MAX; ++i)
+            for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::COUNT; ++i)
             {
                 if (rShaderInfo.programFileNames.empty())
                 {

@@ -10,7 +10,7 @@ namespace FastCG
     {
         FORWARD = 0,
         DEFERRED,
-        MAX
+        COUNT
 
     };
 
