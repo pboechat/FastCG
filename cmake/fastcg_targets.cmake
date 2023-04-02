@@ -33,7 +33,7 @@ function(_fastcg_compile_glsl_shaders)
         set(SPIRV_FILE "${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
         add_custom_command(
             OUTPUT ${SPIRV_FILE}
-            COMMAND glslangValidator ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE}
+            COMMAND ${FASTCG_GLSLANGVALIDATOR} ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE}
             DEPENDS ${GLSL_SOURCE} ${GLSL_HEADERS}
         )
         list(APPEND GLSL_SPIRV_FILES ${SPIRV_FILE})
