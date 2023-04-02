@@ -1,29 +1,16 @@
 #ifdef FASTCG_VULKAN
 
+#if defined FASTCG_WINDOWS
+#include <FastCG/WindowsApplication.h>
+#elif defined FASTCG_LINUX
+#include <FastCG/X11Application.h>
+#endif
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Exception.h>
 #include <FastCG/FastCG.h>
 #include <FastCG/AssetSystem.h>
 
 #include <cassert>
-#include <algorithm>
-
-namespace
-{
-    // Source: https://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
-    void CRC(uint32_t &h, uint32_t ki)
-    {
-        auto highOrder = h & 0xf8000000; // extract high-order 5 bits from h
-                                         // 0xf8000000 is the hexadecimal representation
-                                         //   for the 32-bit number with the first five
-                                         //   bits = 1 and the other bits = 0
-        h = h << 5;                      // shift h left by 5 bits
-        h = h ^ (highOrder >> 27);       // move the highOrder 5 bits to the low-order
-                                         //   end and XOR into h
-        h = h ^ ki;                      // XOR h and ki
-    }
-
-}
 
 namespace FastCG
 {
@@ -38,6 +25,10 @@ namespace FastCG
         BaseGraphicsSystem::Initialize();
 
         // TODO
+
+#ifdef FASTCG_LINUX
+        X11Application::GetInstance()->CreateSimpleWindow();
+#endif
 
         // Create backbuffer handler (fake texture)
         mpBackbuffer = CreateTexture({"Backbuffer",

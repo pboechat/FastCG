@@ -83,9 +83,6 @@ namespace FastCG
             }
             return *it;
         }
-#ifdef FASTCG_LINUX
-        static XVisualInfo *GetVisualInfo(XDisplay *pDisplay);
-#endif
         inline size_t GetTextureCount() const override
         {
             return mTextures.size();
@@ -146,10 +143,8 @@ namespace FastCG
         void Finalize();
         double GetPresentElapsedTime() const;
         double GetGpuElapsedTime() const;
-#ifdef FASTCG_LINUX
-        void AcquireVisualInfoAndFbConfig();
-#endif
-        void CreateOpenGLContext(bool temporary = false);
+        void InitializeGlew();
+        void CreateOpenGLContext();
         void InitializeDeviceProperties();
         void DestroyOpenGLContext();
     };

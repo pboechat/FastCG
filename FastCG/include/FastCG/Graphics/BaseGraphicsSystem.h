@@ -10,11 +10,6 @@
 
 #include <glm/glm.hpp>
 
-#ifdef FASTCG_LINUX
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#endif
-
 #include <type_traits>
 #include <string>
 #include <cassert>
@@ -76,16 +71,6 @@ namespace FastCG
         void DestroyTexture(const Texture *pTexture);
         const MaterialDefinition *FindMaterialDefinition(const std::string &rName) const;
         const Shader *FindShader(const std::string &rName) const;
-#ifdef FASTCG_LINUX
-        static XVisualInfo *GetVisualInfo(XDisplay *pDisplay)
-        {
-            assert(pDisplay != nullptr);
-
-            int n;
-            XVisualInfo tempVisualInfo;
-            return XGetVisualInfo(pDisplay, VisualIDMask, &tempVisualInfo, &n);
-        }
-#endif
         virtual size_t GetTextureCount() const = 0;
         virtual const Texture *GetTextureAt(size_t i) const = 0;
         virtual size_t GetMaterialCount() const = 0;

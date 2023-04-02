@@ -129,99 +129,16 @@ namespace FastCG
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't connect to X server");
         }
-
-        mpVisualInfo = GraphicsSystem::GetVisualInfo(mpDisplay);
-        assert(mpVisualInfo != nullptr);
-
-        auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
-
-        mpColorMap = XCreateColormap(mpDisplay, root, mpVisualInfo->visual, AllocNone);
-
-        XSetWindowAttributes attr = {
-            0,
-        };
-
-        attr.colormap = mpColorMap;
-        attr.background_pixmap = None;
-        attr.border_pixmap = None;
-        attr.border_pixel = 0;
-        attr.event_mask = StructureNotifyMask |
-                          ExposureMask |
-                          PointerMotionMask |
-                          ButtonPressMask |
-                          ButtonReleaseMask |
-                          KeyPressMask |
-                          KeyReleaseMask;
-
-        int attrMask = CWColormap |
-                       CWBorderPixel |
-                       CWEventMask;
-        mWindow = XCreateWindow(mpDisplay, root, 0, 0, GetScreenWidth(), GetScreenHeight(), 0, mpVisualInfo->depth, InputOutput, mpVisualInfo->visual, attrMask, &attr);
-        if (mWindow == 0)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Failed to create the window");
-        }
-
-        XTextProperty textProproperty;
-        textProproperty.value = (unsigned char *)GetWindowTitle().c_str();
-        textProproperty.encoding = XA_STRING;
-        textProproperty.format = 8;
-        textProproperty.nitems = (unsigned long)GetWindowTitle().size();
-
-        XSizeHints hints;
-        hints.x = 0;
-        hints.y = 0;
-        hints.width = (int)GetScreenWidth();
-        hints.height = (int)GetScreenHeight();
-        hints.flags = USPosition | USSize;
-
-        XWMHints *pStartupState;
-        pStartupState = XAllocWMHints();
-        pStartupState->initial_state = NormalState;
-        pStartupState->flags = StateHint;
-
-        XSetWMProperties(mpDisplay,
-                         mWindow,
-                         &textProproperty,
-                         &textProproperty,
-                         nullptr,
-                         0,
-                         &hints,
-                         pStartupState,
-                         nullptr);
-
-        XFree(pStartupState);
-        XMapWindow(mpDisplay, mWindow);
-        XEvent event;
-        XIfEvent(mpDisplay, &event, WaitForMapNotify, (char *)&mWindow);
-        if ((mDeleteWindowAtom = XInternAtom(mpDisplay, "WM_DELETE_WINDOW", 0)) != None)
-        {
-            XSetWMProtocols(mpDisplay, mWindow, &mDeleteWindowAtom, 1);
-        }
     }
 
     void X11Application::OnPostFinalize()
     {
         if (mpDisplay != nullptr)
         {
-            if (mpColorMap != None)
-            {
-                XFreeColormap(mpDisplay, mpColorMap);
-                mpColorMap = None;
-            }
-            if (mWindow != None)
-            {
-                XDestroyWindow(mpDisplay, mWindow);
-                mWindow = None;
-            }
+            DestroyCurrentWindow();
+
             XCloseDisplay(mpDisplay);
             mpDisplay = nullptr;
-        }
-
-        if (mpVisualInfo != nullptr)
-        {
-            XFree(mpVisualInfo);
-            mpVisualInfo = nullptr;
         }
 
         BaseApplication::OnPostFinalize();
@@ -265,6 +182,86 @@ namespace FastCG
             }
 
             RunMainLoopIteration();
+        }
+    }
+
+    Window &X11Application::CreateSimpleWindow()
+    {
+        DestroyCurrentWindow();
+
+        auto defaultScreen = DefaultScreen(mpDisplay);
+        mWindow = XCreateSimpleWindow(mpDisplay,
+                                      RootWindow(mpDisplay, defaultScreen),
+                                      0,
+                                      0,
+                                      1,
+                                      1,
+                                      1,
+                                      BlackPixel(mpDisplay, defaultScreen),
+                                      WhitePixel(mpDisplay, defaultScreen));
+
+        SetupCurrentWindow();
+
+        return mWindow;
+    }
+
+    Window &X11Application::CreateWindow(XVisualInfo *pVisualInfo)
+    {
+        assert(pVisualInfo != nullptr);
+
+        DestroyCurrentWindow();
+
+        auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
+
+        XSetWindowAttributes windowAttribs;
+        windowAttribs.colormap = XCreateColormap(mpDisplay, root, pVisualInfo->visual, AllocNone);
+
+        mWindow = XCreateWindow(mpDisplay,
+                                root,
+                                0,
+                                0,
+                                GetScreenWidth(),
+                                GetScreenHeight(),
+                                0,
+                                pVisualInfo->depth,
+                                InputOutput,
+                                pVisualInfo->visual,
+                                CWColormap,
+                                &windowAttribs);
+        if (mWindow == None)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Failed to create a window");
+        }
+
+        if (windowAttribs.colormap != None)
+        {
+            XFreeColormap(mpDisplay, windowAttribs.colormap);
+        }
+
+        SetupCurrentWindow();
+
+        return mWindow;
+    }
+
+    void X11Application::DestroyCurrentWindow()
+    {
+        if (mWindow != None)
+        {
+            XDestroyWindow(mpDisplay, mWindow);
+            mWindow = None;
+        }
+    }
+
+    void X11Application::SetupCurrentWindow()
+    {
+        XSelectInput(mpDisplay, mWindow, StructureNotifyMask | ExposureMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask);
+        XMapWindow(mpDisplay, mWindow);
+        XStoreName(mpDisplay, mWindow, GetWindowTitle().c_str());
+        XEvent event;
+        XIfEvent(mpDisplay, &event, WaitForMapNotify, (char *)&mWindow);
+        if ((mDeleteWindowAtom = XInternAtom(mpDisplay, "WM_DELETE_WINDOW", 0)) != None)
+        {
+            XSetWMProtocols(mpDisplay, mWindow, &mDeleteWindowAtom, 1);
         }
     }
 

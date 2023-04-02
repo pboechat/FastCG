@@ -1,5 +1,6 @@
 #include <FastCG/ShaderSource.h>
 #include <FastCG/ShaderImporter.h>
+#include <FastCG/Graphics/GraphicsEnums.h>
 #include <FastCG/FileReader.h>
 #include <FastCG/File.h>
 #include <FastCG/FastCG.h>
@@ -15,8 +16,8 @@
 namespace
 {
 #define DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...) \
-    constexpr arrayType array##[] = {__VA_ARGS__};                      \
-    static_assert((size_t) enum## ::MAX == FASTCG_ARRAYSIZE(array),     \
+    constexpr arrayType array[] = {__VA_ARGS__};                        \
+    static_assert((size_t) enum ::MAX == FASTCG_ARRAYSIZE(array),       \
                   "Missing element in " #array)
 
     DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert", ".frag");

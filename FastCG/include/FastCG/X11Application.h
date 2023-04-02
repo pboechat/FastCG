@@ -31,6 +31,8 @@ namespace FastCG
         {
             return mWindow;
         }
+        Window &CreateSimpleWindow();
+        Window &CreateWindow(XVisualInfo *pVisualInfo);
         uint64_t GetNativeKey(Key key) const override;
 
     protected:
@@ -40,10 +42,11 @@ namespace FastCG
 
     private:
         Display *mpDisplay{nullptr};
-        XVisualInfo *mpVisualInfo{nullptr};
-        Colormap mpColorMap{None};
         Window mWindow{None};
         Atom mDeleteWindowAtom{None};
+
+        void DestroyCurrentWindow();
+        void SetupCurrentWindow();
     };
 }
 

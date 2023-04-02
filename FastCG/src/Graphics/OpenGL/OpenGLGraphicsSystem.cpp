@@ -75,13 +75,7 @@ namespace FastCG
     {
         BaseGraphicsSystem::Initialize();
 
-        CreateOpenGLContext(true);
-
-        GLenum glewInitRes;
-        if ((glewInitRes = glewInit()) != GLEW_OK)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Error intializing glew: %s", glewGetErrorString(glewInitRes));
-        }
+        InitializeGlew();
 
         CreateOpenGLContext();
 
@@ -149,67 +143,6 @@ namespace FastCG
 
         DestroyOpenGLContext();
     }
-
-#if defined FASTCG_LINUX
-    XVisualInfo *OpenGLGraphicsSystem::GetVisualInfo(XDisplay *pDisplay)
-    {
-        assert(pDisplay != nullptr);
-
-        int dummy;
-        if (!glXQueryExtension(pDisplay, &dummy, &dummy))
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL not supported by X server");
-        }
-
-        const int fbAttribs[] = {
-            GLX_RENDER_TYPE, GLX_RGBA_BIT,
-            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-            GLX_DOUBLEBUFFER, True,
-            GLX_RED_SIZE, 8,
-            GLX_GREEN_SIZE, 8,
-            GLX_BLUE_SIZE, 8,
-            GLX_ALPHA_SIZE, 8,
-            GLX_DEPTH_SIZE, 0,
-            None};
-
-        auto defaultScreen = DefaultScreen(pDisplay);
-
-        int numFbConfigs;
-        auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
-        XVisualInfo *pVisualInfo;
-        GLXFBConfig fbConfig;
-        for (int i = 0; i < numFbConfigs; i++)
-        {
-            auto *pCurrVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
-            if (pCurrVisualInfo == nullptr)
-            {
-                continue;
-            }
-
-            auto *pVisualFormat = XRenderFindVisualFormat(pDisplay, pCurrVisualInfo->visual);
-            if (pVisualFormat == nullptr)
-            {
-                continue;
-            }
-
-            if (pVisualFormat->direct.alphaMask == 0)
-            {
-                fbConfig = fbConfigs[i];
-                pVisualInfo = pCurrVisualInfo;
-                break;
-            }
-
-            XFree(pCurrVisualInfo);
-        }
-
-        if (fbConfig == nullptr)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "No matching framebuffer config");
-        }
-
-        return pVisualInfo;
-    }
-#endif
 
 #define DECLARE_CREATE_METHOD(className, containerMember)        \
     OpenGL##className *OpenGLGraphicsSystem::Create##className() \
@@ -430,14 +363,56 @@ namespace FastCG
         return vaoId;
     }
 
-    void OpenGLGraphicsSystem::CreateOpenGLContext(bool temporary /* = false */)
+    void OpenGLGraphicsSystem::InitializeGlew()
     {
 #if defined FASTCG_WINDOWS
-        if (mHDC == 0)
+        auto hWnd = WindowsApplication::GetInstance()->GetWindow();
+        assert(hWnd != 0);
+
+        mHDC = GetDC(hWnd);
+
+        mHGLRC = wglCreateContext(mHDC);
+        if (mHGLRC == 0)
         {
-            mHDC = GetDC(WindowsApplication::GetInstance()->GetWindow());
+            FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary WGL context");
         }
 
+        if (!wglMakeCurrent(mHDC, mHGLRC))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error making a temporary WGL context current");
+        }
+#elif defined FASTCG_LINUX
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
+
+        auto &rWindow = X11Application::GetInstance()->CreateSimpleWindow();
+
+        XWindowAttributes windowAttribs;
+        XGetWindowAttributes(pDisplay, rWindow, &windowAttribs);
+
+        XVisualInfo visualInfoTemplate;
+        visualInfoTemplate.visualid = XVisualIDFromVisual(windowAttribs.visual);
+
+        int numItems;
+        auto *pVisualInfo = XGetVisualInfo(pDisplay, VisualIDMask, &visualInfoTemplate, &numItems);
+
+        auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
+        mpRenderContext = glXCreateContext(pDisplay, pVisualInfo, 0, true);
+        XSetErrorHandler(pOldErrorHandler);
+
+        glXMakeCurrent(pDisplay, rWindow, mpRenderContext);
+#endif
+
+        GLenum glewInitRes;
+        if ((glewInitRes = glewInit()) != GLEW_OK)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error intializing Glew: %s", glewGetErrorString(glewInitRes));
+        }
+    }
+
+    void OpenGLGraphicsSystem::CreateOpenGLContext()
+    {
+#if defined FASTCG_WINDOWS
         PIXELFORMATDESCRIPTOR pixelFormatDescr =
             {
                 sizeof(PIXELFORMATDESCRIPTOR),
@@ -461,130 +436,122 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
         }
 
-        auto oldHGLRC = mHGLRC;
-        if (temporary)
-        {
-            mHGLRC = wglCreateContext(mHDC);
-            if (mHGLRC == 0)
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary WGL context");
-            }
-
-            if (!wglMakeCurrent(mHDC, mHGLRC))
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Error making a temporary WGL context current");
-            }
-        }
-        else
-        {
-            const int attribs[] = {
-                WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-                WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-                WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int attribs[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #ifdef _DEBUG
-                                           | WGL_CONTEXT_DEBUG_BIT_ARB
+                                       | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-                ,
-                0};
+            ,
+            0};
 
-            mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
-            if (mHGLRC == 0)
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Error creating a final WGL context");
-            }
+        wglDeleteContext(mHGLRC);
 
-            if (!wglMakeCurrent(mHDC, mHGLRC))
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Error making a final WGL context current");
-            }
-
-            wglSwapIntervalEXT(mArgs.vsync ? 1 : 0);
-        }
-
-        if (oldHGLRC != 0)
+        mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
+        if (mHGLRC == 0)
         {
-            wglDeleteContext(oldHGLRC);
+            FASTCG_THROW_EXCEPTION(Exception, "Error creating the WGL context");
         }
+
+        if (!wglMakeCurrent(mHDC, mHGLRC))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error making the WGL context current");
+        }
+
+        wglSwapIntervalEXT(mArgs.vsync ? 1 : 0);
 #elif defined FASTCG_LINUX
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         assert(pDisplay != nullptr);
 
-        static Window sTempWindow{None};
-        if (sTempWindow != None)
-        {
-            XDestroyWindow(pDisplay, sTempWindow);
-            XSync(pDisplay, False);
-            sTempWindow = None;
-        }
-
-        auto *pOldRenderContext = mpRenderContext;
-        if (temporary)
-        {
-            auto defaultScreen = DefaultScreen(pDisplay);
-            sTempWindow = XCreateSimpleWindow(pDisplay, RootWindow(pDisplay, defaultScreen), 0, 0, 1, 1, 1, BlackPixel(pDisplay, defaultScreen), WhitePixel(pDisplay, defaultScreen));
-
-            XMapWindow(pDisplay, sTempWindow);
-
-            XWindowAttributes tempWindowAttribs;
-            XGetWindowAttributes(pDisplay, sTempWindow, &tempWindowAttribs);
-
-            XVisualInfo tempVisualInfo;
-            tempVisualInfo.visualid = XVisualIDFromVisual(tempWindowAttribs.visual);
-
-            int n;
-            XVisualInfo *pTempVisualInfo = XGetVisualInfo(pDisplay, VisualIDMask, &tempVisualInfo, &n);
-
-            auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
-            mpRenderContext = glXCreateContext(pDisplay, pTempVisualInfo, 0, true);
-            XSetErrorHandler(pOldErrorHandler);
-
-            XFree(pTempVisualInfo);
-
-            glXMakeCurrent(pDisplay, sTempWindow, mpRenderContext);
-        }
-        else
-        {
-            const int attribs[] = {
-                GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-                GLX_CONTEXT_MINOR_VERSION_ARB, 3,
-                GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-                GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int attribs[] = {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+            GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #ifdef _DEBUG
-                                           | GLX_CONTEXT_DEBUG_BIT_ARB
+                                       | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-                ,
-                0};
+            ,
+            0};
 
-            if (mpFbConfig == nullptr)
-            {
-                AcquireVisualInfoAndFbConfig();
-            }
-
-            auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
-            mpRenderContext = glXCreateContextAttribsARB(pDisplay, mpFbConfig, 0, True, attribs);
-            XSetErrorHandler(pOldErrorHandler);
-
-            if (mpRenderContext == nullptr)
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Error creating a final GLX context");
-            }
-
-            XSync(pDisplay, False);
-
-            auto &rWindow = X11Application::GetInstance()->GetWindow();
-            if (!glXMakeContextCurrent(pDisplay, rWindow, rWindow, mpRenderContext))
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Error making a final GLX context current");
-            }
-
-            glXSwapIntervalEXT(pDisplay, rWindow, mArgs.vsync ? 1 : 0);
-        }
-
-        if (pOldRenderContext != nullptr)
+        int dummy;
+        if (!glXQueryExtension(pDisplay, &dummy, &dummy))
         {
-            glXDestroyContext(pDisplay, pOldRenderContext);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL not supported by X server");
         }
+
+        const int fbAttribs[] = {
+            GLX_RENDER_TYPE, GLX_RGBA_BIT,
+            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+            GLX_DOUBLEBUFFER, True,
+            GLX_RED_SIZE, 8,
+            GLX_GREEN_SIZE, 8,
+            GLX_BLUE_SIZE, 8,
+            GLX_ALPHA_SIZE, 8,
+            GLX_DEPTH_SIZE, 0,
+            None};
+
+        auto defaultScreen = DefaultScreen(pDisplay);
+
+        int numFbConfigs;
+        auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
+
+        GLXFBConfig fbConfig;
+        XVisualInfo *pVisualInfo;
+        for (int i = 0; i < numFbConfigs; i++)
+        {
+            auto *pCurrVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, fbConfigs[i]);
+            if (pCurrVisualInfo == nullptr)
+            {
+                continue;
+            }
+
+            auto *pVisualFormat = XRenderFindVisualFormat(pDisplay, pCurrVisualInfo->visual);
+            if (pVisualFormat == nullptr)
+            {
+                continue;
+            }
+
+            if (pVisualFormat->direct.alphaMask == 0)
+            {
+                fbConfig = fbConfigs[i];
+                pVisualInfo = pCurrVisualInfo;
+                break;
+            }
+
+            XFree(pCurrVisualInfo);
+        }
+
+        if (fbConfig == nullptr)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "No matching framebuffer config");
+        }
+
+        auto &rWindow = X11Application::GetInstance()->CreateWindow(pVisualInfo);
+
+        XFree(pVisualInfo);
+
+        glXDestroyContext(pDisplay, mpRenderContext);
+
+        auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
+        mpRenderContext = glXCreateContextAttribsARB(pDisplay, fbConfig, 0, True, attribs);
+        XSetErrorHandler(pOldErrorHandler);
+
+        if (mpRenderContext == nullptr)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error creating the GLX context");
+        }
+
+        XSync(pDisplay, False);
+
+        if (!glXMakeContextCurrent(pDisplay, rWindow, rWindow, mpRenderContext))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Error making the GLX context current");
+        }
+
+        glXSwapIntervalEXT(pDisplay, rWindow, mArgs.vsync ? 1 : 0);
 #else
 #error FastCG::OpenGLRenderingSystem::CreateOpenGLContext() is not implemented on the current platform
 #endif
@@ -608,15 +575,18 @@ namespace FastCG
 
         if (mHDC != 0)
         {
-            ReleaseDC(WindowsApplication::GetInstance()->GetWindow(), mHDC);
+            auto hWnd = WindowsApplication::GetInstance()->GetWindow();
+            assert(hWnd != 0);
+
+            ReleaseDC(hWnd, mHDC);
             mHDC = 0;
         }
 #elif defined FASTCG_LINUX
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
+
         if (mpRenderContext != nullptr)
         {
-            auto *pDisplay = X11Application::GetInstance()->GetDisplay();
-            assert(pDisplay != nullptr);
-
             glXMakeContextCurrent(pDisplay, None, None, nullptr);
             glXDestroyContext(pDisplay, mpRenderContext);
 
