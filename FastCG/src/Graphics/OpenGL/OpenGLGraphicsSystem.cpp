@@ -370,6 +370,30 @@ namespace FastCG
         assert(hWnd != 0);
 
         mHDC = GetDC(hWnd);
+        assert(mHDC != 0);
+
+        PIXELFORMATDESCRIPTOR pixelFormatDescr =
+            {
+                sizeof(PIXELFORMATDESCRIPTOR),
+                1,
+                PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+                PFD_TYPE_RGBA,
+                32,                     // color bits
+                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
+                0,                      // accum bits
+                0, 0, 0, 0,             // per-channel accum bits
+                0,                      // depth bits
+                0,                      // stencil bits
+                0,                      // auxiliary buffers
+                PFD_MAIN_PLANE,         // layer type
+                0,                      // reserved
+                0, 0, 0,                // layer mask, visible mask, damage mask
+            };
+        auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
+        if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
+        {
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error setting current pixel format");
+        }
 
         mHGLRC = wglCreateContext(mHDC);
         if (mHGLRC == 0)
@@ -413,29 +437,6 @@ namespace FastCG
     void OpenGLGraphicsSystem::CreateOpenGLContext()
     {
 #if defined FASTCG_WINDOWS
-        PIXELFORMATDESCRIPTOR pixelFormatDescr =
-            {
-                sizeof(PIXELFORMATDESCRIPTOR),
-                1,
-                PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-                PFD_TYPE_RGBA,
-                32,                     // color bits
-                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
-                0,                      // accum bits
-                0, 0, 0, 0,             // per-channel accum bits
-                0,                      // depth bits
-                0,                      // stencil bits
-                0,                      // auxiliary buffers
-                PFD_MAIN_PLANE,         // layer type
-                0,                      // reserved
-                0, 0, 0,                // layer mask, visible mask, damage mask
-            };
-        auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
-        if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Error setting pixel format");
-        }
-
         const int attribs[] = {
             WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
             WGL_CONTEXT_MINOR_VERSION_ARB, 3,
@@ -447,7 +448,7 @@ namespace FastCG
             ,
             0};
 
-        wglDeleteContext(mHGLRC);
+        auto oldHGLRC = mHGLRC;
 
         mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
         if (mHGLRC == 0)
@@ -459,6 +460,8 @@ namespace FastCG
         {
             FASTCG_THROW_EXCEPTION(Exception, "Error making the WGL context current");
         }
+
+        wglDeleteContext(oldHGLRC);
 
         wglSwapIntervalEXT(mArgs.vsync ? 1 : 0);
 #elif defined FASTCG_LINUX
