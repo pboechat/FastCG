@@ -2,7 +2,7 @@
 #define FASTCG_BASE_MATERIAL_DEFINITION_H
 
 #include <FastCG/Graphics/GraphicsContextState.h>
-#include <FastCG/ConstantBuffer.h>
+#include <FastCG/Graphics/ConstantBuffer.h>
 
 #include <vector>
 #include <unordered_map>

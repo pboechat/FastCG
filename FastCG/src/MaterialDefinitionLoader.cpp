@@ -1,9 +1,9 @@
 #include <FastCG/TextureLoader.h>
 #include <FastCG/MaterialDefinitionLoader.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
+#include <FastCG/Graphics/ConstantBuffer.h>
 #include <FastCG/FileReader.h>
 #include <FastCG/File.h>
-#include <FastCG/ConstantBuffer.h>
 #include <FastCG/AssetSystem.h>
 
 #ifdef FASTCG_LINUX

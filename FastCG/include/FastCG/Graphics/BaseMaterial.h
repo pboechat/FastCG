@@ -2,8 +2,8 @@
 #define FASTCG_BASE_MATERIAL_H
 
 #include <FastCG/Graphics/GraphicsContextState.h>
+#include <FastCG/Graphics/ConstantBuffer.h>
 #include <FastCG/Graphics/BaseMaterialDefinition.h>
-#include <FastCG/ConstantBuffer.h>
 #include <FastCG/Colors.h>
 
 #include <glm/glm.hpp>
