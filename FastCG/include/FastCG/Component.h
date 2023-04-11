@@ -7,31 +7,31 @@
 
 #include <string>
 
-#define FASTCG_DECLARE_COMPONENT(className, baseClassName)                        \
-public:                                                                           \
-	static const FastCG::ComponentType TYPE;                                      \
-	inline const FastCG::ComponentType &GetType() const override                  \
-	{                                                                             \
-		return TYPE;                                                              \
-	}                                                                             \
-	template <typename... ArgsT>                                                  \
-	static className *Instantiate(FastCG::GameObject *pGameObject, ArgsT... args) \
-	{                                                                             \
-		className *pComponent = new className(pGameObject, args...);              \
-		pComponent->OnInstantiate();                                              \
-		pComponent->OnRegisterInspectableProperties();                            \
-		FastCG::Component::AddToGameObject(pGameObject, pComponent);              \
-		return pComponent;                                                        \
-	}                                                                             \
-	static FastCG::Component *GenericInstantiate(FastCG::GameObject *pGameObject) \
-	{                                                                             \
-		return Instantiate(pGameObject);                                          \
-	}                                                                             \
-                                                                                  \
-private:                                                                          \
-	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject)       \
-	{                                                                             \
-	}                                                                             \
+#define FASTCG_DECLARE_COMPONENT(className, baseClassName)                                \
+public:                                                                                   \
+	static const FastCG::ComponentType TYPE;                                              \
+	inline const FastCG::ComponentType &GetType() const override                          \
+	{                                                                                     \
+		return TYPE;                                                                      \
+	}                                                                                     \
+	template <typename... ArgsT>                                                          \
+	static className *Instantiate(FastCG::GameObject *pGameObject, ArgsT &&...args)       \
+	{                                                                                     \
+		className *pComponent = new className(pGameObject, std::forward<ArgsT>(args)...); \
+		pComponent->OnInstantiate();                                                      \
+		pComponent->OnRegisterInspectableProperties();                                    \
+		FastCG::Component::AddToGameObject(pGameObject, pComponent);                      \
+		return pComponent;                                                                \
+	}                                                                                     \
+	static FastCG::Component *GenericInstantiate(FastCG::GameObject *pGameObject)         \
+	{                                                                                     \
+		return Instantiate(pGameObject);                                                  \
+	}                                                                                     \
+                                                                                          \
+private:                                                                                  \
+	className(FastCG::GameObject *pGameObject) : baseClassName(pGameObject)               \
+	{                                                                                     \
+	}                                                                                     \
 	virtual ~className() = default
 
 #define FASTCG_DECLARE_ABSTRACT_COMPONENT(className, baseClassName)         \

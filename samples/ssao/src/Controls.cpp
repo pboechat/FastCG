@@ -1,7 +1,7 @@
 #include "Controls.h"
 
-#include <FastCG/RenderingSystem.h>
 #include <FastCG/WorldSystem.h>
+#include <FastCG/Rendering/RenderingSystem.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Key.h>
 #include <FastCG/InputSystem.h>

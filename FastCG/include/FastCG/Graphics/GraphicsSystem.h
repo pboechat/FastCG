@@ -21,10 +21,6 @@ namespace FastCG
 {
     using Shader = GraphicsSystem::Shader;
     using Texture = GraphicsSystem::Texture;
-    using Mesh = GraphicsSystem::Mesh;
-    using MaterialArgs = GraphicsSystem::Material::MaterialArgs;
-    using MaterialDefinition = GraphicsSystem::MaterialDefinition;
-    using Material = GraphicsSystem::Material;
     using GraphicsContext = GraphicsSystem::GraphicsContext;
     using Buffer = GraphicsSystem::Buffer;
 }

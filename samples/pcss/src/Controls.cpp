@@ -1,6 +1,6 @@
 #include "Controls.h"
 
-#include <FastCG/RenderingSystem.h>
+#include <FastCG/Rendering/RenderingSystem.h>
 #include <FastCG/InputSystem.h>
 #include <FastCG/Application.h>
 

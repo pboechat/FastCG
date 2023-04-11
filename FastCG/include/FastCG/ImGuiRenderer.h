@@ -1,12 +1,13 @@
 #ifndef FASTCG_IMGUI_RENDERER_H
 #define FASTCG_IMGUI_RENDERER_H
 
-#include <FastCG/ShaderConstants.h>
+#include <FastCG/Rendering/ShaderConstants.h>
+#include <FastCG/Rendering/Mesh.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <imgui.h>
 
-#include <array>
+#include <memory>
 
 namespace FastCG
 {
@@ -28,8 +29,8 @@ namespace FastCG
     private:
         const ImGuiRendererArgs mArgs;
         const Shader *mpImGuiShader{nullptr};
-        const Mesh *mpImGuiMesh{nullptr};
         const Buffer *mpImGuiConstantsBuffer{nullptr};
+        std::unique_ptr<Mesh> mpImGuiMesh{nullptr};
         ImGuiConstants mImGuiConstants{};
     };
 

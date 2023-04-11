@@ -29,9 +29,15 @@ namespace FastCG
 
         mpImGuiShader = GraphicsSystem::GetInstance()->FindShader("ImGui");
 
-        mpImGuiMesh = GraphicsSystem::GetInstance()->CreateMesh({"ImGui Mesh",
-                                                                 {{"Vertices", BufferUsage::STREAM, MAX_NUM_VERTICES * sizeof(ImDrawVert), nullptr, {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)}, {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)}, {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
-                                                                 {BufferUsage::STREAM, MAX_NUM_VERTICES * 3 * sizeof(ImDrawIdx), nullptr}});
+        mpImGuiMesh = std::make_unique<Mesh>(MeshArgs{"ImGui Mesh",
+                                                      {{"Vertices",
+                                                        BufferUsage::STREAM,
+                                                        MAX_NUM_VERTICES * sizeof(ImDrawVert),
+                                                        nullptr,
+                                                        {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)},
+                                                         {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)},
+                                                         {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
+                                                      {BufferUsage::STREAM, MAX_NUM_VERTICES * 3 * sizeof(ImDrawIdx), nullptr}});
 
         mpImGuiConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer({"ImGui Constants",
                                                                               BufferType::UNIFORM,
@@ -118,11 +124,7 @@ namespace FastCG
             mpImGuiConstantsBuffer = nullptr;
         }
 
-        if (mpImGuiMesh != nullptr)
-        {
-            GraphicsSystem::GetInstance()->DestroyMesh(mpImGuiMesh);
-            mpImGuiMesh = nullptr;
-        }
+        mpImGuiMesh = nullptr;
 
         mpImGuiShader = nullptr;
     }

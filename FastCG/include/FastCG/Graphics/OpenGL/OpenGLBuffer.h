@@ -20,13 +20,13 @@ namespace FastCG
             return mBufferId;
         }
 
-    private:
-        GLuint mBufferId{~0u};
-
         OpenGLBuffer(const BufferArgs &rArgs);
         OpenGLBuffer(const OpenGLBuffer &rOther) = delete;
         OpenGLBuffer(const OpenGLBuffer &&rOther) = delete;
         virtual ~OpenGLBuffer();
+
+    private:
+        GLuint mBufferId{~0u};
 
         OpenGLBuffer &operator=(const OpenGLBuffer &rOther) = delete;
 

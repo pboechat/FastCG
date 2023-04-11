@@ -22,6 +22,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <memory>
 #include <cassert>
 
 namespace
@@ -189,6 +190,12 @@ namespace
         return std::to_string((uint64_t)pObject);
     }
 
+    template <typename T>
+    std::string GetId(const std::shared_ptr<T> &pObject)
+    {
+        return std::to_string((uint64_t)pObject.get());
+    }
+
     template <typename AllocatorT, typename GenericObjectT>
     void DumpTexture(const FastCG::Texture *,
                      const std::string &,
@@ -197,7 +204,7 @@ namespace
                      GenericObjectT &);
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMaterial(const FastCG::Material *pMaterial,
+    void DumpMaterial(const std::shared_ptr<FastCG::Material> &pMaterial,
                       const std::string &rBasePath,
                       FastCG::GameObjectDumperOptionMaskType options,
                       AllocatorT &rAlloc,
@@ -240,7 +247,7 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMesh(const FastCG::Mesh *pMesh,
+    void DumpMesh(const std::shared_ptr<FastCG::Mesh> &pMesh,
                   const std::string &rBasePath,
                   FastCG::GameObjectDumperOptionMaskType options,
                   AllocatorT &rAlloc,
@@ -464,7 +471,7 @@ namespace
         break;
         case FastCG::InspectablePropertyType::MATERIAL:
         {
-            const FastCG::Material *pMaterial;
+            std::shared_ptr<FastCG::Material> pMaterial;
             pInspectableProperty->GetValue(&pMaterial);
             if (pMaterial != nullptr)
             {
@@ -482,7 +489,7 @@ namespace
         break;
         case FastCG::InspectablePropertyType::MESH:
         {
-            const FastCG::Mesh *pMesh;
+            std::shared_ptr<FastCG::Mesh> pMesh;
             pInspectableProperty->GetValue(&pMesh);
             if (pMesh != nullptr)
             {

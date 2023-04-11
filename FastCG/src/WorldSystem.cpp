@@ -1,6 +1,6 @@
 #include <FastCG/WorldSystem.h>
 #include <FastCG/Transform.h>
-#include <FastCG/Renderable.h>
+#include <FastCG/Rendering/Renderable.h>
 #include <FastCG/PointLight.h>
 #include <FastCG/MathT.h>
 #include <FastCG/Inspectable.h>
@@ -16,6 +16,7 @@
 #include <imgui.h>
 
 #include <unordered_set>
+#include <memory>
 #include <cassert>
 #include <algorithm>
 
@@ -39,7 +40,7 @@
 namespace
 {
 #ifdef _DEBUG
-    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, std::unordered_set<FastCG::GameObject *> &rVisitedGameObjects)
+    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, std::unordered_set<const FastCG::GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -94,7 +95,7 @@ namespace
     {
         if (ImGui::Begin("Scene Hierarchy"))
         {
-            std::unordered_set<FastCG::GameObject *> visitedGameObjects;
+            std::unordered_set<const FastCG::GameObject *> visitedGameObjects;
             for (auto *pGameObject : rGameObjects)
             {
                 if (pGameObject->GetTransform()->GetParent() != nullptr)
@@ -325,14 +326,14 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
-            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsPtr());
-            const FastCG::Material *pMaterial;
+            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRef());
+            std::shared_ptr<FastCG::Material> pMaterial;
             pInspectableProperty->GetValue((void *)&pMaterial);
             ImGui::Text("Material: %s", pMaterial->GetName().c_str());
             ImGui::SameLine();
             if (ImGui::Button("View"))
             {
-                FastCG::GraphicsSystem::GetInstance()->SetSelectedMaterial(pMaterial);
+                FastCG::WorldSystem::GetInstance()->SetSelectedMaterial(pMaterial.get());
             }
         }
     };
@@ -342,7 +343,7 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
-            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsPtr());
+            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRawPtr());
             const FastCG::Texture *pTexture;
             pInspectableProperty->GetValue((void *)&pTexture);
             ImGui::Text("Texture: %s", pTexture->GetName().c_str());
@@ -359,8 +360,8 @@ namespace
     {
         static void value(FastCG::IInspectableProperty *pInspectableProperty)
         {
-            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsPtr());
-            const FastCG::Mesh *pMesh;
+            assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRef());
+            std::shared_ptr<FastCG::Mesh> pMesh;
             pInspectableProperty->GetValue((void *)&pMesh);
             ImGui::Text("Mesh: %s", pMesh->GetName().c_str());
             ImGui::SameLine();
@@ -524,6 +525,86 @@ namespace
         }
         ImGui::End();
     }
+
+    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects, const FastCG::Material *&rpSelectedMaterial)
+    {
+        if (ImGui::Begin("Material Browser"))
+        {
+            auto textureWidth = (uint32_t)(ImGui::GetWindowSize().x * 0.333f);
+
+            std::unordered_set<const FastCG::Material *> seenMaterials;
+            for (auto *pGameObject : rGameObjects)
+            {
+                const auto *pRenderable = pGameObject->GetComponent<FastCG::Renderable>();
+                if (pRenderable == nullptr)
+                {
+                    continue;
+                }
+
+                const auto *pMaterial = pRenderable->GetMaterial().get();
+
+                auto it = seenMaterials.find(pMaterial);
+                if (it != seenMaterials.end())
+                {
+                    continue;
+                }
+                seenMaterials.emplace(pMaterial);
+
+                ImGui::PushID(pMaterial);
+                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+                if (pMaterial == rpSelectedMaterial)
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
+                }
+                if (ImGui::TreeNodeEx(pMaterial->GetName().c_str(), flags))
+                {
+                    ImGui::Text("Shader: %s", pMaterial->GetShader()->GetName().c_str());
+                    for (size_t i = 0; i < pMaterial->GetConstantCount(); ++i)
+                    {
+                        const auto &rConstant = pMaterial->GetConstantAt(i);
+                        if (rConstant.IsVec4())
+                        {
+                            glm::vec4 value;
+                            pMaterial->GetConstant(rConstant.GetName(), value);
+                            ImGui::Text("%s: (%.3f, %.3f, %.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y, value.z, value.w);
+                        }
+                        else if (rConstant.IsVec2())
+                        {
+                            glm::vec2 value;
+                            pMaterial->GetConstant(rConstant.GetName(), value);
+                            ImGui::Text("%s: (%.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y);
+                        }
+                        else if (rConstant.IsFloat())
+                        {
+                            float value;
+                            pMaterial->GetConstant(rConstant.GetName(), value);
+                            ImGui::Text("%s: %.3f", rConstant.GetName().c_str(), value);
+                        }
+                        else
+                        {
+                            assert(false);
+                        }
+                    }
+                    for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)
+                    {
+                        std::string name;
+                        const FastCG::Texture *pTexture;
+                        pMaterial->GetTextureAt(i, name, pTexture);
+                        ImGui::Text("%s:", name.c_str());
+                        if (pTexture != nullptr)
+                        {
+                            ImGui::Text("<%s>", pTexture->GetName().c_str());
+                            DisplayTexture(pTexture, textureWidth);
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+                ImGui::PopID();
+            }
+        }
+        ImGui::End();
+    }
+#endif
 }
 
 namespace FastCG
@@ -542,6 +623,7 @@ namespace FastCG
 #endif
     }
 
+#ifdef _DEBUG
     void WorldSystem::DebugMenuCallback(int result)
     {
         if (mShowSceneHierarchy)
@@ -552,12 +634,17 @@ namespace FastCG
         {
             DisplayObjectInspector(mpSelectedGameObject);
         }
+        if (mShowMaterialBrowser)
+        {
+            DisplayMaterialBrowser(mGameObjects, mpSelectedMaterial);
+        }
     }
 
     void WorldSystem::DebugMenuItemCallback(int &result)
     {
         ImGui::Checkbox("Scene Hierarchy", &mShowSceneHierarchy);
         ImGui::Checkbox("Object Inspector", &mShowObjectInspector);
+        ImGui::Checkbox("Material Browser", &mShowMaterialBrowser);
     }
 #endif
 

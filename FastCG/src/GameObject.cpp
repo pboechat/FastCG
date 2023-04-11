@@ -1,6 +1,6 @@
 #include <FastCG/WorldSystem.h>
 #include <FastCG/Transform.h>
-#include <FastCG/Renderable.h>
+#include <FastCG/Rendering/Renderable.h>
 #include <FastCG/GameObject.h>
 #include <FastCG/Exception.h>
 #include <FastCG/Component.h>

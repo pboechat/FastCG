@@ -1,4 +1,5 @@
 #include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Exception.h>
 #include <FastCG/DebugMenuSystem.h>
 
 #include <imgui.h>
@@ -16,16 +17,15 @@ namespace
         ImGui::Image((void *)pTexture, ImVec2((float)textureWidth, textureHeight), ImVec2(0, 1), ImVec2(1, 0));
     }
 
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    void DisplayTextureBrowser(const FastCG::BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem, const TextureT *&rpSelectedTexture)
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void DisplayTextureBrowser(const FastCG::BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem, const TextureT *&rpSelectedTexture)
     {
         if (ImGui::Begin("Texture Browser"))
         {
             auto textureWidth = (uint32_t)(ImGui::GetWindowSize().x * 0.8f);
 
-            for (size_t i = 0; i < pRenderingSystem->GetTextureCount(); ++i)
+            for (const auto *pTexture : pRenderingSystem->GetTextures())
             {
-                const auto *pTexture = pRenderingSystem->GetTextureAt(i);
                 ImGui::PushID(pTexture);
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
                 if (pTexture == rpSelectedTexture)
@@ -57,104 +57,186 @@ namespace
         }
         ImGui::End();
     }
-
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    void DisplayMaterialBrowser(const FastCG::BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem, const MaterialT *&rpSelectedMaterial)
-    {
-        if (ImGui::Begin("Material Browser"))
-        {
-            auto textureWidth = (uint32_t)(ImGui::GetWindowSize().x * 0.333f);
-
-            for (size_t i = 0; i < pRenderingSystem->GetMaterialCount(); ++i)
-            {
-                const auto *pMaterial = pRenderingSystem->GetMaterialAt(i);
-                ImGui::PushID(pMaterial);
-                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
-                if (pMaterial == rpSelectedMaterial)
-                {
-                    flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
-                }
-                if (ImGui::TreeNodeEx(pMaterial->GetName().c_str(), flags))
-                {
-                    ImGui::Text("Shader: %s", pMaterial->GetShader()->GetName().c_str());
-                    for (size_t i = 0; i < pMaterial->GetConstantCount(); ++i)
-                    {
-                        const auto &rConstant = pMaterial->GetConstantAt(i);
-                        if (rConstant.IsVec4())
-                        {
-                            glm::vec4 value;
-                            pMaterial->GetConstant(rConstant.GetName(), value);
-                            ImGui::Text("%s: (%.3f, %.3f, %.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y, value.z, value.w);
-                        }
-                        else if (rConstant.IsVec2())
-                        {
-                            glm::vec2 value;
-                            pMaterial->GetConstant(rConstant.GetName(), value);
-                            ImGui::Text("%s: (%.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y);
-                        }
-                        else if (rConstant.IsFloat())
-                        {
-                            float value;
-                            pMaterial->GetConstant(rConstant.GetName(), value);
-                            ImGui::Text("%s: %.3f", rConstant.GetName().c_str(), value);
-                        }
-                        else
-                        {
-                            assert(false);
-                        }
-                    }
-                    for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)
-                    {
-                        std::string name;
-                        const TextureT *pTexture;
-                        pMaterial->GetTextureAt(i, name, pTexture);
-                        ImGui::Text("%s:", name.c_str());
-                        if (pTexture != nullptr)
-                        {
-                            ImGui::Text("<%s>", pTexture->GetName().c_str());
-                            DisplayTexture(pTexture, textureWidth);
-                        }
-                    }
-                    ImGui::TreePop();
-                }
-                ImGui::PopID();
-            }
-        }
-        ImGui::End();
-    }
 #endif
 }
 
 namespace FastCG
 {
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::Initialize()
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    const ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::FindShader(const std::string &rName) const
+    {
+        auto it = std::find_if(mShaders.cbegin(), mShaders.cend(), [&rName](const auto &pShader)
+                               { return strcmp(pShader->GetName().c_str(), rName.c_str()) == 0; });
+        if (it == mShaders.cend())
+        {
+            return nullptr;
+        }
+        return *it;
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::Initialize()
     {
 #ifdef _DEBUG
         DebugMenuSystem::GetInstance()->AddCallback("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuCallback, this, std::placeholders::_1));
         DebugMenuSystem::GetInstance()->AddItem("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
+
+        OnInitialize();
+
+        // Create backbuffer handler (fake texture)
+        mpBackbuffer = CreateTexture({"Backbuffer",
+                                      1,
+                                      1,
+                                      TextureType::TEXTURE_2D,
+                                      TextureFormat::RGBA,
+                                      {32, 32, 32, 32},
+                                      TextureDataType::FLOAT,
+                                      TextureFilter::POINT_FILTER,
+                                      TextureWrapMode::CLAMP,
+                                      false});
+
+        mInitialized = true;
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::Finalize()
+    {
+        for (const auto *pShader : mShaders)
+        {
+            delete pShader;
+        }
+        mShaders.clear();
+
+        for (const auto *pBuffer : mBuffers)
+        {
+            delete pBuffer;
+        }
+        mBuffers.clear();
+
+        for (const auto *pTexture : mTextures)
+        {
+            delete pTexture;
+        }
+        mTextures.clear();
+
+        for (const auto *pGraphicsContext : mGraphicsContexts)
+        {
+            delete pGraphicsContext;
+        }
+        mGraphicsContexts.clear();
+
+        OnFinalize();
+
+        mInitialized = false;
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    BufferT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateBuffer(const BufferArgs &rArgs)
+    {
+        mBuffers.emplace_back(new BufferT{rArgs});
+        return mBuffers.back();
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    GraphicsContextT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateGraphicsContext(const GraphicsContextArgs &rArgs)
+    {
+        mGraphicsContexts.emplace_back(new GraphicsContextT{rArgs});
+        return mGraphicsContexts.back();
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateShader(const ShaderArgs &rArgs)
+    {
+        mShaders.emplace_back(new ShaderT{rArgs});
+        return mShaders.back();
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateTexture(const TextureArgs &rArgs)
+    {
+        mTextures.emplace_back(new TextureT{rArgs});
+        return mTextures.back();
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DestroyBuffer(const BufferT *pBuffer)
+    {
+        assert(pBuffer != nullptr);
+        auto it = std::find(mBuffers.cbegin(), mBuffers.cend(), pBuffer);
+        if (it != mBuffers.cend())
+        {
+            mBuffers.erase(it);
+            delete pBuffer;
+        }
+        else
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy Buffer '%s'", pBuffer->GetName().c_str());
+        }
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DestroyGraphicsContext(const GraphicsContext *pGraphicsContext)
+    {
+        assert(pGraphicsContext != nullptr);
+        auto it = std::find(mGraphicsContexts.cbegin(), mGraphicsContexts.cend(), pGraphicsContext);
+        if (it != mGraphicsContexts.cend())
+        {
+            mGraphicsContexts.erase(it);
+            delete pGraphicsContext;
+        }
+        else
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy GraphicsContext '%s'", pGraphicsContext->GetName().c_str());
+        }
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DestroyShader(const Shader *pShader)
+    {
+        assert(pShader != nullptr);
+        auto it = std::find(mShaders.cbegin(), mShaders.cend(), pShader);
+        if (it != mShaders.cend())
+        {
+            mShaders.erase(it);
+            delete pShader;
+        }
+        else
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy Shader '%s'", pShader->GetName().c_str());
+        }
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DestroyTexture(const Texture *pTexture)
+    {
+        assert(pTexture != nullptr);
+        auto it = std::find(mTextures.cbegin(), mTextures.cend(), pTexture);
+        if (it != mTextures.cend())
+        {
+            mTextures.erase(it);
+            delete pTexture;
+        }
+        else
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy Texture '%s'", pTexture->GetName().c_str());
+        }
     }
 
 #ifdef _DEBUG
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::DebugMenuCallback(int result)
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DebugMenuCallback(int result)
     {
         if (mShowTextureBrowser)
         {
             DisplayTextureBrowser(this, mpSelectedTexture);
         }
-        if (mShowMaterialBrowser)
-        {
-            DisplayMaterialBrowser(this, mpSelectedMaterial);
-        }
     }
 
-    template <class BufferT, class MaterialT, class MeshT, class GraphicsContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, MaterialT, MeshT, GraphicsContextT, ShaderT, TextureT>::DebugMenuItemCallback(int &result)
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DebugMenuItemCallback(int &result)
     {
         ImGui::Checkbox("Texture Browser", &mShowTextureBrowser);
-        ImGui::Checkbox("Material Browser", &mShowMaterialBrowser);
     }
 #endif
 

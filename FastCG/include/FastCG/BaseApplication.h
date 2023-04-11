@@ -2,12 +2,12 @@
 #define FASTCG_BASE_APPLICATION_H
 
 #include <FastCG/Timer.h>
-#include <FastCG/ShaderImporter.h>
-#include <FastCG/RenderingStatistics.h>
-#include <FastCG/RenderingPath.h>
+#include <FastCG/Rendering/RenderingStatistics.h>
+#include <FastCG/Rendering/MaterialDefinitionImporter.h>
 #include <FastCG/MouseButton.h>
-#include <FastCG/MaterialDefinitionImporter.h>
 #include <FastCG/Key.h>
+#include <FastCG/Graphics/ShaderImporter.h>
+#include <FastCG/Graphics/RenderingPath.h>
 #include <FastCG/FastCG.h>
 #include <FastCG/Colors.h>
 

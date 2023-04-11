@@ -20,13 +20,13 @@ namespace FastCG
             return mTextureId;
         }
 
-    private:
-        GLuint mTextureId{~0u};
-
         OpenGLTexture(const TextureArgs &rArgs);
         OpenGLTexture(const OpenGLTexture &rOther) = delete;
         OpenGLTexture(const OpenGLTexture &&rOther) = delete;
         virtual ~OpenGLTexture();
+
+    private:
+        GLuint mTextureId{~0u};
 
         OpenGLTexture operator=(const OpenGLTexture &rOther) = delete;
 

@@ -71,9 +71,9 @@ namespace FastCG
 
     OpenGLGraphicsSystem::~OpenGLGraphicsSystem() = default;
 
-    void OpenGLGraphicsSystem::Initialize()
+    void OpenGLGraphicsSystem::OnInitialize()
     {
-        BaseGraphicsSystem::Initialize();
+        BaseGraphicsSystem::OnInitialize();
 
         InitializeGlew();
 
@@ -91,33 +91,10 @@ namespace FastCG
 #ifdef _DEBUG
         glGenQueries(1, &mPresentTimestampQuery);
 #endif
-
-        // Create backbuffer handler (fake texture)
-        mpBackbuffer = CreateTexture({"Backbuffer",
-                                      1,
-                                      1,
-                                      TextureType::TEXTURE_2D,
-                                      TextureFormat::RGBA,
-                                      {32, 32, 32, 32},
-                                      TextureDataType::FLOAT,
-                                      TextureFilter::POINT_FILTER,
-                                      TextureWrapMode::CLAMP,
-                                      false});
-
-        mInitialized = true;
     }
 
-#define DESTROY_ALL(containerName)             \
-    for (const auto *pElement : containerName) \
-    {                                          \
-        delete pElement;                       \
-    }                                          \
-    containerName.clear()
-
-    void OpenGLGraphicsSystem::Finalize()
+    void OpenGLGraphicsSystem::OnFinalize()
     {
-        mInitialized = false;
-
         for (const auto &rKvp : mFboIds)
         {
             glDeleteFramebuffers(1, &rKvp.second);
@@ -130,56 +107,13 @@ namespace FastCG
         }
         mVaoIds.clear();
 
-        DESTROY_ALL(mMaterials);
-        DESTROY_ALL(mMeshes);
-        DESTROY_ALL(mShaders);
-        DESTROY_ALL(mBuffers);
-        DESTROY_ALL(mTextures);
-        DESTROY_ALL(mGraphicsContexts);
-
 #ifdef _DEBUG
         glDeleteQueries(1, &mPresentTimestampQuery);
 #endif
 
         DestroyOpenGLContext();
-    }
 
-#define DECLARE_CREATE_METHOD(className, containerMember)        \
-    OpenGL##className *OpenGLGraphicsSystem::Create##className() \
-    {                                                            \
-        containerMember.emplace_back(new OpenGL##className{});   \
-        return containerMember.back();                           \
-    }
-
-#define DECLARE_CREATE_METHOD_WITH_ARGS(className, containerMember, argType, argName) \
-    OpenGL##className *OpenGLGraphicsSystem::Create##className(argType argName)       \
-    {                                                                                 \
-        containerMember.emplace_back(new OpenGL##className{argName});                 \
-        return containerMember.back();                                                \
-    }
-
-    DECLARE_CREATE_METHOD_WITH_ARGS(Buffer, mBuffers, const BufferArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(Mesh, mMeshes, const MeshArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(MaterialDefinition, mMaterialDefinitions, const OpenGLMaterialDefinition::MaterialDefinitionArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(GraphicsContext, mGraphicsContexts, const GraphicsContextArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(Shader, mShaders, const ShaderArgs &, rArgs)
-    DECLARE_CREATE_METHOD_WITH_ARGS(Texture, mTextures, const TextureArgs &, rArgs)
-
-    OpenGLMaterial *OpenGLGraphicsSystem::CreateMaterial(const OpenGLMaterial::MaterialArgs &rArgs)
-    {
-        OpenGLBuffer *pMaterialConstantBuffer = nullptr;
-        const auto &rConstantBuffer = rArgs.pMaterialDefinition->GetConstantBuffer();
-        if (rConstantBuffer.GetSize() > 0)
-        {
-            pMaterialConstantBuffer = CreateBuffer({rArgs.name + " Material Constant Buffer",
-                                                    BufferType::UNIFORM,
-                                                    BufferUsage::DYNAMIC,
-                                                    rConstantBuffer.GetSize(),
-                                                    rConstantBuffer.GetData()});
-        }
-
-        mMaterials.emplace_back(new OpenGLMaterial(rArgs, pMaterialConstantBuffer));
-        return mMaterials.back();
+        BaseGraphicsSystem::OnFinalize();
     }
 
 #define DECLARE_DESTROY_METHOD(className, containerMember)                                                              \
@@ -196,33 +130,6 @@ namespace FastCG
         {                                                                                                               \
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy " #className " '%s'", p##className->GetName().c_str()); \
         }                                                                                                               \
-    }
-
-    DECLARE_DESTROY_METHOD(Buffer, mBuffers)
-    DECLARE_DESTROY_METHOD(Mesh, mMeshes)
-    DECLARE_DESTROY_METHOD(MaterialDefinition, mMaterialDefinitions)
-    DECLARE_DESTROY_METHOD(GraphicsContext, mGraphicsContexts)
-    DECLARE_DESTROY_METHOD(Shader, mShaders)
-
-    void OpenGLGraphicsSystem::DestroyMaterial(const OpenGLMaterial *pMaterial)
-    {
-        assert(pMaterial != nullptr);
-        const auto *pMaterialConstantBuffer = pMaterial->GetConstantBuffer();
-        if (pMaterialConstantBuffer != nullptr)
-        {
-            DestroyBuffer(pMaterialConstantBuffer);
-        }
-
-        auto it = std::find(mMaterials.cbegin(), mMaterials.cend(), pMaterial);
-        if (it != mMaterials.cend())
-        {
-            mMaterials.erase(it);
-            delete pMaterial;
-        }
-        else
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy material '%s'", pMaterial->GetName().c_str());
-        }
     }
 
     void OpenGLGraphicsSystem::DestroyTexture(const OpenGLTexture *pTexture)
@@ -243,18 +150,7 @@ namespace FastCG
                 }
             }
         }
-        {
-            auto it = std::find(mTextures.cbegin(), mTextures.cend(), pTexture);
-            if (it != mTextures.cend())
-            {
-                mTextures.erase(it);
-                delete pTexture;
-            }
-            else
-            {
-                FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy texture '%s'", pTexture->GetName().c_str());
-            }
-        }
+        BaseGraphicsSystem::DestroyTexture(pTexture);
     }
 
     GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
@@ -628,7 +524,7 @@ namespace FastCG
 
         mPresentElapsedTime = (presentEnd - (GLuint64)presentStart) * 1e-9;
 
-        for (auto *pGraphicsContext : mGraphicsContexts)
+        for (auto *pGraphicsContext : GetGraphicsContexts())
         {
             pGraphicsContext->RetrieveElapsedTime();
         }
@@ -648,7 +544,7 @@ namespace FastCG
     {
 #ifdef _DEBUG
         double elapsedTime = 0;
-        for (auto *pGraphicsContext : mGraphicsContexts)
+        for (auto *pGraphicsContext : GetGraphicsContexts())
         {
             elapsedTime += pGraphicsContext->GetElapsedTime();
         }

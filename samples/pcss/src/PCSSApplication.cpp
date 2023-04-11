@@ -1,17 +1,20 @@
 #include "PCSSApplication.h"
 #include "Controls.h"
 
-#include <FastCG/TextureLoader.h>
-#include <FastCG/StandardGeometries.h>
-#include <FastCG/Renderable.h>
-#include <FastCG/ModelLoader.h>
+#include <FastCG/Rendering/StandardGeometries.h>
+#include <FastCG/Rendering/Renderable.h>
+#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
 #include <FastCG/MathT.h>
 #include <FastCG/FlyController.h>
+#include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/DirectionalLight.h>
 #include <FastCG/Colors.h>
 #include <FastCG/Camera.h>
 #include <FastCG/AssetSystem.h>
+
+#include <memory>
 
 using namespace FastCG;
 
@@ -21,7 +24,7 @@ namespace
 
     void LoadModel()
     {
-        auto *pDefaultMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Default Material", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+        auto pDefaultMaterial = std::make_shared<Material>(MaterialArgs{"Default Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 
         auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
@@ -44,11 +47,11 @@ namespace
 
     void CreateGround()
     {
-        auto *pGroundMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Ground", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+        auto pGroundMaterial = std::make_unique<Material>(MaterialArgs{"Ground", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 
         auto *pGroundGameObject = GameObject::Instantiate("Ground");
-        auto *pGroundMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE);
-        Renderable::Instantiate(pGroundGameObject, pGroundMaterial, pGroundMesh);
+        auto pGroundMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE);
+        Renderable::Instantiate(pGroundGameObject, std::move(pGroundMaterial), std::move(pGroundMesh));
     }
 
     void CreateDirectionalLight()

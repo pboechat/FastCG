@@ -1,11 +1,12 @@
 #include "SSAOApplication.h"
 #include "Controls.h"
 
-#include <FastCG/TextureLoader.h>
-#include <FastCG/StandardGeometries.h>
-#include <FastCG/Renderable.h>
-#include <FastCG/ModelLoader.h>
+#include <FastCG/Rendering/StandardGeometries.h>
+#include <FastCG/Rendering/Renderable.h>
+#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
 #include <FastCG/MathT.h>
+#include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/FlyController.h>
 #include <FastCG/DirectionalLight.h>
@@ -19,7 +20,7 @@ namespace
 {
 	void LoadModel()
 	{
-		auto *pDefaultMaterial = GraphicsSystem::GetInstance()->CreateMaterial({"Default Material", GraphicsSystem::GetInstance()->FindMaterialDefinition("OpaqueSolidColor")});
+		auto pDefaultMaterial = std::make_shared<Material>(MaterialArgs{"Default Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 
 		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/armadillo.obj"), pDefaultMaterial);
 		if (pModel == nullptr)

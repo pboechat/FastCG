@@ -1,4 +1,5 @@
 #include <FastCG/Transform.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
 #include <FastCG/Inspectable.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsEnums.h>
@@ -20,9 +21,10 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/glm.hpp>
 
-#include <type_traits>
 #include <unordered_map>
+#include <type_traits>
 #include <string>
+#include <memory>
 #include <cassert>
 #include <array>
 
@@ -43,14 +45,7 @@ namespace
     }
 
     template <typename GenericObjectT>
-    void LoadInspectable(const GenericObjectT &,
-                         const std::unordered_map<std::string, FastCG::Material *> &,
-                         const std::unordered_map<std::string, FastCG::Mesh *> &,
-                         const std::unordered_map<std::string, FastCG::Texture *> &,
-                         FastCG::Inspectable *);
-
-    template <typename GenericObjectT>
-    FastCG::Material *LoadMaterial(const GenericObjectT &rGenericObj, const std::string &rBasePath, const std::unordered_map<std::string, FastCG::Texture *> &rTextures)
+    std::unique_ptr<FastCG::Material> LoadMaterial(const GenericObjectT &rGenericObj, const std::string &rBasePath, const std::unordered_map<std::string, FastCG::Texture *> &rTextures)
     {
         FastCG::MaterialArgs args{};
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
@@ -58,7 +53,7 @@ namespace
         {
             assert(rGenericObj.HasMember("materialDefinition") && rGenericObj["materialDefinition"].IsString());
             std::string materialDefinitionName = rGenericObj["materialDefinition"].GetString();
-            args.pMaterialDefinition = FastCG::GraphicsSystem::GetInstance()->FindMaterialDefinition(materialDefinitionName);
+            args.pMaterialDefinition = FastCG::MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition(materialDefinitionName);
         }
         assert(args.pMaterialDefinition != nullptr);
         std::string constantBufferData;
@@ -85,17 +80,17 @@ namespace
                 textures[name] = it->second;
             }
         }
-        auto *pMaterial = FastCG::GraphicsSystem::GetInstance()->CreateMaterial(args);
+        auto pMaterial = std::make_unique<FastCG::Material>(args);
         pMaterial->SetConstantBufferData(reinterpret_cast<const uint8_t *>(constantBufferData.data()), 0, constantBufferData.size());
         for (auto it = textures.begin(); it != textures.end(); ++it)
         {
             pMaterial->SetTexture(it->first, it->second);
         }
-        return pMaterial;
+        return std::move(pMaterial);
     }
 
     template <typename GenericObjectT>
-    FastCG::Mesh *LoadMesh(const GenericObjectT &rGenericObj, const std::string &rBasePath)
+    std::unique_ptr<FastCG::Mesh> LoadMesh(const GenericObjectT &rGenericObj, const std::string &rBasePath)
     {
         FastCG::MeshArgs args{};
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
@@ -198,8 +193,7 @@ namespace
             assert(maxArray.Size() == 3);
             args.bounds.max = glm::vec3{maxArray[0].GetFloat(), maxArray[1].GetFloat(), maxArray[2].GetFloat()};
         }
-        auto *pMesh = FastCG::GraphicsSystem::GetInstance()->CreateMesh(args);
-        return pMesh;
+        return std::make_unique<FastCG::Mesh>(args);
     }
 
     template <typename GenericObjectT>
@@ -254,16 +248,16 @@ namespace
     template <typename GenericObjectT>
     void LoadInspectable(const GenericObjectT &,
                          const std::string &,
-                         const std::unordered_map<std::string, FastCG::Material *> &,
-                         const std::unordered_map<std::string, FastCG::Mesh *> &,
+                         const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &,
+                         const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &,
                          const std::unordered_map<std::string, FastCG::Texture *> &,
                          FastCG::Inspectable *);
 
     template <typename GenericValueT>
     void LoadInspectableProperty(const GenericValueT &rGenericValue,
                                  const std::string &rBasePath,
-                                 const std::unordered_map<std::string, FastCG::Material *> &rMaterials,
-                                 const std::unordered_map<std::string, FastCG::Mesh *> &rMeshes,
+                                 const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
+                                 const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                                  const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
                                  FastCG::IInspectableProperty *pInspectableProperty)
     {
@@ -396,8 +390,8 @@ namespace
     template <typename GenericObjectT>
     void LoadInspectable(const GenericObjectT &rInspectableObj,
                          const std::string &rBasePath,
-                         const std::unordered_map<std::string, FastCG::Material *> &rMaterials,
-                         const std::unordered_map<std::string, FastCG::Mesh *> &rMeshes,
+                         const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
+                         const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                          const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
                          FastCG::Inspectable *pInspectable)
     {
@@ -417,8 +411,8 @@ namespace
     template <typename GenericObjectT>
     FastCG::GameObject *LoadGameObject(const GenericObjectT &rGameObjectObj,
                                        const std::string &rBasePath,
-                                       const std::unordered_map<std::string, FastCG::Material *> &rMaterials,
-                                       const std::unordered_map<std::string, FastCG::Mesh *> &rMeshes,
+                                       const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
+                                       const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                                        const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
                                        FastCG::GameObject *pParent)
     {
@@ -524,8 +518,8 @@ namespace FastCG
         auto docObj = docArray[0].GetObj();
 
         std::unordered_map<std::string, Texture *> textures;
-        std::unordered_map<std::string, Material *> materials;
-        std::unordered_map<std::string, Mesh *> meshes;
+        std::unordered_map<std::string, std::shared_ptr<Material>> materials;
+        std::unordered_map<std::string, std::shared_ptr<Mesh>> meshes;
         if (docObj.HasMember("resources"))
         {
             assert(docObj["resources"].IsObject());
@@ -555,8 +549,7 @@ namespace FastCG
                     assert(refObj.HasMember("id") && refObj["id"].IsString());
                     std::string id = refObj["id"].GetString();
                     assert(refObj.HasMember("value") && refObj["value"].IsObject());
-                    auto *pMaterial = LoadMaterial(refObj["value"].GetObj(), basePath, textures);
-                    materials.emplace(id, pMaterial);
+                    materials.emplace(id, LoadMaterial(refObj["value"].GetObj(), basePath, textures));
                 }
             }
 
@@ -571,8 +564,7 @@ namespace FastCG
                     std::string id = refObj["id"].GetString();
                     assert(refObj.HasMember("value") && refObj["value"].IsObject());
                     auto meshObj = refObj["value"].GetObj();
-                    auto *pMesh = LoadMesh(meshObj, basePath);
-                    meshes.emplace(id, pMesh);
+                    meshes.emplace(id, LoadMesh(meshObj, basePath));
                 }
             }
         }

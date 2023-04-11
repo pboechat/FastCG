@@ -18,6 +18,9 @@ namespace FastCG
     class OpenGLGraphicsContext : public BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
     public:
+        OpenGLGraphicsContext(const GraphicsContextArgs& rArgs);
+        virtual ~OpenGLGraphicsContext();
+
         void Begin();
         void PushDebugMarker(const char *name);
         void PopDebugMarker();
@@ -64,9 +67,6 @@ namespace FastCG
         double mElapsedTime{0};
         bool mEndedQuery[2]{false, false};
 #endif
-
-        OpenGLGraphicsContext(const GraphicsContextArgs& rArgs);
-        virtual ~OpenGLGraphicsContext();
 
 #ifdef _DEBUG
         void RetrieveElapsedTime();

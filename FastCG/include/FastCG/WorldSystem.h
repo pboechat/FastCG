@@ -23,6 +23,7 @@ namespace FastCG
     class RenderBatchStrategy;
     class Renderable;
     class PointLight;
+    class Material;
     class DirectionalLight;
     class Component;
     class Camera;
@@ -89,6 +90,18 @@ namespace FastCG
         void SetMainCamera(Camera *pCamera);
         void RegisterCamera(Camera *pCamera);
         void UnregisterCamera(Camera *pCamera);
+#ifdef _DEBUG
+        inline const Material *GetSelectedMaterial() const
+        {
+            return mpSelectedMaterial;
+        }
+
+        inline void SetSelectedMaterial(const Material *pMaterial)
+        {
+            mShowMaterialBrowser = true;
+            mpSelectedMaterial = pMaterial;
+        }
+#endif
 
     private:
         const WorldSystemArgs mArgs;
@@ -99,6 +112,8 @@ namespace FastCG
         GameObject *mpSelectedGameObject{nullptr};
         bool mShowSceneHierarchy{false};
         bool mShowObjectInspector{false};
+        const Material *mpSelectedMaterial;
+        bool mShowMaterialBrowser{false};
 #endif
 
         WorldSystem(const WorldSystemArgs &rArgs);
@@ -108,7 +123,6 @@ namespace FastCG
         {
             return mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
         }
-
         void Initialize();
         void RegisterGameObject(GameObject *pGameObject);
         void UnregisterGameObject(GameObject *pGameObject);
