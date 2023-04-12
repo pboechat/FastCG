@@ -1,7 +1,7 @@
-#include <FastCG/WorldSystem.h>
+#include <FastCG/World/WorldSystem.h>
 #include <FastCG/Rendering/StandardGeometries.h>
 #include <FastCG/Rendering/DeferredWorldRenderer.h>
-#include <FastCG/MathT.h>
+#include <FastCG/Core/Math.h>
 
 namespace
 {

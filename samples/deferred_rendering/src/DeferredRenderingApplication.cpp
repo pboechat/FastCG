@@ -2,9 +2,9 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
-#include <FastCG/GameObjectLoader.h>
-#include <FastCG/ComponentRegistry.h>
-#include <FastCG/AssetSystem.h>
+#include <FastCG/World/GameObjectLoader.h>
+#include <FastCG/World/ComponentRegistry.h>
+#include <FastCG/Assets/AssetSystem.h>
 
 #include <vector>
 #include <cstdint>

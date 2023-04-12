@@ -5,9 +5,9 @@
 
 #include <vector>
 #include <string>
-#include <string.h>
 #include <memory>
 #include <initializer_list>
+#include <cstring>
 #include <cstdint>
 #include <cassert>
 

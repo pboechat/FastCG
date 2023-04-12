@@ -1,7 +1,7 @@
 #ifndef BUMPMAPPING_APPLICATION_H
 #define BUMPMAPPING_APPLICATION_H
 
-#include <FastCG/Application.h>
+#include <FastCG/Platform/Application.h>
 
 class BumpMappingApplication : public FastCG::Application
 {

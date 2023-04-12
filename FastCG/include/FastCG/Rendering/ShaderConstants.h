@@ -1,7 +1,7 @@
 #ifndef FASTCG_SHADER_STRUCTURES_H
 #define FASTCG_SHADER_STRUCTURES_H
 
-#include <FastCG/Colors.h>
+#include <FastCG/Core/Colors.h>
 
 #include <glm/glm.hpp>
 

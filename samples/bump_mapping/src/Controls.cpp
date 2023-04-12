@@ -1,10 +1,10 @@
 #include "Controls.h"
 
-#include <FastCG/Transform.h>
-#include <FastCG/MathT.h>
-#include <FastCG/Key.h>
-#include <FastCG/InputSystem.h>
-#include <FastCG/Application.h>
+#include <FastCG/World/Transform.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/Input/Key.h>
+#include <FastCG/Input/InputSystem.h>
+#include <FastCG/Core/Math.h>
 
 FASTCG_IMPLEMENT_COMPONENT(Controls, Behaviour);
 

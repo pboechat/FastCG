@@ -1,7 +1,7 @@
 #ifndef LIGHTS_ANIMATOR_H
 #define LIGHTS_ANIMATOR_H
 
-#include <FastCG/Behaviour.h>
+#include <FastCG/World/Behaviour.h>
 
 class LightsAnimator : public FastCG::Behaviour
 {

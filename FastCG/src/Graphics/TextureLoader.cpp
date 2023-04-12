@@ -1,6 +1,6 @@
+#include <FastCG/Platform/File.h>
 #include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/File.h>
-#include <FastCG/Exception.h>
+#include <FastCG/Core/Exception.h>
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION

@@ -1,6 +1,6 @@
-#include <FastCG/StringUtils.h>
-#include <FastCG/FileReader.h>
-#include <FastCG/File.h>
+#include <FastCG/Platform/FileReader.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Core/StringUtils.h>
 
 namespace FastCG
 {

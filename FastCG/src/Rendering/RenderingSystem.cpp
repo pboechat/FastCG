@@ -1,9 +1,9 @@
-#include <FastCG/WorldSystem.h>
+#include <FastCG/World/WorldSystem.h>
+#include <FastCG/UI/ImGuiRenderer.h>
 #include <FastCG/Rendering/RenderingSystem.h>
 #include <FastCG/Rendering/RenderBatchStrategy.h>
 #include <FastCG/Rendering/ForwardWorldRenderer.h>
 #include <FastCG/Rendering/DeferredWorldRenderer.h>
-#include <FastCG/ImGuiRenderer.h>
 
 #include <imgui.h>
 

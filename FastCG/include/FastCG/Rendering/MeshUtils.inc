@@ -1,4 +1,4 @@
-#include <FastCG/MathT.h>
+#include <FastCG/Core/Math.h>
 
 namespace FastCG
 {

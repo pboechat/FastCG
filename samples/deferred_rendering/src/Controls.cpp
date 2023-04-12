@@ -1,8 +1,8 @@
 #include "Controls.h"
 
-#include <FastCG/Key.h>
-#include <FastCG/InputSystem.h>
-#include <FastCG/Application.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/Input/Key.h>
+#include <FastCG/Input/InputSystem.h>
 
 #include <imgui.h>
 

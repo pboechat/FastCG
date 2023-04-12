@@ -3,7 +3,7 @@
 
 #include "LightsAnimator.h"
 
-#include <FastCG/Behaviour.h>
+#include <FastCG/World/Behaviour.h>
 
 #include <cstdint>
 

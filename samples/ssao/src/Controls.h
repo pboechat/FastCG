@@ -1,7 +1,7 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 
-#include <FastCG/Behaviour.h>
+#include <FastCG/World/Behaviour.h>
 
 #include <cstdint>
 

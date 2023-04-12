@@ -3,7 +3,7 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Exception.h>
+#include <FastCG/Core/Exception.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

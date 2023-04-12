@@ -1,11 +1,11 @@
 #include <FastCG/Graphics/ShaderSource.h>
 #include <FastCG/Graphics/ShaderImporter.h>
 #include <FastCG/Graphics/GraphicsEnums.h>
-#include <FastCG/FileReader.h>
-#include <FastCG/File.h>
-#include <FastCG/FastCG.h>
-#include <FastCG/AssetSystem.h>
-#include <FastCG/Application.h>
+#include <FastCG/Platform/FileReader.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Assets/AssetSystem.h>
 
 #include <vector>
 #include <unordered_map>

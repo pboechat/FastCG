@@ -1,16 +1,16 @@
 #ifdef FASTCG_OPENGL
 
 #if defined FASTCG_WINDOWS
-#include <FastCG/WindowsApplication.h>
+#include <FastCG/Platform/Windows/WindowsApplication.h>
 #elif defined FASTCG_LINUX
-#include <FastCG/X11Application.h>
+#include <FastCG/Platform/Linux/X11Application.h>
 #endif
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
-#include <FastCG/Exception.h>
-#include <FastCG/FastCG.h>
-#include <FastCG/AssetSystem.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Core/Exception.h>
+#include <FastCG/Assets/AssetSystem.h>
 
 #if defined FASTCG_WINDOWS
 #include <GL/wglew.h>

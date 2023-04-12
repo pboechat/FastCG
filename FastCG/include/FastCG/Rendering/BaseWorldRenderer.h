@@ -4,13 +4,13 @@
 #include <FastCG/Rendering/RenderingStatistics.h>
 #include <FastCG/Rendering/RenderBatch.h>
 #include <FastCG/Rendering/Renderable.h>
+#include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/Mesh.h>
 #include <FastCG/Rendering/Material.h>
+#include <FastCG/Rendering/Light.h>
 #include <FastCG/Rendering/IWorldRenderer.h>
-#include <FastCG/PointLight.h>
-#include <FastCG/Light.h>
+#include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
-#include <FastCG/DirectionalLight.h>
 
 #include <glm/glm.hpp>
 

@@ -5,7 +5,7 @@
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
 #include <FastCG/Graphics/ConstantBuffer.h>
-#include <FastCG/Colors.h>
+#include <FastCG/Core/Colors.h>
 
 #include <glm/glm.hpp>
 

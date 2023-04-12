@@ -1,10 +1,10 @@
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Platform/FileReader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
-#include <FastCG/FileReader.h>
-#include <FastCG/FastCG.h>
+#include <FastCG/Core/MsgBox.h>
 
 namespace
 {

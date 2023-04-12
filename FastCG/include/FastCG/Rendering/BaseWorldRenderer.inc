@@ -1,8 +1,8 @@
-#include <FastCG/WorldSystem.h>
+#include <FastCG/World/WorldSystem.h>
 #include <FastCG/Rendering/StandardGeometries.h>
-#include <FastCG/Random.h>
-#include <FastCG/MathT.h>
-#include <FastCG/DebugMenuSystem.h>
+#include <FastCG/Debug/DebugMenuSystem.h>
+#include <FastCG/Core/Random.h>
+#include <FastCG/Core/Math.h>
 
 #include <imgui.h>
 

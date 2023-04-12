@@ -3,12 +3,12 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/System.h>
 #include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
 #include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
 #include <FastCG/Graphics/BaseGraphicsSystem.h>
+#include <FastCG/Core/System.h>
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>

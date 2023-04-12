@@ -1,10 +1,10 @@
 #include <FastCG/Rendering/MaterialDefinitionLoader.h>
+#include <FastCG/Platform/FileReader.h>
+#include <FastCG/Platform/File.h>
 #include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
 #include <FastCG/Graphics/ConstantBuffer.h>
-#include <FastCG/FileReader.h>
-#include <FastCG/File.h>
-#include <FastCG/AssetSystem.h>
+#include <FastCG/Assets/AssetSystem.h>
 
 #ifdef FASTCG_LINUX
 // X11 defines Bool and rapidjson uses Bool as a member-function identifier

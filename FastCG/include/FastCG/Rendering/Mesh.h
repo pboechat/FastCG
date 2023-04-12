@@ -3,7 +3,7 @@
 
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsEnums.h>
-#include <FastCG/AABB.h>
+#include <FastCG/Core/AABB.h>
 
 #include <vector>
 #include <string>

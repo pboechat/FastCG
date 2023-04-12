@@ -1,12 +1,12 @@
 #include "Controls.h"
 
-#include <FastCG/WorldSystem.h>
+#include <FastCG/World/WorldSystem.h>
 #include <FastCG/Rendering/RenderingSystem.h>
-#include <FastCG/MathT.h>
-#include <FastCG/Key.h>
-#include <FastCG/InputSystem.h>
-#include <FastCG/Camera.h>
-#include <FastCG/Application.h>
+#include <FastCG/Rendering/Camera.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/Input/Key.h>
+#include <FastCG/Input/InputSystem.h>
+#include <FastCG/Core/Math.h>
 
 #include <imgui.h>
 

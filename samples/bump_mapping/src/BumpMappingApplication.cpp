@@ -2,19 +2,19 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
+#include <FastCG/World/FlyController.h>
+#include <FastCG/World/ComponentRegistry.h>
 #include <FastCG/Rendering/StandardGeometries.h>
 #include <FastCG/Rendering/Renderable.h>
+#include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/ModelLoader.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/PointLight.h>
+#include <FastCG/Rendering/DirectionalLight.h>
+#include <FastCG/Rendering/Camera.h>
 #include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/FlyController.h>
-#include <FastCG/DirectionalLight.h>
-#include <FastCG/ComponentRegistry.h>
-#include <FastCG/Colors.h>
-#include <FastCG/Camera.h>
-#include <FastCG/AssetSystem.h>
+#include <FastCG/Core/Colors.h>
+#include <FastCG/Assets/AssetSystem.h>
 
 #include <memory>
 

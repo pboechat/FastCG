@@ -1,9 +1,9 @@
 #ifndef FASTCG_RENDERABLE_H
 #define FASTCG_RENDERABLE_H
 
+#include <FastCG/World/Component.h>
 #include <FastCG/Rendering/RenderingSystem.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Component.h>
 
 #include <memory>
 

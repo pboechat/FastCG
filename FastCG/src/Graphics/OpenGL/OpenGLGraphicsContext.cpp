@@ -4,7 +4,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
-#include <FastCG/Exception.h>
+#include <FastCG/Core/Exception.h>
 
 #include <vector>
 #include <cassert>

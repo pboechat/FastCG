@@ -5,8 +5,8 @@
 
 #include <vector>
 #include <string>
-#include <string.h>
 #include <memory>
+#include <cstring>
 #include <cstdint>
 #include <cassert>
 #include <algorithm>

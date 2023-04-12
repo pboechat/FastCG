@@ -1,7 +1,7 @@
 #ifndef FASTCG_MESH_UTILS_H
 #define FASTCG_MESH_UTILS_H
 
-#include <FastCG/AABB.h>
+#include <FastCG/Core/AABB.h>
 
 #include <glm/glm.hpp>
 

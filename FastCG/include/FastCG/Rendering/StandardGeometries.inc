@@ -1,7 +1,6 @@
 #include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/Rendering/MeshUtils.h>
-#include <FastCG/MathT.h>
-#include <FastCG/Exception.h>
+#include <FastCG/Core/Math.h>
 
 #include <vector>
 

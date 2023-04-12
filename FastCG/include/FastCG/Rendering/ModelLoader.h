@@ -1,8 +1,8 @@
 #ifndef FASTCG_MODEL_LOADER_H
 #define FASTCG_MODEL_LOADER_H
 
+#include <FastCG/World/GameObject.h>
 #include <FastCG/Rendering/Material.h>
-#include <FastCG/GameObject.h>
 
 #include <type_traits>
 #include <string>

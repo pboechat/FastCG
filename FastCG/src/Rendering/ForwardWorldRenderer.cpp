@@ -1,4 +1,4 @@
-#include <FastCG/WorldSystem.h>
+#include <FastCG/World/WorldSystem.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/ForwardWorldRenderer.h>
 

@@ -1,19 +1,18 @@
-#include <FastCG/Transform.h>
+#include <FastCG/World/Transform.h>
 #include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/ModelLoader.h>
 #include <FastCG/Rendering/MeshUtils.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/MathT.h>
+#include <FastCG/Platform/FileWriter.h>
+#include <FastCG/Platform/FileReader.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Platform/BinaryStream.h>
 #include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/FileWriter.h>
-#include <FastCG/FileReader.h>
-#include <FastCG/File.h>
-#include <FastCG/Exception.h>
-#include <FastCG/Colors.h>
-#include <FastCG/BinaryStream.h>
-#include <FastCG/AssetSystem.h>
+#include <FastCG/Core/Math.h>
+#include <FastCG/Core/Colors.h>
+#include <FastCG/Assets/AssetSystem.h>
 
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <tinyobj_loader_c.h>

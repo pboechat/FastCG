@@ -1,8 +1,8 @@
 #ifndef FASTCG_GRAPHICS_ENUMS_H
 #define FASTCG_GRAPHICS_ENUMS_H
 
-#include <FastCG/FastCG.h>
-#include <FastCG/Enums.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Core/Enums.h>
 
 #include <cstdint>
 #include <cassert>

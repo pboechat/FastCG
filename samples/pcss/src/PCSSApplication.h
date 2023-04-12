@@ -1,7 +1,7 @@
 #ifndef PCSS_APPLICATION_H
 #define PCSS_APPLICATION_H
 
-#include <FastCG/Application.h>
+#include <FastCG/Platform/Application.h>
 
 #include <vector>
 #include <memory.h>

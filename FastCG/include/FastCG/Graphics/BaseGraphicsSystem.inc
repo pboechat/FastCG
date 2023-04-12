@@ -1,6 +1,6 @@
 #include <FastCG/Graphics/GraphicsEnums.h>
-#include <FastCG/Exception.h>
-#include <FastCG/DebugMenuSystem.h>
+#include <FastCG/Debug/DebugMenuSystem.h>
+#include <FastCG/Core/Exception.h>
 
 #include <imgui.h>
 
