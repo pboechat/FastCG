@@ -22,6 +22,7 @@ namespace FastCG
     {
         const uint32_t &rScreenWidth;
         const uint32_t &rScreenHeight;
+        uint32_t maxSimultaneousFrames;
         bool vsync;
     };
 

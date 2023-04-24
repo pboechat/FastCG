@@ -5,15 +5,13 @@
 
 #include <FastCG/Graphics/BaseShader.h>
 
-#include <string>
-
 namespace FastCG
 {
     class VulkanGraphicsSystem;
 
     class VulkanShader : public BaseShader
     {
-    private:
+    public:
         VulkanShader(const ShaderArgs &rName);
         VulkanShader(const VulkanShader &rOther) = delete;
         VulkanShader(const VulkanShader &&rOther) = delete;
@@ -21,6 +19,7 @@ namespace FastCG
 
         VulkanShader operator=(const VulkanShader &rOther) = delete;
 
+    private:
         friend class VulkanGraphicsSystem;
     };
 

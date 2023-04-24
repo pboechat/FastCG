@@ -11,7 +11,7 @@ namespace FastCG
 
     class VulkanBuffer : public BaseBuffer
     {
-    private:
+    public:
         VulkanBuffer(const BufferArgs &rArgs);
         VulkanBuffer(const VulkanBuffer &rOther) = delete;
         VulkanBuffer(const VulkanBuffer &&rOther) = delete;
@@ -19,6 +19,7 @@ namespace FastCG
 
         VulkanBuffer &operator=(const VulkanBuffer &rOther) = delete;
 
+    private:
         friend class VulkanGraphicsSystem;
     };
 

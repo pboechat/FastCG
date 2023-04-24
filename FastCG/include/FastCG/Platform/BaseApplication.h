@@ -32,6 +32,7 @@ namespace FastCG
 		uint32_t screenWidth{1024};
 		uint32_t screenHeight{768};
 		uint32_t frameRate{60};
+		uint32_t maxSimultaneousFrames{3};
 		bool vsync{false};
 		struct
 		{

@@ -18,7 +18,11 @@ namespace FastCG
         {
             return static_cast<WindowsApplication *>(BaseApplication::GetInstance());
         }
-        inline HWND GetWindow()
+        inline HINSTANCE GetModule() const
+        {
+            return mInstance;
+        }
+        inline HWND GetWindow() const
         {
             return mHWnd;
         }
@@ -32,7 +36,7 @@ namespace FastCG
         void RunMainLoop() override;
 
     private:
-        HINSTANCE mHInstance{0};
+        HINSTANCE mInstance{0};
         HWND mHWnd{0};
     };
 

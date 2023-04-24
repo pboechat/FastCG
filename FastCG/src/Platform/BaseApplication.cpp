@@ -133,6 +133,7 @@ namespace FastCG
 #endif
 		GraphicsSystem::Create({mScreenWidth,
 								mScreenHeight,
+								mSettings.maxSimultaneousFrames,
 								mSettings.vsync});
 		InputSystem::Create({});
 		ImGuiSystem::Create({mScreenWidth,

@@ -11,7 +11,7 @@ namespace FastCG
 
     class VulkanTexture : public BaseTexture
     {
-    private:
+    public:
         VulkanTexture(const TextureArgs &rArgs);
         VulkanTexture(const VulkanTexture &rOther) = delete;
         VulkanTexture(const VulkanTexture &&rOther) = delete;
@@ -19,6 +19,7 @@ namespace FastCG
 
         VulkanTexture operator=(const VulkanTexture &rOther) = delete;
 
+    private:
         friend class VulkanGraphicsSystem;
     };
 }

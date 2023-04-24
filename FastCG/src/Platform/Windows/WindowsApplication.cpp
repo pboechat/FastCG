@@ -155,7 +155,7 @@ namespace FastCG
 	{
 		BaseApplication::OnPreInitialize();
 
-		mHInstance = GetModuleHandle(NULL);
+		mInstance = GetModuleHandle(NULL);
 
 		RECT windowRect;
 		windowRect.left = (LONG)0;
@@ -169,7 +169,7 @@ namespace FastCG
 		windowClass.lpfnWndProc = WndProc;
 		windowClass.cbClsExtra = 0;
 		windowClass.cbWndExtra = 0;
-		windowClass.hInstance = mHInstance;
+		windowClass.hInstance = mInstance;
 		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 		windowClass.hbrBackground = NULL;
@@ -195,7 +195,7 @@ namespace FastCG
 							   windowRect.bottom - windowRect.top,
 							   NULL,
 							   NULL,
-							   mHInstance,
+							   mInstance,
 							   NULL);
 
 		if (mHWnd == 0)

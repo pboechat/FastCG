@@ -3,10 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Graphics/BaseShader.h>
-
-#include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <string>
 
@@ -27,12 +25,11 @@ namespace FastCG
         OpenGLShader(const OpenGLShader &&rOther) = delete;
         virtual ~OpenGLShader();
 
+        OpenGLShader operator=(const OpenGLShader &rOther) = delete;
+
     private:
         GLuint mProgramId{~0u};
         ShaderTypeValueArray<GLuint> mShadersIds{};
-
-
-        OpenGLShader operator=(const OpenGLShader &rOther) = delete;
 
         friend class OpenGLGraphicsSystem;
     };

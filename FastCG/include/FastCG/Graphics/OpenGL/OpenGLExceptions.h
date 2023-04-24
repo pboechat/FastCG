@@ -3,10 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Core/Exception.h>
-
-#include <GL/glew.h>
-#include <GL/gl.h>
 
 #include <sstream>
 
@@ -15,14 +13,10 @@ namespace FastCG
 	class OpenGLException : public Exception
 	{
 	public:
-		OpenGLException(const std::string &rReason) : Exception(rReason)
-		{
-		}
+		OpenGLException(const std::string &rReason) : Exception(rReason) {}
 
 	protected:
-		OpenGLException()
-		{
-		}
+		OpenGLException() = default;
 	};
 
 }

@@ -3,11 +3,9 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Graphics/GraphicsEnums.h>
 #include <FastCG/Core/Exception.h>
-
-#include <GL/glew.h>
-#include <GL/gl.h>
 
 #ifdef CASE_RETURN_STRING
 #undef CASE_RETURN_STRING

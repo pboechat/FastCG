@@ -15,6 +15,9 @@ namespace FastCG
     class VulkanGraphicsContext : public BaseGraphicsContext<VulkanBuffer, VulkanShader, VulkanTexture>
     {
     public:
+        VulkanGraphicsContext(const GraphicsContextArgs &rArgs);
+        virtual ~VulkanGraphicsContext();
+
         void Begin();
         void PushDebugMarker(const char *name);
         void PopDebugMarker();
@@ -53,9 +56,6 @@ namespace FastCG
         double GetElapsedTime() const;
 
     private:
-        VulkanGraphicsContext(const GraphicsContextArgs &rArgs);
-        virtual ~VulkanGraphicsContext();
-
         friend class VulkanGraphicsSystem;
     };
 
