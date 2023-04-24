@@ -52,11 +52,11 @@ namespace
 #if defined FASTCG_WINDOWS
         supportsPresentation = vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIdx);
 #elif defined FASTCG_LINUX
-        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        auto *pDisplay = FastCG::X11Application::GetInstance()->GetDisplay();
         assert(pDisplay != nullptr);
         // Uses visual ID from default visual. Only works because we're using a "simple window".
         auto visualId = XVisualIDFromVisual(DefaultVisual(pDisplay, DefaultScreen(pDisplay)));
-        supportsPresentation = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIdx, display, visualId);
+        supportsPresentation = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIdx, pDisplay, visualId);
 #else
 #error "FASTCG: Don't know how to check presentation support"
 #endif

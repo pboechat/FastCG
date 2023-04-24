@@ -3,11 +3,7 @@
 
 #ifdef FASTCG_LINUX
 
-#include <FastCG/BaseApplication.h>
-
-#ifdef FASTCG_OPENGL
-#include <GL/glxew.h>
-#endif
+#include <FastCG/Platform/BaseApplication.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
