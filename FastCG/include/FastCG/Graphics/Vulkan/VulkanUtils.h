@@ -70,6 +70,34 @@ namespace FastCG
             return nullptr;
         }
     }
+
+    inline const char *GetVkDebugUtilsMessageSeverityFlagBitsString(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
+    {
+        switch (messageSeverity)
+        {
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT);
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT);
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT);
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
+        default:
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled message severity %d", (int)messageSeverity);
+            return nullptr;
+        }
+    }
+
+    inline const char *GetVkDebugUtilsMessageTypeFlagBitsString(VkDebugUtilsMessageTypeFlagBitsEXT messageType)
+    {
+        switch (messageType)
+        {
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT);
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
+            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT);
+        default:
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled message type %d", (int)messageType);
+            return nullptr;
+        }
+    }
 }
 
 #endif

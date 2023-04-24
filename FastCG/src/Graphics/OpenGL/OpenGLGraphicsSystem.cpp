@@ -24,6 +24,7 @@
 #include <X11/extensions/Xrender.h>
 #endif
 
+#include <iostream>
 #include <cassert>
 #include <algorithm>
 
@@ -52,13 +53,13 @@ namespace
 
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam)
     {
-        printf(
-            "[%s] - %s - %s - %d - %s\n",
-            FastCG::GetOpenGLDebugOutputMessageSeverity(severity),
-            FastCG::GetOpenGLDebugOutputMessageSourceString(source),
-            FastCG::GetOpenGLDebugOutputMessageTypeString(type),
-            id,
-            message);
+        std::cout << "[OPENGL]"
+                  << " - " << FastCG::GetOpenGLDebugOutputMessageSeverity(severity)
+                  << " - " << FastCG::GetOpenGLDebugOutputMessageSourceString(source)
+                  << " - " << FastCG::GetOpenGLDebugOutputMessageTypeString(type)
+                  << " - " << id
+                  << " - " << message
+                  << std::endl;
     }
 
 }

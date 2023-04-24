@@ -41,6 +41,7 @@ namespace FastCG
         VkPresentModeKHR mPresentMode;
         uint32_t mMaxSimultaneousFrames{0};
         uint32_t mCurrentFrame{0};
+        uint32_t mSwapChainIndex{0};
         VkSwapchainKHR mSwapChain{VK_NULL_HANDLE};
         VkSurfaceFormatKHR mSwapChainSurfaceFormat;
         std::vector<VkImage> mSwapChainImages;
@@ -49,23 +50,32 @@ namespace FastCG
         std::vector<VkFence> mFrameFences;
         VkCommandPool mCommandPool{VK_NULL_HANDLE};
         std::vector<VkCommandBuffer> mCommandBuffers;
+#if _DEBUG
+        VkDebugUtilsMessengerEXT mDebugMessenger;
+#endif
 
+        inline VkCommandBuffer GetCurrentCommandBuffer() const
+        {
+            return mCommandBuffers[mCurrentFrame];
+        }
         void CreateInstance();
         void CreateSurface();
         void SelectPhysicalDevice();
-        void GetPhysicalDeviceMemoryProperties();
+        void GetPhysicalDeviceProperties();
         void CreateDeviceAndGetQueues();
-        void CreateSwapChainAndGetImages();
         void RecreateSwapChainAndGetImages();
+        void AcquireNextSwapChainImage();
         void CreateSynchronizationObjects();
         void CreateCommandPoolAndCommandBuffers();
+        void BeginCurrentCommandBuffer();
+        void EndCurrentCommandBuffer();
         void DestroyCommandPoolAndCommandBuffers();
         void DestroySynchronizationObjects();
         void DestroySwapChainAndClearImages();
         void DestroyDeviceAndClearQueues();
         void DestroySurface();
         void DestroyInstance();
-        void Resize() {}
+        void Resize();
         void Present();
         double GetPresentElapsedTime() const;
         double GetGpuElapsedTime() const;
