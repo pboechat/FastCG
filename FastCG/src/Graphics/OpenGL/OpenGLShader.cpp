@@ -61,8 +61,15 @@ namespace FastCG
             }
             else
             {
-                glShaderBinary(1, &shaderId, GL_SHADER_BINARY_FORMAT_SPIR_V, rProgramData.pData, (GLsizei)rProgramData.dataSize);
-                glSpecializeShader(shaderId, "main", 0, nullptr, nullptr);
+                if (GLEW_ARB_gl_spirv)
+                {
+                    glShaderBinary(1, &shaderId, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, rProgramData.pData, (GLsizei)rProgramData.dataSize);
+                    glSpecializeShaderARB(shaderId, "main", 0, nullptr, nullptr);
+                }
+                else
+                {
+                    FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Cannot use SPIR-V shaders!");
+                }
             }
 
             CheckShaderStatus(shaderId, GL_COMPILE_STATUS, mName);

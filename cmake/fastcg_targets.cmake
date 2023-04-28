@@ -12,15 +12,21 @@ function(_fastcg_compile_glsl_shaders)
     set(SRC_SHADERS_DIR "${SOURCE_DIR}/assets/shaders")
     set(DST_SHADERS_DIR "${FASTCG_DEPLOY}/assets/${ARGV0}/shaders")
 
+    set(FASTCG_SHADER_COMPILER_ARGS -e main --source-entrypoint main)
+
     if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
-        set(FASTCG_SHADER_COMPILER_ARGS --target-env opengl)
+        set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} --target-env opengl)
     elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
-        set(FASTCG_SHADER_COMPILER_ARGS --target-env vulkan1.3)
+        set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} --target-env vulkan1.3)
     else()
         message(FATAL_ERROR "Don't know how to compile GLSL shaders for ${FASTCG_GRAPHICS_SYSTEM}")
     endif()
 
-    set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -g -DENABLE_INCLUDE_EXTENSION_DIRECTIVE)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -g)
+    endif()
+
+    set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -DENABLE_INCLUDE_EXTENSION_DIRECTIVE)
 
     file(GLOB_RECURSE GLSL_HEADERS "${SRC_SHADERS_DIR}/*.glsl")
     file(GLOB_RECURSE GLSL_SOURCES "${SRC_SHADERS_DIR}/*.vert" "${SRC_SHADERS_DIR}/*.frag")
