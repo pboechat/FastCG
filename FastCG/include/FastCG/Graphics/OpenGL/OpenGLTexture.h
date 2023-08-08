@@ -18,7 +18,7 @@ namespace FastCG
             return mTextureId;
         }
 
-        OpenGLTexture(const TextureArgs &rArgs);
+        OpenGLTexture(const Args &rArgs);
         OpenGLTexture(const OpenGLTexture &rOther) = delete;
         OpenGLTexture(const OpenGLTexture &&rOther) = delete;
         virtual ~OpenGLTexture();

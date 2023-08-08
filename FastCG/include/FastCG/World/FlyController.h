@@ -45,7 +45,7 @@ namespace FastCG
 	private:
 		float mTheta{0};
 		float mPhi{0};
-		glm::quat mRotation{};
+		glm::quat mRotation{1, 0, 0, 0};
 		glm::uvec2 mLastMousePosition{0, 0};
 		bool mRightMouseButtonPressed{false};
 		float mMoveSpeed{1};

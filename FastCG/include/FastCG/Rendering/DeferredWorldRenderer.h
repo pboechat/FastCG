@@ -4,6 +4,7 @@
 #include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/Rendering/BaseWorldRenderer.h>
 
+#include <vector>
 #include <memory>
 #include <array>
 
@@ -16,18 +17,19 @@ namespace FastCG
 
         void Initialize() override;
         void Resize() override;
-        void Render(const Camera *pCamera, GraphicsContext *pGraphicsContext) override;
         void Finalize() override;
 
     protected:
-        void CreateGBufferRenderTargets();
-        void DestroyGBufferRenderTargets();
-        void BindGBufferTextures(GraphicsContext *pGraphicsContext) const;
-        void UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext) override;
-        void UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext) override;
+        void OnRender(const Camera *pCamera, GraphicsContext *pGraphicsContext) override;
+        void CreateGBuffers();
+        void DestroyGBuffers();
+        void BindGBuffer(GraphicsContext *pGraphicsContext) const;
+        const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext) override;
+        const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext) override;
 
     private:
-        std::array<const Texture *, 7> mGBufferRenderTargets{};
+        std::vector<std::array<const Texture *, 6>> mGBuffers;
+        std::vector<const Texture *> mDepthStencilBuffers;
         const Shader *mpStencilPassShader{nullptr};
         const Shader *mpPointLightPassShader{nullptr};
         const Shader *mpDirectionalLightPassShader{nullptr};

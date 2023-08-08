@@ -8,6 +8,7 @@
 #include <imgui.h>
 
 #include <memory>
+#include <cstdint>
 
 namespace FastCG
 {
@@ -32,6 +33,8 @@ namespace FastCG
         const Buffer *mpImGuiConstantsBuffer{nullptr};
         std::unique_ptr<Mesh> mpImGuiMesh{nullptr};
         ImGuiConstants mImGuiConstants{};
+        std::unique_ptr<uint8_t[]> mpVerticesData;
+        std::unique_ptr<uint8_t[]> mpIndicesData;
     };
 
 }

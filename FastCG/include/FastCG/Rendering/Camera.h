@@ -61,9 +61,8 @@ namespace FastCG
 		{
 			if (mProjectionMode == ProjectionMode::PERSPECTIVE)
 			{
-				return glm::perspective(GetFieldOfView(), GetAspectRatio(), GetNearClip(), GetFarClip());
+				return glm::perspective(GetFieldOfViewInRadians(), GetAspectRatio(), GetNearClip(), GetFarClip());
 			}
-
 			else
 			{
 				return glm::ortho(GetLeft(), GetRight(), GetBottom(), GetTop(), GetNearClip(), GetFarClip());
@@ -75,14 +74,20 @@ namespace FastCG
 			return glm::inverse(GetGameObject()->GetTransform()->GetModel());
 		}
 
-		inline float GetFieldOfView() const
+		inline float GetFieldOfViewInRadians() const
 		{
 			return mArgs.perspective.fieldOfView;
 		}
 
+		inline float GetFieldOfView() const
+		{
+			return glm::degrees(mArgs.perspective.fieldOfView);
+		}
+
 		inline void SetFieldOfView(float fieldOfView)
 		{
-			mArgs.perspective.fieldOfView = fieldOfView;
+			// store FOV in radians
+			mArgs.perspective.fieldOfView = glm::radians(fieldOfView);
 		}
 
 		inline float GetAspectRatio() const
@@ -202,6 +207,7 @@ namespace FastCG
 																																 mProjectionMode(projectionMode),
 																																 mSSAOEnabled(ssaoEnabled)
 		{
+			SetFieldOfView(rArgs.perspective.fieldOfView);
 		}
 	};
 

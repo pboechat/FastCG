@@ -3,6 +3,8 @@
 #include <FastCG/Rendering/DeferredWorldRenderer.h>
 #include <FastCG/Core/Math.h>
 
+#include <type_traits>
+
 namespace
 {
     float CalculateLightBoundingSphereScale(const FastCG::PointLight *pPointLight)
@@ -23,7 +25,7 @@ namespace FastCG
     {
         BaseWorldRenderer::Initialize();
 
-        CreateGBufferRenderTargets();
+        CreateGBuffers();
 
         mpStencilPassShader = GraphicsSystem::GetInstance()->FindShader("StencilPass");
         mpDirectionalLightPassShader = GraphicsSystem::GetInstance()->FindShader("DirectionalLightPass");
@@ -32,112 +34,133 @@ namespace FastCG
         mpSphereMesh = StandardGeometries::CreateSphere("Deferred Rendering PointLight Sphere", 1, LIGHT_MESH_DETAIL);
     }
 
-    void DeferredWorldRenderer::CreateGBufferRenderTargets()
+    void DeferredWorldRenderer::CreateGBuffers()
     {
-        mGBufferRenderTargets[0] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Diffuse",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::RGBA,
-                                                                                 {8, 8, 8, 8},
-                                                                                 TextureDataType::FLOAT,
-                                                                                 TextureFilter::LINEAR_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
-        mGBufferRenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::RGB,
-                                                                                 {8, 8, 8, 8},
-                                                                                 TextureDataType::FLOAT,
-                                                                                 TextureFilter::LINEAR_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
-        mGBufferRenderTargets[2] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::RGBA,
-                                                                                 {8, 8, 8, 8},
-                                                                                 TextureDataType::FLOAT,
-                                                                                 TextureFilter::LINEAR_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
-        mGBufferRenderTargets[3] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::RGBA,
-                                                                                 {8, 8, 8, 8},
-                                                                                 TextureDataType::FLOAT,
-                                                                                 TextureFilter::LINEAR_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
-        mGBufferRenderTargets[4] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::RGBA,
-                                                                                 {8, 8, 8, 8},
-                                                                                 TextureDataType::FLOAT,
-                                                                                 TextureFilter::LINEAR_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
-        mGBufferRenderTargets[5] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Depth",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::DEPTH_STENCIL,
-                                                                                 {24, 8},
-                                                                                 TextureDataType::UNSIGNED_INT,
-                                                                                 TextureFilter::POINT_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
-        mGBufferRenderTargets[6] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Final",
-                                                                                 mArgs.rScreenWidth,
-                                                                                 mArgs.rScreenHeight,
-                                                                                 TextureType::TEXTURE_2D,
-                                                                                 TextureFormat::RGBA,
-                                                                                 {10, 10, 10, 2},
-                                                                                 TextureDataType::FLOAT,
-                                                                                 TextureFilter::POINT_FILTER,
-                                                                                 TextureWrapMode::CLAMP,
-                                                                                 false});
+        mGBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+        for (auto &rGBuffer : mGBuffers)
+        {
+            rGBuffer[0] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Diffuse",
+                                                                        mArgs.rScreenWidth,
+                                                                        mArgs.rScreenHeight,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                        TextureFormat::RGBA,
+                                                                        {8, 8, 8, 8},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::LINEAR_FILTER,
+                                                                        TextureWrapMode::CLAMP,
+                                                                        false});
+            rGBuffer[1] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
+                                                                        mArgs.rScreenWidth,
+                                                                        mArgs.rScreenHeight,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                        TextureFormat::RGBA,
+                                                                        {8, 8, 8, 8},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::LINEAR_FILTER,
+                                                                        TextureWrapMode::CLAMP,
+                                                                        false});
+            rGBuffer[2] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
+                                                                        mArgs.rScreenWidth,
+                                                                        mArgs.rScreenHeight,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                        TextureFormat::RGBA,
+                                                                        {8, 8, 8, 8},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::LINEAR_FILTER,
+                                                                        TextureWrapMode::CLAMP,
+                                                                        false});
+            rGBuffer[3] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
+                                                                        mArgs.rScreenWidth,
+                                                                        mArgs.rScreenHeight,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                        TextureFormat::RGBA,
+                                                                        {8, 8, 8, 8},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::LINEAR_FILTER,
+                                                                        TextureWrapMode::CLAMP,
+                                                                        false});
+            rGBuffer[4] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
+                                                                        mArgs.rScreenWidth,
+                                                                        mArgs.rScreenHeight,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                        TextureFormat::RGBA,
+                                                                        {8, 8, 8, 8},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::LINEAR_FILTER,
+                                                                        TextureWrapMode::CLAMP,
+                                                                        false});
+            rGBuffer[5] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Final",
+                                                                        mArgs.rScreenWidth,
+                                                                        mArgs.rScreenHeight,
+                                                                        TextureType::TEXTURE_2D,
+                                                                        TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                        TextureFormat::RGBA,
+                                                                        {10, 10, 10, 2},
+                                                                        TextureDataType::FLOAT,
+                                                                        TextureFilter::LINEAR_FILTER,
+                                                                        TextureWrapMode::CLAMP,
+                                                                        false});
+        }
+
+        mDepthStencilBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+        for (auto &rDepthStencilBuffer : mDepthStencilBuffers)
+        {
+            rDepthStencilBuffer = GraphicsSystem::GetInstance()->CreateTexture({"Depth",
+                                                                                mArgs.rScreenWidth,
+                                                                                mArgs.rScreenHeight,
+                                                                                TextureType::TEXTURE_2D,
+                                                                                TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                                TextureFormat::DEPTH_STENCIL,
+                                                                                {24, 8},
+                                                                                TextureDataType::UNSIGNED_INT,
+                                                                                TextureFilter::POINT_FILTER,
+                                                                                TextureWrapMode::CLAMP,
+                                                                                false});
+        }
     }
 
-    void DeferredWorldRenderer::DestroyGBufferRenderTargets()
+    void DeferredWorldRenderer::DestroyGBuffers()
     {
-        for (const auto *pRenderTarget : mGBufferRenderTargets)
+        for (auto &rGBuffer : mGBuffers)
         {
-            if (pRenderTarget != nullptr)
+            for (auto *pRenderTarget : rGBuffer)
             {
-                GraphicsSystem::GetInstance()->DestroyTexture(pRenderTarget);
+                if (pRenderTarget != nullptr)
+                {
+                    GraphicsSystem::GetInstance()->DestroyTexture(pRenderTarget);
+                }
             }
         }
-        mGBufferRenderTargets = {};
+        mGBuffers.clear();
     }
 
-    void DeferredWorldRenderer::BindGBufferTextures(GraphicsContext *pGraphicsContext) const
+    void DeferredWorldRenderer::BindGBuffer(GraphicsContext *pGraphicsContext) const
     {
-        pGraphicsContext->BindResource(mGBufferRenderTargets[0], "uDiffuseMap", 4);
-        pGraphicsContext->BindResource(mGBufferRenderTargets[1], "uNormalMap", 5);
-        pGraphicsContext->BindResource(mGBufferRenderTargets[2], "uSpecularMap", 6);
-        pGraphicsContext->BindResource(mGBufferRenderTargets[3], "uTangentMap", 7);
-        pGraphicsContext->BindResource(mGBufferRenderTargets[4], "uExtraData", 8);
-        pGraphicsContext->BindResource(mGBufferRenderTargets[5], "uDepth", 9);
+        auto &rCurrentGBuffer = mGBuffers[GraphicsSystem::GetInstance()->GetCurrentFrame()];
+        pGraphicsContext->BindResource(rCurrentGBuffer[0], "uDiffuseMap");
+        pGraphicsContext->BindResource(rCurrentGBuffer[1], "uNormalMap");
+        pGraphicsContext->BindResource(rCurrentGBuffer[2], "uSpecularMap");
+        pGraphicsContext->BindResource(rCurrentGBuffer[3], "uTangentMap");
+        pGraphicsContext->BindResource(rCurrentGBuffer[4], "uExtraData");
+        auto &rCurrentDepthStencilBuffer = mDepthStencilBuffers[GraphicsSystem::GetInstance()->GetCurrentFrame()];
+        pGraphicsContext->BindResource(rCurrentDepthStencilBuffer, "uDepth");
     }
 
-    void DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
+    const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
     {
-        BaseWorldRenderer::UpdateLightingConstants(pPointLight, rInverseView, nearClip, isSSAOEnabled, pGraphicsContext);
-        BindGBufferTextures(pGraphicsContext);
+        BindGBuffer(pGraphicsContext);
+        return BaseWorldRenderer::UpdateLightingConstants(pPointLight, rInverseView, nearClip, isSSAOEnabled, pGraphicsContext);
     }
 
-    void DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
+    const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
     {
-        BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rViewDirection, nearClip, isSSAOEnabled, pGraphicsContext);
-        BindGBufferTextures(pGraphicsContext);
+        BindGBuffer(pGraphicsContext);
+        return BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rViewDirection, nearClip, isSSAOEnabled, pGraphicsContext);
     }
 
     void DeferredWorldRenderer::Resize()
@@ -146,12 +169,12 @@ namespace FastCG
 
         if (GraphicsSystem::GetInstance()->IsInitialized())
         {
-            DestroyGBufferRenderTargets();
-            CreateGBufferRenderTargets();
+            DestroyGBuffers();
+            CreateGBuffers();
         }
     }
 
-    void DeferredWorldRenderer::Render(const Camera *pCamera, GraphicsContext *pGraphicsContext)
+    void DeferredWorldRenderer::OnRender(const Camera *pCamera, GraphicsContext *pGraphicsContext)
     {
         assert(pGraphicsContext != nullptr);
 
@@ -164,6 +187,9 @@ namespace FastCG
         auto inverseView = glm::inverse(view);
         auto projection = pCamera->GetProjection();
 
+        auto &rCurrentGBuffer = mGBuffers[GraphicsSystem::GetInstance()->GetCurrentFrame()];
+        auto &pCurrentDepthStencilBuffer = mDepthStencilBuffers[GraphicsSystem::GetInstance()->GetCurrentFrame()];
+
         pGraphicsContext->PushDebugMarker("Deferred World Rendering");
         {
             GenerateShadowMaps(pGraphicsContext);
@@ -173,10 +199,10 @@ namespace FastCG
 
             if (isSSAOEnabled)
             {
-                GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), mGBufferRenderTargets[5], pGraphicsContext);
+                GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), pCurrentDepthStencilBuffer, pGraphicsContext);
             }
 
-            pGraphicsContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+            pGraphicsContext->SetViewport(0, 0, rCurrentGBuffer[0]->GetWidth(), rCurrentGBuffer[0]->GetHeight());
             pGraphicsContext->SetDepthTest(true);
             pGraphicsContext->SetDepthWrite(true);
             pGraphicsContext->SetStencilTest(false);
@@ -184,25 +210,25 @@ namespace FastCG
             pGraphicsContext->SetScissorTest(false);
             pGraphicsContext->SetCullMode(Face::BACK);
             pGraphicsContext->SetBlend(false);
-            pGraphicsContext->SetRenderTargets(mGBufferRenderTargets.data(), 6);
+            pGraphicsContext->SetRenderTargets(rCurrentGBuffer.data(), (uint32_t)rCurrentGBuffer.size(), pCurrentDepthStencilBuffer);
 
             pGraphicsContext->PushDebugMarker("Clear G-Buffer");
             {
-                for (auto i : {0, 1, 2, 3, 4})
+                for (size_t i = 0; i < rCurrentGBuffer.size() - 1; ++i)
                 {
-                    pGraphicsContext->ClearRenderTarget(i, Colors::NONE);
+                    pGraphicsContext->ClearRenderTarget((uint32_t)i, Colors::NONE);
                 }
-                pGraphicsContext->ClearDepthStencilTarget(0, 1, 0);
+                pGraphicsContext->ClearDepthStencilBuffer(1, 0);
             }
             pGraphicsContext->PopDebugMarker();
+
+            const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
 
             auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
             if (renderBatchIt != mArgs.rRenderBatches.cend())
             {
-                pGraphicsContext->PushDebugMarker("Material Passes");
+                pGraphicsContext->PushDebugMarker("Geometry Passes");
                 {
-                    UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
-
                     for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
                         const auto *pMaterial = renderBatchIt->pMaterial;
@@ -213,20 +239,27 @@ namespace FastCG
 
                             BindMaterial(pMaterial, pGraphicsContext);
 
-                            pGraphicsContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
+                            pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
 
                             for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
                                 const auto *pMesh = it->first;
                                 const auto &rRenderables = it->second;
 
-                                auto instanceCount = UpdateInstanceConstants(rRenderables, view, projection, pGraphicsContext);
+                                uint32_t instanceCount;
+                                const Buffer *pInstanceConstantsBuffer;
+                                {
+                                    auto result = UpdateInstanceConstants(rRenderables, view, projection, pGraphicsContext);
+                                    instanceCount = result.first;
+                                    pInstanceConstantsBuffer = result.second;
+                                }
+
                                 if (instanceCount == 0)
                                 {
                                     continue;
                                 }
 
-                                pGraphicsContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
+                                pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                 pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
@@ -252,7 +285,7 @@ namespace FastCG
 
             pGraphicsContext->PushDebugMarker("Clear G-Buffer Final Render Target");
             {
-                pGraphicsContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
+                pGraphicsContext->SetRenderTargets(&rCurrentGBuffer[5], 1, nullptr);
                 pGraphicsContext->ClearRenderTarget(0, Colors::NONE);
             }
             pGraphicsContext->PopDebugMarker();
@@ -268,13 +301,12 @@ namespace FastCG
                     {
                         auto model = glm::scale(pPointLight->GetGameObject()->GetTransform()->GetModel(), glm::vec3(CalculateLightBoundingSphereScale(pPointLight)));
 
-                        UpdateInstanceConstants(model, view, projection, pGraphicsContext);
+                        const auto *pInstanceConstantsBuffer = UpdateInstanceConstants(model, view, projection, pGraphicsContext);
 
                         pGraphicsContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Stencil Sub-Pass").c_str());
                         {
-                            pGraphicsContext->SetRenderTargets(&mGBufferRenderTargets[5], 1);
-                            pGraphicsContext->ClearStencilTarget(0, 0);
-
+                            pGraphicsContext->SetRenderTargets(nullptr, 0, pCurrentDepthStencilBuffer);
+                            pGraphicsContext->ClearStencilBuffer(0);
                             pGraphicsContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
                             pGraphicsContext->SetDepthTest(true);
                             pGraphicsContext->SetDepthWrite(false);
@@ -287,7 +319,7 @@ namespace FastCG
 
                             pGraphicsContext->BindShader(mpStencilPassShader);
 
-                            pGraphicsContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
+                            pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
                             pGraphicsContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pGraphicsContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
@@ -300,8 +332,7 @@ namespace FastCG
 
                         pGraphicsContext->PushDebugMarker((std::string("Point Light (") + std::to_string(i) + ") Color Sub-Pass").c_str());
                         {
-                            pGraphicsContext->SetRenderTargets(&mGBufferRenderTargets[5], 2);
-
+                            pGraphicsContext->SetRenderTargets(&rCurrentGBuffer[5], 1, pCurrentDepthStencilBuffer);
                             pGraphicsContext->SetDepthTest(false);
                             pGraphicsContext->SetDepthWrite(false);
                             pGraphicsContext->SetStencilTest(true);
@@ -314,13 +345,13 @@ namespace FastCG
 
                             pGraphicsContext->BindShader(mpPointLightPassShader);
 
-                            pGraphicsContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
-                            UpdateInstanceConstants(model, view, projection, pGraphicsContext);
+                            pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            pGraphicsContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
-                            UpdateLightingConstants(pPointLight, inverseView, nearClip, isSSAOEnabled, pGraphicsContext);
+                            const auto *pInstanceConstantsBuffer = UpdateInstanceConstants(model, view, projection, pGraphicsContext);
+                            pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            pGraphicsContext->BindResource(mpLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX);
+                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pPointLight, inverseView, nearClip, isSSAOEnabled, pGraphicsContext);
+                            pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
 
                             pGraphicsContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pGraphicsContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
@@ -338,8 +369,7 @@ namespace FastCG
 
             pGraphicsContext->PushDebugMarker("Directional Light Passes");
             {
-                pGraphicsContext->SetRenderTargets(&mGBufferRenderTargets[6], 1);
-
+                pGraphicsContext->SetRenderTargets(&rCurrentGBuffer[5], 1, nullptr);
                 pGraphicsContext->SetDepthTest(false);
                 pGraphicsContext->SetDepthWrite(false);
                 pGraphicsContext->SetStencilTest(false);
@@ -351,6 +381,8 @@ namespace FastCG
 
                 pGraphicsContext->BindShader(mpDirectionalLightPassShader);
 
+                pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+
                 auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
                 const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
                 for (size_t i = 0; i < rDirectionalLights.size(); i++)
@@ -358,8 +390,8 @@ namespace FastCG
                     const auto *pDirectionalLight = rDirectionalLights[i];
                     pGraphicsContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                     {
-                        UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pGraphicsContext);
-                        pGraphicsContext->BindResource(mpLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX);
+                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pGraphicsContext);
+                        pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
 
                         pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                         pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
@@ -373,9 +405,9 @@ namespace FastCG
             }
             pGraphicsContext->PopDebugMarker();
 
-            pGraphicsContext->PushDebugMarker("Blit G-Buffer Final Render Target into Color Backbuffer");
+            pGraphicsContext->PushDebugMarker("Blit G-Buffer Final Render Target into Backbuffer");
             {
-                pGraphicsContext->Blit(mGBufferRenderTargets[6], GraphicsSystem::GetInstance()->GetBackbuffer());
+                pGraphicsContext->Blit(rCurrentGBuffer[5], GraphicsSystem::GetInstance()->GetBackbuffer());
             }
             pGraphicsContext->PopDebugMarker();
         }
@@ -386,7 +418,7 @@ namespace FastCG
     {
         mpSphereMesh = nullptr;
 
-        DestroyGBufferRenderTargets();
+        DestroyGBuffers();
 
         BaseWorldRenderer::Finalize();
     }

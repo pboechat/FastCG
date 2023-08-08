@@ -11,6 +11,10 @@
 #include <cstdint>
 #include <cassert>
 
+#ifdef max
+#undef max
+#endif
+
 namespace FastCG
 {
     class ConstantBuffer
@@ -194,7 +198,7 @@ namespace FastCG
             for (const auto &rMember : mMembers)
             {
                 auto memberSize = rMember.GetSize();
-                mAlignment = std::max(memberSize, mAlignment);
+                mAlignment = glm::max(memberSize, mAlignment);
                 auto padding = mSize % memberSize;
                 auto offset = mSize + padding;
                 auto boundary = (offset + memberSize) % 16;

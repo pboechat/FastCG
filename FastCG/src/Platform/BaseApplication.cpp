@@ -22,7 +22,6 @@
 
 #include <imgui.h>
 
-#include <iostream>
 #include <cstdio>
 #include <cassert>
 #include <algorithm>
@@ -119,7 +118,6 @@ namespace FastCG
 		}
 		catch (Exception &e)
 		{
-			std::cerr << "Fatal Exception: " << e.GetFullDescription().c_str() << std::endl;
 			FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
 			return -1;
 		}

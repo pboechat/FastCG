@@ -39,7 +39,6 @@ namespace FastCG
         static_assert(std::is_same<typename GraphicsContext::Texture, Texture>::value, "GraphicsContext::Texture type must be the same as Texture type");
         static_assert(std::is_same<typename GraphicsContext::Buffer, Buffer>::value, "GraphicsContext::Buffer type must be the same as Buffer type");
 
-        // Template interface methods
         inline bool IsInitialized() const
         {
             return mInitialized;
@@ -56,15 +55,6 @@ namespace FastCG
         {
             return mArgs.rScreenHeight;
         }
-        inline Buffer *CreateBuffer(const BufferArgs &rArgs);
-        inline GraphicsContext *CreateGraphicsContext(const GraphicsContextArgs &rArgs);
-        inline Shader *CreateShader(const ShaderArgs &rArgs);
-        inline Texture *CreateTexture(const TextureArgs &rArgs);
-        inline void DestroyBuffer(const Buffer *pBuffer);
-        inline void DestroyGraphicsContext(const GraphicsContext *pGraphicsContext);
-        inline void DestroyShader(const Shader *pShader);
-        inline void DestroyTexture(const Texture *pTexture);
-        inline const Shader *FindShader(const std::string &rName) const;
         inline const auto &GetBuffers() const
         {
             return mBuffers;
@@ -86,14 +76,24 @@ namespace FastCG
         {
             return mpSelectedTexture;
         }
-
         inline void SetSelectedTexture(const Texture *pTexture)
         {
             mShowTextureBrowser = true;
             mpSelectedTexture = pTexture;
         }
-
 #endif
+        // Template interface methods
+        inline uint32_t GetMaxSimultaneousFrames() const;
+        inline uint32_t GetCurrentFrame() const;
+        inline Buffer *CreateBuffer(const BufferArgs &rArgs);
+        inline GraphicsContext *CreateGraphicsContext(const typename GraphicsContext::Args &rArgs);
+        inline Shader *CreateShader(const ShaderArgs &rArgs);
+        inline Texture *CreateTexture(const typename Texture::Args &rArgs);
+        inline virtual void DestroyBuffer(const Buffer *pBuffer);
+        inline virtual void DestroyGraphicsContext(const GraphicsContext *pGraphicsContext);
+        inline virtual void DestroyShader(const Shader *pShader);
+        inline virtual void DestroyTexture(const Texture *pTexture);
+        inline const Shader *FindShader(const std::string &rName) const;
 
     protected:
         const GraphicsSystemArgs mArgs;
@@ -105,7 +105,8 @@ namespace FastCG
 
         // Non-interface methods
         virtual void OnInitialize() {}
-        virtual void OnFinalize() {}
+        virtual void OnPreFinalize() {}
+        virtual void OnPostFinalize() {}
 #ifdef _DEBUG
         inline void DebugMenuCallback(int result);
         inline void DebugMenuItemCallback(int &result);

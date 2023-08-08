@@ -39,6 +39,7 @@ namespace
 		pTransform->SetScale(glm::vec3(scale, scale, scale));
 		auto center = bounds.getCenter();
 		pTransform->SetPosition(glm::vec3(-center.x * scale, center.y * scale, -center.z * scale));
+		pTransform->SetRotation(glm::quat(glm::vec3(0, glm::radians(180.0f), 0)));
 	}
 
 	void CreateDirectionalLight()
@@ -60,8 +61,7 @@ SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, 3, fals
 void SSAOApplication::OnStart()
 {
 	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
-	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3{0, 0.25f, -1.5f});
-	pMainCameraGameObject->GetTransform()->RotateAround(180, glm::vec3{0, 1, 0});
+	pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3{0, 0.25f, 1.5f});
 
 	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE, true);
 

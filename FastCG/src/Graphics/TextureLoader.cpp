@@ -6,76 +6,78 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <vector>
+#include <memory>
 #include <cstdint>
-#include <cassert>
-
-namespace
-{
-	bool GetTextureFormatAndBitsPerPixel(int components, FastCG::TextureFormat &format, FastCG::BitsPerPixel &bitsPerPixel)
-	{
-		if (components == 1)
-		{
-			format = FastCG::TextureFormat::R;
-			bitsPerPixel = {8};
-			return true;
-		}
-		else if (components == 2)
-		{
-			format = FastCG::TextureFormat::RG;
-			bitsPerPixel = {8, 8};
-			return true;
-		}
-		else if (components == 3)
-		{
-			format = FastCG::TextureFormat::RGB;
-			bitsPerPixel = {8, 8, 8};
-			return true;
-		}
-		else if (components == 4)
-		{
-			format = FastCG::TextureFormat::RGBA;
-			bitsPerPixel = {8, 8, 8, 8};
-			return true;
-		}
-		else
-		{
-			format = (FastCG::TextureFormat)0;
-			bitsPerPixel = {};
-			return false;
-		}
-	}
-
-}
 
 namespace FastCG
 {
-	Texture *TextureLoader::Load(const std::string &rFilePath)
+	Texture *TextureLoader::Load(const std::string &rFilePath, TextureSamplerSettings samplerSettings)
 	{
 		int width, height, components;
-		auto *pData = stbi_load(rFilePath.c_str(), &width, &height, &components, 0);
-		if (pData == nullptr)
+		auto *pPixels = stbi_load(rFilePath.c_str(), &width, &height, &components, 0);
+		if (pPixels == nullptr)
 		{
 			return nullptr;
 		}
+
+		std::unique_ptr<uint8_t[]> transformedPixels;
 		TextureFormat format;
-		BitsPerPixel bitsPerPixel;
-		if (!GetTextureFormatAndBitsPerPixel(components, format, bitsPerPixel))
+		BitsPerChannel bitsPerChannel;
+		switch (components)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Couldn't get texture format and bits per pixel (components = %d)", components);
+		case 1:
+			format = FastCG::TextureFormat::R;
+			bitsPerChannel = {8};
+			break;
+		case 2:
+			format = FastCG::TextureFormat::RG;
+			bitsPerChannel = {8, 8};
+			break;
+		case 3:
+		{
+			transformedPixels = std::make_unique<uint8_t[]>(width * height * 4 * sizeof(uint8_t));
+			int i = 0, j = 0;
+			for (int y = 0; y < height; ++y)
+			{
+				for (int x = 0; x < width; ++x)
+				{
+					for (int c = 0; c < 3; ++c)
+					{
+						transformedPixels[i++] = pPixels[j++];
+					}
+					transformedPixels[i++] = 1;
+				}
+			}
+			stbi_image_free(pPixels);
+			pPixels = transformedPixels.get();
+			components = 4;
 		}
+		case 4:
+			format = FastCG::TextureFormat::RGBA;
+			bitsPerChannel = {8, 8, 8, 8};
+			break;
+		default:
+			FASTCG_THROW_EXCEPTION(Exception, "Couldn't get texture format and bits per channel (components=%d)", components);
+			return nullptr;
+		}
+
 		auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture({File::GetFileNameWithoutExtension(rFilePath),
 																	   (uint32_t)width,
 																	   (uint32_t)height,
 																	   TextureType::TEXTURE_2D,
+																	   TextureUsageFlagBit::SAMPLED,
 																	   format,
-																	   bitsPerPixel,
-																	   TextureDataType::UNSIGNED_CHAR,
-																	   TextureFilter::LINEAR_FILTER,
-																	   TextureWrapMode::REPEAT,
+																	   bitsPerChannel,
+																	   TextureDataType::FLOAT,
+																	   samplerSettings.filter,
+																	   samplerSettings.wrapMode,
 																	   true,
-																	   (void *)pData});
-		stbi_image_free(pData);
+																	   pPixels});
+		if (transformedPixels == nullptr)
+		{
+			stbi_image_free(pPixels);
+		}
+
 		return pTexture;
 	}
 

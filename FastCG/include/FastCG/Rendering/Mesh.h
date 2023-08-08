@@ -2,7 +2,7 @@
 #define FASTCG_MESH_H
 
 #include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/AABB.h>
 
 #include <vector>
@@ -14,7 +14,7 @@ namespace FastCG
 	struct VertexAttributeDescriptor
 	{
 		std::string name;
-		BufferUsage usage;
+		BufferUsageFlags usage;
 		size_t dataSize;
 		const void *pData;
 		std::vector<VertexBindingDescriptor> bindingDescriptors;
@@ -26,7 +26,7 @@ namespace FastCG
 		std::vector<VertexAttributeDescriptor> vertexAttributeDecriptors;
 		struct
 		{
-			BufferUsage usage;
+			BufferUsageFlags usage;
 			uint32_t count;
 			const uint32_t *pData;
 		} indices;

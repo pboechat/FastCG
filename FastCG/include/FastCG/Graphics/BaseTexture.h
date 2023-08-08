@@ -1,33 +1,61 @@
 #ifndef FASTCG_BASE_TEXTURE_H
 #define FASTCG_BASE_TEXTURE_H
 
-#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 
 #include <string>
-#include <string.h>
 #include <memory>
+#include <cstring>
 #include <cstdint>
 
 namespace FastCG
 {
-	struct TextureArgs
-	{
-		std::string name;
-		uint32_t width;
-		uint32_t height;
-		TextureType type{TextureType::TEXTURE_2D};
-		TextureFormat format{TextureFormat::RGBA};
-		BitsPerPixel bitsPerPixel{8, 8, 8, 8};
-		TextureDataType dataType{TextureDataType::UNSIGNED_CHAR};
-		TextureFilter filter{TextureFilter::LINEAR_FILTER};
-		TextureWrapMode wrapMode{TextureWrapMode::CLAMP};
-		bool generateMipmap{true};
-		const void *pData{nullptr};
-	};
-
 	class BaseTexture
 	{
 	public:
+		struct Args
+		{
+			std::string name;
+			uint32_t width;
+			uint32_t height;
+			TextureType type;
+			TextureUsageFlags usage;
+			TextureFormat format;
+			BitsPerChannel bitsPerChannel;
+			TextureDataType dataType;
+			TextureFilter filter;
+			TextureWrapMode wrapMode;
+			bool generateMipmap;
+			const uint8_t *pData;
+
+			Args(const std::string &rName = "",
+				 uint32_t width = 1,
+				 uint32_t height = 1,
+				 TextureType type = TextureType::TEXTURE_2D,
+				 TextureUsageFlags usage = TextureUsageFlagBit::SAMPLED,
+				 TextureFormat format = TextureFormat::RGBA,
+				 BitsPerChannel bitsPerChannel = {8, 8, 8, 8},
+				 TextureDataType dataType = TextureDataType::UNSIGNED_CHAR,
+				 TextureFilter filter = TextureFilter::LINEAR_FILTER,
+				 TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
+				 bool generateMipmap = true,
+				 const uint8_t *pData = nullptr)
+				: name(rName),
+				  width(width),
+				  height(height),
+				  type(type),
+				  usage(usage),
+				  format(format),
+				  bitsPerChannel(bitsPerChannel),
+				  dataType(dataType),
+				  filter(filter),
+				  wrapMode(wrapMode),
+				  generateMipmap(generateMipmap),
+				  pData(pData)
+			{
+			}
+		};
+
 		inline const std::string &GetName() const
 		{
 			return mName;
@@ -48,14 +76,19 @@ namespace FastCG
 			return mType;
 		}
 
+		inline TextureUsageFlags GetUsage() const
+		{
+			return mUsage;
+		}
+
 		inline TextureFormat GetFormat() const
 		{
 			return mFormat;
 		}
 
-		inline const BitsPerPixel &GetBitsPerPixel() const
+		inline const BitsPerChannel &GetBitsPerChannel() const
 		{
-			return mBitsPerPixel;
+			return mBitsPerChannel;
 		}
 
 		inline TextureDataType GetDataType() const
@@ -80,7 +113,7 @@ namespace FastCG
 
 		inline size_t GetDataSize() const
 		{
-			return (size_t)(mWidth * mHeight * ((mBitsPerPixel.r + mBitsPerPixel.g + mBitsPerPixel.b + mBitsPerPixel.a) / 8));
+			return (size_t)(mWidth * mHeight * ((mBitsPerChannel.r + mBitsPerChannel.g + mBitsPerChannel.b + mBitsPerChannel.a) >> 3));
 		}
 
 		inline const uint8_t *GetData() const
@@ -93,34 +126,32 @@ namespace FastCG
 		uint32_t mWidth;
 		uint32_t mHeight;
 		TextureType mType;
-		BitsPerPixel mBitsPerPixel;
+		TextureUsageFlags mUsage;
+		BitsPerChannel mBitsPerChannel;
 		TextureFormat mFormat;
 		TextureDataType mDataType;
 		TextureFilter mFilter;
 		TextureWrapMode mWrapMode;
 		bool mGenerateMipmap;
-		size_t mDataSize;
 		std::unique_ptr<uint8_t[]> mpData;
 
-		BaseTexture(const TextureArgs &rArgs) : mName(rArgs.name),
-												mWidth(rArgs.width),
-												mHeight(rArgs.height),
-												mType(rArgs.type),
-												mFormat(rArgs.format),
-												mBitsPerPixel(rArgs.bitsPerPixel),
-												mDataType(rArgs.dataType),
-												mFilter(rArgs.filter),
-												mWrapMode(rArgs.wrapMode),
-												mGenerateMipmap(rArgs.generateMipmap)
+		BaseTexture(const Args &rArgs) : mName(rArgs.name),
+										 mWidth(rArgs.width),
+										 mHeight(rArgs.height),
+										 mType(rArgs.type),
+										 mUsage(rArgs.usage),
+										 mFormat(rArgs.format),
+										 mBitsPerChannel(rArgs.bitsPerChannel),
+										 mDataType(rArgs.dataType),
+										 mFilter(rArgs.filter),
+										 mWrapMode(rArgs.wrapMode),
+										 mGenerateMipmap(rArgs.generateMipmap)
 		{
-			auto dataSize = GetDataSize();
-			if (dataSize > 0)
+			if (rArgs.pData != nullptr)
 			{
+				auto dataSize = GetDataSize();
 				mpData = std::make_unique<uint8_t[]>(dataSize);
-				if (rArgs.pData != nullptr)
-				{
-					memcpy((void *)mpData.get(), rArgs.pData, dataSize);
-				}
+				memcpy((void *)mpData.get(), rArgs.pData, dataSize);
 			}
 		}
 		virtual ~BaseTexture() = default;

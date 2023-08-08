@@ -4,6 +4,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/Core/StringUtils.h>
 #include <FastCG/Core/MsgBox.h>
 
 namespace
@@ -34,6 +35,63 @@ namespace
     DECLARE_CHECK_STATUS_FN(Shader)
     DECLARE_CHECK_STATUS_FN(Program)
 
+    void GetResourceLocations(GLuint programId, std::unordered_map<std::string, FastCG::OpenGLResourceInfo> &rResourceInfos)
+    {
+        for (GLenum programInterface : {GL_UNIFORM_BLOCK, GL_SHADER_STORAGE_BLOCK, GL_UNIFORM})
+        {
+            GLint numActiveResources = 0;
+            glGetProgramInterfaceiv(programId, programInterface, GL_ACTIVE_RESOURCES, &numActiveResources);
+            FASTCG_CHECK_OPENGL_ERROR();
+
+            for (GLint i = 0; i < numActiveResources; ++i)
+            {
+                GLsizei length = 0;
+                GLchar buffer[128];
+
+                glGetProgramResourceName(programId, programInterface, i, FASTCG_ARRAYSIZE(buffer), &length, buffer);
+                FASTCG_CHECK_OPENGL_ERROR();
+
+                std::string resourceName(buffer, length);
+
+                auto it = rResourceInfos.find(resourceName);
+                if (it != rResourceInfos.end())
+                {
+                    continue;
+                }
+
+                GLenum property;
+                GLint location = -1;
+                GLint binding = -1;
+                if (programInterface == GL_UNIFORM)
+                {
+                    property = GL_LOCATION;
+                    glGetProgramResourceiv(programId, programInterface, i, 1, &property, 1, nullptr, &location);
+                    FASTCG_CHECK_OPENGL_ERROR();
+
+                    if (location == -1)
+                    {
+                        continue;
+                    }
+
+                    glGetUniformiv(programId, location, &binding);
+                }
+                else
+                {
+                    property = GL_BUFFER_BINDING;
+                    glGetProgramResourceiv(programId, programInterface, i, 1, &property, 1, nullptr, &binding);
+                }
+                FASTCG_CHECK_OPENGL_ERROR();
+
+                if (binding == -1)
+                {
+                    continue;
+                }
+
+                rResourceInfos[resourceName] = {location, binding};
+            }
+        }
+    }
+
 }
 
 namespace FastCG
@@ -41,7 +99,7 @@ namespace FastCG
     OpenGLShader::OpenGLShader(const ShaderArgs &rArgs) : BaseShader(rArgs)
     {
         std::fill(mShadersIds.begin(), mShadersIds.end(), ~0u);
-        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::COUNT; ++i)
+        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::LAST; ++i)
         {
             auto shaderType = (ShaderType)i;
 
@@ -93,6 +151,8 @@ namespace FastCG
 
         glLinkProgram(mProgramId);
         CheckProgramStatus(mProgramId, GL_LINK_STATUS, GetName());
+
+        GetResourceLocations(mProgramId, mResourceInfo);
 
         for (const auto &shaderId : mShadersIds)
         {

@@ -9,7 +9,7 @@
 #include "Instance.glsl"
 #include "Lighting.glsl"
 
-layout(location = 0) in vec4 iPosition;
+layout(location = 0) in vec3 iPosition;
 layout(location = 1) in vec3 iNormal;
 layout(location = 2) in vec2 iUV;
 layout(location = 3) in vec4 iTangent;
@@ -26,11 +26,11 @@ void main()
 
 	mat3 tangentSpaceMatrix = transpose(mat3(tangent, binormal, normal));
 
-	vec4 worldPosition = GetInstanceData().model * iPosition;
+	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1);
 	vec3 viewPosition = vec3(uView * worldPosition);
 	vLightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
 	vPosition = worldPosition.xyz;
 	vUV = iUV;
 
-	gl_Position = GetInstanceData().modelViewProjection * iPosition;
+	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);
 }

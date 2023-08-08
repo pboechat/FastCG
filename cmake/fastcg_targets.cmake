@@ -100,7 +100,8 @@ function(_fastcg_add_definitions)
     if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
         add_definitions(-DFASTCG_OPENGL)
     elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
-        add_definitions(-DFASTCG_VULKAN)
+        # FIXME: use [0, 1] depth!
+        add_definitions(-DFASTCG_VULKAN) # -DGLM_FORCE_DEPTH_ZERO_TO_ONE)
     endif()
 endfunction()
 

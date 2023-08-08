@@ -112,11 +112,11 @@ namespace FastCG
 			auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
 
 			rMeshCatalog.emplace(shapeIdx, std::make_shared<Mesh>(MeshArgs{name + " (" + std::to_string(shapeIdx) + ")",
-																		   {{"Positions", BufferUsage::STATIC, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																			{"Normals", BufferUsage::STATIC, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_SHADER_INPUT_INDEX, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																			{"UVs", BufferUsage::STATIC, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_SHADER_INPUT_INDEX, 2, VertexDataType::FLOAT, true, 0, 0}}},
-																			{"Tangents", BufferUsage::STATIC, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_SHADER_INPUT_INDEX, 4, VertexDataType::FLOAT, false, 0, 0}}}},
-																		   {BufferUsage::STATIC, (uint32_t)indices.size(), indices.data()},
+																		   {{"Positions", 0, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_VERTEX_INPUT_LOCATION, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																			{"Normals", 0, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_VERTEX_INPUT_LOCATION, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																			{"UVs", 0, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_VERTEX_INPUT_LOCATION, 2, VertexDataType::FLOAT, true, 0, 0}}},
+																			{"Tangents", 0, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_VERTEX_INPUT_LOCATION, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+																		   {0, (uint32_t)indices.size(), indices.data()},
 																		   MeshUtils::CalculateBounds(positions)}));
 		}
 	}
@@ -153,9 +153,9 @@ namespace FastCG
 			}
 
 			std::shared_ptr<MaterialDefinition> pMaterialDefinition;
+			// TODO: devise a nicer mechanism to infer the default material of a loaded model
 			if (pBumpMapTexture != nullptr)
 			{
-				// TODO:
 				if (shininess != 0.0f)
 				{
 					pMaterialDefinition = MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueBumpedSpecular");
@@ -167,7 +167,6 @@ namespace FastCG
 			}
 			else if (pColorMapTexture != nullptr)
 			{
-				// TODO:
 				if (shininess != 0.0f)
 				{
 					pMaterialDefinition = MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSpecular");

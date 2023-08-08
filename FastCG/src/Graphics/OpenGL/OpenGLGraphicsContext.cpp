@@ -12,7 +12,7 @@
 
 namespace FastCG
 {
-    OpenGLGraphicsContext::OpenGLGraphicsContext(const GraphicsContextArgs &rArgs)
+    OpenGLGraphicsContext::OpenGLGraphicsContext(const Args &rArgs)
         : BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>(rArgs)
     {
 #ifdef _DEBUG
@@ -39,10 +39,10 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLGraphicsContext::PushDebugMarker(const char *name)
+    void OpenGLGraphicsContext::PushDebugMarker(const char *pName)
     {
 #ifdef _DEBUG
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, name);
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, pName);
 #endif
     }
 
@@ -188,7 +188,7 @@ namespace FastCG
     void OpenGLGraphicsContext::Copy(const OpenGLBuffer *pBuffer, size_t dataSize, const void *pData)
     {
         assert(pBuffer != nullptr);
-        auto target = GetOpenGLTarget(pBuffer->GetType());
+        auto target = GetOpenGLTarget(pBuffer->GetUsage());
         glBindBuffer(target, *pBuffer);
         glBufferSubData(target, 0, (GLsizeiptr)dataSize, (const GLvoid *)pData);
     }
@@ -198,45 +198,46 @@ namespace FastCG
         assert(pTexture != nullptr);
         auto target = GetOpenGLTarget(pTexture->GetType());
         glBindTexture(target, *pTexture);
-        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetDataType(), pTexture->GetBitsPerPixel()), (const GLvoid *)pData);
+        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetFormat(), pTexture->GetBitsPerChannel()), (const GLvoid *)pData);
     }
 
     void OpenGLGraphicsContext::BindShader(const OpenGLShader *pShader)
     {
         assert(pShader != nullptr);
-        glUseProgram(*pShader);
+        if (mpBoundShader == pShader)
+        {
+            return;
+        }
+        glUseProgram(pShader->GetProgramId());
         mpBoundShader = pShader;
+        mLastUsedTextureUnit = 0;
     }
 
-    void OpenGLGraphicsContext::BindResource(const OpenGLBuffer *pBuffer, uint32_t index)
+    void OpenGLGraphicsContext::BindResource(const OpenGLBuffer *pBuffer, const char *pName)
     {
         assert(pBuffer != nullptr);
+        assert(pName != nullptr);
         assert(mpBoundShader != nullptr);
-        glBindBufferBase(GetOpenGLTarget(pBuffer->GetType()), index, *pBuffer);
+        auto resourceInfo = mpBoundShader->GetResourceInfo(pName);
+        if (resourceInfo.binding == -1)
+        {
+            return;
+        }
+        glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), resourceInfo.binding, *pBuffer);
     }
 
-    void OpenGLGraphicsContext::BindResource(const OpenGLBuffer *pBuffer, const char *name)
+    void OpenGLGraphicsContext::BindResource(const OpenGLTexture *pTexture, const char *pName)
     {
-        assert(pBuffer != nullptr);
         assert(mpBoundShader != nullptr);
-        auto index = glGetUniformLocation(*mpBoundShader, name);
-        BindResource(pBuffer, index);
-    }
-
-    void OpenGLGraphicsContext::BindResource(const OpenGLTexture *pTexture, uint32_t index, uint32_t unit)
-    {
-        assert(pTexture != nullptr);
-        assert(mpBoundShader != nullptr);
-        glActiveTexture(GL_TEXTURE0 + unit);
+        auto resourceInfo = mpBoundShader->GetResourceInfo(pName);
+        if (resourceInfo.location == -1 || resourceInfo.binding == -1)
+        {
+            return;
+        }
+        glActiveTexture(GL_TEXTURE0 + resourceInfo.binding);
         glBindTexture(GL_TEXTURE_2D, *pTexture);
-        glUniform1i(index, unit);
-    }
-
-    void OpenGLGraphicsContext::BindResource(const OpenGLTexture *pTexture, const char *name, uint32_t unit)
-    {
-        assert(mpBoundShader != nullptr);
-        auto index = glGetUniformLocation(*mpBoundShader, name);
-        BindResource(pTexture, index, unit);
+        glUniform1i(resourceInfo.location, resourceInfo.binding);
+        FASTCG_CHECK_OPENGL_ERROR();
     }
 
     void OpenGLGraphicsContext::Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst)
@@ -251,7 +252,7 @@ namespace FastCG
         }
         else
         {
-            auto readFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pSrc, 1);
+            auto readFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pSrc, 1, nullptr);
             glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
             glReadBuffer(GL_COLOR_ATTACHMENT0);
             srcWidth = (GLint)pSrc->GetWidth();
@@ -266,7 +267,7 @@ namespace FastCG
         }
         else
         {
-            auto drawFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pDst, 1);
+            auto drawFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pDst, 1, nullptr);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFbo);
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
             dstWidth = (GLint)pDst->GetWidth();
@@ -289,52 +290,54 @@ namespace FastCG
         glClearBufferfv(GL_COLOR, (GLint)renderTargetIndex, (const GLfloat *)&rClearColor[0]);
     }
 
-    void OpenGLGraphicsContext::ClearDepthStencilTarget(uint32_t renderTargetIndex, float depth, int32_t stencil)
+    void OpenGLGraphicsContext::ClearDepthStencilBuffer(float depth, int32_t stencil)
     {
-        GLboolean depthWrite;
-        glGetBooleanv(GL_DEPTH_WRITEMASK, &depthWrite);
-        GLint stencilWriteMask;
-        glGetIntegerv(GL_STENCIL_WRITEMASK, &stencilWriteMask);
+        GLboolean oldDepthWrite;
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &oldDepthWrite);
+        GLint oldStencilWriteMask;
+        glGetIntegerv(GL_STENCIL_WRITEMASK, &oldStencilWriteMask);
         SetDepthWrite(true);
         SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
         glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
-        SetDepthWrite(depthWrite);
-        SetStencilWriteMask(Face::FRONT_AND_BACK, stencilWriteMask);
+        SetDepthWrite(oldDepthWrite);
+        SetStencilWriteMask(Face::FRONT_AND_BACK, oldStencilWriteMask);
     }
 
-    void OpenGLGraphicsContext::ClearDepthTarget(uint32_t renderTargetIndex, float depth)
+    void OpenGLGraphicsContext::ClearDepthBuffer(float depth)
     {
-        GLboolean depthTest;
-        glGetBooleanv(GL_DEPTH_TEST, &depthTest);
+        GLboolean oldDepthTest;
+        glGetBooleanv(GL_DEPTH_TEST, &oldDepthTest);
         SetDepthTest(true);
         glClearBufferfv(GL_DEPTH, 0, &depth);
-        SetDepthTest(depthTest);
+        SetDepthTest(oldDepthTest);
     }
 
-    void OpenGLGraphicsContext::ClearStencilTarget(uint32_t renderTargetIndex, int32_t stencil)
+    void OpenGLGraphicsContext::ClearStencilBuffer(int32_t stencil)
     {
-        GLint stencilMask;
-        glGetIntegerv(GL_STENCIL_WRITEMASK, &stencilMask);
+        GLint oldStencilMask;
+        glGetIntegerv(GL_STENCIL_WRITEMASK, &oldStencilMask);
         SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
         glClearBufferiv(GL_STENCIL, 0, &stencil);
-        SetStencilWriteMask(Face::FRONT_AND_BACK, stencilMask);
+        SetStencilWriteMask(Face::FRONT_AND_BACK, oldStencilMask);
     }
 
-    void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *pTextures, size_t textureCount)
+    void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
     {
-        assert(pTextures != nullptr);
-        assert(textureCount > 0);
-        if (textureCount == 1 && pTextures[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer())
+        if (renderTargetCount == 1 &&
+            pRenderTargets[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer() &&
+            pDepthStencilBuffer == nullptr)
         {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             return;
         }
-        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(pTextures, textureCount);
+
+        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(pRenderTargets, renderTargetCount, pDepthStencilBuffer);
         assert(fbId != ~0u);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbId);
+
         std::vector<GLenum> attachments;
-        attachments.reserve(textureCount);
-        std::for_each(pTextures, pTextures + textureCount, [&attachments, i = 0](const auto *pTexture) mutable
+        attachments.reserve(renderTargetCount);
+        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [&attachments, i = 0](const auto *pTexture) mutable
                       { if (pTexture->GetFormat() != TextureFormat::DEPTH_STENCIL) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
         assert(attachments.size() <= (size_t)OpenGLGraphicsSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
@@ -343,7 +346,7 @@ namespace FastCG
         }
     }
 
-    void OpenGLGraphicsContext::SetVertexBuffers(const OpenGLBuffer *const *pBuffers, size_t bufferCount)
+    void OpenGLGraphicsContext::SetVertexBuffers(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount)
     {
         assert(pBuffers != nullptr);
         assert(mpBoundShader != nullptr);
@@ -357,20 +360,22 @@ namespace FastCG
     {
         assert(pBuffer != nullptr);
         assert(mpBoundShader != nullptr);
-        auto target = GetOpenGLTarget(pBuffer->GetType());
+        auto target = GetOpenGLTarget(pBuffer->GetUsage());
         assert(target == GL_ELEMENT_ARRAY_BUFFER);
         glBindBuffer(target, *pBuffer);
     }
 
     void OpenGLGraphicsContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
     {
-        glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (void *)(uintptr_t)firstIndex, (GLint)vertexOffset);
+        glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset);
+        FASTCG_CHECK_OPENGL_ERROR();
     }
 
     void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
     {
         assert(firstInstance == 0);
-        glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (void *)(uintptr_t)firstIndex, (GLsizei)instanceCount, (GLint)vertexOffset);
+        glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset);
+        FASTCG_CHECK_OPENGL_ERROR();
     }
 
     void OpenGLGraphicsContext::End()

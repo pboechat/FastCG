@@ -19,6 +19,7 @@ void main()
 {
 	vec2 texelSize = 1.0 / textureSize(uAmbientOcclusionMap, 0);
 
+	// simple mean filter
 	float result = 0;
 	vec2 stride = vec2(-NOISE_TEXTURE_SIDE * 0.5);
 	for (int x = 0; x < NOISE_TEXTURE_SIDE; x++) 

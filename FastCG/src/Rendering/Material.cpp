@@ -10,8 +10,7 @@ namespace FastCG
         assert(mpMaterialDefinition != nullptr);
 
         mpConstantBuffer = GraphicsSystem::GetInstance()->CreateBuffer({rArgs.name + " Material Constant Buffer",
-                                                                        BufferType::UNIFORM,
-                                                                        BufferUsage::DYNAMIC,
+                                                                        BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
                                                                         mConstantBuffer.GetSize(),
                                                                         mConstantBuffer.GetData()});
     }

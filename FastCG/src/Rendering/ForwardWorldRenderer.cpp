@@ -27,39 +27,52 @@ namespace FastCG
 
     void ForwardWorldRenderer::CreateRenderTargets()
     {
-        mRenderTargets[0] = GraphicsSystem::GetInstance()->CreateTexture({"Color",
-                                                                          mArgs.rScreenWidth,
-                                                                          mArgs.rScreenHeight,
-                                                                          TextureType::TEXTURE_2D,
-                                                                          TextureFormat::RGBA,
-                                                                          {10, 10, 10, 2},
-                                                                          TextureDataType::FLOAT,
-                                                                          TextureFilter::POINT_FILTER,
-                                                                          TextureWrapMode::CLAMP,
-                                                                          false});
+        mRenderTargets.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+        for (auto *&pFrameRenderTarget : mRenderTargets)
+        {
+            pFrameRenderTarget = GraphicsSystem::GetInstance()->CreateTexture({"Color",
+                                                                               mArgs.rScreenWidth,
+                                                                               mArgs.rScreenHeight,
+                                                                               TextureType::TEXTURE_2D,
+                                                                               TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                               TextureFormat::RGBA,
+                                                                               {10, 10, 10, 2},
+                                                                               TextureDataType::FLOAT,
+                                                                               TextureFilter::LINEAR_FILTER,
+                                                                               TextureWrapMode::CLAMP,
+                                                                               false});
+        }
 
-        mRenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"Depth",
-                                                                          mArgs.rScreenWidth,
-                                                                          mArgs.rScreenHeight,
-                                                                          TextureType::TEXTURE_2D,
-                                                                          TextureFormat::DEPTH_STENCIL,
-                                                                          {24, 8},
-                                                                          TextureDataType::UNSIGNED_INT,
-                                                                          TextureFilter::POINT_FILTER,
-                                                                          TextureWrapMode::CLAMP,
-                                                                          false});
+        mDepthStencilBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+        for (auto *&pFrameDepthStencilTarget : mDepthStencilBuffers)
+        {
+            pFrameDepthStencilTarget = GraphicsSystem::GetInstance()->CreateTexture({"Depth",
+                                                                                     mArgs.rScreenWidth,
+                                                                                     mArgs.rScreenHeight,
+                                                                                     TextureType::TEXTURE_2D,
+                                                                                     TextureUsageFlagBit::RENDER_TARGET,
+                                                                                     TextureFormat::DEPTH_STENCIL,
+                                                                                     {24, 8},
+                                                                                     TextureDataType::UNSIGNED_INT,
+                                                                                     TextureFilter::POINT_FILTER,
+                                                                                     TextureWrapMode::CLAMP,
+                                                                                     false});
+        }
     }
 
     void ForwardWorldRenderer::DestroyRenderTargets()
     {
         for (auto *pRenderTarget : mRenderTargets)
         {
-            if (pRenderTarget != nullptr)
-            {
-                GraphicsSystem::GetInstance()->DestroyTexture(pRenderTarget);
-            }
+            GraphicsSystem::GetInstance()->DestroyTexture(pRenderTarget);
         }
-        mRenderTargets = {};
+        mRenderTargets.clear();
+
+        for (auto *pDepthStencilTarget : mDepthStencilBuffers)
+        {
+            GraphicsSystem::GetInstance()->DestroyTexture(pDepthStencilTarget);
+        }
+        mDepthStencilBuffers.clear();
     }
 
     void ForwardWorldRenderer::Resize()
@@ -80,18 +93,14 @@ namespace FastCG
         BaseWorldRenderer::Finalize();
     }
 
-    void ForwardWorldRenderer::Render(const Camera *pCamera, GraphicsContext *pGraphicsContext)
+    void ForwardWorldRenderer::OnRender(const Camera *pCamera, GraphicsContext *pGraphicsContext)
     {
-        assert(pGraphicsContext != nullptr);
-
-        if (pCamera == nullptr)
-        {
-            return;
-        }
-
         auto view = pCamera->GetView();
         auto inverseView = glm::inverse(view);
         auto projection = pCamera->GetProjection();
+
+        auto *pCurrentRenderTarget = mRenderTargets[GraphicsSystem::GetInstance()->GetCurrentFrame()];
+        auto *pCurrentDepthStencilBuffer = mDepthStencilBuffers[GraphicsSystem::GetInstance()->GetCurrentFrame()];
 
         pGraphicsContext->PushDebugMarker("Forward World Rendering");
         {
@@ -102,22 +111,22 @@ namespace FastCG
 
             if (isSSAOEnabled)
             {
-                GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), mRenderTargets[1], pGraphicsContext);
+                GenerateAmbientOcculusionMap(projection, pCamera->GetFieldOfView(), pCurrentDepthStencilBuffer, pGraphicsContext);
             }
 
-            pGraphicsContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+            pGraphicsContext->SetViewport(0, 0, pCurrentRenderTarget->GetWidth(), pCurrentRenderTarget->GetHeight());
             pGraphicsContext->SetDepthTest(true);
             pGraphicsContext->SetDepthWrite(true);
             pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetScissorTest(false);
             pGraphicsContext->SetCullMode(Face::BACK);
             pGraphicsContext->SetBlend(false);
-            pGraphicsContext->SetRenderTargets(mRenderTargets.data(), mRenderTargets.size());
+            pGraphicsContext->SetRenderTargets(&pCurrentRenderTarget, 1, pCurrentDepthStencilBuffer);
 
             pGraphicsContext->PushDebugMarker("Clear Render Targets");
             {
                 pGraphicsContext->ClearRenderTarget(0, mArgs.rClearColor);
-                pGraphicsContext->ClearDepthStencilTarget(0, 1, 0);
+                pGraphicsContext->ClearDepthStencilBuffer(1, 0);
             }
             pGraphicsContext->PopDebugMarker();
 
@@ -126,7 +135,7 @@ namespace FastCG
             {
                 pGraphicsContext->PushDebugMarker("Material Passes");
                 {
-                    UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
+                    const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
 
                     for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
@@ -138,20 +147,27 @@ namespace FastCG
                         {
                             BindMaterial(pMaterial, pGraphicsContext);
 
-                            pGraphicsContext->BindResource(mpSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_INDEX);
+                            pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
 
                             for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
                                 const auto *pMesh = it->first;
                                 const auto &rRenderables = it->second;
 
-                                auto instanceCount = UpdateInstanceConstants(rRenderables, view, projection, pGraphicsContext);
+                                uint32_t instanceCount;
+                                const Buffer *pInstanceConstantsBuffer;
+                                {
+                                    auto result = UpdateInstanceConstants(rRenderables, view, projection, pGraphicsContext);
+                                    instanceCount = result.first;
+                                    pInstanceConstantsBuffer = result.second;
+                                }
+
                                 if (instanceCount == 0)
                                 {
                                     continue;
                                 }
 
-                                pGraphicsContext->BindResource(mpInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX);
+                                pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                 pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
                                 pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
@@ -203,8 +219,8 @@ namespace FastCG
 
                                             auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
 
-                                            UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pGraphicsContext);
-                                            pGraphicsContext->BindResource(mpLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX);
+                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pGraphicsContext);
+                                            pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                             if (instanceCount == 1)
                                             {
@@ -245,8 +261,8 @@ namespace FastCG
                                                 break;
                                             }
 
-                                            UpdateLightingConstants(rPointLights[i], inverseView, nearClip, isSSAOEnabled, pGraphicsContext);
-                                            pGraphicsContext->BindResource(mpLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX);
+                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], inverseView, nearClip, isSSAOEnabled, pGraphicsContext);
+                                            pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                             if (instanceCount == 1)
                                             {
@@ -283,9 +299,9 @@ namespace FastCG
                 pGraphicsContext->PopDebugMarker();
             }
 
-            pGraphicsContext->PushDebugMarker("Blit Color Render Target into Color Backbuffer");
+            pGraphicsContext->PushDebugMarker("Blit Color Render Target into Backbuffer");
             {
-                pGraphicsContext->Blit(mRenderTargets[0], GraphicsSystem::GetInstance()->GetBackbuffer());
+                pGraphicsContext->Blit(pCurrentRenderTarget, GraphicsSystem::GetInstance()->GetBackbuffer());
             }
             pGraphicsContext->PopDebugMarker();
         }

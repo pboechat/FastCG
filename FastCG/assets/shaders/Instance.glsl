@@ -11,9 +11,9 @@ struct InstanceData
 	mat4 modelViewProjection;
 };
 
-layout(BINDING_0_1) buffer InstanceConstants
+layout(BINDING_0_1) uniform InstanceConstants
 {
-    InstanceData uInstanceData[];
+    InstanceData uInstanceData[MAX_INSTANCES];
 };
 
 #define GetInstanceData() uInstanceData[GetInstanceIndex()]

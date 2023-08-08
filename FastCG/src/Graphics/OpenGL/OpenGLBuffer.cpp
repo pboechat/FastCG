@@ -4,11 +4,13 @@
 #include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 
+#include <cstring>
+
 namespace FastCG
 {
     OpenGLBuffer::OpenGLBuffer(const BufferArgs &rArgs) : BaseBuffer(rArgs)
     {
-        auto target = GetOpenGLTarget(mType);
+        auto target = GetOpenGLTarget(mUsage);
 
         glGenBuffers(1, &mBufferId);
         glBindBuffer(target, mBufferId);
@@ -20,7 +22,11 @@ namespace FastCG
 #endif
         if (rArgs.dataSize > 0)
         {
-            glBufferData(GetOpenGLTarget(mType), (GLsizeiptr)rArgs.dataSize, rArgs.pData, GetOpenGLUsage(mUsage));
+            glBufferData(target, (GLsizeiptr)rArgs.dataSize, rArgs.pData, GetOpenGLUsageHint(mUsage));
+            if (rArgs.pData != nullptr)
+            {
+                glBufferSubData(target, 0, (GLsizeiptr)rArgs.dataSize, (const GLvoid *)rArgs.pData);
+            }
         }
     }
 
@@ -35,3 +41,4 @@ namespace FastCG
 }
 
 #endif
+

@@ -1,0 +1,39 @@
+#ifndef FASTCG_VULKAN_RENDER_PASS_H
+#define FASTCG_VULKAN_RENDER_PASS_H
+
+#ifdef FASTCG_VULKAN
+
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
+#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
+
+#include <vector>
+
+namespace FastCG
+{
+    enum VulkanClearRequestFlagBit
+    {
+        NONE = 0,
+        STENCIL = 1 << 0,
+        COLOR_OR_DEPTH = 1 << 1,
+    };
+
+    using VulkanClearRequestFlags = uint8_t;
+
+    struct VulkanClearRequest
+    {
+        const VulkanTexture *pTexture;
+        VkClearValue value;
+        VulkanClearRequestFlags flags;
+    };
+
+    struct VulkanRenderPassDescription
+    {
+        std::vector<const VulkanTexture *> renderTargets;
+        const VulkanTexture *pDepthStencilBuffer;
+    };
+
+}
+
+#endif
+
+#endif

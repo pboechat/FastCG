@@ -3,7 +3,9 @@
 
 #include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/Rendering/BaseWorldRenderer.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
+#include <vector>
 #include <array>
 
 namespace FastCG
@@ -15,12 +17,14 @@ namespace FastCG
 
         void Initialize() override;
         void Resize() override;
-        void Render(const Camera *pCamera, GraphicsContext *pGraphicsContext) override;
         void Finalize() override;
 
-    private:
-        std::array<const Texture *, 2> mRenderTargets{};
+    protected:
+        void OnRender(const Camera *pCamera, GraphicsContext *pGraphicsContext) override;
 
+    private:
+        std::vector<const Texture *> mRenderTargets;
+        std::vector<const Texture *> mDepthStencilBuffers;
         void CreateRenderTargets();
         void DestroyRenderTargets();
     };

@@ -227,7 +227,7 @@ namespace FastCG
             document.AddMember("shader", shaderEl, rAlloc);
         }
 
-        // TODO:
+        // TODO: implement the dumping of a material definition to a string
 
         rapidjson::StringBuffer stringBuffer;
         stringBuffer.Clear();

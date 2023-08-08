@@ -9,6 +9,8 @@
 #include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
 #include <FastCG/Graphics/BaseGraphicsContext.h>
 
+#include <vector>
+
 namespace FastCG
 {
     class OpenGLGraphicsSystem;
@@ -16,11 +18,11 @@ namespace FastCG
     class OpenGLGraphicsContext : public BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>
     {
     public:
-        OpenGLGraphicsContext(const GraphicsContextArgs& rArgs);
+        OpenGLGraphicsContext(const Args &rArgs);
         virtual ~OpenGLGraphicsContext();
 
         void Begin();
-        void PushDebugMarker(const char *name);
+        void PushDebugMarker(const char *pName);
         void PopDebugMarker();
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);
         void SetScissor(int32_t x, int32_t y, uint32_t width, uint32_t height);
@@ -39,17 +41,15 @@ namespace FastCG
         void Copy(const OpenGLBuffer *pBuffer, size_t dataSize, const void *pData);
         void Copy(const OpenGLTexture *pTexture, size_t dataSize, const void *pData);
         void BindShader(const OpenGLShader *pShader);
-        void BindResource(const OpenGLBuffer *pBuffer, uint32_t index);
-        void BindResource(const OpenGLBuffer *pBuffer, const char *name);
-        void BindResource(const OpenGLTexture *pTexture, uint32_t index, uint32_t unit);
-        void BindResource(const OpenGLTexture *pTexture, const char *name, uint32_t unit);
+        void BindResource(const OpenGLBuffer *pBuffer, const char *pName);
+        void BindResource(const OpenGLTexture *pTexture, const char *pName);
         void Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst);
-        void SetRenderTargets(const OpenGLTexture *const *pTextures, size_t textureCount);
+        void SetRenderTargets(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
-        void ClearDepthStencilTarget(uint32_t renderTargetIndex, float depth, int32_t stencil);
-        void ClearDepthTarget(uint32_t renderTargetIndex, float depth);
-        void ClearStencilTarget(uint32_t renderTargetIndex, int32_t stencil);
-        void SetVertexBuffers(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
+        void ClearDepthStencilBuffer(float depth, int32_t stencil);
+        void ClearDepthBuffer(float depth);
+        void ClearStencilBuffer(int32_t stencil);
+        void SetVertexBuffers(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
         void SetIndexBuffer(const OpenGLBuffer *pBuffer);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
@@ -58,6 +58,9 @@ namespace FastCG
 
     private:
         const OpenGLShader *mpBoundShader{nullptr};
+        std::vector<const OpenGLTexture *> mRenderTargets;
+        const OpenGLTexture *mpDepthStencilBuffer;
+        GLint mLastUsedTextureUnit{0};
         bool mEnded{true};
 #ifdef _DEBUG
         GLuint mTimeElapsedQueries[2]{}; // double buffered
@@ -66,6 +69,7 @@ namespace FastCG
         bool mEndedQuery[2]{false, false};
 #endif
 
+        void SetupFbo();
 #ifdef _DEBUG
         void RetrieveElapsedTime();
 #endif

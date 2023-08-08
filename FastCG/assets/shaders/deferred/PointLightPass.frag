@@ -14,7 +14,7 @@ void main()
 {
 	vec2 screenCoords = GetScreenCoordinates();
 	float depth = texture(uDepth, screenCoords).x;
-	vec3 viewPosition = GetViewPositionFromScreenCoordsAndDepth(uProjection, uInverseProjection, uScreenSize, vec3(gl_FragCoord.xy, depth));
+	vec3 viewPosition = GetViewPositionFromScreenPositionAndDepth(uInverseProjection, uScreenSize, gl_FragCoord.xy, depth);
 	vec3 worldPosition = vec3(uInverseView * vec4(viewPosition, 1));
 	vec4 diffuseColor = texture(uDiffuseMap, screenCoords);
 	vec3 normal = UnpackNormalFromColor(texture(uNormalMap, screenCoords)).xyz;

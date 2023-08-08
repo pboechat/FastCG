@@ -9,35 +9,43 @@
 
 namespace FastCG
 {
-    static constexpr uint32_t POSITION_SHADER_INPUT_INDEX = 0;
-    static constexpr uint32_t NORMAL_SHADER_INPUT_INDEX = 1;
-    static constexpr uint32_t UV_SHADER_INPUT_INDEX = 2;
-    static constexpr uint32_t TANGENT_SHADER_INPUT_INDEX = 3;
+    static constexpr uint32_t POSITION_VERTEX_INPUT_LOCATION = 0;
+    static constexpr uint32_t NORMAL_VERTEX_INPUT_LOCATION = 1;
+    static constexpr uint32_t UV_VERTEX_INPUT_LOCATION = 2;
+    static constexpr uint32_t TANGENT_VERTEX_INPUT_LOCATION = 3;
     static constexpr uint32_t COLOR_SHADER_INPUT_INDEX = 4;
-    static constexpr uint32_t SCENE_CONSTANTS_SHADER_RESOURCE_INDEX = 0;
-    static constexpr uint32_t INSTANCE_CONSTANTS_SHADER_RESOURCE_INDEX = 1;
-    static constexpr uint32_t LIGHTING_CONSTANTS_SHADER_RESOURCE_INDEX = 2;
-    static constexpr uint32_t MATERIAL_CONSTANTS_SHADER_RESOURCE_INDEX = 0x10;
-    static constexpr uint32_t SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_INDEX = 0;
-    static constexpr uint32_t SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_INDEX = 0;
+    static constexpr const char *const SCENE_CONSTANTS_SHADER_RESOURCE_NAME = "SceneConstants";
+    static constexpr const char *const INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME = "InstanceConstants";
+    static constexpr const char *const LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME = "LightingConstants";
+    static constexpr const char *const MATERIAL_CONSTANTS_SHADER_RESOURCE_NAME = "MaterialConstants";
+    static constexpr const char *const SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_NAME = "ShadowMapPassConstants";
+    static constexpr const char *const SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_NAME = "SSAOHighFrequencyPassConstants";
 
     struct ShadowMapData
     {
         glm::mat4 viewProjection;
-        float bias{0.005f};
+        float bias{0.0025f};
         float padding[3];
     };
 
     struct PCSSData
     {
         ShadowMapData shadowMapData;
-        float uvScale{0.05f};
+        float uvScale
+        {
+            // TODO: solve this in a more elegant way
+#if FASTCG_VULKAN
+            0.001f
+#else
+            0.05f
+#endif
+        };
         float nearClip;
         int blockerSearchSamples{16};
         int pcfSamples{16};
     };
 
-    constexpr uint32_t MAX_NUM_INSTANCES = 4096;
+    constexpr uint32_t MAX_NUM_INSTANCES = 256;
 
     namespace ForwardRenderingPath
     {
@@ -49,7 +57,6 @@ namespace FastCG
             glm::mat4 inverseProjection;
             glm::vec2 screenSize;
             float pointSize;
-            float padding;
         };
 
         struct InstanceData
@@ -99,17 +106,16 @@ namespace FastCG
         ShadowMapPassInstanceData instanceData[MAX_NUM_INSTANCES];
     };
 
-    constexpr size_t NUMBER_OF_RANDOM_SAMPLES = 32;
+    constexpr size_t NUMBER_OF_RANDOM_SAMPLES = 64;
     constexpr uint32_t NOISE_TEXTURE_WIDTH = 4;
     constexpr uint32_t NOISE_TEXTURE_HEIGHT = NOISE_TEXTURE_WIDTH;
-    constexpr uint32_t NOISE_TEXTURE_SIZE = NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT;
 
     struct SSAOHighFrequencyPassConstants
     {
         glm::mat4 projection;
         glm::vec4 randomSamples[NUMBER_OF_RANDOM_SAMPLES]{};
-        float radius{0.05f};
-        float distanceScale{50.0f};
+        float radius{0.5f};
+        float bias{0.0025f};
         float aspectRatio{};
         float tanHalfFov{};
     };

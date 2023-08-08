@@ -6,7 +6,7 @@
 
 #include "FastCG.glsl"
 
-layout(BINDING_0_0) uniform sampler2D uColorMap;
+layout(BINDING_0_1) uniform sampler2D uColorMap;
 
 layout(location = 0) in vec2 vUV;
 layout(location = 1) in vec4 vColor;

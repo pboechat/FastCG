@@ -101,15 +101,19 @@
 	#define BINDING_2_F binding = 0x2f
 #endif
 
+#define MAX_INSTANCES 256
+
 #ifdef VULKAN
 #define GetInstanceIndex() gl_InstanceIndex
 #else
 #define GetInstanceIndex() gl_InstanceID
 #endif
 
-float LinearizeDepth(mat4 projection, float depth) 
+float GetViewSpaceZ(mat4 projection, float depth) 
 {
-	return projection[3][2] / (depth - (projection[2][2] / projection[2][3]));
+	float zNear = projection[3][2] / (projection[2][2] - 1.0);
+    float zFar = projection[3][2] / (projection[2][2] + 1.0);
+    return (2.0 * zNear * zFar) / (zFar + zNear - (2.0 * depth - 1.0) * (zFar - zNear));
 }
 
 vec3 PackNormalToColor(vec3 value)

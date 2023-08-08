@@ -1,7 +1,7 @@
 #ifndef FASTCG_BASE_SHADER_H
 #define FASTCG_BASE_SHADER_H
 
-#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 
 #include <type_traits>
 #include <string>
@@ -12,7 +12,7 @@ namespace FastCG
 	using ShaderTypeInt = std::underlying_type_t<ShaderType>;
 
 	template <typename T>
-	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::COUNT>;
+	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::LAST>;
 
 	struct ShaderProgramData
 	{

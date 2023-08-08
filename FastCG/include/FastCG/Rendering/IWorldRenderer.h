@@ -19,8 +19,6 @@ namespace FastCG
         virtual void SetPCSSPCFSamples(uint32_t pcssPCFSamples) = 0;
         virtual float GetSSAORadius() const = 0;
         virtual void SetSSAORadius(float radius) = 0;
-        virtual float GetSSAODistanceScale() const = 0;
-        virtual void SetSSAODistanceScale(float distanceScale) = 0;
         virtual bool IsSSAOBlurEnabled() const = 0;
         virtual void SetSSAOBlurEnabled(bool ssaoBlurEnabled) = 0;
         virtual void Initialize() = 0;

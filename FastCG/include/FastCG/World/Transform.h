@@ -88,19 +88,23 @@ namespace FastCG
 
 		inline void Rotate(const glm::vec3 &rEulerAngles)
 		{
-			mLocalTransform.rotation = mLocalTransform.rotation * glm::quat(rEulerAngles);
+			mLocalTransform.rotation = mLocalTransform.rotation * glm::quat(glm::radians(rEulerAngles));
 			Update();
 		}
 
 		inline void RotateAround(float angle, const glm::vec3 &rAxis)
 		{
-			mLocalTransform.rotation = glm::rotate(mLocalTransform.rotation, angle, rAxis);
+			mLocalTransform.rotation = glm::rotate(mLocalTransform.rotation, glm::radians(angle), rAxis);
 			Update();
 		}
 
 		inline void RotateAroundLocal(float angle, const glm::vec3 &rAxis)
 		{
-			auto newLocal = glm::rotate(glm::mat4(), angle, rAxis);
+			auto newLocal = glm::rotate(glm::mat4(1, 0, 0, 0,
+												  0, 1, 0, 0,
+												  0, 0, 1, 0,
+												  0, 0, 0, 1),
+										glm::radians(angle), rAxis);
 			newLocal = glm::translate(newLocal, mLocalTransform.position);
 
 			mLocalTransform.position = glm::vec3(newLocal[3][0], newLocal[3][1], newLocal[3][2]);
@@ -164,7 +168,9 @@ namespace FastCG
 			glm::quat rotation;
 			glm::vec3 position;
 
-			SRT() : scale(1, 1, 1)
+			SRT() : scale(1, 1, 1),
+					rotation(1, 0, 0, 0),
+					position(0, 0, 0)
 			{
 			}
 
@@ -213,8 +219,8 @@ namespace FastCG
 		SRT mLocalTransform;
 		SRT mWorldTransform;
 
-		Transform(GameObject *pGameObject, const glm::vec3 &rScale = glm::vec3{1, 1, 1}, const glm::quat &rRotation = {}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0}) : mpGameObject(pGameObject),
-																																											 mLocalTransform(rScale, rRotation, rPosition)
+		Transform(GameObject *pGameObject, const glm::vec3 &rScale = glm::vec3{1, 1, 1}, const glm::quat &rRotation = glm::quat{1, 0, 0, 0}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0}) : mpGameObject(pGameObject),
+																																																mLocalTransform(rScale, rRotation, rPosition)
 		{
 		}
 

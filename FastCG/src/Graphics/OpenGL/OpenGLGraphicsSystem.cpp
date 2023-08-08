@@ -12,14 +12,6 @@
 #include <FastCG/Core/Exception.h>
 #include <FastCG/Assets/AssetSystem.h>
 
-#if defined FASTCG_WINDOWS
-#include <GL/wglew.h>
-#elif defined FASTCG_LINUX
-#include <GL/glxew.h>
-#endif
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #if defined FASTCG_LINUX
 #include <X11/extensions/Xrender.h>
 #endif
@@ -37,19 +29,6 @@ namespace
         return 0;
     }
 #endif
-
-    // Source: https://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
-    void CRC(uint32_t &h, uint32_t ki)
-    {
-        auto highOrder = h & 0xf8000000; // extract high-order 5 bits from h
-                                         // 0xf8000000 is the hexadecimal representation
-                                         //   for the 32-bit number with the first five
-                                         //   bits = 1 and the other bits = 0
-        h = h << 5;                      // shift h left by 5 bits
-        h = h ^ (highOrder >> 27);       // move the highOrder 5 bits to the low-order
-                                         //   end and XOR into h
-        h = h ^ ki;                      // XOR h and ki
-    }
 
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam)
     {
@@ -80,7 +59,7 @@ namespace FastCG
 
         CreateOpenGLContext();
 
-        InitializeDeviceProperties();
+        QueryDeviceProperties();
 
 #ifdef _DEBUG
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -94,7 +73,7 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLGraphicsSystem::OnFinalize()
+    void OpenGLGraphicsSystem::OnPostFinalize()
     {
         for (const auto &rKvp : mFboIds)
         {
@@ -114,7 +93,7 @@ namespace FastCG
 
         DestroyOpenGLContext();
 
-        BaseGraphicsSystem::OnFinalize();
+        BaseGraphicsSystem::OnPostFinalize();
     }
 
 #define DECLARE_DESTROY_METHOD(className, containerMember)                                                              \
@@ -154,17 +133,19 @@ namespace FastCG
         BaseGraphicsSystem::DestroyTexture(pTexture);
     }
 
-    GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount)
+    GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
     {
-        assert(textureCount > 0);
-        assert(textureCount <= mDeviceProperties.maxColorAttachments);
-        assert(std::all_of(pTextures, pTextures + textureCount, [](const auto *pTexture)
-                           { return pTexture != nullptr; }));
-
-        uint32_t fboHash = 0;
-        std::for_each(pTextures, pTextures + textureCount, [&fboHash](const auto *pTexture)
-                      { CRC(fboHash, *pTexture); });
-
+        size_t fboHash;
+        {
+            auto size = (renderTargetCount + 1) * sizeof(OpenGLTexture *);
+            auto *pData = (const OpenGLTexture **)alloca(size);
+            for (uint32_t i = 0; i < renderTargetCount; ++i)
+            {
+                pData[i] = pRenderTargets[i];
+            }
+            pData[renderTargetCount] = pDepthStencilBuffer;
+            fboHash = (size_t)FNV1a((const uint8_t *)pData, size);
+        }
         auto it = mFboIds.find(fboHash);
         if (it != mFboIds.end())
         {
@@ -183,22 +164,22 @@ namespace FastCG
             glObjectLabel(GL_FRAMEBUFFER, fboId, (GLsizei)framebufferLabel.size(), framebufferLabel.c_str());
         }
 #endif
-        std::for_each(pTextures, pTextures + textureCount, [i = 0](const auto *pTexture) mutable
-                      {
+        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [i = 0](const auto *pRenderTarget) mutable
+                      { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (i++), GetOpenGLTarget(pRenderTarget->GetType()), *pRenderTarget, 0); });
+
+        if (pDepthStencilBuffer != nullptr)
+        {
             GLenum attachment;
-            if (pTexture->GetFormat() == TextureFormat::DEPTH_STENCIL)
-            {
-                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
-            }
-            else if (pTexture->GetFormat() == TextureFormat::DEPTH)
+            if (pDepthStencilBuffer->GetFormat() == TextureFormat::DEPTH)
             {
                 attachment = GL_DEPTH_ATTACHMENT;
             }
             else
             {
-                attachment = GL_COLOR_ATTACHMENT0 + (i++);
+                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
             }
-            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GetOpenGLTarget(pTexture->GetType()), *pTexture, 0); });
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()), *pDepthStencilBuffer, 0);
+        }
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId);
 
@@ -208,27 +189,30 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating FBO: 0x%x\n", status);
         }
 
-        mFboIds[fboHash] = fboId;
+        mFboIds.emplace(fboHash, fboId);
 
-        std::for_each(pTextures, pTextures + textureCount, [&](const auto *pTexture)
-                      { mTextureToFboHashes[*pTexture].emplace_back(fboHash); });
+        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [&](const auto *pRenderTarget)
+                      { mTextureToFboHashes[*pRenderTarget].emplace_back(fboHash); });
+
+        if (pDepthStencilBuffer != nullptr)
+        {
+            mTextureToFboHashes[*pDepthStencilBuffer].emplace_back(fboHash);
+        }
 
         return fboId;
     }
 
-    GLuint OpenGLGraphicsSystem::GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount)
+    GLuint OpenGLGraphicsSystem::GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount)
     {
         assert(bufferCount > 0);
         assert(std::all_of(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
                            { 
                             assert(pBuffer != nullptr); 
                             const auto& rVbDescs = pBuffer->GetVertexBindingDescriptors(); 
-                            return pBuffer->GetType() == BufferType::VERTEX_ATTRIBUTE && 
+                            return (pBuffer->GetUsage() & BufferUsageFlagBit::VERTEX_BUFFER) != 0 && 
                                 std::all_of(rVbDescs.cbegin(), rVbDescs.cend(), [](const auto& rVbDesc) { return rVbDesc.IsValid(); }); }));
 
-        uint32_t vaoHash = 0;
-        std::for_each(pBuffers, pBuffers + bufferCount, [&vaoHash](const auto *pBuffer)
-                      { CRC(vaoHash, *pBuffer); });
+        auto vaoHash = (size_t)FNV1a(reinterpret_cast<const uint8_t *>(pBuffers), bufferCount * sizeof(OpenGLBuffer *));
 
         auto it = mVaoIds.find(vaoHash);
         if (it != mVaoIds.end())
@@ -248,7 +232,7 @@ namespace FastCG
 
         std::for_each(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
                       {
-                        glBindBuffer(GetOpenGLTarget(pBuffer->GetType()), *pBuffer);
+                        glBindBuffer(GetOpenGLTarget(pBuffer->GetUsage()), *pBuffer);
             for (const auto &rVbDesc : pBuffer->GetVertexBindingDescriptors())
             {
                 glEnableVertexAttribArray(rVbDesc.binding);
@@ -457,10 +441,11 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLGraphicsSystem::InitializeDeviceProperties()
+    void OpenGLGraphicsSystem::QueryDeviceProperties()
     {
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &mDeviceProperties.maxColorAttachments);
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &mDeviceProperties.maxDrawBuffers);
+        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &mDeviceProperties.maxTextureUnits);
     }
 
     void OpenGLGraphicsSystem::DestroyOpenGLContext()

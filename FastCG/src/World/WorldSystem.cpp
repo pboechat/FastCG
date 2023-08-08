@@ -367,7 +367,7 @@ namespace
             ImGui::SameLine();
             if (ImGui::Button("View"))
             {
-                // TODO:
+                // TODO: implement a mesh viewer
             }
         }
     };
@@ -502,7 +502,7 @@ namespace
                     }
 
                     auto rotation = pTransform->GetRotation();
-                    auto eulerAngles = glm::eulerAngles(rotation);
+                    auto eulerAngles = glm::degrees(glm::eulerAngles(rotation));
                     if (ImGui::DragFloat3("Rotation", &eulerAngles[0], 0.1f))
                     {
                         eulerAngles = glm::radians(eulerAngles);

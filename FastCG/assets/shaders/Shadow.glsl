@@ -9,12 +9,18 @@ struct ShadowMapData
 
 vec3 GetShadowMapCoordinates(ShadowMapData shadowMapData, vec3 worldPosition)
 {
-	vec4 clipCoords = shadowMapData.viewProjection * vec4(worldPosition, 1);
-	vec3 shadowMapCoords = clipCoords.xyz / clipCoords.w;
-	return shadowMapCoords * 0.5 + 0.5;
+	vec4 clipPos = shadowMapData.viewProjection * vec4(worldPosition, 1);
+	vec3 ndc = clipPos.xyz / clipPos.w;
+#if VULKAN
+	return vec3(ndc.x * 0.5 + 0.5, 
+				ndc.y * -0.5 + 0.5, // flip y
+				ndc.z); // z already in [0, 1]
+#else
+	return ndc * 0.5 + 0.5; // z from [-1, 1] to [0, 1]
+#endif
 }
 
-// mostly for testing
+// for testing
 float GetHardShadow(ShadowMapData shadowMapData, sampler2D shadowMap, vec3 worldPosition)
 {
 	vec3 shadowMapCoords = GetShadowMapCoordinates(shadowMapData, worldPosition);

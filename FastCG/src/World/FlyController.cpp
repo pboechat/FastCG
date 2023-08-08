@@ -27,7 +27,7 @@ namespace FastCG
 					{
 						const auto halfDegToRad = 0.5f * MathF::DEGREES_TO_RADIANS;
 
-						auto euler = glm::eulerAngles(rotation);
+						auto euler = glm::degrees(glm::eulerAngles(rotation));
 
 						// FIXME: can't map non-multiple of PI rotations around the Z axis for now
 						assert(fmod(euler.z, 180) == 0);

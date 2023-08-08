@@ -227,8 +227,7 @@ namespace FastCG
 			{
 				if (!GetMessage(&msg, NULL, 0, 0))
 				{
-					mRunning = false;
-					break;
+					goto __exit;
 				}
 
 				TranslateMessage(&msg);
@@ -237,6 +236,8 @@ namespace FastCG
 
 			RunMainLoopIteration();
 		}
+	__exit:
+		return;
 	}
 
 	uint64_t WindowsApplication::GetNativeKey(Key key) const

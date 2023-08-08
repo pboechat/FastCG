@@ -5,8 +5,7 @@
 #include "../Shadow.glsl"
 #include "../Noise.glsl"
 
-// Based on:
-// hhttps://developer.download.nvidia.com/whitepapers/2008/PCSS_Integration.pdf
+// based on: https://developer.download.nvidia.com/whitepapers/2008/PCSS_Integration.pdf
 
 struct PCSSData
 {
@@ -17,27 +16,21 @@ struct PCSSData
 	int pcfSamples;
 };
 
-float SearchWidth(PCSSData pcssData, float receiverDistance)
-{
-	return pcssData.uvScale * (receiverDistance - pcssData.nearClip) / receiverDistance;
-}
-
 void FindBlocker(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, out float avgBlockerDistance, out int numBlockers)
 {
 	numBlockers = 0;
-	float blockerSum = 0;
-	float searchWidth = SearchWidth(pcssData, shadowMapCoords.z);
+	float blockerDistanceSum = 0;
     float zThreshold = shadowMapCoords.z - pcssData.shadowMapData.bias;
 	for (int i = 0; i < pcssData.blockerSearchSamples; i++)
 	{
-		float z = texture(shadowMap, shadowMapCoords.xy + PoissonDiskSample(i / float(pcssData.blockerSearchSamples)) * searchWidth).x;
+		float z = texture(shadowMap, shadowMapCoords.xy + PoissonDiskSample(i / float(pcssData.blockerSearchSamples)) * pcssData.uvScale).x;
 		if (z < zThreshold)
 		{
-			blockerSum += z;
+			blockerDistanceSum += z;
 			numBlockers++;
 		}
 	}
-	avgBlockerDistance = blockerSum / numBlockers;
+	avgBlockerDistance = blockerDistanceSum / numBlockers;
 }
 
 float PCF(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, float uvRadius)
@@ -69,8 +62,14 @@ float GetPCSS(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
 	float penumbraWidth = (shadowMapCoords.z - avgBlockerDistance) / avgBlockerDistance;
 
 	// percentage-close filtering
-	float uvRadius = penumbraWidth * pcssData.uvScale * pcssData.nearClip / shadowMapCoords.z;
+	float uvRadius = penumbraWidth * pcssData.uvScale;
 	return 1 - PCF(pcssData, shadowMap, shadowMapCoords, uvRadius);
+}
+
+// for debugging purposes
+float GetPCSS_HardShadow(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
+{
+	return GetHardShadow(pcssData.shadowMapData, shadowMap, worldPosition);
 }
 
 #ifdef GetShadow

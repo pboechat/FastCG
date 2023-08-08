@@ -5,6 +5,7 @@
 #elif defined FASTCG_LINUX
 #include <FastCG/Platform/Linux/X11Application.h>
 #endif
+#include <FastCG/Graphics/Vulkan/VulkanUtils.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
 #include <FastCG/Core/Version.h>
@@ -12,6 +13,7 @@
 #include <FastCG/Assets/AssetSystem.h>
 
 #include <string>
+#include <limits>
 #include <iostream>
 #include <cassert>
 #include <algorithm>
@@ -77,6 +79,12 @@ namespace
     {
         std::cerr << "[VULKAN]"
                   << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
+
+        // if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0)
+        // {
+        //     FASTCG_BREAK_TO_DEBUGGER();
+        // }
+
         bool prevType = false;
         if ((messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) != 0)
         {
@@ -112,27 +120,78 @@ namespace
 #if _DEBUG
         FASTCG_VK_EXT_FN(vkCreateDebugUtilsMessengerEXT);
         FASTCG_VK_EXT_FN(vkDestroyDebugUtilsMessengerEXT);
+        FASTCG_VK_EXT_FN(vkCmdBeginDebugUtilsLabelEXT);
+        FASTCG_VK_EXT_FN(vkCmdEndDebugUtilsLabelEXT);
+        FASTCG_VK_EXT_FN(vkSetDebugUtilsObjectNameEXT);
 #endif
     }
 
 #undef FASTCG_VK_EXT_FN
 
-#define FASTCG_LOAD_VK_EXT_FN(instance, fn)                                                         \
-    VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                     \
-    if (VkExt::fn == nullptr)                                                                       \
-    {                                                                                               \
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Failed to load Vulkan extension function " #fn); \
+#define FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, fn)                                                                 \
+    VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                                      \
+    if (VkExt::fn == nullptr)                                                                                        \
+    {                                                                                                                \
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Failed to load Vulkan instance extension function " #fn); \
     }
 
-    void LoadVulkanExtensionFunctions(VkInstance instance)
+    void LoadVulkanInstanceExtensionFunctions(VkInstance instance)
     {
 #if _DEBUG
-        FASTCG_LOAD_VK_EXT_FN(instance, vkCreateDebugUtilsMessengerEXT);
-        FASTCG_LOAD_VK_EXT_FN(instance, vkDestroyDebugUtilsMessengerEXT);
+        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCreateDebugUtilsMessengerEXT);
+        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkDestroyDebugUtilsMessengerEXT);
+        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCmdBeginDebugUtilsLabelEXT);
+        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCmdEndDebugUtilsLabelEXT);
+        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkSetDebugUtilsObjectNameEXT);
 #endif
     }
 
-#undef FASTCG_LOAD_VK_EXT_FN
+#undef FASTCG_LOAD_VK_INSTANCE_EXT_FN
+
+#define FASTCG_LOAD_VK_DEVICE_EXT_FN(instance, fn)                                                                 \
+    VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(instance, #fn);                                                      \
+    if (VkExt::fn == nullptr)                                                                                      \
+    {                                                                                                              \
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Failed to load Vulkan device extension function " #fn); \
+    }
+
+    void LoadVulkanDeviceExtensionFunctions(VkDevice device)
+    {
+    }
+
+#undef FASTCG_LOAD_VK_DEVICE_EXT_FN
+
+    struct AttachmentDefinition
+    {
+        const FastCG::VulkanTexture *pTexture;
+        VkAttachmentLoadOp colorOrDepth;
+        VkAttachmentLoadOp stencil;
+        bool write;
+    };
+
+    size_t GetRenderPassHash(const std::vector<AttachmentDefinition> &rAttachmentDefinitions)
+    {
+        // TODO: use renderpass compatibility rule :
+        // https://registry.khronos.org/vulkan/specs/1.1-extensions/html/vkspec.html#renderpass-compatibility
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rAttachmentDefinitions[0]), rAttachmentDefinitions.size() * sizeof(&rAttachmentDefinitions[0]));
+    }
+
+    size_t GetPipelineHash(const FastCG::VulkanPipelineDescription &rPipelineDescription)
+    {
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rPipelineDescription), sizeof(rPipelineDescription));
+    }
+
+    size_t GetPipelineLayoutHash(const FastCG::VulkanPipelineLayoutDescription &rPipelineLayoutDescription)
+    {
+        assert(!rPipelineLayoutDescription.empty());
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rPipelineLayoutDescription[0]), rPipelineLayoutDescription.size() * sizeof(&rPipelineLayoutDescription[0]));
+    }
+
+    size_t GetDescriptorSetLayoutHash(const FastCG::VulkanDescriptorSetLayout &rDescriptorSetLayout)
+    {
+        assert(!rDescriptorSetLayout.empty());
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rDescriptorSetLayout[0]), rDescriptorSetLayout.size() * sizeof(&rDescriptorSetLayout[0]));
+    }
 
 }
 
@@ -153,24 +212,41 @@ namespace FastCG
         SelectPhysicalDevice();
         GetPhysicalDeviceProperties();
         CreateDeviceAndGetQueues();
+        CreateAllocator();
         CreateSynchronizationObjects();
         CreateCommandPoolAndCommandBuffers();
+        CreateDescriptorPool();
         BeginCurrentCommandBuffer();
+        CreateImmediateGraphicsContext();
         RecreateSwapChainAndGetImages();
+        CreateDebugObjects();
     }
 
-    void VulkanGraphicsSystem::OnFinalize()
+    void VulkanGraphicsSystem::OnPreFinalize()
     {
-        FASTCG_CHECK_VK_RESULT(vkDeviceWaitIdle(mDevice));
+        BaseGraphicsSystem::OnPreFinalize();
 
-        DestroyCommandPoolAndCommandBuffers();
+        FASTCG_CHECK_VK_RESULT(vkDeviceWaitIdle(mDevice));
+    }
+
+    void VulkanGraphicsSystem::OnPostFinalize()
+    {
+        FinalizeDeferredDestroys();
+        DestroyPipelines();
+        DestroyPipelineLayouts();
+        DestroyFrameBuffers();
+        DestroyRenderPasses();
+        DestroyDescriptorSetLayouts();
         DestroySwapChainAndClearImages();
+        DestroyDescriptorPool();
+        DestroyCommandPoolAndCommandBuffers();
         DestroySynchronizationObjects();
+        DestroyAllocator();
         DestroyDeviceAndClearQueues();
         DestroySurface();
         DestroyInstance();
 
-        BaseGraphicsSystem::OnFinalize();
+        BaseGraphicsSystem::OnPostFinalize();
     }
 
     void VulkanGraphicsSystem::CreateInstance()
@@ -179,7 +255,7 @@ namespace FastCG
         applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         applicationInfo.pNext = nullptr;
         applicationInfo.pApplicationName = "";
-        // TODO:
+        // TODO: provide a mechanism for uses to specify their app versions
         applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         applicationInfo.pEngineName = "FastCG";
         applicationInfo.engineVersion = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
@@ -266,7 +342,7 @@ namespace FastCG
 
         FASTCG_CHECK_VK_RESULT(vkCreateInstance(&instanceCreateInfo, mAllocationCallbacks.get(), &mInstance));
 
-        LoadVulkanExtensionFunctions(mInstance);
+        LoadVulkanInstanceExtensionFunctions(mInstance);
 
 #if _DEBUG
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo;
@@ -367,9 +443,32 @@ namespace FastCG
         FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't find a suitable physical device");
     }
 
+    void VulkanGraphicsSystem::CreateAllocator()
+    {
+        VmaAllocatorCreateInfo allocatorCreateInfo{};
+        allocatorCreateInfo.flags = 0;
+        allocatorCreateInfo.physicalDevice = mPhysicalDevice;
+        allocatorCreateInfo.device = mDevice;
+        allocatorCreateInfo.preferredLargeHeapBlockSize = 0;
+        allocatorCreateInfo.pAllocationCallbacks = mAllocationCallbacks.get();
+        allocatorCreateInfo.pDeviceMemoryCallbacks = nullptr;
+        allocatorCreateInfo.pHeapSizeLimit = nullptr;
+        allocatorCreateInfo.pVulkanFunctions = nullptr;
+        allocatorCreateInfo.instance = mInstance;
+        allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+        FASTCG_CHECK_VK_RESULT(vmaCreateAllocator(&allocatorCreateInfo, &mAllocator));
+    }
+
     void VulkanGraphicsSystem::GetPhysicalDeviceProperties()
     {
+        vkGetPhysicalDeviceProperties(mPhysicalDevice, &mPhysicalDeviceProperties);
+
         vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mPhysicalDeviceMemoryProperties);
+
+        for (VkFormat format = VK_FORMAT_UNDEFINED; format < LAST_FORMAT; format = (VkFormat)(((size_t)format) + 1))
+        {
+            vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &mFormatProperties[format]);
+        }
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mSurface, &surfaceCapabilities));
@@ -384,16 +483,10 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen height");
         }
 
-        if ((surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR) != 0)
-        {
-            mPreTransform = VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR;
-        }
-        else
-        {
-            mPreTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-        }
+        mPreTransform = surfaceCapabilities.currentTransform;
 
         mMaxSimultaneousFrames = std::max(std::min(mArgs.maxSimultaneousFrames, surfaceCapabilities.maxImageCount), surfaceCapabilities.minImageCount);
+        assert(mMaxSimultaneousFrames > 0);
 
         uint32_t surfaceFormatsCount = 0;
         FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mSurface, &surfaceFormatsCount, nullptr));
@@ -489,37 +582,31 @@ namespace FastCG
 
         uint32_t swapChainCount;
         FASTCG_CHECK_VK_RESULT(vkGetSwapchainImagesKHR(mDevice, mSwapChain, &swapChainCount, nullptr));
-        mSwapChainImages.resize(swapChainCount);
-        FASTCG_CHECK_VK_RESULT(vkGetSwapchainImagesKHR(mDevice, mSwapChain, &swapChainCount, &mSwapChainImages[0]));
+        std::vector<VkImage> swapChainImages;
+        swapChainImages.resize(swapChainCount);
+        FASTCG_CHECK_VK_RESULT(vkGetSwapchainImagesKHR(mDevice, mSwapChain, &swapChainCount, &swapChainImages[0]));
 
-        for (auto &rSwapChainImage : mSwapChainImages)
+        TextureFormat format;
+        BitsPerChannel bitsPerChannel;
+        TextureDataType dataType;
+        DecomposeVkFormat(mSwapChainSurfaceFormat.format, format, bitsPerChannel, dataType);
+        VulkanTexture::Args args{"",
+                                 mArgs.rScreenWidth,
+                                 mArgs.rScreenHeight,
+                                 TextureType::TEXTURE_2D,
+                                 TextureUsageFlagBit::PRESENT,
+                                 format,
+                                 bitsPerChannel,
+                                 dataType,
+                                 TextureFilter::LINEAR_FILTER,
+                                 TextureWrapMode::CLAMP,
+                                 false};
+        for (size_t i = 0; i < swapChainImages.size(); ++i)
         {
-            VkImageMemoryBarrier imageMemoryBarrier;
-            imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            imageMemoryBarrier.pNext = nullptr;
-            imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            imageMemoryBarrier.image = rSwapChainImage;
-            imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-            imageMemoryBarrier.subresourceRange.levelCount = 1;
-            imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
-            imageMemoryBarrier.subresourceRange.layerCount = 1;
-            imageMemoryBarrier.srcAccessMask = 0;
-            imageMemoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-
-            vkCmdPipelineBarrier(GetCurrentCommandBuffer(),
-                                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                                 0,
-                                 0,
-                                 nullptr,
-                                 0,
-                                 nullptr,
-                                 1,
-                                 &imageMemoryBarrier);
+            const auto &rSwapChainImage = swapChainImages[i];
+            args.name = "SwapChain Image " + std::to_string(i);
+            args.image = rSwapChainImage;
+            mSwapChainTextures.emplace_back(CreateTexture(args));
         }
 
         AcquireNextSwapChainImage();
@@ -588,6 +675,48 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkAllocateCommandBuffers(mDevice, &commandBufferAllocateInfo, &mCommandBuffers[0]));
     }
 
+    void VulkanGraphicsSystem::CreateDescriptorPool()
+    {
+        // TODO: make this less brittle and possibly dynamic
+        const VkDescriptorPoolSize DESCRIPTOR_POOL_SIZES[] = {
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1024},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1024}};
+
+        VkDescriptorPoolCreateInfo descriptorPoolCreateInto;
+        descriptorPoolCreateInto.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        descriptorPoolCreateInto.pNext = nullptr;
+        descriptorPoolCreateInto.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        descriptorPoolCreateInto.maxSets = 2048;
+        descriptorPoolCreateInto.poolSizeCount = (uint32_t)FASTCG_ARRAYSIZE(DESCRIPTOR_POOL_SIZES);
+        descriptorPoolCreateInto.pPoolSizes = DESCRIPTOR_POOL_SIZES;
+        FASTCG_CHECK_VK_RESULT(vkCreateDescriptorPool(mDevice,
+                                                      &descriptorPoolCreateInto,
+                                                      mAllocationCallbacks.get(),
+                                                      &mDescriptorPool));
+
+        mDescriptorSetLocalPools.resize(mMaxSimultaneousFrames);
+    }
+
+    void VulkanGraphicsSystem::CreateDebugObjects()
+    {
+        {
+            uint8_t data[] = {251, 72, 196, 255};
+            mMissingTextures.emplace(TextureType::TEXTURE_2D, CreateTexture({"Missing 2D Texture",
+                                                                             1,
+                                                                             1,
+                                                                             TextureType::TEXTURE_2D,
+                                                                             TextureUsageFlagBit::SAMPLED,
+                                                                             TextureFormat::RGBA,
+                                                                             {8, 8, 8, 8},
+                                                                             TextureDataType::FLOAT,
+                                                                             TextureFilter::LINEAR_FILTER,
+                                                                             TextureWrapMode::CLAMP,
+                                                                             false,
+                                                                             data}));
+        }
+    }
+
     void VulkanGraphicsSystem::BeginCurrentCommandBuffer()
     {
         FASTCG_CHECK_VK_RESULT(vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0));
@@ -600,9 +729,59 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkBeginCommandBuffer(mCommandBuffers[mCurrentFrame], &commandBufferBeginInfo));
     }
 
+    void VulkanGraphicsSystem::CreateImmediateGraphicsContext()
+    {
+        mpImmediateGraphicsContext = CreateGraphicsContext({"Immediate Graphics Context"});
+        mpImmediateGraphicsContext->Begin();
+    }
+
     void VulkanGraphicsSystem::EndCurrentCommandBuffer()
     {
         FASTCG_CHECK_VK_RESULT(vkEndCommandBuffer(mCommandBuffers[mCurrentFrame]));
+    }
+
+    void VulkanGraphicsSystem::DestroyFrameBuffers()
+    {
+        std::for_each(mFrameBuffers.begin(), mFrameBuffers.end(), [&](const auto &rEntry)
+                      { vkDestroyFramebuffer(mDevice, rEntry.second, mAllocationCallbacks.get()); });
+        mFrameBuffers.clear();
+    }
+
+    void VulkanGraphicsSystem::DestroyRenderPasses()
+    {
+        std::for_each(mRenderPasses.begin(), mRenderPasses.end(), [&](const auto &rEntry)
+                      { vkDestroyRenderPass(mDevice, rEntry.second, mAllocationCallbacks.get()); });
+        mRenderPasses.clear();
+    }
+
+    void VulkanGraphicsSystem::DestroyPipelineLayouts()
+    {
+        std::for_each(mPipelineLayouts.begin(), mPipelineLayouts.end(), [&](const auto &rEntry)
+                      { vkDestroyPipelineLayout(mDevice, rEntry.second, mAllocationCallbacks.get()); });
+        mPipelineLayouts.clear();
+    }
+
+    void VulkanGraphicsSystem::DestroyPipelines()
+    {
+        std::for_each(mPipelines.begin(), mPipelines.end(), [&](const auto &rEntry)
+                      { vkDestroyPipeline(mDevice, rEntry.second, mAllocationCallbacks.get()); });
+        mPipelines.clear();
+    }
+
+    void VulkanGraphicsSystem::DestroyDescriptorSetLayouts()
+    {
+        std::for_each(mDescriptorSetLayouts.begin(), mDescriptorSetLayouts.end(), [&](const auto &rEntry)
+                      { vkDestroyDescriptorSetLayout(mDevice, rEntry.second, mAllocationCallbacks.get()); });
+        mDescriptorSetLayouts.clear();
+    }
+
+    void VulkanGraphicsSystem::DestroyDescriptorPool()
+    {
+        if (mDescriptorPool != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorPool(mDevice, mDescriptorPool, mAllocationCallbacks.get());
+            mDescriptorPool = VK_NULL_HANDLE;
+        }
     }
 
     void VulkanGraphicsSystem::DestroyCommandPoolAndCommandBuffers()
@@ -636,7 +815,11 @@ namespace FastCG
             vkDestroySwapchainKHR(mDevice, mSwapChain, mAllocationCallbacks.get());
             mSwapChain = VK_NULL_HANDLE;
         }
-        mSwapChainImages.clear();
+        for (const auto &pSwapChainTexture : mSwapChainTextures)
+        {
+            DestroyTexture(pSwapChainTexture);
+        }
+        mSwapChainTextures.clear();
     }
 
     void VulkanGraphicsSystem::DestroyDeviceAndClearQueues()
@@ -648,6 +831,15 @@ namespace FastCG
         }
         mGraphicsAndPresentQueue = VK_NULL_HANDLE;
         mGraphicsAndPresentQueueFamilyIndex = ~0u;
+    }
+
+    void VulkanGraphicsSystem::DestroyAllocator()
+    {
+        if (mAllocator != VK_NULL_HANDLE)
+        {
+            vmaDestroyAllocator(mAllocator);
+            mAllocator = VK_NULL_HANDLE;
+        }
     }
 
     void VulkanGraphicsSystem::DestroySurface()
@@ -672,13 +864,21 @@ namespace FastCG
         }
     }
 
-    void VulkanGraphicsSystem::Resize()
-    {
-        RecreateSwapChainAndGetImages();
-    }
-
     void VulkanGraphicsSystem::Present()
     {
+        auto imageMemoryTransition = GetLastImageMemoryTransition(GetCurrentSwapChainTexture());
+        if (imageMemoryTransition.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+        {
+            GetImmediateGraphicsContext()->AddTextureMemoryBarrier(GetCurrentSwapChainTexture(),
+                                                                   VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                                   imageMemoryTransition.accessMask,
+                                                                   0,
+                                                                   imageMemoryTransition.stageMask,
+                                                                   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+        }
+
+        GetImmediateGraphicsContext()->End();
+
         EndCurrentCommandBuffer();
 
         VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -707,6 +907,7 @@ namespace FastCG
         presentInfo.pImageIndices = &mSwapChainIndex;
         presentInfo.pResults = nullptr;
 
+        bool outdatedSwapchain = false;
         auto result = vkQueuePresentKHR(mGraphicsAndPresentQueue, &presentInfo);
         switch (result)
         {
@@ -714,7 +915,7 @@ namespace FastCG
         case VK_SUBOPTIMAL_KHR:
             break;
         case VK_ERROR_OUT_OF_DATE_KHR:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Outdated swapchain");
+            outdatedSwapchain = true;
             break;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't present");
@@ -726,9 +927,25 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkWaitForFences(mDevice, 1, &mFrameFences[mCurrentFrame], VK_TRUE, UINT64_MAX));
         FASTCG_CHECK_VK_RESULT(vkResetFences(mDevice, 1, &mFrameFences[mCurrentFrame]));
 
-        AcquireNextSwapChainImage();
+        PerformDeferredDestroys();
+
+        for (auto &rEntry : mDescriptorSetLocalPools[mCurrentFrame])
+        {
+            rEntry.second.lastDescriptorSetIdx = 0;
+        }
 
         BeginCurrentCommandBuffer();
+
+        GetImmediateGraphicsContext()->Begin();
+
+        if (outdatedSwapchain)
+        {
+            RecreateSwapChainAndGetImages();
+        }
+        else
+        {
+            AcquireNextSwapChainImage();
+        }
     }
 
     double VulkanGraphicsSystem::GetPresentElapsedTime() const
@@ -739,6 +956,697 @@ namespace FastCG
     double VulkanGraphicsSystem::GetGpuElapsedTime() const
     {
         return 0;
+    }
+
+    std::pair<size_t, VkRenderPass> VulkanGraphicsSystem::GetOrCreateRenderPass(const VulkanRenderPassDescription &rRenderPassDescription,
+                                                                                const std::vector<VulkanClearRequest> &rClearRequests,
+                                                                                bool depthStencilWrite)
+    {
+        std::vector<AttachmentDefinition> attachmentDefinitions;
+        std::for_each(rRenderPassDescription.renderTargets.begin(), rRenderPassDescription.renderTargets.end(), [&](const auto *pRenderTarget)
+                      {
+                        if (pRenderTarget == nullptr)
+                        {
+                            return;
+                        }
+
+                        attachmentDefinitions.emplace_back();
+                        auto& rAttachmentDefinition = attachmentDefinitions.back();
+                        rAttachmentDefinition.pTexture = pRenderTarget;
+                        auto it = std::find_if(rClearRequests.begin(), rClearRequests.end(), [pRenderTarget](const auto &rClearRequest)
+                                                { return rClearRequest.pTexture == pRenderTarget; });
+
+                        if (it != rClearRequests.end() && (it->flags & VulkanClearRequestFlagBit::COLOR_OR_DEPTH) != 0)
+                        {
+                            rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                        }
+                        else
+                        {
+                            rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_LOAD;
+                        } 
+                        rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_DONT_CARE; 
+                        rAttachmentDefinition.write = true; });
+
+        if (rRenderPassDescription.pDepthStencilBuffer != nullptr)
+        {
+            attachmentDefinitions.emplace_back();
+            auto &rAttachmentDefinition = attachmentDefinitions.back();
+            rAttachmentDefinition.pTexture = rRenderPassDescription.pDepthStencilBuffer;
+            auto it = std::find_if(rClearRequests.begin(), rClearRequests.end(), [&rRenderPassDescription](const auto &rClearRequest)
+                                   { return rClearRequest.pTexture == rRenderPassDescription.pDepthStencilBuffer; });
+
+            if (it != rClearRequests.end() && (it->flags & VulkanClearRequestFlagBit::COLOR_OR_DEPTH) != 0)
+            {
+                rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            }
+            else
+            {
+                rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_LOAD;
+            }
+
+            if (HasStencil(rRenderPassDescription.pDepthStencilBuffer->GetFormat()))
+            {
+                if (it != rClearRequests.end() && (it->flags & VulkanClearRequestFlagBit::STENCIL) != 0)
+                {
+                    rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                }
+                else
+                {
+                    rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_LOAD;
+                }
+            }
+            else
+            {
+                rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            }
+            rAttachmentDefinition.write = depthStencilWrite;
+        }
+
+        auto renderPassHash = GetRenderPassHash(attachmentDefinitions);
+        auto it = mRenderPasses.find(renderPassHash);
+        if (it != mRenderPasses.end())
+        {
+            return {it->first, it->second};
+        }
+
+        VkRenderPassCreateInfo2 renderPassCreateInfo;
+        renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
+        renderPassCreateInfo.pNext = nullptr;
+        renderPassCreateInfo.flags = 0;
+        renderPassCreateInfo.dependencyCount = 0;
+        renderPassCreateInfo.pDependencies = nullptr;
+        renderPassCreateInfo.correlatedViewMaskCount = 0;
+        renderPassCreateInfo.pCorrelatedViewMasks = nullptr;
+
+        VkSubpassDescription2 subpassDescription;
+        subpassDescription.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
+        subpassDescription.pNext = nullptr;
+        subpassDescription.flags = 0;
+        subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassDescription.viewMask = 0;
+        subpassDescription.inputAttachmentCount = 0;
+        subpassDescription.pInputAttachments = nullptr;
+        subpassDescription.preserveAttachmentCount = 0;
+        subpassDescription.pPreserveAttachments = nullptr;
+        subpassDescription.pResolveAttachments = nullptr;
+
+        renderPassCreateInfo.subpassCount = 1;
+        renderPassCreateInfo.pSubpasses = &subpassDescription;
+
+        std::vector<VkAttachmentDescription2> attachmentDescriptions;
+        std::vector<VkAttachmentReference2> colorAttachmentReferences;
+
+        subpassDescription.pDepthStencilAttachment = nullptr;
+
+        for (const auto *pRenderTarget : rRenderPassDescription.renderTargets)
+        {
+            if (pRenderTarget == nullptr)
+            {
+                continue;
+            }
+
+            auto attachmentIdx = (uint32_t)attachmentDescriptions.size();
+
+            auto &rAttachmentDefinition = attachmentDefinitions[attachmentIdx];
+
+            attachmentDescriptions.emplace_back();
+            auto &rAttachmentDescription = attachmentDescriptions.back();
+            rAttachmentDescription.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
+            rAttachmentDescription.pNext = nullptr;
+            rAttachmentDescription.flags = 0;
+            rAttachmentDescription.format = pRenderTarget->GetVulkanFormat();
+            rAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+            rAttachmentDescription.loadOp = rAttachmentDefinition.colorOrDepth;
+            rAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            rAttachmentDescription.stencilLoadOp = rAttachmentDefinition.stencil;
+            rAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            rAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            rAttachmentDescription.finalLayout = pRenderTarget->GetRestingLayout();
+
+            colorAttachmentReferences.emplace_back();
+            auto &rColorAttachmentReference = colorAttachmentReferences.back();
+            rColorAttachmentReference.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+            rColorAttachmentReference.pNext = nullptr;
+            rColorAttachmentReference.attachment = attachmentIdx;
+            rColorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            rColorAttachmentReference.aspectMask = pRenderTarget->GetAspectFlags();
+        }
+
+        VkAttachmentReference2 depthAttachmentReference;
+        if (rRenderPassDescription.pDepthStencilBuffer != nullptr)
+        {
+            auto attachmentIdx = (uint32_t)attachmentDescriptions.size();
+
+            auto &rAttachmentDefinition = attachmentDefinitions[attachmentIdx];
+
+            attachmentDescriptions.emplace_back();
+            auto &rAttachmentDescription = attachmentDescriptions.back();
+            rAttachmentDescription.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
+            rAttachmentDescription.pNext = nullptr;
+            rAttachmentDescription.flags = 0;
+            rAttachmentDescription.format = rRenderPassDescription.pDepthStencilBuffer->GetVulkanFormat();
+            rAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+            rAttachmentDescription.loadOp = rAttachmentDefinition.colorOrDepth;
+            rAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+            VkImageLayout initialLayout, finalLayout;
+            if (depthStencilWrite)
+            {
+                initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                finalLayout = rRenderPassDescription.pDepthStencilBuffer->GetRestingLayout();
+            }
+            else
+            {
+                initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+                finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            }
+
+            depthAttachmentReference.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+            depthAttachmentReference.pNext = nullptr;
+            depthAttachmentReference.attachment = attachmentIdx;
+            depthAttachmentReference.layout = initialLayout;
+            depthAttachmentReference.aspectMask = rRenderPassDescription.pDepthStencilBuffer->GetAspectFlags();
+
+            rAttachmentDescription.stencilLoadOp = rAttachmentDefinition.stencil;
+            if (HasStencil(rRenderPassDescription.pDepthStencilBuffer->GetFormat()))
+            {
+                rAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+            }
+            else
+            {
+                rAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            }
+            rAttachmentDescription.initialLayout = initialLayout;
+            rAttachmentDescription.finalLayout = finalLayout;
+
+            subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
+        }
+
+        renderPassCreateInfo.attachmentCount = (uint32_t)attachmentDescriptions.size();
+        renderPassCreateInfo.pAttachments = &attachmentDescriptions[0];
+
+        subpassDescription.colorAttachmentCount = (uint32_t)colorAttachmentReferences.size();
+        subpassDescription.pColorAttachments = colorAttachmentReferences.empty() ? nullptr : &colorAttachmentReferences[0];
+
+        VkRenderPass renderPass;
+        FASTCG_CHECK_VK_RESULT(vkCreateRenderPass2(mDevice,
+                                                   &renderPassCreateInfo,
+                                                   mAllocationCallbacks.get(),
+                                                   &renderPass));
+
+        it = mRenderPasses.emplace(renderPassHash, renderPass).first;
+
+        return {it->first, it->second};
+    }
+
+    std::pair<size_t, VkFramebuffer> VulkanGraphicsSystem::GetOrCreateFrameBuffer(const VulkanRenderPassDescription &rRenderPassDescription,
+                                                                                  const std::vector<VulkanClearRequest> &rClearRequests,
+                                                                                  bool depthStencilWrite)
+    {
+        auto result = GetOrCreateRenderPass(rRenderPassDescription, rClearRequests, depthStencilWrite);
+
+        auto it = mFrameBuffers.find(result.first);
+        if (it != mFrameBuffers.end())
+        {
+            return {it->first, it->second};
+        }
+
+        VkFramebufferCreateInfo framebufferCreateInfo;
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.pNext = nullptr;
+        framebufferCreateInfo.flags = 0;
+        framebufferCreateInfo.renderPass = result.second;
+        framebufferCreateInfo.layers = 1;
+
+        std::vector<VkImageView> attachments;
+
+        framebufferCreateInfo.width = std::numeric_limits<uint32_t>::max();
+        framebufferCreateInfo.height = std::numeric_limits<uint32_t>::max();
+        auto CalculateFramebufferDimensions = [&framebufferCreateInfo](const VulkanTexture *pRenderTarget)
+        {
+            // according to VUID-VkFramebufferCreateInfo-flags-04533/0433, each element of pAttachments (...)
+            // must have been created with a (...) width/height greater than or equal the width/height of the
+            // framebuffer
+            framebufferCreateInfo.width = std::min(framebufferCreateInfo.width, pRenderTarget->GetWidth());
+            framebufferCreateInfo.height = std::min(framebufferCreateInfo.height, pRenderTarget->GetHeight());
+        };
+
+        for (const auto *pRenderTarget : rRenderPassDescription.renderTargets)
+        {
+            if (pRenderTarget == nullptr)
+            {
+                continue;
+            }
+
+            CalculateFramebufferDimensions(pRenderTarget);
+
+            attachments.emplace_back(pRenderTarget->GetDefaultImageView());
+        }
+
+        if (rRenderPassDescription.pDepthStencilBuffer != nullptr)
+        {
+            CalculateFramebufferDimensions(rRenderPassDescription.pDepthStencilBuffer);
+
+            attachments.emplace_back(rRenderPassDescription.pDepthStencilBuffer->GetDefaultImageView());
+        }
+
+        framebufferCreateInfo.attachmentCount = (uint32_t)attachments.size();
+        framebufferCreateInfo.pAttachments = &attachments[0];
+
+        VkFramebuffer frameBuffer;
+        FASTCG_CHECK_VK_RESULT(vkCreateFramebuffer(mDevice,
+                                                   &framebufferCreateInfo,
+                                                   mAllocationCallbacks.get(),
+                                                   &frameBuffer));
+
+        it = mFrameBuffers.emplace(result.first, frameBuffer).first;
+
+        for (const auto *pRenderTarget : rRenderPassDescription.renderTargets)
+        {
+            if (pRenderTarget != nullptr)
+            {
+                auto image = pRenderTarget->GetImage();
+                mRenderTargetToFrameBufferHash[image] = result.first;
+                mFrameBufferHashToRenderTargets[result.first].emplace_back(image);
+            }
+        }
+
+        return {it->first, it->second};
+    }
+
+    std::pair<size_t, VulkanPipeline> VulkanGraphicsSystem::GetOrCreatePipeline(const VulkanPipelineDescription &rPipelineDescription,
+                                                                                VkRenderPass renderPass,
+                                                                                uint32_t renderTargetCount,
+                                                                                const std::vector<const VulkanBuffer *> &rVertexBuffers)
+    {
+        assert(rPipelineDescription.pShader != nullptr);
+
+        auto pipelineLayout = GetOrCreatePipelineLayout(rPipelineDescription.pShader->GetLayoutDescription()).second;
+
+        auto pipelineHash = GetPipelineHash(rPipelineDescription);
+
+        auto it = mPipelines.find(pipelineHash);
+        if (it != mPipelines.end())
+        {
+            return {it->first, {it->second, pipelineLayout}};
+        }
+
+        VkGraphicsPipelineCreateInfo pipelineCreateInfo;
+        pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineCreateInfo.pNext = nullptr;
+        pipelineCreateInfo.flags = 0;
+
+        pipelineCreateInfo.stageCount = 0;
+
+        VkPipelineShaderStageCreateInfo shaderStageCreateInfos[(ShaderTypeInt)ShaderType::LAST] = {};
+        pipelineCreateInfo.pStages = shaderStageCreateInfos;
+
+        for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::LAST; ++i)
+        {
+            auto shaderType = (ShaderType)i;
+            auto module = rPipelineDescription.pShader->GetModule(shaderType);
+            if (module != VK_NULL_HANDLE)
+            {
+                auto &rShaderStageCreateInfo = shaderStageCreateInfos[pipelineCreateInfo.stageCount++];
+
+                rShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+                rShaderStageCreateInfo.pNext = nullptr;
+                rShaderStageCreateInfo.flags = 0;
+                rShaderStageCreateInfo.pName = "main";
+                rShaderStageCreateInfo.module = module;
+                rShaderStageCreateInfo.stage = GetVkShaderStageFlagBit(shaderType);
+                rShaderStageCreateInfo.pSpecializationInfo = NULL;
+            }
+        }
+
+        const auto &rVertexInputDescription = rPipelineDescription.pShader->GetVertexInputDescription();
+        std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
+        std::vector<VkVertexInputBindingDescription> vertexInputBindingDescriptions;
+        for (size_t i = 0; i < rVertexBuffers.size(); ++i)
+        {
+            const auto *pVertexBuffer = rVertexBuffers[i];
+            for (const auto &rVbDesc : pVertexBuffer->GetVertexBindingDescriptors())
+            {
+                auto it = rVertexInputDescription.find(rVbDesc.binding);
+                if (it == rVertexInputDescription.end())
+                {
+                    continue;
+                }
+                auto format = GetVkFormat(rVbDesc.type, rVbDesc.size);
+                vertexInputAttributeDescriptions.emplace_back(VkVertexInputAttributeDescription{rVbDesc.binding, (uint32_t)i, format, rVbDesc.offset});
+                auto stride = rVbDesc.stride == 0 ? GetVkStride(format) : rVbDesc.stride;
+                vertexInputBindingDescriptions.emplace_back(VkVertexInputBindingDescription{rVbDesc.binding, stride, VK_VERTEX_INPUT_RATE_VERTEX});
+            }
+        }
+
+        VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
+        vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputStateCreateInfo.pNext = nullptr;
+        vertexInputStateCreateInfo.flags = 0;
+        vertexInputStateCreateInfo.pVertexBindingDescriptions = &vertexInputBindingDescriptions[0];
+        vertexInputStateCreateInfo.vertexBindingDescriptionCount = (uint32_t)vertexInputBindingDescriptions.size();
+        vertexInputStateCreateInfo.pVertexAttributeDescriptions = &vertexInputAttributeDescriptions[0];
+        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributeDescriptions.size();
+        pipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
+        inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssemblyCreateInfo.pNext = nullptr;
+        inputAssemblyCreateInfo.flags = 0;
+        inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
+        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; // TODO: support other topologies
+        pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
+
+        pipelineCreateInfo.pTessellationState = nullptr; // TODO: support tessellation shaders
+
+        VkPipelineViewportStateCreateInfo viewportStateCreateInfo;
+        viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportStateCreateInfo.pNext = nullptr;
+        viewportStateCreateInfo.flags = 0;
+        viewportStateCreateInfo.pViewports = nullptr;
+        viewportStateCreateInfo.viewportCount = 1;
+        viewportStateCreateInfo.pScissors = nullptr;
+        viewportStateCreateInfo.scissorCount = 1;
+        pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
+
+        VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
+        rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizationStateCreateInfo.pNext = nullptr;
+        rasterizationStateCreateInfo.flags = 0;
+        rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+        rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+        rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizationStateCreateInfo.cullMode = GetVkCullModeFlags(rPipelineDescription.cullMode);
+        rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
+        rasterizationStateCreateInfo.depthBiasConstantFactor = 0;
+        rasterizationStateCreateInfo.depthBiasClamp = 0;
+        rasterizationStateCreateInfo.depthBiasSlopeFactor = 0;
+        rasterizationStateCreateInfo.lineWidth = 1;
+        pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+
+        VkPipelineMultisampleStateCreateInfo multiSampleStateCreateInfo;
+        multiSampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multiSampleStateCreateInfo.pNext = nullptr;
+        multiSampleStateCreateInfo.flags = 0;
+        multiSampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multiSampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
+        multiSampleStateCreateInfo.minSampleShading = 0;
+        multiSampleStateCreateInfo.pSampleMask = nullptr;
+        multiSampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
+        multiSampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
+        pipelineCreateInfo.pMultisampleState = &multiSampleStateCreateInfo;
+
+        VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo;
+        depthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencilStateCreateInfo.pNext = nullptr;
+        depthStencilStateCreateInfo.flags = 0;
+        depthStencilStateCreateInfo.depthTestEnable = rPipelineDescription.depthTest;
+        depthStencilStateCreateInfo.depthWriteEnable = rPipelineDescription.depthWrite;
+        depthStencilStateCreateInfo.depthCompareOp = GetVkCompareOp(rPipelineDescription.depthFunc);
+        depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
+        depthStencilStateCreateInfo.stencilTestEnable = rPipelineDescription.stencilTest;
+        depthStencilStateCreateInfo.front.compareMask = rPipelineDescription.stencilFrontState.compareMask;
+        depthStencilStateCreateInfo.front.compareOp = GetVkCompareOp(rPipelineDescription.stencilFrontState.compareOp);
+        depthStencilStateCreateInfo.front.depthFailOp = GetVkStencilOp(rPipelineDescription.stencilFrontState.depthFailOp);
+        depthStencilStateCreateInfo.front.failOp = GetVkStencilOp(rPipelineDescription.stencilFrontState.stencilFailOp);
+        depthStencilStateCreateInfo.front.passOp = GetVkStencilOp(rPipelineDescription.stencilFrontState.passOp);
+        depthStencilStateCreateInfo.front.reference = rPipelineDescription.stencilFrontState.reference;
+        depthStencilStateCreateInfo.front.writeMask = rPipelineDescription.stencilFrontState.writeMask;
+        depthStencilStateCreateInfo.back.compareMask = rPipelineDescription.stencilBackState.compareMask;
+        depthStencilStateCreateInfo.back.compareOp = GetVkCompareOp(rPipelineDescription.stencilBackState.compareOp);
+        depthStencilStateCreateInfo.back.depthFailOp = GetVkStencilOp(rPipelineDescription.stencilBackState.depthFailOp);
+        depthStencilStateCreateInfo.back.failOp = GetVkStencilOp(rPipelineDescription.stencilBackState.stencilFailOp);
+        depthStencilStateCreateInfo.back.passOp = GetVkStencilOp(rPipelineDescription.stencilBackState.passOp);
+        depthStencilStateCreateInfo.back.reference = rPipelineDescription.stencilBackState.reference;
+        depthStencilStateCreateInfo.back.writeMask = rPipelineDescription.stencilBackState.writeMask;
+        depthStencilStateCreateInfo.minDepthBounds = 0;
+        depthStencilStateCreateInfo.maxDepthBounds = 1;
+        pipelineCreateInfo.pDepthStencilState = &depthStencilStateCreateInfo;
+
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachmentStates;
+        colorBlendAttachmentStates.resize(renderTargetCount);
+        for (auto &rColorBlendAttachmentState : colorBlendAttachmentStates)
+        {
+            rColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            rColorBlendAttachmentState.blendEnable = rPipelineDescription.blend;
+            rColorBlendAttachmentState.colorBlendOp = GetVkBlendOp(rPipelineDescription.blendState.colorOp);
+            rColorBlendAttachmentState.srcColorBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.srcColorFactor);
+            rColorBlendAttachmentState.dstColorBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.dstColorFactor);
+            rColorBlendAttachmentState.alphaBlendOp = GetVkBlendOp(rPipelineDescription.blendState.alphaOp);
+            rColorBlendAttachmentState.srcAlphaBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.srcAlphaFactor);
+            rColorBlendAttachmentState.dstAlphaBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.dstAlphaFactor);
+        }
+
+        VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
+        colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlendStateCreateInfo.pNext = nullptr;
+        colorBlendStateCreateInfo.flags = 0;
+        colorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
+        colorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_CLEAR;
+        colorBlendStateCreateInfo.attachmentCount = (uint32_t)colorBlendAttachmentStates.size();
+        colorBlendStateCreateInfo.pAttachments = colorBlendAttachmentStates.empty() ? nullptr : &colorBlendAttachmentStates[0];
+        colorBlendStateCreateInfo.blendConstants[0] = 0;
+        colorBlendStateCreateInfo.blendConstants[1] = 0;
+        colorBlendStateCreateInfo.blendConstants[2] = 0;
+        colorBlendStateCreateInfo.blendConstants[3] = 0;
+        pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+
+        const VkDynamicState DYNAMIC_STATES[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+        VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo;
+        dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicStateCreateInfo.pNext = nullptr;
+        dynamicStateCreateInfo.flags = 0;
+        dynamicStateCreateInfo.pDynamicStates = DYNAMIC_STATES;
+        dynamicStateCreateInfo.dynamicStateCount = FASTCG_ARRAYSIZE(DYNAMIC_STATES);
+        pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
+
+        pipelineCreateInfo.layout = pipelineLayout;
+        pipelineCreateInfo.renderPass = renderPass;
+        pipelineCreateInfo.subpass = 0;
+        pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pipelineCreateInfo.basePipelineIndex = 0;
+
+        VkPipeline pipeline;
+        FASTCG_CHECK_VK_RESULT(vkCreateGraphicsPipelines(mDevice,
+                                                         nullptr,
+                                                         1,
+                                                         &pipelineCreateInfo,
+                                                         mAllocationCallbacks.get(),
+                                                         &pipeline));
+
+        it = mPipelines.emplace(pipelineHash, pipeline).first;
+
+        return {it->first, {it->second, pipelineLayout}};
+    }
+
+    std::pair<size_t, VkPipelineLayout> VulkanGraphicsSystem::GetOrCreatePipelineLayout(const VulkanPipelineLayoutDescription &rPipelineLayoutDescription)
+    {
+        auto pipelineLayoutHash = GetPipelineLayoutHash(rPipelineLayoutDescription);
+
+        auto it = mPipelineLayouts.find(pipelineLayoutHash);
+        if (it != mPipelineLayouts.end())
+        {
+            return {it->first, it->second};
+        }
+
+        std::vector<VkDescriptorSetLayout> setLayouts;
+        for (const auto &rSetLayout : rPipelineLayoutDescription)
+        {
+            if (!rSetLayout.empty())
+            {
+                setLayouts.emplace_back(GetOrCreateDescriptorSetLayout(rSetLayout).second);
+            }
+            else
+            {
+                setLayouts.emplace_back(VK_NULL_HANDLE);
+            }
+        }
+
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutCreateInfo.pNext = nullptr;
+        pipelineLayoutCreateInfo.flags = 0;
+        pipelineLayoutCreateInfo.setLayoutCount = (uint32_t)setLayouts.size();
+        pipelineLayoutCreateInfo.pSetLayouts = &setLayouts[0];
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+
+        VkPipelineLayout pipelineLayout;
+        FASTCG_CHECK_VK_RESULT(vkCreatePipelineLayout(VulkanGraphicsSystem::GetInstance()->GetDevice(),
+                                                      &pipelineLayoutCreateInfo,
+                                                      VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
+                                                      &pipelineLayout));
+
+        it = mPipelineLayouts.emplace(pipelineLayoutHash, pipelineLayout).first;
+
+        return {it->first, it->second};
+    }
+
+    std::pair<size_t, VkDescriptorSetLayout> VulkanGraphicsSystem::GetOrCreateDescriptorSetLayout(const VulkanDescriptorSetLayout &rDescriptorSetLayout)
+    {
+        assert(!rDescriptorSetLayout.empty());
+
+        auto setLayoutHash = GetDescriptorSetLayoutHash(rDescriptorSetLayout);
+
+        auto it = mDescriptorSetLayouts.find(setLayoutHash);
+        if (it != mDescriptorSetLayouts.end())
+        {
+            return {it->first, it->second};
+        }
+
+        std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+        for (const auto &rBinding : rDescriptorSetLayout)
+        {
+            VkDescriptorSetLayoutBinding layoutBinding;
+            layoutBinding.binding = rBinding.binding;
+            layoutBinding.descriptorCount = 1;
+            layoutBinding.descriptorType = rBinding.type;
+            layoutBinding.pImmutableSamplers = nullptr;
+            layoutBinding.stageFlags = rBinding.stageFlags;
+            layoutBindings.emplace_back(layoutBinding);
+        }
+
+        VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo;
+        setLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        setLayoutCreateInfo.pNext = nullptr;
+        setLayoutCreateInfo.flags = 0;
+        setLayoutCreateInfo.bindingCount = (uint32_t)layoutBindings.size();
+        setLayoutCreateInfo.pBindings = &layoutBindings[0];
+
+        VkDescriptorSetLayout setLayout;
+        FASTCG_CHECK_VK_RESULT(vkCreateDescriptorSetLayout(VulkanGraphicsSystem::GetInstance()->GetDevice(),
+                                                           &setLayoutCreateInfo,
+                                                           VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
+                                                           &setLayout));
+
+        it = mDescriptorSetLayouts.emplace(setLayoutHash, setLayout).first;
+
+        return {it->first, it->second};
+    }
+
+    std::pair<size_t, VkDescriptorSet> VulkanGraphicsSystem::GetOrCreateDescriptorSet(const VulkanDescriptorSetLayout &rDescriptorSetLayout)
+    {
+        auto setLayoutHash = GetDescriptorSetLayoutHash(rDescriptorSetLayout);
+
+        auto &rDescriptorSetLocalPools = mDescriptorSetLocalPools[mCurrentFrame];
+        auto it = rDescriptorSetLocalPools.find(setLayoutHash);
+        if (it != rDescriptorSetLocalPools.end())
+        {
+            auto &rDescriptorSetLocalPool = it->second;
+            auto descriptorSet = rDescriptorSetLocalPool.descriptorSets[rDescriptorSetLocalPool.lastDescriptorSetIdx++];
+            assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SETS);
+            return {it->first, descriptorSet};
+        }
+
+        auto setLayout = GetOrCreateDescriptorSetLayout(rDescriptorSetLayout).second;
+
+        auto &rDescriptorSetLocalPool = rDescriptorSetLocalPools[setLayoutHash];
+
+        for (size_t i = 0; i < DescriptorSetLocalPool::MAX_SETS; ++i)
+        {
+            auto &rDescriptorSet = rDescriptorSetLocalPool.descriptorSets[i];
+
+            VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
+            descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            descriptorSetAllocateInfo.pNext = nullptr;
+            descriptorSetAllocateInfo.descriptorPool = mDescriptorPool;
+            descriptorSetAllocateInfo.descriptorSetCount = 1;
+            descriptorSetAllocateInfo.pSetLayouts = &setLayout;
+
+            FASTCG_CHECK_VK_RESULT(vkAllocateDescriptorSets(mDevice, &descriptorSetAllocateInfo, &rDescriptorSet));
+        }
+
+        auto descriptorSet = rDescriptorSetLocalPool.descriptorSets[rDescriptorSetLocalPool.lastDescriptorSetIdx++];
+        assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SETS);
+        return {setLayoutHash, descriptorSet};
+    }
+
+#ifdef _DEBUG
+    void VulkanGraphicsSystem::PushDebugMarker(VkCommandBuffer commandBuffer, const char *pName)
+    {
+        VkDebugUtilsLabelEXT debugLabel;
+        debugLabel.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+        debugLabel.pNext = nullptr;
+        debugLabel.pLabelName = pName;
+        debugLabel.color[0] = 0;
+        debugLabel.color[1] = 0;
+        debugLabel.color[2] = 1.0f;
+        debugLabel.color[3] = 1.0f;
+        VkExt::vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &debugLabel);
+    }
+
+    void VulkanGraphicsSystem::PopDebugMarker(VkCommandBuffer commandBuffer)
+    {
+        VkExt::vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+    }
+
+    void VulkanGraphicsSystem::SetObjectName(const char *pObjectName, VkObjectType objectType, uint64_t objectHandle)
+    {
+        VkDebugUtilsObjectNameInfoEXT debugUtilsObjectNameInfo;
+        debugUtilsObjectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        debugUtilsObjectNameInfo.pNext = nullptr;
+        debugUtilsObjectNameInfo.objectType = objectType;
+        debugUtilsObjectNameInfo.objectHandle = objectHandle;
+        debugUtilsObjectNameInfo.pObjectName = pObjectName;
+        FASTCG_CHECK_VK_RESULT(VkExt::vkSetDebugUtilsObjectNameEXT(mDevice, &debugUtilsObjectNameInfo));
+    }
+#endif
+
+    void VulkanGraphicsSystem::PerformDeferredDestroys()
+    {
+        while (!mDeferredDestroyRequests.empty())
+        {
+            const auto &rDeferredDestroyRequest = mDeferredDestroyRequests.front();
+            if (rDeferredDestroyRequest.frame != mCurrentFrame)
+            {
+                break;
+            }
+
+            switch (rDeferredDestroyRequest.type)
+            {
+            case DeferredDestroyRequest::Type::BUFFER:
+                Super::DestroyBuffer(rDeferredDestroyRequest.pBuffer);
+                break;
+            case DeferredDestroyRequest::Type::SHADER:
+                Super::DestroyShader(rDeferredDestroyRequest.pShader);
+                break;
+            case DeferredDestroyRequest::Type::TEXTURE:
+                Super::DestroyTexture(rDeferredDestroyRequest.pTexture);
+                break;
+            case DeferredDestroyRequest::Type::FRAME_BUFFER:
+                vkDestroyFramebuffer(mDevice, rDeferredDestroyRequest.frameBuffer, mAllocationCallbacks.get());
+                break;
+            default:
+                FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled deferred destroy type %d", (int)rDeferredDestroyRequest.type);
+                break;
+            }
+
+            mDeferredDestroyRequests.pop_front();
+        }
+    }
+
+    void VulkanGraphicsSystem::FinalizeDeferredDestroys()
+    {
+        for (auto &rDeferredDestroyRequest : mDeferredDestroyRequests)
+        {
+            switch (rDeferredDestroyRequest.type)
+            {
+            case DeferredDestroyRequest::Type::BUFFER:
+            case DeferredDestroyRequest::Type::SHADER:
+            case DeferredDestroyRequest::Type::TEXTURE:
+                // ignore those deferred destroy requests
+                break;
+            case DeferredDestroyRequest::Type::FRAME_BUFFER:
+                vkDestroyFramebuffer(mDevice, rDeferredDestroyRequest.frameBuffer, mAllocationCallbacks.get());
+                break;
+            default:
+                FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled deferred destroy type %d", (int)rDeferredDestroyRequest.type);
+                break;
+            }
+        }
+        mDeferredDestroyRequests.clear();
     }
 }
 

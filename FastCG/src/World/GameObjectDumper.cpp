@@ -5,7 +5,7 @@
 #include <FastCG/Platform/FileWriter.h>
 #include <FastCG/Platform/File.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/Base64.h>
 
 #ifdef FASTCG_LINUX
@@ -263,7 +263,7 @@ namespace
                 rapidjson::Value vertexBufferObj(rapidjson::kObjectType);
                 const auto *pVertexBuffer = pVertexBuffers[i];
                 AddValueMember(rAlloc, vertexBufferObj, "name", pVertexBuffer->GetName());
-                AddValueMember(rAlloc, vertexBufferObj, "usage", FastCG::GetBufferUsageString(pVertexBuffer->GetUsage()));
+                AddValueMember(rAlloc, vertexBufferObj, "usage", pVertexBuffer->GetUsage());
                 if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)
                 {
                     AddValueMember(rAlloc, vertexBufferObj, "dataSize", pVertexBuffer->GetDataSize());
@@ -298,7 +298,7 @@ namespace
         }
         rapidjson::Value indexBufferObj(rapidjson::kObjectType);
         auto *pIndexBuffer = pMesh->GetIndexBuffer();
-        AddValueMember(rAlloc, indexBufferObj, "usage", FastCG::GetBufferUsageString(pIndexBuffer->GetUsage()));
+        AddValueMember(rAlloc, indexBufferObj, "usage", pIndexBuffer->GetUsage());
         if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)
         {
             AddValueMember(rAlloc, indexBufferObj, "count", pIndexBuffer->GetDataSize());
@@ -334,9 +334,10 @@ namespace
         AddValueMember(rAlloc, rTextureObj, "width", pTexture->GetWidth());
         AddValueMember(rAlloc, rTextureObj, "height", pTexture->GetHeight());
         AddValueMember(rAlloc, rTextureObj, "type", FastCG::GetTextureTypeString(pTexture->GetType()));
+        AddValueMember(rAlloc, rTextureObj, "usage", pTexture->GetUsage());
         AddValueMember(rAlloc, rTextureObj, "format", FastCG::GetTextureFormatString(pTexture->GetFormat()));
-        auto &rBpp = pTexture->GetBitsPerPixel();
-        AddValueMember(rAlloc, rTextureObj, "bitsPerPixel", glm::ivec4{rBpp.r, rBpp.g, rBpp.b, rBpp.a});
+        auto &rBpp = pTexture->GetBitsPerChannel();
+        AddValueMember(rAlloc, rTextureObj, "bitsPerChannel", glm::ivec4{rBpp.r, rBpp.g, rBpp.b, rBpp.a});
         AddValueMember(rAlloc, rTextureObj, "dataType", FastCG::GetTextureDataTypeString(pTexture->GetDataType()));
         AddValueMember(rAlloc, rTextureObj, "filter", FastCG::GetTextureFilterString(pTexture->GetFilter()));
         AddValueMember(rAlloc, rTextureObj, "wrapMode", FastCG::GetTextureWrapModeString(pTexture->GetWrapMode()));

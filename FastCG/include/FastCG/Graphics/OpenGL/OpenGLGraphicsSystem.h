@@ -10,6 +10,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
 #include <FastCG/Graphics/BaseGraphicsSystem.h>
 #include <FastCG/Core/System.h>
+#include <FastCG/Core/Hash.h>
 
 #include <vector>
 #include <unordered_map>
@@ -28,15 +29,24 @@ namespace FastCG
         {
             GLint maxColorAttachments;
             GLint maxDrawBuffers;
+            GLint maxTextureUnits;
         };
 
-        void DestroyTexture(const OpenGLTexture *pTexture);
-        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pTextures, size_t textureCount);
-        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, size_t bufferCount);
+        inline uint32_t GetMaxSimultaneousFrames() const
+        {
+            return 1;
+        }
+        inline uint32_t GetCurrentFrame() const
+        {
+            return 0;
+        }
         inline const DeviceProperties &GetDeviceProperties() const
         {
             return mDeviceProperties;
         }
+        void DestroyTexture(const OpenGLTexture *pTexture);
+        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
+        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
 
     protected:
         OpenGLGraphicsSystem(const GraphicsSystemArgs &rArgs);
@@ -49,9 +59,9 @@ namespace FastCG
 #elif defined FASTCG_LINUX
         GLXContext mpRenderContext{nullptr};
 #endif
-        std::unordered_map<uint32_t, GLuint> mFboIds;
-        std::unordered_map<GLint, std::vector<GLuint>> mTextureToFboHashes;
-        std::unordered_map<uint32_t, GLuint> mVaoIds;
+        std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mFboIds;
+        std::unordered_map<GLint, std::vector<size_t>, IdentityHasher<GLint>> mTextureToFboHashes;
+        std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mVaoIds;
 #ifdef _DEBUG
         GLuint mPresentTimestampQuery{~0u};
         double mPresentElapsedTime{0};
@@ -59,14 +69,14 @@ namespace FastCG
         DeviceProperties mDeviceProperties{};
 
         void OnInitialize() override;
-        void OnFinalize() override;
+        void OnPostFinalize() override;
         void Resize() {}
         void Present();
         double GetPresentElapsedTime() const;
         double GetGpuElapsedTime() const;
         void InitializeGlew();
         void CreateOpenGLContext();
-        void InitializeDeviceProperties();
+        void QueryDeviceProperties();
         void DestroyOpenGLContext();
     };
 

@@ -3,9 +3,6 @@
 
 #include "../FastCG.glsl"
 
-const float DEPTH_RANGE_NEAR = 0;
-const float DEPTH_RANGE_FAR = 1;
-
 float PackToNormalizedValue(float value)
 {
     return value / 256.0;
@@ -16,18 +13,21 @@ float UnpackFromNormalizedValue(float value)
     return value * 256.0;
 }
 
-vec3 GetViewPositionFromScreenCoordsAndDepth(mat4 projection, mat4 inverseProjection, vec2 screenSize, vec3 screenCoords)
+vec3 GetViewPositionFromScreenPositionAndDepth(mat4 inverseProjection, vec2 screenSize, vec2 screenPos, float depth)
 {
-	vec3 ndc;
-    ndc.xy = (2.0 * screenCoords.xy) / screenSize - 1;
-    ndc.z = (2.0 * screenCoords.z - DEPTH_RANGE_NEAR - DEPTH_RANGE_FAR) / (DEPTH_RANGE_FAR - DEPTH_RANGE_NEAR);
- 
-    vec4 clipCoords;
-    clipCoords.w = LinearizeDepth(projection, ndc.z);
-    clipCoords.xyz = ndc * clipCoords.w;
- 
-    vec4 viewPosition = inverseProjection * clipCoords;
-	return viewPosition.xyz / viewPosition.w;
+    vec3 ndc;
+    ndc.x = 2.0 * (screenPos.x / screenSize.x) - 1.0;
+#if VULKAN
+    ndc.y = 2.0 * ((screenSize.y - screenPos.y) / screenSize.y) - 1.0;
+    // FIXME:
+    ndc.z = depth; // [0, 1]
+#else
+    ndc.y = 2.0 * (screenPos.y / screenSize.y) - 1.0;
+    ndc.z = 2.0 * depth - 1.0; // [-1, 1]
+#endif
+    vec4 clipPos = vec4(ndc, 1.0);
+    vec4 viewPos = inverseProjection * clipPos;
+    return viewPos.xyz / viewPos.w;
 }
 
 bool HasBump(vec4 tangent, vec4 extraData)

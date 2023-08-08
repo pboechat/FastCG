@@ -28,6 +28,8 @@
 #include <vulkan/vulkan_xlib.h>
 #endif
 
+#include <vk_mem_alloc.h>
+
 #endif
 
 #endif

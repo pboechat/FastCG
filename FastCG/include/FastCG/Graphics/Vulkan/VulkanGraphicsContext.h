@@ -3,10 +3,17 @@
 
 #ifdef FASTCG_VULKAN
 
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 #include <FastCG/Graphics/Vulkan/VulkanShader.h>
+#include <FastCG/Graphics/Vulkan/VulkanRenderPass.h>
+#include <FastCG/Graphics/Vulkan/VulkanPipeline.h>
+#include <FastCG/Graphics/Vulkan/VulkanDescriptorSet.h>
 #include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
 #include <FastCG/Graphics/BaseGraphicsContext.h>
+
+#include <vector>
+#include <cstdint>
 
 namespace FastCG
 {
@@ -15,11 +22,11 @@ namespace FastCG
     class VulkanGraphicsContext : public BaseGraphicsContext<VulkanBuffer, VulkanShader, VulkanTexture>
     {
     public:
-        VulkanGraphicsContext(const GraphicsContextArgs &rArgs);
+        VulkanGraphicsContext(const Args &rArgs);
         virtual ~VulkanGraphicsContext();
 
         void Begin();
-        void PushDebugMarker(const char *name);
+        void PushDebugMarker(const char *pName);
         void PopDebugMarker();
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);
         void SetScissor(int32_t x, int32_t y, uint32_t width, uint32_t height);
@@ -38,17 +45,15 @@ namespace FastCG
         void Copy(const VulkanBuffer *pBuffer, size_t dataSize, const void *pData);
         void Copy(const VulkanTexture *pTexture, size_t dataSize, const void *pData);
         void BindShader(const VulkanShader *pShader);
-        void BindResource(const VulkanBuffer *pBuffer, uint32_t index);
-        void BindResource(const VulkanBuffer *pBuffer, const char *name);
-        void BindResource(const VulkanTexture *pTexture, uint32_t index, uint32_t unit);
-        void BindResource(const VulkanTexture *pTexture, const char *name, uint32_t unit);
+        void BindResource(const VulkanBuffer *pBuffer, const char *pName);
+        void BindResource(const VulkanTexture *pTexture, const char *pName);
         void Blit(const VulkanTexture *pSrc, const VulkanTexture *pDst);
-        void SetRenderTargets(const VulkanTexture *const *pTextures, size_t textureCount);
+        void SetRenderTargets(const VulkanTexture *const *pRenderTargets, uint32_t renderTargetCount, const VulkanTexture *pDepthStencilBuffer);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
-        void ClearDepthStencilTarget(uint32_t renderTargetIndex, float depth, int32_t stencil);
-        void ClearDepthTarget(uint32_t renderTargetIndex, float depth);
-        void ClearStencilTarget(uint32_t renderTargetIndex, int32_t stencil);
-        void SetVertexBuffers(const VulkanBuffer *const *pBuffers, size_t bufferCount);
+        void ClearDepthStencilBuffer(float depth, int32_t stencil);
+        void ClearDepthBuffer(float depth);
+        void ClearStencilBuffer(int32_t stencil);
+        void SetVertexBuffers(const VulkanBuffer *const *pBuffers, uint32_t bufferCount);
         void SetIndexBuffer(const VulkanBuffer *pBuffer);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
@@ -56,7 +61,151 @@ namespace FastCG
         double GetElapsedTime() const;
 
     private:
+        enum class DrawCommandType : uint8_t
+        {
+            INSTANCED_INDEXED
+        };
+
+        enum class CopyCommandType : uint8_t
+        {
+            BUFFER_TO_BUFFER,
+            BUFFER_TO_IMAGE,
+            IMAGE_TO_IMAGE,
+            BLIT
+        };
+
+        struct CopyCommandArgs
+        {
+            union
+            {
+                const VulkanBuffer *pSrcBuffer;
+                const VulkanTexture *pSrcTexture;
+            };
+            union
+            {
+                const VulkanBuffer *pDstBuffer;
+                const VulkanTexture *pDstTexture;
+            };
+
+            CopyCommandArgs() : pSrcBuffer(nullptr), pDstBuffer(nullptr) {}
+            CopyCommandArgs(const VulkanBuffer *pSrcBuffer, const VulkanBuffer *pDstBuffer) : pSrcBuffer(pSrcBuffer),
+                                                                                              pDstBuffer(pDstBuffer)
+            {
+            }
+
+            CopyCommandArgs(const VulkanBuffer *pSrcBuffer, const VulkanTexture *pDstTexture) : pSrcBuffer(pSrcBuffer),
+                                                                                                pDstTexture(pDstTexture)
+            {
+            }
+            CopyCommandArgs(const VulkanTexture *pSrcTexture, const VulkanTexture *pDstTexture) : pSrcTexture(pSrcTexture),
+                                                                                                  pDstTexture(pDstTexture)
+            {
+            }
+        };
+
+        struct CopyCommand
+        {
+#if _DEBUG
+            size_t lastMarkerCommandIdx;
+#endif
+            CopyCommandType type;
+            CopyCommandArgs args;
+        };
+
+#if _DEBUG
+        enum class MarkerCommandType : uint8_t
+        {
+            PUSH,
+            POP
+        };
+
+        struct MarkerCommand
+        {
+            MarkerCommandType type;
+            std::string name;
+        };
+#endif
+
+        struct DrawCommand
+        {
+#if _DEBUG
+            size_t lastMarkerCommandIdx;
+#endif
+            DrawCommandType type;
+            PrimitiveType primitiveType;
+            uint32_t firstInstance;
+            uint32_t instanceCount;
+            uint32_t firstIndex;
+            uint32_t indexCount;
+            int32_t vertexOffset;
+            VkViewport viewport;
+            VkRect2D scissor;
+            std::vector<VulkanDescriptorSet> pipelineResourcesUsage;
+            std::vector<VkDescriptorSet> descriptorSets;
+            std::vector<VkBuffer> vertexBuffers;
+            VkBuffer pIndexBuffer;
+        };
+
+        struct PipelineCommand
+        {
+            size_t lastDrawCommandIdx;
+            VulkanPipeline pipeline;
+            std::vector<VulkanDescriptorSetLayout> pipelineResourcesLayout;
+        };
+
+        struct RenderPassCommand
+        {
+            size_t lastCopyCommandIdx;
+            size_t lastPipelineCommandIdx;
+            VkRenderPass renderPass;
+            VkFramebuffer frameBuffer;
+            uint32_t width;
+            uint32_t height;
+            std::vector<const VulkanTexture *> renderTargets;
+            const VulkanTexture *pDepthStencilBuffer;
+            std::vector<VkClearValue> clearValues;
+            bool depthStencilWrite;
+        };
+
+        VulkanRenderPassDescription mRenderPassDescription;
+        VulkanPipelineDescription mPipelineDescription;
+        VkViewport mViewport;
+        VkRect2D mScissor;
+        std::vector<const VulkanBuffer *> mVertexBuffers;
+        VkBuffer mpIndexBuffer;
+        std::vector<VulkanDescriptorSet> mPipelineResourcesUsage;
+        std::vector<RenderPassCommand> mRenderPassCommands;
+        std::vector<PipelineCommand> mPipelineCommands;
+        std::vector<CopyCommand> mCopyCommands;
+        std::vector<DrawCommand> mDrawCommands;
+        std::vector<VulkanClearRequest> mClearRequests;
+#if _DEBUG
+        std::vector<MarkerCommand> mMarkerCommands;
+#endif
+
+        void AddBufferMemoryBarrier(const VulkanBuffer *pBuffer,
+                                    VkAccessFlags srcAccessMask,
+                                    VkAccessFlags dstAccessMask,
+                                    VkPipelineStageFlags srcStageMask,
+                                    VkPipelineStageFlags dstStageMask);
+        void AddTextureMemoryBarrier(const VulkanTexture *pTexture,
+                                     VkImageLayout newLayout,
+                                     VkAccessFlags srcAccessMask,
+                                     VkAccessFlags dstAccessMask,
+                                     VkPipelineStageFlags srcStageMask,
+                                     VkPipelineStageFlags dstStageMask);
+        void EnqueueCopyCommand(CopyCommandType type,
+                                const CopyCommandArgs &rArgs);
+        void EnqueueDrawCommand(DrawCommandType type,
+                                PrimitiveType primitiveType,
+                                uint32_t firstInstance,
+                                uint32_t instanceCount,
+                                uint32_t firstIndex,
+                                uint32_t indexCount,
+                                int32_t vertexOffset);
+
         friend class VulkanGraphicsSystem;
+        friend class VulkanTexture;
     };
 
 }

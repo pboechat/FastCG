@@ -25,3 +25,4 @@ namespace FastCG
 	const size_t Colors::NUMBER_OF_COMMON_LIGHT_COLORS = std::extent<decltype(COMMON_LIGHT_COLORS)>::value;
 
 }
+

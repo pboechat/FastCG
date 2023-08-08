@@ -1,4 +1,4 @@
-#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Core/Exception.h>
 
@@ -38,8 +38,8 @@ namespace
                     ImGui::Text("Dimensions: %ux%u", pTexture->GetWidth(), pTexture->GetHeight());
                     ImGui::Text("Type: %s", GetTextureTypeString(pTexture->GetType()));
                     ImGui::Text("Format: %s", GetTextureFormatString(pTexture->GetFormat()));
-                    const auto &rBpp = pTexture->GetBitsPerPixel();
-                    ImGui::Text("R: %d G: %d B: %d A: %d", rBpp.r, rBpp.g, rBpp.b, rBpp.a);
+                    const auto &rBpc = pTexture->GetBitsPerChannel();
+                    ImGui::Text("R: %d G: %d B: %d A: %d", rBpc.r, rBpc.g, rBpc.b, rBpc.a);
                     ImGui::Text("Data Type: %s", GetTextureDataTypeString(pTexture->GetDataType()));
                     ImGui::Text("Filter: %s", GetTextureFilterString(pTexture->GetFilter()));
                     ImGui::Text("Wrap Mode: %s", GetTextureWrapModeString(pTexture->GetWrapMode()));
@@ -89,6 +89,7 @@ namespace FastCG
                                       1,
                                       1,
                                       TextureType::TEXTURE_2D,
+                                      TextureUsageFlagBit::RENDER_TARGET,
                                       TextureFormat::RGBA,
                                       {32, 32, 32, 32},
                                       TextureDataType::FLOAT,
@@ -102,6 +103,8 @@ namespace FastCG
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
     void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::Finalize()
     {
+        OnPreFinalize();
+
         for (const auto *pShader : mShaders)
         {
             delete pShader;
@@ -126,7 +129,7 @@ namespace FastCG
         }
         mGraphicsContexts.clear();
 
-        OnFinalize();
+        OnPostFinalize();
 
         mInitialized = false;
     }
@@ -139,7 +142,7 @@ namespace FastCG
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    GraphicsContextT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateGraphicsContext(const GraphicsContextArgs &rArgs)
+    GraphicsContextT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateGraphicsContext(const typename GraphicsContext::Args &rArgs)
     {
         mGraphicsContexts.emplace_back(new GraphicsContextT{rArgs});
         return mGraphicsContexts.back();
@@ -153,7 +156,7 @@ namespace FastCG
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateTexture(const TextureArgs &rArgs)
+    TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateTexture(const typename Texture::Args &rArgs)
     {
         mTextures.emplace_back(new TextureT{rArgs});
         return mTextures.back();

@@ -3,14 +3,14 @@
 
 #ifdef FASTCG_OPENGL
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 #if defined FASTCG_WINDOWS
-#include <Windows.h>
+#include <GL/wglew.h>
 #elif defined FASTCG_LINUX
 #include <GL/glxew.h>
 #endif
-
-#include <GL/glew.h>
-#include <GL/gl.h>
 
 #endif
 

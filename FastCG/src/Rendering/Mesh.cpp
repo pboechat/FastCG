@@ -15,16 +15,14 @@ namespace FastCG
         for (const auto &vbDesc : rArgs.vertexAttributeDecriptors)
         {
             mVertexBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({mName + " " + vbDesc.name,
-                                                                                     BufferType::VERTEX_ATTRIBUTE,
-                                                                                     vbDesc.usage,
+                                                                                     (BufferUsageFlags)(vbDesc.usage | BufferUsageFlagBit::VERTEX_BUFFER),
                                                                                      vbDesc.dataSize,
                                                                                      vbDesc.pData,
                                                                                      vbDesc.bindingDescriptors}));
         }
 
         mpIndexBuffer = GraphicsSystem::GetInstance()->CreateBuffer({mName + " Indices",
-                                                                     BufferType::INDICES,
-                                                                     rArgs.indices.usage,
+                                                                     (BufferUsageFlags)(rArgs.indices.usage | BufferUsageFlagBit::INDEX_BUFFER),
                                                                      rArgs.indices.count * sizeof(uint32_t),
                                                                      rArgs.indices.pData});
     }

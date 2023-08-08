@@ -3,14 +3,14 @@
 
 #include "../FastCG.glsl"
 
-struct ShadowMapPassInstanceaData
+struct ShadowMapPassInstanceData
 {
 	mat4 modelViewProjection;
 };
 
-layout(BINDING_0_0) buffer ShadowMapPassConstants
+layout(BINDING_0_0) uniform ShadowMapPassConstants
 {
-	ShadowMapPassInstanceaData uInstanceData[];
+	ShadowMapPassInstanceData uInstanceData[MAX_INSTANCES];
 };
 
 #define GetShadowMapPassInstanceData() uInstanceData[GetInstanceIndex()]

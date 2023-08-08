@@ -20,7 +20,7 @@ namespace FastCG
 	class GameObject
 	{
 	public:
-		static GameObject *Instantiate(const std::string &rName, const glm::vec3 &rScale = glm::vec3{1, 1, 1}, const glm::quat &rRotation = {}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0});
+		static GameObject *Instantiate(const std::string &rName, const glm::vec3 &rScale = glm::vec3{1, 1, 1}, const glm::quat &rRotation = {1, 0, 0, 0}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0});
 		static void Destroy(GameObject *pGameObject);
 
 		inline const std::string &GetName() const

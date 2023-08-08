@@ -7,7 +7,7 @@
 #include <FastCG/Platform/FileReader.h>
 #include <FastCG/Platform/File.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Graphics/GraphicsEnums.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Base64.h>
 
@@ -25,6 +25,7 @@
 #include <type_traits>
 #include <string>
 #include <memory>
+#include <cstring>
 #include <cassert>
 #include <array>
 
@@ -111,8 +112,8 @@ namespace
                 auto vertexBufferObj = rVertexBufferValue.GetObj();
                 assert(vertexBufferObj.HasMember("name") && vertexBufferObj["name"].IsString());
                 rVertexAttributeDescriptor.name = vertexBufferObj["name"].GetString();
-                assert(vertexBufferObj.HasMember("usage") && vertexBufferObj["usage"].IsString());
-                GetValue(vertexBufferObj["usage"], rVertexAttributeDescriptor.usage, FastCG::BufferUsage_STRINGS, FASTCG_ARRAYSIZE(FastCG::BufferUsage_STRINGS));
+                assert(vertexBufferObj.HasMember("usage") && vertexBufferObj["usage"].IsUint());
+                rVertexAttributeDescriptor.usage = (FastCG::BufferUsageFlags)vertexBufferObj["usage"].GetUint();
                 if (vertexBufferObj.HasMember("dataPath"))
                 {
                     assert(vertexBufferObj["dataPath"].IsString());
@@ -156,8 +157,8 @@ namespace
         }
         assert(rGenericObj.HasMember("indexBuffer") && rGenericObj["indexBuffer"].IsObject());
         auto indexBufferObj = rGenericObj["indexBuffer"].GetObj();
-        assert(indexBufferObj.HasMember("usage") && indexBufferObj["usage"].IsString());
-        GetValue(indexBufferObj["usage"], args.indices.usage, FastCG::BufferUsage_STRINGS, FASTCG_ARRAYSIZE(FastCG::BufferUsage_STRINGS));
+        assert(indexBufferObj.HasMember("usage") && indexBufferObj["usage"].IsUint());
+        args.indices.usage = (FastCG::BufferUsageFlags)indexBufferObj["usage"].GetUint();
         if (indexBufferObj.HasMember("dataPath"))
         {
             assert(indexBufferObj["dataPath"].IsString());
@@ -199,7 +200,7 @@ namespace
     template <typename GenericObjectT>
     FastCG::Texture *LoadTexture(const GenericObjectT &rGenericObj, const std::string &rBasePath)
     {
-        FastCG::TextureArgs args{};
+        FastCG::Texture::Args args{};
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
         args.name = rGenericObj["name"].GetString();
         assert(rGenericObj.HasMember("width") && rGenericObj["width"].IsUint());
@@ -208,12 +209,15 @@ namespace
         args.height = rGenericObj["height"].GetUint();
         assert(rGenericObj.HasMember("type") && rGenericObj["type"].IsString());
         GetValue(rGenericObj["type"], args.type, FastCG::TextureType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureType_STRINGS));
+        // TODO: use strings instead of numbers
+        assert(rGenericObj.HasMember("usage") && rGenericObj["usage"].IsUint());
+        args.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
         assert(rGenericObj.HasMember("format") && rGenericObj["format"].IsString());
         GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
-        assert(rGenericObj.HasMember("bitsPerPixel") && rGenericObj["bitsPerPixel"].IsArray());
-        auto bitsPerPixelArray = rGenericObj["bitsPerPixel"].GetArray();
-        assert(bitsPerPixelArray.Size() == 4);
-        args.bitsPerPixel = FastCG::BitsPerPixel{(uint8_t)bitsPerPixelArray[0].GetUint(), (uint8_t)bitsPerPixelArray[1].GetUint(), (uint8_t)bitsPerPixelArray[2].GetUint(), (uint8_t)bitsPerPixelArray[3].GetUint()};
+        assert(rGenericObj.HasMember("bitsPerChannel") && rGenericObj["bitsPerChannel"].IsArray());
+        auto bitsPerChannelArray = rGenericObj["bitsPerChannel"].GetArray();
+        assert(bitsPerChannelArray.Size() == 4);
+        args.bitsPerChannel = FastCG::BitsPerChannel{(uint8_t)bitsPerChannelArray[0].GetUint(), (uint8_t)bitsPerChannelArray[1].GetUint(), (uint8_t)bitsPerChannelArray[2].GetUint(), (uint8_t)bitsPerChannelArray[3].GetUint()};
         assert(rGenericObj.HasMember("dataType") && rGenericObj["dataType"].IsString());
         GetValue(rGenericObj["dataType"], args.dataType, FastCG::TextureDataType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureDataType_STRINGS));
         assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
@@ -232,14 +236,14 @@ namespace
             auto filePath = FastCG::File::Join({rBasePath, rGenericObj["dataPath"].GetString()});
             size_t dataSize;
             auto data = FastCG::FileReader::ReadBinary(filePath, dataSize);
-            args.pData = (const void *)data.get();
+            args.pData = data.get();
             pTexture = FastCG::GraphicsSystem::GetInstance()->CreateTexture(args);
         }
         else
         {
             assert(rGenericObj.HasMember("data") && rGenericObj["data"].IsString());
             auto data = FastCG::DecodeBase64(rGenericObj["data"].GetString());
-            args.pData = (const void *)data.data();
+            args.pData = reinterpret_cast<const uint8_t *>(data.data());
             pTexture = FastCG::GraphicsSystem::GetInstance()->CreateTexture(args);
         }
         return pTexture;
