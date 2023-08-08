@@ -11,7 +11,7 @@ It features:
     - Linux
  - Support to multiple rendering backends:
     - OpenGL 4.3 (core profile)
-    - Vulkan 1.3 (TODO)
+    - Vulkan 1.3
  - Basic material system: diffuse, specular, bump, etc.
  - Multiple rendering paths: 
     - Forward 
