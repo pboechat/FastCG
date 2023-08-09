@@ -526,12 +526,11 @@ namespace FastCG
             pGraphicsContext->SetScissorTest(false);
             pGraphicsContext->SetCullMode(Face::NONE);
             pGraphicsContext->SetBlend(false);
-            pGraphicsContext->SetRenderTargets(&pDestinationRenderTarget, 1);
-            pGraphicsContext->SetDepthStencilBuffer(nullptr);
+            pGraphicsContext->SetRenderTargets(&pDestinationRenderTarget, 1, nullptr);
 
             pGraphicsContext->BindShader(mpTonemapShader);
 
-            pGraphicsContext->BindResource(pSourceRenderTarget, "uSource", 0);
+            pGraphicsContext->BindResource(pSourceRenderTarget, "uSource");
 
             pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
             pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());

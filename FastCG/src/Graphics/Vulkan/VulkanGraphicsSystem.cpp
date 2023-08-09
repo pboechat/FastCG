@@ -101,10 +101,6 @@ namespace
             std::cerr << (prevType ? "|" : " - ") << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
             prevType = true;
         }
-        if ((messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT) != 0)
-        {
-            std::cerr << (prevType ? "|" : " - ") << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT);
-        }
         std::cerr << " - " << pCallbackData->messageIdNumber
                   << " - " << pCallbackData->pMessage
                   << std::endl;
@@ -354,8 +350,7 @@ namespace FastCG
                                                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         debugUtilsMessengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                                                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
-                                                    VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
+                                                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         debugUtilsMessengerCreateInfo.pfnUserCallback = VulkanDebugCallback;
         debugUtilsMessengerCreateInfo.pUserData = nullptr;
 
@@ -472,7 +467,7 @@ namespace FastCG
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mSurface, &surfaceCapabilities));
 
-        if (mArgs.rScreenWidth < surfaceCapabilities.minImageExtent.width || mArgs.rScreenWidth > surfaceCapabilities.maxImageExtent.width)
+        /*if (mArgs.rScreenWidth < surfaceCapabilities.minImageExtent.width || mArgs.rScreenWidth > surfaceCapabilities.maxImageExtent.width)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen width");
         }
@@ -480,7 +475,7 @@ namespace FastCG
         if (mArgs.rScreenHeight < surfaceCapabilities.minImageExtent.height || mArgs.rScreenHeight > surfaceCapabilities.maxImageExtent.height)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen height");
-        }
+        }*/
 
         mPreTransform = surfaceCapabilities.currentTransform;
 

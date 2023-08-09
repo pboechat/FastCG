@@ -7,6 +7,8 @@
 #include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/Exception.h>
 
+#include <algorithm>
+
 #ifdef CASE_RETURN_STRING
 #undef CASE_RETURN_STRING
 #endif
@@ -86,7 +88,6 @@ namespace FastCG
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT);
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
-            CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT);
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled message type %d", (int)messageType);
             return nullptr;

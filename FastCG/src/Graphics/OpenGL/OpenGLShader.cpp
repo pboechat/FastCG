@@ -134,11 +134,11 @@ namespace FastCG
                 }
             }
 
+            FASTCG_CHECK_OPENGL_ERROR();
+
             CheckShaderStatus(shaderId, GL_COMPILE_STATUS, mName);
 
             mShadersIds[i] = shaderId;
-
-            FASTCG_CHECK_OPENGL_ERROR();
 
 #ifdef _DEBUG
             std::string shaderLabel = GetName() + " (" + GetOpenGLShaderTypeString(glShaderType) + ")";
