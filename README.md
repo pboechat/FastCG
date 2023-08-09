@@ -1,28 +1,30 @@
 # FastCG
 
-**FastCG** is a C++ application framework for fast prototyping of 3D applications.
+**FastCG**: A C++ Framework for Rapid 3D Application Prototyping.
 
-Started in the *realtime rendering* course taken during my M.Sc.
+Originally developed during my M.Sc. realtime rendering course.
 
-It features:
+Features:
 
- - Support to multiple platforms:
+- Platform Support:
     - Windows
     - Linux
- - Support to multiple rendering backends:
+- Rendering Backend Support:
     - OpenGL 4.3 (core profile)
     - Vulkan 1.3
- - Basic material system: diffuse, specular, bump, etc.
- - Multiple rendering paths: 
-    - Forward 
-    - Forward+ (TODO)
+- Material System:
+    - Basic shaders including diffuse, specular, bump, and more.
+- Rendering Paths:
+    - Forward
+    - Forward+ (Upcoming)
     - Deferred
- - Multiple rendering techniques:
+- Rendering Techniques:
     - SSAO
     - PCSS
-    - HDR/Tonemap (TODO)
- - Simple asset management:
-    - Support to multiple image types (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
-    - Support to OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
- - Support to immediate-mode GUI (via [Dear ImGUI](https://github.com/ocornut/imgui))
- - Unity-like component-based API
+    - HDR/Tonemap (Upcoming)
+- Asset Management:
+    - Supports various image formats (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
+    - Supports OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
+- Immediate-mode GUI support (via [Dear ImGUI](https://github.com/ocornut/imgui))
+- API Design:
+    - Unity-inspired component-based API.
