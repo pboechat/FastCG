@@ -133,7 +133,6 @@ namespace FastCG
         std::unordered_map<VkImage, VulkanImageMemoryTransition, IdentityHasher<VkImage>> mLastImageMemoryTransitions;
         VulkanGraphicsContext *mpImmediateGraphicsContext;
         std::deque<DeferredDestroyRequest> mDeferredDestroyRequests;
-        std::unordered_map<TextureType, const VulkanTexture *, IdentityHasher<TextureType>> mMissingTextures;
         std::unordered_map<VkImage, size_t, IdentityHasher<VkImage>> mRenderTargetToFrameBufferHash;
         std::unordered_map<size_t, std::vector<VkImage>, IdentityHasher<size_t>> mFrameBufferHashToRenderTargets;
 
@@ -145,7 +144,6 @@ namespace FastCG
         inline VkCommandBuffer GetCurrentCommandBuffer() const;
         inline VkAllocationCallbacks *GetAllocationCallbacks() const;
         inline const VkFormatProperties *GetFormatProperties(VkFormat format) const;
-        inline const VulkanTexture *GetMissingTexture(TextureType textureType) const;
         void CreateInstance();
         void CreateSurface();
         void SelectPhysicalDevice();
@@ -157,7 +155,6 @@ namespace FastCG
         void CreateSynchronizationObjects();
         void CreateCommandPoolAndCommandBuffers();
         void CreateDescriptorPool();
-        void CreateDebugObjects();
         void BeginCurrentCommandBuffer();
         void CreateImmediateGraphicsContext();
         void EndCurrentCommandBuffer();

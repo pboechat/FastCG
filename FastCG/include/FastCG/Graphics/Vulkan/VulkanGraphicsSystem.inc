@@ -114,18 +114,4 @@ namespace FastCG
         return &mFormatProperties[format];
     }
 
-    const VulkanTexture *VulkanGraphicsSystem::GetMissingTexture(TextureType textureType) const
-    {
-        auto it = mMissingTextures.find(textureType);
-        if (it != mMissingTextures.end())
-        {
-            return it->second;
-        }
-        else
-        {
-            assert(false);
-            return nullptr;
-        }
-    }
-
 }

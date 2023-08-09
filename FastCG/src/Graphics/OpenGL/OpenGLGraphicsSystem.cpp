@@ -17,7 +17,6 @@
 #endif
 
 #include <iostream>
-#include <cassert>
 #include <algorithm>
 
 namespace
@@ -59,14 +58,14 @@ namespace FastCG
 
         CreateOpenGLContext();
 
-        QueryDeviceProperties();
-
 #ifdef _DEBUG
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallbackARB(OpenGLDebugCallback, nullptr);
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
 #endif
+
+        QueryDeviceProperties();
 
 #ifdef _DEBUG
         glGenQueries(1, &mPresentTimestampQuery);

@@ -5,6 +5,8 @@
 #include <imgui.h>
 
 #include <functional>
+#include <cassert>
+#include <algorithm>
 
 namespace
 {
@@ -63,6 +65,21 @@ namespace
 namespace FastCG
 {
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    const TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::GetMissingTexture(TextureType textureType) const
+    {
+        auto it = mMissingTextures.find(textureType);
+        if (it != mMissingTextures.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            assert(false);
+            return nullptr;
+        }
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
     const ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::FindShader(const std::string &rName) const
     {
         auto it = std::find_if(mShaders.cbegin(), mShaders.cend(), [&rName](const auto &pShader)
@@ -84,18 +101,7 @@ namespace FastCG
 
         OnInitialize();
 
-        // Create backbuffer handler (fake texture)
-        mpBackbuffer = CreateTexture({"Backbuffer",
-                                      1,
-                                      1,
-                                      TextureType::TEXTURE_2D,
-                                      TextureUsageFlagBit::RENDER_TARGET,
-                                      TextureFormat::RGBA,
-                                      {32, 32, 32, 32},
-                                      TextureDataType::FLOAT,
-                                      TextureFilter::POINT_FILTER,
-                                      TextureWrapMode::CLAMP,
-                                      false});
+        CreateDebugObjects();
 
         mInitialized = true;
     }
@@ -132,6 +138,37 @@ namespace FastCG
         OnPostFinalize();
 
         mInitialized = false;
+    }
+
+    template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateDebugObjects()
+    {
+        // Create backbuffer handler (fake texture)
+        mpBackbuffer = CreateTexture({"Backbuffer",
+                                      1,
+                                      1,
+                                      TextureType::TEXTURE_2D,
+                                      TextureUsageFlagBit::RENDER_TARGET,
+                                      TextureFormat::RGBA,
+                                      {32, 32, 32, 32},
+                                      TextureDataType::FLOAT,
+                                      TextureFilter::POINT_FILTER,
+                                      TextureWrapMode::CLAMP,
+                                      false});
+
+        uint8_t data[] = {251, 72, 196, 255}; // pink color
+        mMissingTextures.emplace(TextureType::TEXTURE_2D, CreateTexture({"Missing 2D Texture",
+                                                                         1,
+                                                                         1,
+                                                                         TextureType::TEXTURE_2D,
+                                                                         TextureUsageFlagBit::SAMPLED,
+                                                                         TextureFormat::RGBA,
+                                                                         {8, 8, 8, 8},
+                                                                         TextureDataType::FLOAT,
+                                                                         TextureFilter::LINEAR_FILTER,
+                                                                         TextureWrapMode::CLAMP,
+                                                                         false,
+                                                                         data}));
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>

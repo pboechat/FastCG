@@ -37,10 +37,10 @@ namespace
 
     void GetResourceLocations(GLuint programId, std::unordered_map<std::string, FastCG::OpenGLResourceInfo> &rResourceInfos)
     {
-        for (GLenum programInterface : {GL_UNIFORM_BLOCK, GL_SHADER_STORAGE_BLOCK, GL_UNIFORM})
+        for (GLenum iface : {GL_UNIFORM_BLOCK, GL_SHADER_STORAGE_BLOCK, GL_UNIFORM})
         {
             GLint numActiveResources = 0;
-            glGetProgramInterfaceiv(programId, programInterface, GL_ACTIVE_RESOURCES, &numActiveResources);
+            glGetProgramInterfaceiv(programId, iface, GL_ACTIVE_RESOURCES, &numActiveResources);
             FASTCG_CHECK_OPENGL_ERROR();
 
             for (GLint i = 0; i < numActiveResources; ++i)
@@ -48,7 +48,7 @@ namespace
                 GLsizei length = 0;
                 GLchar buffer[128];
 
-                glGetProgramResourceName(programId, programInterface, i, FASTCG_ARRAYSIZE(buffer), &length, buffer);
+                glGetProgramResourceName(programId, iface, i, FASTCG_ARRAYSIZE(buffer), &length, buffer);
                 FASTCG_CHECK_OPENGL_ERROR();
 
                 std::string resourceName(buffer, length);
@@ -62,10 +62,11 @@ namespace
                 GLenum property;
                 GLint location = -1;
                 GLint binding = -1;
-                if (programInterface == GL_UNIFORM)
+                GLint type = -1;
+                if (iface == GL_UNIFORM)
                 {
                     property = GL_LOCATION;
-                    glGetProgramResourceiv(programId, programInterface, i, 1, &property, 1, nullptr, &location);
+                    glGetProgramResourceiv(programId, iface, i, 1, &property, 1, nullptr, &location);
                     FASTCG_CHECK_OPENGL_ERROR();
 
                     if (location == -1)
@@ -74,11 +75,14 @@ namespace
                     }
 
                     glGetUniformiv(programId, location, &binding);
+
+                    property = GL_TYPE;
+                    glGetProgramResourceiv(programId, iface, i, 1, &property, 1, nullptr, &type);
                 }
                 else
                 {
                     property = GL_BUFFER_BINDING;
-                    glGetProgramResourceiv(programId, programInterface, i, 1, &property, 1, nullptr, &binding);
+                    glGetProgramResourceiv(programId, iface, i, 1, &property, 1, nullptr, &binding);
                 }
                 FASTCG_CHECK_OPENGL_ERROR();
 
@@ -87,7 +91,7 @@ namespace
                     continue;
                 }
 
-                rResourceInfos[resourceName] = {location, binding};
+                rResourceInfos[resourceName] = {location, binding, iface, type};
             }
         }
     }

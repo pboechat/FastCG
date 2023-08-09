@@ -15,7 +15,11 @@ namespace FastCG
     {
         GLint location;
         GLint binding;
+        GLenum iface;
+        GLint type;
     };
+
+    using OpenGLResourceInfoMap = std::unordered_map<std::string, OpenGLResourceInfo>;
 
     class OpenGLGraphicsSystem;
 
@@ -45,11 +49,15 @@ namespace FastCG
                 return {-1, -1};
             }
         }
+        const OpenGLResourceInfoMap &GetResourceInfoMap() const
+        {
+            return mResourceInfo;
+        }
 
     private:
         GLuint mProgramId{~0u};
         ShaderTypeValueArray<GLuint> mShadersIds{};
-        std::unordered_map<std::string, OpenGLResourceInfo> mResourceInfo;
+        OpenGLResourceInfoMap mResourceInfo;
 
         friend class OpenGLGraphicsSystem;
     };

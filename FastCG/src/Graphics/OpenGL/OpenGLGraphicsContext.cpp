@@ -210,7 +210,7 @@ namespace FastCG
         }
         glUseProgram(pShader->GetProgramId());
         mpBoundShader = pShader;
-        mLastUsedTextureUnit = 0;
+        mResourceUsage.clear();
     }
 
     void OpenGLGraphicsContext::BindResource(const OpenGLBuffer *pBuffer, const char *pName)
@@ -218,25 +218,34 @@ namespace FastCG
         assert(pBuffer != nullptr);
         assert(pName != nullptr);
         assert(mpBoundShader != nullptr);
-        auto resourceInfo = mpBoundShader->GetResourceInfo(pName);
-        if (resourceInfo.binding == -1)
+        const auto &rResourceInfo = mpBoundShader->GetResourceInfo(pName);
+        if (rResourceInfo.binding == -1)
         {
             return;
         }
-        glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), resourceInfo.binding, *pBuffer);
+        glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), rResourceInfo.binding, *pBuffer);
+        FASTCG_CHECK_OPENGL_ERROR();
+        mResourceUsage.emplace(pName);
     }
 
     void OpenGLGraphicsContext::BindResource(const OpenGLTexture *pTexture, const char *pName)
     {
         assert(mpBoundShader != nullptr);
-        auto resourceInfo = mpBoundShader->GetResourceInfo(pName);
-        if (resourceInfo.location == -1 || resourceInfo.binding == -1)
+        const auto &rResourceInfo = mpBoundShader->GetResourceInfo(pName);
+        BindResource(pTexture, rResourceInfo);
+        mResourceUsage.emplace(pName);
+    }
+
+    void OpenGLGraphicsContext::BindResource(const OpenGLTexture *pTexture, const OpenGLResourceInfo &rResourceInfo)
+    {
+        assert(mpBoundShader != nullptr);
+        if (rResourceInfo.location == -1 || rResourceInfo.binding == -1)
         {
             return;
         }
-        glActiveTexture(GL_TEXTURE0 + resourceInfo.binding);
+        glActiveTexture(GL_TEXTURE0 + rResourceInfo.binding);
         glBindTexture(GL_TEXTURE_2D, *pTexture);
-        glUniform1i(resourceInfo.location, resourceInfo.binding);
+        glUniform1i(rResourceInfo.location, rResourceInfo.binding);
         FASTCG_CHECK_OPENGL_ERROR();
     }
 
@@ -365,8 +374,32 @@ namespace FastCG
         glBindBuffer(target, *pBuffer);
     }
 
+    void OpenGLGraphicsContext::SetupDraw()
+    {
+        assert(mpBoundShader != nullptr);
+        for (const auto &rEntry : mpBoundShader->GetResourceInfoMap())
+        {
+            const auto &rResourceName = rEntry.first;
+            if (mResourceUsage.find(rResourceName) != mResourceUsage.end())
+            {
+                continue;
+            }
+
+            const auto &rResourceInfo = rEntry.second;
+            // TODO: implement other default missing resources
+            if (rResourceInfo.iface == GL_UNIFORM)
+            {
+                if (rResourceInfo.type == GL_SAMPLER_2D || rResourceInfo.type == GL_IMAGE_2D)
+                {
+                    BindResource(OpenGLGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D), rResourceInfo);
+                }
+            }
+        }
+    }
+
     void OpenGLGraphicsContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
     {
+        SetupDraw();
         glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset);
         FASTCG_CHECK_OPENGL_ERROR();
     }
@@ -374,6 +407,7 @@ namespace FastCG
     void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
     {
         assert(firstInstance == 0);
+        SetupDraw();
         glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset);
         FASTCG_CHECK_OPENGL_ERROR();
     }

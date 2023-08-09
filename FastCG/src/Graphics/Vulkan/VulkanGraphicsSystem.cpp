@@ -219,7 +219,6 @@ namespace FastCG
         BeginCurrentCommandBuffer();
         CreateImmediateGraphicsContext();
         RecreateSwapChainAndGetImages();
-        CreateDebugObjects();
     }
 
     void VulkanGraphicsSystem::OnPreFinalize()
@@ -696,25 +695,6 @@ namespace FastCG
                                                       &mDescriptorPool));
 
         mDescriptorSetLocalPools.resize(mMaxSimultaneousFrames);
-    }
-
-    void VulkanGraphicsSystem::CreateDebugObjects()
-    {
-        {
-            uint8_t data[] = {251, 72, 196, 255};
-            mMissingTextures.emplace(TextureType::TEXTURE_2D, CreateTexture({"Missing 2D Texture",
-                                                                             1,
-                                                                             1,
-                                                                             TextureType::TEXTURE_2D,
-                                                                             TextureUsageFlagBit::SAMPLED,
-                                                                             TextureFormat::RGBA,
-                                                                             {8, 8, 8, 8},
-                                                                             TextureDataType::FLOAT,
-                                                                             TextureFilter::LINEAR_FILTER,
-                                                                             TextureWrapMode::CLAMP,
-                                                                             false,
-                                                                             data}));
-        }
     }
 
     void VulkanGraphicsSystem::BeginCurrentCommandBuffer()

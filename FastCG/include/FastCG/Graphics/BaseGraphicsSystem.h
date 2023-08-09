@@ -5,14 +5,14 @@
 #include <FastCG/Graphics/BaseShader.h>
 #include <FastCG/Graphics/BaseGraphicsContext.h>
 #include <FastCG/Graphics/BaseBuffer.h>
+#include <FastCG/Core/Hash.h>
 
 #include <glm/glm.hpp>
 
+#include <unordered_map>
 #include <vector>
 #include <type_traits>
 #include <string>
-#include <cassert>
-#include <algorithm>
 
 namespace FastCG
 {
@@ -94,6 +94,7 @@ namespace FastCG
         inline virtual void DestroyShader(const Shader *pShader);
         inline virtual void DestroyTexture(const Texture *pTexture);
         inline const Shader *FindShader(const std::string &rName) const;
+        inline const Texture *GetMissingTexture(TextureType textureType) const;
 
     protected:
         const GraphicsSystemArgs mArgs;
@@ -124,6 +125,7 @@ namespace FastCG
         std::vector<GraphicsContext *> mGraphicsContexts;
         std::vector<Shader *> mShaders;
         std::vector<Texture *> mTextures;
+        std::unordered_map<TextureType, const Texture *, IdentityHasher<TextureType>> mMissingTextures;
 #ifdef _DEBUG
         const Texture *mpSelectedTexture{nullptr};
         bool mShowTextureBrowser{false};
@@ -131,6 +133,7 @@ namespace FastCG
 
         void Initialize();
         void Finalize();
+        void CreateDebugObjects();
 
         friend class BaseApplication;
     };

@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include <memory>
 #include <cstring>
-#include <algorithm>
+#include <cassert>
 
 namespace FastCG
 {

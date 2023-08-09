@@ -9,6 +9,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
 #include <FastCG/Graphics/BaseGraphicsContext.h>
 
+#include <unordered_set>
 #include <vector>
 
 namespace FastCG
@@ -58,9 +59,9 @@ namespace FastCG
 
     private:
         const OpenGLShader *mpBoundShader{nullptr};
+        std::unordered_set<std::string> mResourceUsage;
         std::vector<const OpenGLTexture *> mRenderTargets;
         const OpenGLTexture *mpDepthStencilBuffer;
-        GLint mLastUsedTextureUnit{0};
         bool mEnded{true};
 #ifdef _DEBUG
         GLuint mTimeElapsedQueries[2]{}; // double buffered
@@ -70,6 +71,8 @@ namespace FastCG
 #endif
 
         void SetupFbo();
+        void SetupDraw();
+        void BindResource(const OpenGLTexture *pTexture, const OpenGLResourceInfo& rResourceInfo);
 #ifdef _DEBUG
         void RetrieveElapsedTime();
 #endif
