@@ -137,7 +137,13 @@ namespace FastCG
         {
             DestroyCurrentWindow();
 
+#if !defined FASTCG_VULKAN
+            // FIXME: apparently there is bug in current nvidia drivers
+            // in which closing the display after shutting down vulkan
+            // causes a segmentation fault:
+            // https://github.com/gfx-rs/wgpu/issues/318
             XCloseDisplay(mpDisplay);
+#endif
             mpDisplay = nullptr;
         }
 
@@ -194,8 +200,8 @@ namespace FastCG
                                       RootWindow(mpDisplay, defaultScreen),
                                       0,
                                       0,
-                                      1,
-                                      1,
+                                      GetScreenWidth(),
+                                      GetScreenHeight(),
                                       1,
                                       BlackPixel(mpDisplay, defaultScreen),
                                       WhitePixel(mpDisplay, defaultScreen));

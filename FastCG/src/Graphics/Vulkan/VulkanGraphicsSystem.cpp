@@ -467,7 +467,7 @@ namespace FastCG
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mSurface, &surfaceCapabilities));
 
-        /*if (mArgs.rScreenWidth < surfaceCapabilities.minImageExtent.width || mArgs.rScreenWidth > surfaceCapabilities.maxImageExtent.width)
+        if (mArgs.rScreenWidth < surfaceCapabilities.minImageExtent.width || mArgs.rScreenWidth > surfaceCapabilities.maxImageExtent.width)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen width");
         }
@@ -475,7 +475,7 @@ namespace FastCG
         if (mArgs.rScreenHeight < surfaceCapabilities.minImageExtent.height || mArgs.rScreenHeight > surfaceCapabilities.maxImageExtent.height)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen height");
-        }*/
+        }
 
         mPreTransform = surfaceCapabilities.currentTransform;
 
@@ -720,6 +720,7 @@ namespace FastCG
         std::for_each(mFrameBuffers.begin(), mFrameBuffers.end(), [&](const auto &rEntry)
                       { vkDestroyFramebuffer(mDevice, rEntry.second, mAllocationCallbacks.get()); });
         mFrameBuffers.clear();
+        mRenderTargetToFrameBufferHash.clear();
     }
 
     void VulkanGraphicsSystem::DestroyRenderPasses()
