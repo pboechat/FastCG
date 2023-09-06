@@ -19,6 +19,8 @@ namespace FastCG
 
 	void VulkanGraphicsContext::Begin()
 	{
+		assert(mEnded);
+		mEnded = false;
 		mRenderPassDescription.renderTargets.resize(0);
 		mRenderPassDescription.pDepthStencilBuffer = nullptr;
 		memset(&mPipelineDescription, 0, sizeof(mPipelineDescription));
@@ -27,6 +29,16 @@ namespace FastCG
 		mVertexBuffers.resize(0);
 		mpIndexBuffer = VK_NULL_HANDLE;
 		mPipelineResourcesUsage.resize(0);
+#ifdef _DEBUG
+		if (mTimeElapsedQueries.empty())
+		{
+			mTimeElapsedQueries.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+			mElapsedTimes.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+		}
+		mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = {VulkanGraphicsSystem::GetInstance()->NextQuery(), VulkanGraphicsSystem::GetInstance()->NextQuery()};
+		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start);
+		mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = 0;
+#endif
 	}
 
 	void VulkanGraphicsContext::PushDebugMarker(const char *pName)
@@ -1096,6 +1108,10 @@ namespace FastCG
 		ProccessMarkers(mMarkerCommands.size());
 #endif
 
+#if _DEBUG
+		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].end);
+#endif
+
 		mRenderPassCommands.resize(0);
 		mPipelineCommands.resize(0);
 		mDrawCommands.resize(0);
@@ -1104,11 +1120,36 @@ namespace FastCG
 #if _DEBUG
 		mMarkerCommands.resize(0);
 #endif
+
+		mEnded = true;
 	}
+
+#ifdef _DEBUG
+	void VulkanGraphicsContext::RetrieveElapsedTime()
+	{
+		assert(mEnded);
+
+		uint64_t timestamps[2];
+		vkGetQueryPoolResults(VulkanGraphicsSystem::GetInstance()->GetDevice(),
+							  VulkanGraphicsSystem::GetInstance()->GetCurrentQueryPool(),
+							  mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start,
+							  2,
+							  sizeof(timestamps),
+							  timestamps,
+							  sizeof(uint64_t),
+							  VK_QUERY_RESULT_64_BIT);
+
+		mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = (timestamps[1] - timestamps[0]) * VulkanGraphicsSystem::GetInstance()->GetPhysicalDeviceProperties().limits.timestampPeriod * 1e-9;
+	}
+#endif
 
 	double VulkanGraphicsContext::GetElapsedTime() const
 	{
+#ifdef _DEBUG
+		return mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()];
+#else
 		return 0;
+#endif
 	}
 
 	void VulkanGraphicsContext::AddBufferMemoryBarrier(const VulkanBuffer *pBuffer,
@@ -1175,6 +1216,14 @@ namespace FastCG
 							 &imageMemoryBarrier);
 
 		VulkanGraphicsSystem::GetInstance()->NotifyImageMemoryTransition(pTexture, {newLayout, dstAccessMask, dstStageMask});
+	}
+
+	void VulkanGraphicsContext::EnqueueTimestampQuery(uint32_t query)
+	{
+		vkCmdWriteTimestamp(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+							VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+							VulkanGraphicsSystem::GetInstance()->GetCurrentQueryPool(),
+							query);
 	}
 }
 

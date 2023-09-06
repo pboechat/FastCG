@@ -120,6 +120,7 @@ namespace FastCG
         VkCommandPool mCommandPool{VK_NULL_HANDLE};
         std::vector<VkCommandBuffer> mCommandBuffers;
         VkDescriptorPool mDescriptorPool{VK_NULL_HANDLE};
+        std::vector<VkQueryPool> mQueryPools{VK_NULL_HANDLE};
 #if _DEBUG
         VkDebugUtilsMessengerEXT mDebugMessenger;
 #endif
@@ -135,6 +136,7 @@ namespace FastCG
         std::deque<DeferredDestroyRequest> mDeferredDestroyRequests;
         std::unordered_map<VkImage, size_t, IdentityHasher<VkImage>> mRenderTargetToFrameBufferHash;
         std::unordered_map<size_t, std::vector<VkImage>, IdentityHasher<size_t>> mFrameBufferHashToRenderTargets;
+        std::vector<uint32_t> mNextQueries;
 
         inline VkInstance GetVulkanInstance() const;
         inline VkDevice GetDevice() const;
@@ -144,18 +146,23 @@ namespace FastCG
         inline VkCommandBuffer GetCurrentCommandBuffer() const;
         inline VkAllocationCallbacks *GetAllocationCallbacks() const;
         inline const VkFormatProperties *GetFormatProperties(VkFormat format) const;
+        inline const VkPhysicalDeviceProperties &GetPhysicalDeviceProperties() const;
+        inline VkQueryPool GetCurrentQueryPool() const;
+        inline uint32_t NextQuery();
         void CreateInstance();
         void CreateSurface();
         void SelectPhysicalDevice();
         void CreateAllocator();
-        void GetPhysicalDeviceProperties();
+        void AcquirePhysicalDeviceProperties();
         void CreateDeviceAndGetQueues();
         void RecreateSwapChainAndGetImages();
         void AcquireNextSwapChainImage();
         void CreateSynchronizationObjects();
         void CreateCommandPoolAndCommandBuffers();
         void CreateDescriptorPool();
+        void CreateQueryPool();
         void BeginCurrentCommandBuffer();
+        void ResetQueryPool();
         void CreateImmediateGraphicsContext();
         void EndCurrentCommandBuffer();
         void DestroyDescriptorSetLayouts();
@@ -163,6 +170,7 @@ namespace FastCG
         void DestroyPipelines();
         void DestroyFrameBuffers();
         void DestroyRenderPasses();
+        void DestroyQueryPool();
         void DestroyDescriptorPool();
         void DestroyCommandPoolAndCommandBuffers();
         void DestroySynchronizationObjects();

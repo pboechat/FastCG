@@ -89,7 +89,6 @@ namespace FastCG
 
     const VulkanTexture *VulkanGraphicsSystem::GetCurrentSwapChainTexture() const
     {
-        assert(mCurrentFrame < mSwapChainTextures.size());
         return mSwapChainTextures[mCurrentFrame];
     }
 
@@ -112,6 +111,23 @@ namespace FastCG
     {
         assert(format <= LAST_FORMAT);
         return &mFormatProperties[format];
+    }
+
+    const VkPhysicalDeviceProperties &VulkanGraphicsSystem::GetPhysicalDeviceProperties() const
+    {
+        return mPhysicalDeviceProperties;
+    }
+
+    VkQueryPool VulkanGraphicsSystem::GetCurrentQueryPool() const
+    {
+        return mQueryPools[mCurrentFrame];
+    }
+
+    uint32_t VulkanGraphicsSystem::NextQuery()
+    {
+        // TODO: make this less brittle and possibly dynamic
+        assert(mNextQueries[mCurrentFrame] < 128);
+        return mNextQueries[mCurrentFrame]++;
     }
 
 }

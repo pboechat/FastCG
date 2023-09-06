@@ -167,7 +167,7 @@ namespace
 
     size_t GetRenderPassHash(const std::vector<AttachmentDefinition> &rAttachmentDefinitions)
     {
-        // TODO: use renderpass compatibility rule :
+        // TODO: use renderpass compatibility rule:
         // https://registry.khronos.org/vulkan/specs/1.1-extensions/html/vkspec.html#renderpass-compatibility
         return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rAttachmentDefinitions[0]), rAttachmentDefinitions.size() * sizeof(&rAttachmentDefinitions[0]));
     }
@@ -206,13 +206,15 @@ namespace FastCG
         CreateInstance();
         CreateSurface();
         SelectPhysicalDevice();
-        GetPhysicalDeviceProperties();
+        AcquirePhysicalDeviceProperties();
         CreateDeviceAndGetQueues();
         CreateAllocator();
         CreateSynchronizationObjects();
         CreateCommandPoolAndCommandBuffers();
         CreateDescriptorPool();
+        CreateQueryPool();
         BeginCurrentCommandBuffer();
+        ResetQueryPool();
         CreateImmediateGraphicsContext();
         RecreateSwapChainAndGetImages();
     }
@@ -233,6 +235,7 @@ namespace FastCG
         DestroyRenderPasses();
         DestroyDescriptorSetLayouts();
         DestroySwapChainAndClearImages();
+        DestroyQueryPool();
         DestroyDescriptorPool();
         DestroyCommandPoolAndCommandBuffers();
         DestroySynchronizationObjects();
@@ -250,7 +253,7 @@ namespace FastCG
         applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         applicationInfo.pNext = nullptr;
         applicationInfo.pApplicationName = "";
-        // TODO: provide a mechanism for uses to specify their app versions
+        // TODO: provide a mechanism for users to specify their app versions
         applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         applicationInfo.pEngineName = "FastCG";
         applicationInfo.engineVersion = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
@@ -419,7 +422,7 @@ namespace FastCG
             for (uint32_t queueFamilyIdx = 0; queueFamilyIdx < queueFamiliesCount; ++queueFamilyIdx)
             {
                 auto &rQueueFamilyProperties = queueFamiliesProperties[queueFamilyIdx];
-                // Not supporting separate graphics and present queues at the moment
+                // not supporting separate graphics and present queues at the moment
                 // see: https://github.com/KhronosGroup/Vulkan-Docs/issues/1234
                 if ((rQueueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 &&
                     SupportsPresentation(rPhysicalDevice, queueFamilyIdx, mSurface))
@@ -453,7 +456,7 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vmaCreateAllocator(&allocatorCreateInfo, &mAllocator));
     }
 
-    void VulkanGraphicsSystem::GetPhysicalDeviceProperties()
+    void VulkanGraphicsSystem::AcquirePhysicalDeviceProperties()
     {
         vkGetPhysicalDeviceProperties(mPhysicalDevice, &mPhysicalDeviceProperties);
 
@@ -641,7 +644,7 @@ namespace FastCG
         semaphoreCreateInfo.flags = 0;
         for (uint32_t i = 0; i < mMaxSimultaneousFrames; ++i)
         {
-            // Create all fences that are not the current frame fence in signaled state
+            // create all fences that are not the current frame fence in signaled state
             fenceInfo.flags = i != mCurrentFrame ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
             FASTCG_CHECK_VK_RESULT(vkCreateFence(mDevice, &fenceInfo, mAllocationCallbacks.get(), &mFrameFences[i]));
 
@@ -677,19 +680,42 @@ namespace FastCG
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1024},
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1024}};
 
-        VkDescriptorPoolCreateInfo descriptorPoolCreateInto;
-        descriptorPoolCreateInto.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        descriptorPoolCreateInto.pNext = nullptr;
-        descriptorPoolCreateInto.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        descriptorPoolCreateInto.maxSets = 2048;
-        descriptorPoolCreateInto.poolSizeCount = (uint32_t)FASTCG_ARRAYSIZE(DESCRIPTOR_POOL_SIZES);
-        descriptorPoolCreateInto.pPoolSizes = DESCRIPTOR_POOL_SIZES;
+        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
+        descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        descriptorPoolCreateInfo.pNext = nullptr;
+        descriptorPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        descriptorPoolCreateInfo.maxSets = 2048;
+        descriptorPoolCreateInfo.poolSizeCount = (uint32_t)FASTCG_ARRAYSIZE(DESCRIPTOR_POOL_SIZES);
+        descriptorPoolCreateInfo.pPoolSizes = DESCRIPTOR_POOL_SIZES;
         FASTCG_CHECK_VK_RESULT(vkCreateDescriptorPool(mDevice,
-                                                      &descriptorPoolCreateInto,
+                                                      &descriptorPoolCreateInfo,
                                                       mAllocationCallbacks.get(),
                                                       &mDescriptorPool));
 
         mDescriptorSetLocalPools.resize(mMaxSimultaneousFrames);
+    }
+
+    void VulkanGraphicsSystem::CreateQueryPool()
+    {
+        // TODO: make this less brittle and possibly dynamic
+        VkQueryPoolCreateInfo queryPoolInfo;
+        queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+        queryPoolInfo.pNext = nullptr;
+        queryPoolInfo.flags = 0;
+        queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+        queryPoolInfo.queryCount = 128;
+        queryPoolInfo.pipelineStatistics = 0;
+
+        mQueryPools.resize(mMaxSimultaneousFrames);
+        mNextQueries.resize(mMaxSimultaneousFrames);
+        for (uint32_t i = 0; i < mMaxSimultaneousFrames; ++i)
+        {
+            FASTCG_CHECK_VK_RESULT(vkCreateQueryPool(mDevice,
+                                                     &queryPoolInfo,
+                                                     nullptr,
+                                                     &mQueryPools[i]));
+            mNextQueries[i] = 0;
+        }
     }
 
     void VulkanGraphicsSystem::BeginCurrentCommandBuffer()
@@ -702,6 +728,16 @@ namespace FastCG
         commandBufferBeginInfo.flags = 0;
         commandBufferBeginInfo.pInheritanceInfo = nullptr;
         FASTCG_CHECK_VK_RESULT(vkBeginCommandBuffer(mCommandBuffers[mCurrentFrame], &commandBufferBeginInfo));
+    }
+
+    void VulkanGraphicsSystem::ResetQueryPool()
+    {
+        // TODO:
+        vkCmdResetQueryPool(mCommandBuffers[mCurrentFrame],
+                            mQueryPools[mCurrentFrame],
+                            0,
+                            128);
+        mNextQueries[mCurrentFrame] = 0;
     }
 
     void VulkanGraphicsSystem::CreateImmediateGraphicsContext()
@@ -751,6 +787,15 @@ namespace FastCG
         mDescriptorSetLayouts.clear();
     }
 
+    void VulkanGraphicsSystem::DestroyQueryPool()
+    {
+        for (uint32_t i = 0; i < mMaxSimultaneousFrames; ++i)
+        {
+            vkDestroyQueryPool(mDevice, mQueryPools[i], nullptr);
+        }
+        mQueryPools.clear();
+    }
+
     void VulkanGraphicsSystem::DestroyDescriptorPool()
     {
         if (mDescriptorPool != VK_NULL_HANDLE)
@@ -782,6 +827,9 @@ namespace FastCG
             vkDestroySemaphore(mDevice, mSubmitFinishedSemaphores[i], mAllocationCallbacks.get());
             vkDestroyFence(mDevice, mFrameFences[i], mAllocationCallbacks.get());
         }
+        mAcquireSwapChainImageSemaphores.clear();
+        mSubmitFinishedSemaphores.clear();
+        mFrameFences.clear();
     }
 
     void VulkanGraphicsSystem::DestroySwapChainAndClearImages()
@@ -903,6 +951,13 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkWaitForFences(mDevice, 1, &mFrameFences[mCurrentFrame], VK_TRUE, UINT64_MAX));
         FASTCG_CHECK_VK_RESULT(vkResetFences(mDevice, 1, &mFrameFences[mCurrentFrame]));
 
+#if _DEBUG
+        for (auto *pGraphicsContext : GetGraphicsContexts())
+        {
+            pGraphicsContext->RetrieveElapsedTime();
+        }
+#endif
+
         PerformDeferredDestroys();
 
         for (auto &rEntry : mDescriptorSetLocalPools[mCurrentFrame])
@@ -911,6 +966,8 @@ namespace FastCG
         }
 
         BeginCurrentCommandBuffer();
+
+        ResetQueryPool();
 
         GetImmediateGraphicsContext()->Begin();
 
@@ -931,7 +988,16 @@ namespace FastCG
 
     double VulkanGraphicsSystem::GetGpuElapsedTime() const
     {
+#ifdef _DEBUG
+        double elapsedTime = 0;
+        for (auto *pGraphicsContext : GetGraphicsContexts())
+        {
+            elapsedTime += pGraphicsContext->GetElapsedTime();
+        }
+        return elapsedTime;
+#else
         return 0;
+#endif
     }
 
     std::pair<size_t, VkRenderPass> VulkanGraphicsSystem::GetOrCreateRenderPass(const VulkanRenderPassDescription &rRenderPassDescription,

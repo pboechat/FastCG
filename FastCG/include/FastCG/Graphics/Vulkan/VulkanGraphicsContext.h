@@ -179,8 +179,18 @@ namespace FastCG
         std::vector<CopyCommand> mCopyCommands;
         std::vector<DrawCommand> mDrawCommands;
         std::vector<VulkanClearRequest> mClearRequests;
+        bool mEnded{true};
 #if _DEBUG
         std::vector<MarkerCommand> mMarkerCommands;
+#endif
+#if _DEBUG
+        struct TimeElapsedQuery
+        {
+            uint32_t start;
+            uint32_t end;
+        };
+        std::vector<TimeElapsedQuery> mTimeElapsedQueries;
+        std::vector<double> mElapsedTimes;
 #endif
 
         void AddBufferMemoryBarrier(const VulkanBuffer *pBuffer,
@@ -203,6 +213,10 @@ namespace FastCG
                                 uint32_t firstIndex,
                                 uint32_t indexCount,
                                 int32_t vertexOffset);
+        void EnqueueTimestampQuery(uint32_t query);
+#if _DEBUG
+        void RetrieveElapsedTime();
+#endif
 
         friend class VulkanGraphicsSystem;
         friend class VulkanTexture;
