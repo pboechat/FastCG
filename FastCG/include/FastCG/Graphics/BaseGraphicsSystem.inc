@@ -172,7 +172,7 @@ namespace FastCG
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    BufferT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateBuffer(const BufferArgs &rArgs)
+    BufferT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateBuffer(const typename Buffer::Args &rArgs)
     {
         mBuffers.emplace_back(new BufferT{rArgs});
         return mBuffers.back();
@@ -186,7 +186,7 @@ namespace FastCG
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateShader(const ShaderArgs &rArgs)
+    ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateShader(const typename Shader::Args &rArgs)
     {
         mShaders.emplace_back(new ShaderT{rArgs});
         return mShaders.back();

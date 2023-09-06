@@ -8,7 +8,7 @@
 
 namespace FastCG
 {
-    OpenGLBuffer::OpenGLBuffer(const BufferArgs &rArgs) : BaseBuffer(rArgs)
+    OpenGLBuffer::OpenGLBuffer(const Args &rArgs) : BaseBuffer(rArgs)
     {
         auto target = GetOpenGLTarget(mUsage);
 
@@ -41,4 +41,3 @@ namespace FastCG
 }
 
 #endif
-

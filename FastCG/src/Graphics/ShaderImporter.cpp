@@ -105,10 +105,10 @@ namespace FastCG
 
             rShaderInfo.programFileNames[(ShaderTypeInt)shaderType] = rShaderFileName;
         }
+        Shader::Args shaderArgs{};
         for (const auto &rEntry : shaderInfos)
         {
             const auto &rShaderInfo = rEntry.second;
-            ShaderArgs shaderArgs;
             shaderArgs.name = rEntry.first;
             shaderArgs.text = rShaderInfo.text;
             ShaderTypeValueArray<std::unique_ptr<uint8_t[]>> programsData;
@@ -137,4 +137,3 @@ namespace FastCG
         }
     }
 }
-

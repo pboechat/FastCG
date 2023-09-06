@@ -16,7 +16,7 @@ namespace FastCG
             CreateImage();
         }
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName(GetName().c_str(), VK_OBJECT_TYPE_IMAGE, (uint64_t)mImage);
+        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImage)").c_str(), VK_OBJECT_TYPE_IMAGE, (uint64_t)mImage);
 #endif
         CreateDefaultImageView();
         if ((GetUsage() & TextureUsageFlagBit::SAMPLED) != 0)
@@ -160,7 +160,7 @@ namespace FastCG
         }
 
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " View").c_str(), VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)mDefaultImageView);
+        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImageView)").c_str(), VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)mDefaultImageView);
 #endif
     }
 
@@ -189,7 +189,7 @@ namespace FastCG
                                                &mDefaultSampler));
 
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " Sampler").c_str(), VK_OBJECT_TYPE_SAMPLER, (uint64_t)mDefaultSampler);
+        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkSampler)").c_str(), VK_OBJECT_TYPE_SAMPLER, (uint64_t)mDefaultSampler);
 #endif
     }
 

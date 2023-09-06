@@ -26,7 +26,7 @@ namespace FastCG
     class OpenGLShader : public BaseShader
     {
     public:
-        OpenGLShader(const ShaderArgs &rArgs);
+        OpenGLShader(const Args &rArgs);
         OpenGLShader(const OpenGLShader &rOther) = delete;
         OpenGLShader(const OpenGLShader &&rOther) = delete;
         virtual ~OpenGLShader();

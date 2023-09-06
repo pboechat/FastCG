@@ -20,16 +20,16 @@ namespace FastCG
 		const void *pData{nullptr};
 	};
 
-	struct ShaderArgs
-	{
-		std::string name;
-		ShaderTypeValueArray<ShaderProgramData> programsData;
-		bool text{false};
-	};
-
 	class BaseShader
 	{
 	public:
+		struct Args
+		{
+			std::string name;
+			ShaderTypeValueArray<ShaderProgramData> programsData;
+			bool text{false};
+		};
+
 		inline const std::string &GetName() const
 		{
 			return mName;
@@ -38,7 +38,7 @@ namespace FastCG
 	protected:
 		const std::string mName;
 
-		BaseShader(const ShaderArgs &rArgs) : mName(rArgs.name) {}
+		BaseShader(const Args &rArgs) : mName(rArgs.name) {}
 		virtual ~BaseShader() = default;
 	};
 

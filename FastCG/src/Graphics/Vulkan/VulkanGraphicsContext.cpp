@@ -10,6 +10,20 @@
 
 namespace FastCG
 {
+	VkBuffer GetCurrentVkBuffer(const VulkanBuffer *pBuffer)
+	{
+		uint32_t frameIndex;
+		if (pBuffer->IsMultiFrame())
+		{
+			frameIndex = VulkanGraphicsSystem::GetInstance()->GetCurrentFrame();
+		}
+		else
+		{
+			frameIndex = 0;
+		}
+		return pBuffer->GetFrameData(frameIndex).buffer;
+	}
+
 	VulkanGraphicsContext::VulkanGraphicsContext(const Args &rArgs)
 		: BaseGraphicsContext<VulkanBuffer, VulkanShader, VulkanTexture>(rArgs)
 	{
@@ -164,43 +178,60 @@ namespace FastCG
 	void VulkanGraphicsContext::Copy(const VulkanBuffer *pBuffer, size_t dataSize, const void *pData)
 	{
 		assert(pBuffer != nullptr);
-		assert(pBuffer->GetAllocation() != VK_NULL_HANDLE);
+		uint32_t frameIndex;
+		if (pBuffer->IsMultiFrame())
+		{
+			frameIndex = VulkanGraphicsSystem::GetInstance()->GetCurrentFrame();
+		}
+		else
+		{
+			frameIndex = 0;
+		}
+		Copy(pBuffer, frameIndex, dataSize, pData);
+	}
+
+	void VulkanGraphicsContext::Copy(const VulkanBuffer *pBuffer, uint32_t frameIndex, size_t dataSize, const void *pData)
+	{
+		assert(pBuffer != nullptr);
 		assert(dataSize > 0);
 		assert(pData != nullptr);
 
+		auto &rBufferFrameData = pBuffer->GetFrameData(frameIndex);
+		assert(rBufferFrameData.allocation != VK_NULL_HANDLE);
+
 		VkMemoryPropertyFlags memPropFlags;
 		vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-										 pBuffer->GetAllocation(),
+										 rBufferFrameData.allocation,
 										 &memPropFlags);
 
 		if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
 		{
 			void *mappedData;
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-												pBuffer->GetAllocation(),
+												rBufferFrameData.allocation,
 												&mappedData));
 			memcpy(mappedData, pData, dataSize);
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-						   pBuffer->GetAllocation());
+						   rBufferFrameData.allocation);
 
 			if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 			{
 				FASTCG_CHECK_VK_RESULT(vmaFlushAllocation(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-														  pBuffer->GetAllocation(),
+														  rBufferFrameData.allocation,
 														  0,
 														  dataSize));
 			}
 		}
 		else
 		{
-			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pBuffer->GetName(),
+			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pBuffer->GetName() + (frameIndex > 0 ? " (" + std::to_string(frameIndex) + ")" : ""),
 																					  BufferUsageFlagBit::DYNAMIC,
 																					  dataSize,
-																					  pData});
+																					  pData,
+																					  {},
+																					  true});
 
-			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_BUFFER, CopyCommandArgs{
-																	  pStagingBuffer,
-																	  pBuffer});
+			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_BUFFER, CopyCommandArgs{{pStagingBuffer, 0}, {pBuffer, frameIndex}});
 
 			VulkanGraphicsSystem::GetInstance()->DestroyBuffer(pStagingBuffer);
 		}
@@ -241,11 +272,11 @@ namespace FastCG
 			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pTexture->GetName(),
 																					  BufferUsageFlagBit::DYNAMIC,
 																					  dataSize,
-																					  pData});
+																					  pData,
+																					  {},
+																					  true});
 
-			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_IMAGE, CopyCommandArgs{
-																	 pStagingBuffer,
-																	 pTexture});
+			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_IMAGE, CopyCommandArgs{{pStagingBuffer, 0}, {pTexture}});
 
 			VulkanGraphicsSystem::GetInstance()->DestroyBuffer(pStagingBuffer);
 		}
@@ -313,8 +344,7 @@ namespace FastCG
 	{
 		assert(pSrc != nullptr);
 		assert(pDst != nullptr);
-		EnqueueCopyCommand(CopyCommandType::BLIT, CopyCommandArgs{pSrc,
-																  pDst});
+		EnqueueCopyCommand(CopyCommandType::BLIT, CopyCommandArgs{{pSrc}, {pDst}});
 	}
 
 	void VulkanGraphicsContext::ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor)
@@ -402,7 +432,7 @@ namespace FastCG
 	void VulkanGraphicsContext::SetIndexBuffer(const VulkanBuffer *pBuffer)
 	{
 		assert(pBuffer != nullptr);
-		mpIndexBuffer = pBuffer->GetBuffer();
+		mpIndexBuffer = GetCurrentVkBuffer(pBuffer);
 		assert(mpIndexBuffer != VK_NULL_HANDLE);
 	}
 
@@ -596,7 +626,7 @@ namespace FastCG
 		pDrawCommand->vertexBuffers.resize(mVertexBuffers.size());
 		for (size_t i = 0; i < mVertexBuffers.size(); ++i)
 		{
-			pDrawCommand->vertexBuffers[i] = mVertexBuffers[i]->GetBuffer();
+			pDrawCommand->vertexBuffers[i] = GetCurrentVkBuffer(mVertexBuffers[i]);
 		}
 		pDrawCommand->pIndexBuffer = mpIndexBuffer;
 	}
@@ -651,23 +681,25 @@ namespace FastCG
 					VkBufferCopy copyRegion;
 					copyRegion.srcOffset = 0;
 					copyRegion.dstOffset = 0;
-					copyRegion.size = rCopyCommand.args.pSrcBuffer->GetDataSize();
+					copyRegion.size = rCopyCommand.args.srcBufferData.pBuffer->GetDataSize();
+					auto &rSrcBufferFrameData = rCopyCommand.args.srcBufferData.pBuffer->GetFrameData(rCopyCommand.args.srcBufferData.frameIndex);
+					auto &rDstBufferFrameData = rCopyCommand.args.dstBufferData.pBuffer->GetFrameData(rCopyCommand.args.dstBufferData.frameIndex);
 					vkCmdCopyBuffer(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-									rCopyCommand.args.pSrcBuffer->GetBuffer(),
-									rCopyCommand.args.pDstBuffer->GetBuffer(),
+									rSrcBufferFrameData.buffer,
+									rDstBufferFrameData.buffer,
 									1,
 									&copyRegion);
 
-					AddBufferMemoryBarrier(rCopyCommand.args.pDstBuffer,
+					AddBufferMemoryBarrier(rSrcBufferFrameData.buffer,
 										   VK_ACCESS_TRANSFER_WRITE_BIT,
-										   rCopyCommand.args.pDstBuffer->GetDefaultAccessFlags(),
+										   rCopyCommand.args.dstBufferData.pBuffer->GetDefaultAccessFlags(),
 										   VK_PIPELINE_STAGE_TRANSFER_BIT,
-										   rCopyCommand.args.pDstBuffer->GetDefaultStageFlags());
+										   rCopyCommand.args.dstBufferData.pBuffer->GetDefaultStageFlags());
 				}
 				break;
 				case CopyCommandType::BUFFER_TO_IMAGE:
 				{
-					auto *pDstTexture = rCopyCommand.args.pDstTexture;
+					auto *pDstTexture = rCopyCommand.args.dstTextureData.pTexture;
 					if (pDstTexture == VulkanGraphicsSystem::GetInstance()->GetBackbuffer())
 					{
 						pDstTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
@@ -693,7 +725,7 @@ namespace FastCG
 					copyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1};
 
 					vkCmdCopyBufferToImage(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-										   rCopyCommand.args.pSrcBuffer->GetBuffer(),
+										   rCopyCommand.args.srcBufferData.pBuffer->GetFrameData(rCopyCommand.args.srcBufferData.frameIndex).buffer,
 										   pDstTexture->GetImage(),
 										   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 										   1,
@@ -702,12 +734,12 @@ namespace FastCG
 				break;
 				case CopyCommandType::IMAGE_TO_IMAGE:
 				{
-					auto *pSrcTexture = rCopyCommand.args.pSrcTexture;
+					auto *pSrcTexture = rCopyCommand.args.srcTextureData.pTexture;
 					if (pSrcTexture == VulkanGraphicsSystem::GetInstance()->GetBackbuffer())
 					{
 						pSrcTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
 					}
-					auto *pDstTexture = rCopyCommand.args.pDstTexture;
+					auto *pDstTexture = rCopyCommand.args.dstTextureData.pTexture;
 					if (pDstTexture == VulkanGraphicsSystem::GetInstance()->GetBackbuffer())
 					{
 						pDstTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
@@ -753,12 +785,12 @@ namespace FastCG
 				break;
 				case CopyCommandType::BLIT:
 				{
-					auto *pSrcTexture = rCopyCommand.args.pSrcTexture;
+					auto *pSrcTexture = rCopyCommand.args.srcTextureData.pTexture;
 					if (pSrcTexture == VulkanGraphicsSystem::GetInstance()->GetBackbuffer())
 					{
 						pSrcTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
 					}
-					auto *pDstTexture = rCopyCommand.args.pDstTexture;
+					auto *pDstTexture = rCopyCommand.args.dstTextureData.pTexture;
 					if (pDstTexture == VulkanGraphicsSystem::GetInstance()->GetBackbuffer())
 					{
 						pDstTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
@@ -900,7 +932,7 @@ namespace FastCG
 								assert(lastDescriptorBufferInfoIdx < MAX_RESOURCES);
 								assert(pBinding != nullptr);
 								assert(pBinding->pBuffer != nullptr);
-								rDescriptorBufferInfo.buffer = pBinding->pBuffer->GetBuffer();
+								rDescriptorBufferInfo.buffer = GetCurrentVkBuffer(pBinding->pBuffer);
 								rDescriptorBufferInfo.offset = 0;
 								rDescriptorBufferInfo.range = VK_WHOLE_SIZE;
 								rDescriptorSetWrite.pBufferInfo = &rDescriptorBufferInfo;
@@ -1152,7 +1184,7 @@ namespace FastCG
 #endif
 	}
 
-	void VulkanGraphicsContext::AddBufferMemoryBarrier(const VulkanBuffer *pBuffer,
+	void VulkanGraphicsContext::AddBufferMemoryBarrier(VkBuffer buffer,
 													   VkAccessFlags srcAccessMask,
 													   VkAccessFlags dstAccessMask,
 													   VkPipelineStageFlags srcStageMask,
@@ -1165,7 +1197,7 @@ namespace FastCG
 		bufferMemoryBarrier.dstAccessMask = dstAccessMask;
 		bufferMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		bufferMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		bufferMemoryBarrier.buffer = pBuffer->GetBuffer();
+		bufferMemoryBarrier.buffer = buffer;
 		bufferMemoryBarrier.offset = 0;
 		bufferMemoryBarrier.size = VK_WHOLE_SIZE;
 

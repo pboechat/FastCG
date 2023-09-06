@@ -111,11 +111,12 @@ namespace FastCG
 			}
 			auto tangents = MeshUtils::CalculateTangents(positions, normals, uvs, indices);
 
-			rMeshCatalog.emplace(shapeIdx, std::make_shared<Mesh>(MeshArgs{name + " (" + std::to_string(shapeIdx) + ")",
-																		   {{"Positions", 0, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_VERTEX_INPUT_LOCATION, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																			{"Normals", 0, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_VERTEX_INPUT_LOCATION, 3, VertexDataType::FLOAT, false, 0, 0}}},
-																			{"UVs", 0, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_VERTEX_INPUT_LOCATION, 2, VertexDataType::FLOAT, true, 0, 0}}},
-																			{"Tangents", 0, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_VERTEX_INPUT_LOCATION, 4, VertexDataType::FLOAT, false, 0, 0}}}},
+			auto shapeName = name + " (" + std::to_string(shapeIdx) + ")";
+			rMeshCatalog.emplace(shapeIdx, std::make_shared<Mesh>(MeshArgs{shapeName,
+																		   {{shapeName + " Positions", 0, positions.size() * sizeof(glm::vec3), positions.data(), {{POSITION_VERTEX_INPUT_LOCATION, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																			{shapeName + " Normals", 0, normals.size() * sizeof(glm::vec3), normals.data(), {{NORMAL_VERTEX_INPUT_LOCATION, 3, VertexDataType::FLOAT, false, 0, 0}}},
+																			{shapeName + " UVs", 0, uvs.size() * sizeof(glm::vec2), uvs.data(), {{UV_VERTEX_INPUT_LOCATION, 2, VertexDataType::FLOAT, true, 0, 0}}},
+																			{shapeName + " Tangents", 0, tangents.size() * sizeof(glm::vec4), tangents.data(), {{TANGENT_VERTEX_INPUT_LOCATION, 4, VertexDataType::FLOAT, false, 0, 0}}}},
 																		   {0, (uint32_t)indices.size(), indices.data()},
 																		   MeshUtils::CalculateBounds(positions)}));
 		}

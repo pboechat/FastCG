@@ -14,30 +14,52 @@ namespace FastCG
     class VulkanBuffer : public BaseBuffer
     {
     public:
-        VulkanBuffer(const BufferArgs &rArgs);
+        struct Args : BaseBuffer::Args
+        {
+            bool forceSingleFrameDataCount;
+
+            Args(const std::string &rName = "",
+                 BufferUsageFlags usage = BufferUsageFlagBit::UNIFORM,
+                 size_t dataSize = 0,
+                 const void *pData = nullptr,
+                 const std::vector<VertexBindingDescriptor> &rVertexBindingDescriptors = {},
+                 bool forceSingleFrameDataCount = false) : BaseBuffer::Args(rName,
+                                                                            usage,
+                                                                            dataSize,
+                                                                            pData,
+                                                                            rVertexBindingDescriptors),
+                                                           forceSingleFrameDataCount(forceSingleFrameDataCount)
+            {
+            }
+        };
+
+        struct FrameData
+        {
+            VkBuffer buffer;
+            VmaAllocation allocation;
+            VmaAllocationInfo allocationInfo;
+        };
+
+        VulkanBuffer(const Args &rArgs);
         VulkanBuffer(const VulkanBuffer &rOther) = delete;
         VulkanBuffer(const VulkanBuffer &&rOther) = delete;
         virtual ~VulkanBuffer();
 
+        inline const FrameData &GetFrameData(uint32_t frameIndex) const
+        {
+            return mFrameData[frameIndex];
+        }
+        inline bool IsMultiFrame() const
+        {
+            return IsDynamic() && !mForceSingleFrameDataCount;
+        }
+
         VulkanBuffer &operator=(const VulkanBuffer &rOther) = delete;
 
     private:
-        VkBuffer mBuffer{VK_NULL_HANDLE};
-        VmaAllocation mAllocation{VK_NULL_HANDLE};
-        VmaAllocationInfo mAllocationInfo;
+        std::vector<FrameData> mFrameData;
+        bool mForceSingleFrameDataCount;
 
-        inline VkBuffer GetBuffer() const
-        {
-            return mBuffer;
-        }
-        inline VmaAllocation GetAllocation() const
-        {
-            return mAllocation;
-        }
-        inline VmaAllocationInfo GetAllocationInfo() const
-        {
-            return mAllocationInfo;
-        }
         inline VkAccessFlags GetDefaultAccessFlags() const
         {
             return GetVkBufferAccessFlags(GetUsage());
@@ -45,6 +67,10 @@ namespace FastCG
         inline VkPipelineStageFlags GetDefaultStageFlags() const
         {
             return GetVkBufferPipelineStageFlags(GetUsage());
+        }
+        inline bool IsDynamic() const
+        {
+            return (GetUsage() & BufferUsageFlagBit::DYNAMIC) != 0;
         }
         void CreateBuffer();
         void DestroyBuffer();

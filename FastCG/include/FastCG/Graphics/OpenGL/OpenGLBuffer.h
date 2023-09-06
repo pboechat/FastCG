@@ -18,7 +18,7 @@ namespace FastCG
             return mBufferId;
         }
 
-        OpenGLBuffer(const BufferArgs &rArgs);
+        OpenGLBuffer(const Args &rArgs);
         OpenGLBuffer(const OpenGLBuffer &rOther) = delete;
         OpenGLBuffer(const OpenGLBuffer &&rOther) = delete;
         virtual ~OpenGLBuffer();

@@ -85,9 +85,9 @@ namespace FastCG
         // Template interface methods
         inline uint32_t GetMaxSimultaneousFrames() const;
         inline uint32_t GetCurrentFrame() const;
-        inline Buffer *CreateBuffer(const BufferArgs &rArgs);
+        inline Buffer *CreateBuffer(const typename Buffer::Args &rArgs);
         inline GraphicsContext *CreateGraphicsContext(const typename GraphicsContext::Args &rArgs);
-        inline Shader *CreateShader(const ShaderArgs &rArgs);
+        inline Shader *CreateShader(const typename Shader::Args &rArgs);
         inline Texture *CreateTexture(const typename Texture::Args &rArgs);
         inline virtual void DestroyBuffer(const Buffer *pBuffer);
         inline virtual void DestroyGraphicsContext(const GraphicsContext *pGraphicsContext);

@@ -38,7 +38,7 @@ namespace FastCG
         uint32_t indicesCount = MAX_NUM_VERTICES * 3;
 
         mpImGuiMesh = std::make_unique<Mesh>(MeshArgs{"ImGui Mesh",
-                                                      {{"Vertices",
+                                                      {{"ImGui Mesh Vertices",
                                                         BufferUsageFlagBit::DYNAMIC,
                                                         verticesDataSize,
                                                         nullptr,

@@ -31,7 +31,7 @@ namespace FastCG
     class VulkanShader : public BaseShader
     {
     public:
-        VulkanShader(const ShaderArgs &rArgs);
+        VulkanShader(const Args &rArgs);
         VulkanShader(const VulkanShader &rOther) = delete;
         VulkanShader(const VulkanShader &&rOther) = delete;
         virtual ~VulkanShader();

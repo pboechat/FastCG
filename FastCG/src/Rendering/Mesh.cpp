@@ -14,7 +14,7 @@ namespace FastCG
 
         for (const auto &vbDesc : rArgs.vertexAttributeDecriptors)
         {
-            mVertexBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({mName + " " + vbDesc.name,
+            mVertexBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({vbDesc.name,
                                                                                      (BufferUsageFlags)(vbDesc.usage | BufferUsageFlagBit::VERTEX_BUFFER),
                                                                                      vbDesc.dataSize,
                                                                                      vbDesc.pData,

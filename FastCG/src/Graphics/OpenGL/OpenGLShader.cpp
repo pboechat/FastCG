@@ -100,7 +100,7 @@ namespace
 
 namespace FastCG
 {
-    OpenGLShader::OpenGLShader(const ShaderArgs &rArgs) : BaseShader(rArgs)
+    OpenGLShader::OpenGLShader(const Args &rArgs) : BaseShader(rArgs)
     {
         std::fill(mShadersIds.begin(), mShadersIds.end(), ~0u);
         for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::LAST; ++i)
@@ -141,7 +141,7 @@ namespace FastCG
             mShadersIds[i] = shaderId;
 
 #ifdef _DEBUG
-            std::string shaderLabel = GetName() + " (" + GetOpenGLShaderTypeString(glShaderType) + ")";
+            std::string shaderLabel = GetName() + " (" + GetOpenGLShaderTypeString(glShaderType) + ") (GL_SHADER)";
             glObjectLabel(GL_SHADER, shaderId, (GLsizei)shaderLabel.size(), shaderLabel.c_str());
 #endif
         }

@@ -8,7 +8,7 @@
 
 namespace FastCG
 {
-    VulkanBuffer::VulkanBuffer(const BufferArgs &rArgs) : BaseBuffer(rArgs)
+    VulkanBuffer::VulkanBuffer(const Args &rArgs) : BaseBuffer(rArgs), mForceSingleFrameDataCount(rArgs.forceSingleFrameDataCount)
     {
         CreateBuffer();
     }
@@ -30,51 +30,60 @@ namespace FastCG
         bufferCreateInfo.usage = GetVkBufferUsageFlags(GetUsage());
         bufferCreateInfo.size = GetDataSize();
 
-        bool usesMappableMemory = (GetUsage() & BufferUsageFlagBit::DYNAMIC) != 0;
+        uint32_t frameDataCount = IsMultiFrame() ? VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames() : 1;
+        mFrameData.resize(frameDataCount);
 
-        VmaAllocationCreateInfo allocationCreateInfo;
-        if (usesMappableMemory)
+        for (uint32_t i = 0; i < frameDataCount; ++i)
         {
-            allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
-        }
-        else
-        {
-            allocationCreateInfo.flags = 0;
-        }
-        allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-        allocationCreateInfo.requiredFlags = 0;
-        allocationCreateInfo.preferredFlags = 0;
-        allocationCreateInfo.memoryTypeBits = 0;
-        allocationCreateInfo.pool = VK_NULL_HANDLE;
-        allocationCreateInfo.pUserData = nullptr;
+            VmaAllocationCreateInfo allocationCreateInfo;
+            if (IsDynamic())
+            {
+                allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+            }
+            else
+            {
+                allocationCreateInfo.flags = 0;
+            }
+            allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+            allocationCreateInfo.requiredFlags = 0;
+            allocationCreateInfo.preferredFlags = 0;
+            allocationCreateInfo.memoryTypeBits = 0;
+            allocationCreateInfo.pool = VK_NULL_HANDLE;
+            allocationCreateInfo.pUserData = nullptr;
 
-        FASTCG_CHECK_VK_RESULT(vmaCreateBuffer(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-                                               &bufferCreateInfo,
-                                               &allocationCreateInfo,
-                                               &mBuffer,
-                                               &mAllocation,
-                                               &mAllocationInfo));
+            FASTCG_CHECK_VK_RESULT(vmaCreateBuffer(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+                                                   &bufferCreateInfo,
+                                                   &allocationCreateInfo,
+                                                   &mFrameData[i].buffer,
+                                                   &mFrameData[i].allocation,
+                                                   &mFrameData[i].allocationInfo));
 
-        if (GetData() != nullptr)
-        {
-            VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, GetDataSize(), GetData());
-        }
+            if (GetData() != nullptr)
+            {
+                VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, i, GetDataSize(), GetData());
+            }
 
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName(GetName().c_str(), VK_OBJECT_TYPE_BUFFER, (uint64_t)mBuffer);
+            VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + (frameDataCount > 1 ? " (" + std::to_string(i) + ")" : "") + " (VkBuffer)").c_str(), VK_OBJECT_TYPE_BUFFER, (uint64_t)mFrameData[i].buffer);
 #endif
+        }
     }
 
     void VulkanBuffer::DestroyBuffer()
     {
-        if (mBuffer != VK_NULL_HANDLE && mAllocation != VK_NULL_HANDLE)
+        for (auto &frameData : mFrameData)
         {
+            if (frameData.buffer == VK_NULL_HANDLE || frameData.allocation == VK_NULL_HANDLE)
+            {
+                continue;
+            }
             vmaDestroyBuffer(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-                             mBuffer,
-                             mAllocation);
-            mBuffer = VK_NULL_HANDLE;
-            mAllocation = VK_NULL_HANDLE;
+                             frameData.buffer,
+                             frameData.allocation);
+            frameData.buffer = VK_NULL_HANDLE;
+            frameData.allocation = VK_NULL_HANDLE;
         }
+        mFrameData.clear();
     }
 
 }

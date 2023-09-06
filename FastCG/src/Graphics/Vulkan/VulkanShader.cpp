@@ -117,7 +117,7 @@ namespace
 
 namespace FastCG
 {
-    VulkanShader::VulkanShader(const ShaderArgs &rArgs) : BaseShader(rArgs)
+    VulkanShader::VulkanShader(const Args &rArgs) : BaseShader(rArgs)
     {
         VkShaderModuleCreateInfo shaderModuleCreateInfo;
         shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -166,7 +166,7 @@ namespace FastCG
                                                         &mModules[i]));
 
 #if _DEBUG
-            VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (" + GetShaderTypeString(shaderType) + ")").c_str(), VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)mModules[i]);
+            VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (" + GetShaderTypeString(shaderType) + ") (VkShaderModule)").c_str(), VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)mModules[i]);
 #endif
 
             // TODO: cache reflection data

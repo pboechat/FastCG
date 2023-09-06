@@ -43,6 +43,7 @@ namespace FastCG
         void SetScissorTest(bool scissorTest);
         void SetCullMode(Face face);
         void Copy(const VulkanBuffer *pBuffer, size_t dataSize, const void *pData);
+        void Copy(const VulkanBuffer *pBuffer, uint32_t frameIndex, size_t dataSize, const void *pData);
         void Copy(const VulkanTexture *pTexture, size_t dataSize, const void *pData);
         void BindShader(const VulkanShader *pShader);
         void BindResource(const VulkanBuffer *pBuffer, const char *pName);
@@ -76,29 +77,40 @@ namespace FastCG
 
         struct CopyCommandArgs
         {
+            struct BufferData
+            {
+                const VulkanBuffer *pBuffer{nullptr};
+                uint32_t frameIndex{~0u};
+            };
+
+            struct TextureData
+            {
+                const VulkanTexture *pTexture;
+            };
+
             union
             {
-                const VulkanBuffer *pSrcBuffer;
-                const VulkanTexture *pSrcTexture;
+                BufferData srcBufferData;
+                TextureData srcTextureData;
             };
             union
             {
-                const VulkanBuffer *pDstBuffer;
-                const VulkanTexture *pDstTexture;
+                BufferData dstBufferData;
+                TextureData dstTextureData;
             };
 
-            CopyCommandArgs() : pSrcBuffer(nullptr), pDstBuffer(nullptr) {}
-            CopyCommandArgs(const VulkanBuffer *pSrcBuffer, const VulkanBuffer *pDstBuffer) : pSrcBuffer(pSrcBuffer),
-                                                                                              pDstBuffer(pDstBuffer)
+            CopyCommandArgs() {}
+            CopyCommandArgs(const BufferData &rSrcBufferData, const BufferData &rDstBufferData) : srcBufferData(rSrcBufferData),
+                                                                                                  dstBufferData(rDstBufferData)
             {
             }
 
-            CopyCommandArgs(const VulkanBuffer *pSrcBuffer, const VulkanTexture *pDstTexture) : pSrcBuffer(pSrcBuffer),
-                                                                                                pDstTexture(pDstTexture)
+            CopyCommandArgs(const BufferData &rSrcBufferData, const TextureData &rDstTextureData) : srcBufferData(rSrcBufferData),
+                                                                                                    dstTextureData(rDstTextureData)
             {
             }
-            CopyCommandArgs(const VulkanTexture *pSrcTexture, const VulkanTexture *pDstTexture) : pSrcTexture(pSrcTexture),
-                                                                                                  pDstTexture(pDstTexture)
+            CopyCommandArgs(const TextureData &rSrcTextureData, const TextureData &rDstTextureData) : srcTextureData(rSrcTextureData),
+                                                                                                      dstTextureData(rDstTextureData)
             {
             }
         };
@@ -193,7 +205,7 @@ namespace FastCG
         std::vector<double> mElapsedTimes;
 #endif
 
-        void AddBufferMemoryBarrier(const VulkanBuffer *pBuffer,
+        void AddBufferMemoryBarrier(VkBuffer buffer,
                                     VkAccessFlags srcAccessMask,
                                     VkAccessFlags dstAccessMask,
                                     VkPipelineStageFlags srcStageMask,
@@ -221,7 +233,6 @@ namespace FastCG
         friend class VulkanGraphicsSystem;
         friend class VulkanTexture;
     };
-
 }
 
 #endif
