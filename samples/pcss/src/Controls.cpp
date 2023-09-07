@@ -24,6 +24,7 @@ void Controls::OnUpdate(float time, float deltaTime)
     {
         auto shadowMapBias = pWorldRenderer->GetShadowMapBias();
         ImGui::SliderFloat("Shadow Map Bias", &shadowMapBias, 0, 0.1f);
+        pWorldRenderer->SetShadowMapBias(shadowMapBias);
         auto uvScale = pWorldRenderer->GetPCSSUvScale();
         ImGui::SliderFloat("UV Scale", &uvScale, 0, 0.2f);
         pWorldRenderer->SetPCSSUvScale(uvScale);
