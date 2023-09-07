@@ -2,6 +2,7 @@
 
 #ifdef FASTCG_LINUX
 
+#include <FastCG/Platform/Timer.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <X11/Xatom.h>
@@ -155,6 +156,8 @@ namespace FastCG
         XEvent event;
         while (mRunning)
         {
+            auto osStart = Timer::GetTime();
+
             while (XPending(mpDisplay))
             {
                 XNextEvent(mpDisplay, &event);
@@ -187,7 +190,7 @@ namespace FastCG
                 }
             }
 
-            RunMainLoopIteration();
+            RunMainLoopIteration(Timer::GetTime() - osStart);
         }
     }
 

@@ -195,7 +195,7 @@ namespace FastCG
 #if _DEBUG
         std::vector<MarkerCommand> mMarkerCommands;
 #endif
-#if _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         struct TimeElapsedQuery
         {
             uint32_t start;
@@ -226,7 +226,7 @@ namespace FastCG
                                 uint32_t indexCount,
                                 int32_t vertexOffset);
         void EnqueueTimestampQuery(uint32_t query);
-#if _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         void RetrieveElapsedTime();
 #endif
 

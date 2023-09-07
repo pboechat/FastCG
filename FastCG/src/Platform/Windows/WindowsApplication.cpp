@@ -2,6 +2,7 @@
 
 #ifdef FASTCG_WINDOWS
 
+#include <FastCG/Platform/Timer.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 
 #include <unordered_map>
@@ -223,6 +224,8 @@ namespace FastCG
 		MSG msg;
 		while (mRunning)
 		{
+			auto osStart = Timer::GetTime();
+
 			while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 			{
 				if (!GetMessage(&msg, NULL, 0, 0))
@@ -234,7 +237,7 @@ namespace FastCG
 				DispatchMessage(&msg);
 			}
 
-			RunMainLoopIteration();
+			RunMainLoopIteration(Timer::GetTime() - osStart);
 		}
 	__exit:
 		return;

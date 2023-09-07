@@ -66,10 +66,6 @@ namespace FastCG
 #endif
 
         QueryDeviceProperties();
-
-#ifdef _DEBUG
-        glGenQueries(1, &mPresentTimestampQuery);
-#endif
     }
 
     void OpenGLGraphicsSystem::OnPostFinalize()
@@ -85,10 +81,6 @@ namespace FastCG
             glDeleteVertexArrays(1, &rKvp.second);
         }
         mVaoIds.clear();
-
-#ifdef _DEBUG
-        glDeleteQueries(1, &mPresentTimestampQuery);
-#endif
 
         DestroyOpenGLContext();
 
@@ -483,11 +475,6 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::Present()
     {
-#ifdef _DEBUG
-        GLint64 presentStart;
-        glQueryCounter(mPresentTimestampQuery, GL_TIMESTAMP);
-        glGetInteger64v(GL_TIMESTAMP, &presentStart);
-#endif
 #if defined FASTCG_WINDOWS
         SwapBuffers(mHDC);
 #elif defined FASTCG_LINUX
@@ -497,18 +484,7 @@ namespace FastCG
 #else
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
 #endif
-#ifdef _DEBUG
-        GLint done = 0;
-        while (!done)
-        {
-            glGetQueryObjectiv(mPresentTimestampQuery, GL_QUERY_RESULT_AVAILABLE, &done);
-        }
-
-        GLuint64 presentEnd;
-        glGetQueryObjectui64v(mPresentTimestampQuery, GL_QUERY_RESULT, &presentEnd);
-
-        mPresentElapsedTime = (presentEnd - (GLuint64)presentStart) * 1e-9;
-
+#if !defined FASTCG_DISABLE_GPU_TIMING
         for (auto *pGraphicsContext : GetGraphicsContexts())
         {
             pGraphicsContext->RetrieveElapsedTime();
@@ -516,18 +492,9 @@ namespace FastCG
 #endif
     }
 
-    double OpenGLGraphicsSystem::GetPresentElapsedTime() const
-    {
-#ifdef _DEBUG
-        return mPresentElapsedTime;
-#else
-        return 0;
-#endif
-    }
-
     double OpenGLGraphicsSystem::GetGpuElapsedTime() const
     {
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         double elapsedTime = 0;
         for (auto *pGraphicsContext : GetGraphicsContexts())
         {

@@ -8,6 +8,7 @@
 #include <FastCG/Rendering/ModelLoader.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Platform/Thread.h>
+#include <FastCG/Platform/Timer.h>
 #include <FastCG/Platform/BaseApplication.h>
 #include <FastCG/Input/MouseButton.h>
 #include <FastCG/Input/Key.h>
@@ -28,21 +29,35 @@
 
 namespace
 {
-	void DisplayStatisticsWindow(uint32_t width, uint32_t height, double target, double frame, double cpu, double gpu, double present, const FastCG::RenderingStatistics &rRenderingStatistics)
+	void DisplayStatisticsWindow(uint32_t width,
+								 uint32_t height,
+								 double target,
+								 double app,
+								 double os,
+								 double present,
+								 double wait,
+								 double gpu,
+								 const FastCG::RenderingStatistics &rRenderingStatistics)
 	{
 		if (ImGui::Begin("Statistics"))
 		{
-			const ImVec4 green = {0, 1, 0, 1};
-			const ImVec4 orange = {1, 0.27f, 0, 1};
-			const ImVec4 red = {1, 0, 0, 1};
-			const auto warnThreshold = 0.75 * target;
 
+			auto GetColor = [target](double time)
+			{
+				return target == 0 || time > target ? ImVec4{1, 0, 0, 1} : ImVec4{0, 1, 0, 1};
+			};
+
+			ImGui::Text("Platform: %s", FASTCG_PLATFORM);
+			ImGui::Text("Graphics: %s", FASTCG_GRAPHICS_SYSTEM);
 			ImGui::Text("Resolution: %ux%u", width, height);
-			ImGui::Text("Target Time: %.6lf (%zu)", target, target == 0 ? 0 : (uint64_t)(1 / target));
-			ImGui::TextColored(target == 0 || frame <= target ? (frame <= warnThreshold ? green : orange) : red, "Frame Time: %.6lf (%zu)", frame, frame == 0 ? 0 : (uint64_t)(1 / frame));
-			ImGui::TextColored(target == 0 || cpu <= target ? (frame <= warnThreshold ? green : orange) : red, "CPU Time: %.6lf", cpu);
-			ImGui::TextColored(target == 0 || gpu <= target ? (frame <= warnThreshold ? green : orange) : red, "GPU Time: %.6lf", gpu);
-			ImGui::TextColored(target == 0 || present <= target ? green : red, "Present Time: %.6lf", present);
+			ImGui::Text("Target: %.6lf (%zu)", target, target == 0 ? 0 : (uint64_t)(1 / target));
+			auto cpu = os + app + present + wait;
+			ImGui::TextColored(GetColor(cpu), "CPU: %.6lf (%zu)", cpu, cpu == 0 ? 0 : (uint64_t)(1 / cpu));
+			ImGui::TextColored(GetColor(app), "    App: %.6lf (%zu)", app, app == 0 ? 0 : (uint64_t)(1 / app));
+			ImGui::TextColored(GetColor(os), "    OS: %.6lf", os);
+			ImGui::TextColored(GetColor(present), "    Present: %.6lf", present);
+			ImGui::TextColored(GetColor(wait), "    Wait: %.6lf", wait);
+			ImGui::TextColored(GetColor(gpu), "GPU: %.6lf (%zu)", gpu, gpu == 0 ? 0 : (uint64_t)(1 / gpu));
 			ImGui::Text("Draw Calls: %u", rRenderingStatistics.drawCalls);
 			ImGui::Text("Triangles: %u", rRenderingStatistics.triangles);
 		}
@@ -103,13 +118,11 @@ namespace FastCG
 		{
 			Initialize();
 
-			mStartTimer.Start();
 			OnStart();
 
 			mRunning = true;
 			RunMainLoop();
 
-			mStartTimer.End();
 			OnEnd();
 
 			Finalize();
@@ -188,40 +201,40 @@ namespace FastCG
 		return true;
 	}
 
-	void BaseApplication::RunMainLoopIteration()
+	void BaseApplication::RunMainLoopIteration(double osTime)
 	{
-		auto cpuStart = mStartTimer.GetTime();
-		double frameDeltaTime;
-		if (mLastFrameStart != 0)
+		auto appStart = Timer::GetTime();
+		double appDeltaTime;
+		if (mLastAppStart != 0)
 		{
-			frameDeltaTime = cpuStart - mLastFrameStart;
+			appDeltaTime = appStart - mLastAppStart;
 		}
 		else
 		{
-			frameDeltaTime = 0;
+			appDeltaTime = 0;
 		}
-		mLastFrameStart = cpuStart;
 
 		KeyChange keyChanges[KEY_COUNT];
 		InputSystem::GetKeyChanges(keyChanges);
 
 		InputSystem::GetInstance()->Swap();
 
-		ImGuiSystem::GetInstance()->BeginFrame(frameDeltaTime, keyChanges);
+		ImGuiSystem::GetInstance()->BeginFrame(appDeltaTime, keyChanges);
 
-#ifdef _DEBUG
 		DisplayStatisticsWindow(mScreenWidth,
 								mScreenHeight,
 								mSecondsPerFrame,
-								frameDeltaTime,
-								mLastCpuElapsedTime,
+								mLastAppElapsedTime,
+								osTime,
+								mLastPresentElapsedTime,
+								mLastWaitTime,
 								mLastGpuElapsedTime,
-								GraphicsSystem::GetInstance()->GetPresentElapsedTime(),
 								mRenderingStatistics);
+#ifdef _DEBUG
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif
 
-		WorldSystem::GetInstance()->Update((float)cpuStart, (float)frameDeltaTime);
+		WorldSystem::GetInstance()->Update((float)appStart, (float)appDeltaTime);
 
 		ImGuiSystem::GetInstance()->EndFrame();
 
@@ -229,23 +242,28 @@ namespace FastCG
 
 		RenderingSystem::GetInstance()->Render();
 
-		auto cpuEnd = mStartTimer.GetTime();
-		mLastCpuElapsedTime = cpuEnd - cpuStart;
+		auto presentationStart = Timer::GetTime();
 
 		GraphicsSystem::GetInstance()->Present();
 
+		auto appEnd = Timer::GetTime();
+		mLastAppElapsedTime = appEnd - appStart;
+		mLastPresentElapsedTime = appEnd - presentationStart;
 		mLastGpuElapsedTime = GraphicsSystem::GetInstance()->GetGpuElapsedTime();
+		mLastAppStart = appStart;
 
-		mTotalFrameElapsedTime += frameDeltaTime;
 		mFrameCount++;
 
 		if (mFrameRate != UNLOCKED_FRAMERATE)
 		{
-			auto idleTime = mSecondsPerFrame - frameDeltaTime;
-			if (idleTime > 0)
+			mLastWaitTime = std::max(0.0, mSecondsPerFrame - mLastAppElapsedTime - 0.00034 /* wait overhead */);
+			if (mLastWaitTime > 0)
 			{
-				Thread::Sleep(idleTime);
-				frameDeltaTime += idleTime;
+				double startTime = Timer::GetTime();
+				while (Timer::GetTime() - startTime <= mLastWaitTime)
+				{
+					// busy-waiting, do nothing.
+				}
 			}
 		}
 	}

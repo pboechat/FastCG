@@ -128,7 +128,7 @@ namespace FastCG
         void UnregisterGameObject(GameObject *pGameObject);
         void RegisterComponent(Component *pComponent);
         void UnregisterComponent(Component *pComponent);
-        void Update(float cpuStart, float frameDeltaTime);
+        void Update(float time, float deltaTime);
 #ifdef _DEBUG
         void DebugMenuCallback(int result);
         void DebugMenuItemCallback(int &result);

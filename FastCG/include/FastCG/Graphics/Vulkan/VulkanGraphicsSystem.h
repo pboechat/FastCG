@@ -181,7 +181,6 @@ namespace FastCG
         void DestroyInstance();
         void Resize() {}
         void Present();
-        double GetPresentElapsedTime() const;
         double GetGpuElapsedTime() const;
 #if _DEBUG
         void PushDebugMarker(VkCommandBuffer commandBuffer, const char *pName);

@@ -15,27 +15,18 @@ namespace FastCG
 	class Timer
 	{
 	public:
-		Timer()
+		static inline double GetTime()
 		{
-			LARGE_INTEGER frequency;
-
-			if (QueryPerformanceFrequency(&frequency))
+			if (sFrequency < 0)
 			{
-				mSeconds = 1.0 / frequency.QuadPart;
+				InitializeFrequency();
 			}
-			else
-			{
-				FASTCG_THROW_EXCEPTION(Exception, "Cannot query performance counter frequency: %d", 0);
-			}
-		}
 
-		inline double GetTime() const
-		{
 			LARGE_INTEGER time;
 
 			if (QueryPerformanceCounter(&time))
 			{
-				return (double)time.QuadPart * mSeconds;
+				return (double)time.QuadPart * sFrequency;
 			}
 			else
 			{
@@ -60,15 +51,29 @@ namespace FastCG
 		}
 
 	private:
+		static double sFrequency;
 		double mStart{0};
 		double mEnd{0};
-		double mSeconds{0};
+
+		static inline void InitializeFrequency()
+		{
+			LARGE_INTEGER frequency;
+
+			if (QueryPerformanceFrequency(&frequency))
+			{
+				sFrequency = 1.0 / frequency.QuadPart;
+			}
+			else
+			{
+				FASTCG_THROW_EXCEPTION(Exception, "Cannot query performance counter frequency: %d", 0);
+			}
+		}
 	};
 #elif defined FASTCG_LINUX
 	class Timer
 	{
 	public:
-		inline double GetTime() const
+		static inline double GetTime()
 		{
 			timespec time;
 			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time);

@@ -62,17 +62,12 @@ namespace FastCG
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mFboIds;
         std::unordered_map<GLint, std::vector<size_t>, IdentityHasher<GLint>> mTextureToFboHashes;
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mVaoIds;
-#ifdef _DEBUG
-        GLuint mPresentTimestampQuery{~0u};
-        double mPresentElapsedTime{0};
-#endif
         DeviceProperties mDeviceProperties{};
 
         void OnInitialize() override;
         void OnPostFinalize() override;
         void Resize() {}
         void Present();
-        double GetPresentElapsedTime() const;
         double GetGpuElapsedTime() const;
         void InitializeGlew();
         void CreateOpenGLContext();

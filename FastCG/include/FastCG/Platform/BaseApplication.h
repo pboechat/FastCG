@@ -3,7 +3,6 @@
 
 #include <FastCG/Rendering/RenderingStatistics.h>
 #include <FastCG/Rendering/MaterialDefinitionImporter.h>
-#include <FastCG/Platform/Timer.h>
 #include <FastCG/Input/MouseButton.h>
 #include <FastCG/Input/Key.h>
 #include <FastCG/Graphics/ShaderImporter.h>
@@ -118,7 +117,7 @@ namespace FastCG
 		virtual void OnKeyRelease(Key key) {}
 		virtual void OnPrintUsage() {}
 		virtual void RunMainLoop() = 0;
-		void RunMainLoopIteration();
+		void RunMainLoopIteration(double osTime);
 		void WindowResizeCallback(uint32_t width, uint32_t height);
 		void MouseButtonCallback(MouseButton button, MouseButtonState state);
 		void MouseMoveCallback(uint32_t x, uint32_t y);
@@ -135,13 +134,12 @@ namespace FastCG
 		uint32_t mScreenWidth;
 		uint32_t mScreenHeight;
 		double mSecondsPerFrame;
-		Timer mStartTimer;
-		Timer mFrameRateTimer;
 		size_t mFrameCount{0};
-		double mTotalFrameElapsedTime{0};
-		double mLastFrameStart{0};
-		double mLastCpuElapsedTime{0};
+		double mLastAppStart{0};
+		double mLastAppElapsedTime{0};
 		double mLastGpuElapsedTime{0};
+		double mLastPresentElapsedTime{0};
+		double mLastWaitTime{0};
 		RenderingStatistics mRenderingStatistics;
 		void Initialize();
 		void Finalize();

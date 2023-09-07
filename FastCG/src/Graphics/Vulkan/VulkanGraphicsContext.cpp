@@ -43,7 +43,7 @@ namespace FastCG
 		mVertexBuffers.resize(0);
 		mpIndexBuffer = VK_NULL_HANDLE;
 		mPipelineResourcesUsage.resize(0);
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
 		if (mTimeElapsedQueries.empty())
 		{
 			mTimeElapsedQueries.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
@@ -1140,7 +1140,7 @@ namespace FastCG
 		ProccessMarkers(mMarkerCommands.size());
 #endif
 
-#if _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
 		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].end);
 #endif
 
@@ -1156,7 +1156,7 @@ namespace FastCG
 		mEnded = true;
 	}
 
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
 	void VulkanGraphicsContext::RetrieveElapsedTime()
 	{
 		assert(mEnded);
@@ -1177,7 +1177,7 @@ namespace FastCG
 
 	double VulkanGraphicsContext::GetElapsedTime() const
 	{
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
 		return mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()];
 #else
 		return 0;

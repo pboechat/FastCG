@@ -115,7 +115,6 @@ namespace FastCG
         // Template interface methods
         void Resize();
         void Present();
-        double GetPresentElapsedTime() const;
         double GetGpuElapsedTime() const;
 
     private:

@@ -35,6 +35,8 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${FASTCG_DEPLOY})
 
 option(FASTCG_BUILD_SAMPLES "Build FastCG samples" ON)
 option(FASTCG_USE_TEXT_SHADERS "Use text shaders" OFF)
+option(FASTCG_DISABLE_GPU_TIMING "Disable GPU timing" OFF)
+option(FASTCG_DISABLE_GPU_VALIDATION "Disable GPU validation" OFF)
 
 # Find necessary programs
 

@@ -15,7 +15,7 @@ namespace FastCG
     OpenGLGraphicsContext::OpenGLGraphicsContext(const Args &rArgs)
         : BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>(rArgs)
     {
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
         FASTCG_CHECK_OPENGL_ERROR();
 #endif
@@ -23,7 +23,7 @@ namespace FastCG
 
     OpenGLGraphicsContext::~OpenGLGraphicsContext()
     {
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         glDeleteQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
 #endif
     }
@@ -32,7 +32,7 @@ namespace FastCG
     {
         assert(mEnded);
         mEnded = false;
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         mElapsedTime = 0;
         glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[mCurrentQuery]);
         FASTCG_CHECK_OPENGL_ERROR();
@@ -418,7 +418,7 @@ namespace FastCG
         mpBoundShader = nullptr;
         FASTCG_CHECK_OPENGL_ERROR();
 
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         glEndQuery(GL_TIME_ELAPSED);
         FASTCG_CHECK_OPENGL_ERROR();
         mEndedQuery[mCurrentQuery] = true;
@@ -426,7 +426,7 @@ namespace FastCG
         mEnded = true;
     }
 
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
     void OpenGLGraphicsContext::RetrieveElapsedTime()
     {
         assert(mEnded);
@@ -453,7 +453,7 @@ namespace FastCG
 
     double OpenGLGraphicsContext::GetElapsedTime() const
     {
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         return mElapsedTime;
 #else
         return 0;

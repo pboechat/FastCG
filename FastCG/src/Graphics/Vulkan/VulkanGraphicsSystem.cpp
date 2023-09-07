@@ -273,7 +273,7 @@ namespace FastCG
 #endif
 
         std::vector<const char *> usedLayers;
-#if _DEBUG
+#if _DEBUG && !defined FASTCG_DISABLE_GPU_VALIDATION
         if (Contains(availableLayers, "VK_LAYER_KHRONOS_validation"))
         {
             usedLayers.emplace_back("VK_LAYER_KHRONOS_validation");
@@ -951,7 +951,7 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkWaitForFences(mDevice, 1, &mFrameFences[mCurrentFrame], VK_TRUE, UINT64_MAX));
         FASTCG_CHECK_VK_RESULT(vkResetFences(mDevice, 1, &mFrameFences[mCurrentFrame]));
 
-#if _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         for (auto *pGraphicsContext : GetGraphicsContexts())
         {
             pGraphicsContext->RetrieveElapsedTime();
@@ -981,14 +981,9 @@ namespace FastCG
         }
     }
 
-    double VulkanGraphicsSystem::GetPresentElapsedTime() const
-    {
-        return 0;
-    }
-
     double VulkanGraphicsSystem::GetGpuElapsedTime() const
     {
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         double elapsedTime = 0;
         for (auto *pGraphicsContext : GetGraphicsContexts())
         {

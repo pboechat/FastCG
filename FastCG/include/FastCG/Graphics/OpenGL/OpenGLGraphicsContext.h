@@ -63,7 +63,7 @@ namespace FastCG
         std::vector<const OpenGLTexture *> mRenderTargets;
         const OpenGLTexture *mpDepthStencilBuffer;
         bool mEnded{true};
-#ifdef _DEBUG
+#if !defined FASTCG_DISABLE_GPU_TIMING
         GLuint mTimeElapsedQueries[2]{}; // double buffered
         size_t mCurrentQuery{0};
         double mElapsedTime{0};
@@ -72,8 +72,8 @@ namespace FastCG
 
         void SetupFbo();
         void SetupDraw();
-        void BindResource(const OpenGLTexture *pTexture, const OpenGLResourceInfo& rResourceInfo);
-#ifdef _DEBUG
+        void BindResource(const OpenGLTexture *pTexture, const OpenGLResourceInfo &rResourceInfo);
+#if !defined FASTCG_DISABLE_GPU_TIMING
         void RetrieveElapsedTime();
 #endif
 

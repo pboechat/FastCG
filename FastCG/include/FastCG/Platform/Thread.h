@@ -15,7 +15,7 @@ namespace FastCG
 		static void Sleep(double seconds)
 		{
 #if defined FASTCG_WINDOWS
-			SleepEx((long)(seconds * 1000.0), 0);
+			::Sleep(static_cast<DWORD>(seconds * 1e3));
 #elif defined FASTCG_LINUX
 			sleep((unsigned int)seconds);
 #else

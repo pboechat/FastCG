@@ -736,7 +736,7 @@ namespace FastCG
         mpMainCamera->SetAspectRatio(GetAspectRatio());
     }
 
-    void WorldSystem::Update(float cpuStart, float frameDeltaTime)
+    void WorldSystem::Update(float time, float deltaTime)
     {
         if (mpMainCamera != nullptr)
         {
@@ -754,7 +754,7 @@ namespace FastCG
 
         for (auto *pBehaviour : mBehaviours)
         {
-            pBehaviour->Update((float)cpuStart, (float)frameDeltaTime);
+            pBehaviour->Update((float)time, (float)deltaTime);
         }
     }
 
