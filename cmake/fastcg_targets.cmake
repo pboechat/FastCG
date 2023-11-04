@@ -22,10 +22,6 @@ function(_fastcg_compile_glsl_shaders)
         message(FATAL_ERROR "Don't know how to compile GLSL shaders for ${FASTCG_GRAPHICS_SYSTEM}")
     endif()
 
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -g)
-    endif()
-
     set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -DENABLE_INCLUDE_EXTENSION_DIRECTIVE)
 
     file(GLOB_RECURSE GLSL_HEADERS "${SRC_SHADERS_DIR}/*.glsl")
@@ -41,7 +37,7 @@ function(_fastcg_compile_glsl_shaders)
         add_custom_command(
             OUTPUT ${SPIRV_FILE}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${SPIRV_DIR}
-            COMMAND ${FASTCG_GLSLANGVALIDATOR} ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE}
+            COMMAND ${FASTCG_GLSLANGVALIDATOR} ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE} $<IF:$<CONFIG:Debug>,-g,>  # generate debug info if in Debug config
             DEPENDS ${GLSL_SOURCE} ${GLSL_HEADERS}
         )
         list(APPEND GLSL_SPIRV_FILES ${SPIRV_FILE})
@@ -110,6 +106,9 @@ function(_fastcg_add_definitions)
     endif()
     if (FASTCG_DISABLE_GPU_VALIDATION)
         add_definitions(-DFASTCG_DISABLE_GPU_VALIDATION)
+    endif()
+    if(FASTCG_PLATFORM STREQUAL "Linux")
+        target_compile_definitions(${ARGV0} PUBLIC $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
     endif()
 endfunction()
 
