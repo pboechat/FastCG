@@ -16,7 +16,7 @@ namespace
 
 		if (!fileStream.is_open())
 		{
-			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error opening file: %s", rFilePath.c_str());
+			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't open file: %s", rFilePath.c_str());
 		}
 
 		fileStream.write((const char *)pData, dataSize);

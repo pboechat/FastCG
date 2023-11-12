@@ -1,6 +1,9 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.20)
 
-if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
+if(FASTCG_PLATFORM STREQUAL "Android")
+    add_subdirectory(android_native_app_glue)
+endif()
+if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL" AND NOT FASTCG_PLATFORM STREQUAL "Android")
     add_subdirectory(glew)
 endif()
 add_subdirectory(glm)

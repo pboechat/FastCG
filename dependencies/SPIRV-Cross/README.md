@@ -227,7 +227,7 @@ $ pkg-config spirv-cross-c-shared --libs --cflags
 If the project is installed, it can be found with `find_package()`, e.g.:
 
 ```
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 set(CMAKE_C_STANDARD 99)
 project(Test LANGUAGES C)
 

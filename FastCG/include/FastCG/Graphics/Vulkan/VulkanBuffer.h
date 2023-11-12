@@ -72,6 +72,10 @@ namespace FastCG
         {
             return (GetUsage() & BufferUsageFlagBit::DYNAMIC) != 0;
         }
+        inline bool UsesMappableMemory() const
+        {
+            return IsDynamic();
+        }
         void CreateBuffer();
         void DestroyBuffer();
 

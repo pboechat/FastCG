@@ -36,7 +36,7 @@ namespace FastCG
         for (uint32_t i = 0; i < frameDataCount; ++i)
         {
             VmaAllocationCreateInfo allocationCreateInfo;
-            if (IsDynamic())
+            if (UsesMappableMemory())
             {
                 allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
             }

@@ -1,5 +1,6 @@
 #ifdef FASTCG_VULKAN
 
+#include <FastCG/Platform/Application.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsContext.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
@@ -31,7 +32,7 @@ namespace FastCG
 
 	VulkanGraphicsContext::~VulkanGraphicsContext() = default;
 
-	void VulkanGraphicsContext::Begin()
+	bool VulkanGraphicsContext::Begin()
 	{
 		assert(mEnded);
 		mEnded = false;
@@ -43,6 +44,12 @@ namespace FastCG
 		mVertexBuffers.resize(0);
 		mpIndexBuffer = VK_NULL_HANDLE;
 		mPipelineResourcesUsage.resize(0);
+#if defined FASTCG_ANDROID
+		if (VulkanGraphicsSystem::GetInstance()->IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+		{
+			return false;
+		}
+#endif
 #if !defined FASTCG_DISABLE_GPU_TIMING
 		if (mTimeElapsedQueries.empty())
 		{
@@ -53,6 +60,7 @@ namespace FastCG
 		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start);
 		mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = 0;
 #endif
+		return true;
 	}
 
 	void VulkanGraphicsContext::PushDebugMarker(const char *pName)
@@ -199,12 +207,7 @@ namespace FastCG
 		auto &rBufferFrameData = pBuffer->GetFrameData(frameIndex);
 		assert(rBufferFrameData.allocation != VK_NULL_HANDLE);
 
-		VkMemoryPropertyFlags memPropFlags;
-		vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-										 rBufferFrameData.allocation,
-										 &memPropFlags);
-
-		if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+		if (pBuffer->UsesMappableMemory())
 		{
 			void *mappedData;
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
@@ -214,6 +217,10 @@ namespace FastCG
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 						   rBufferFrameData.allocation);
 
+			VkMemoryPropertyFlags memPropFlags;
+			vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+											 rBufferFrameData.allocation,
+											 &memPropFlags);
 			if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 			{
 				FASTCG_CHECK_VK_RESULT(vmaFlushAllocation(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
@@ -244,12 +251,7 @@ namespace FastCG
 		assert(dataSize > 0);
 		assert(pData != nullptr);
 
-		VkMemoryPropertyFlags memPropFlags;
-		vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-										 pTexture->GetAllocation(),
-										 &memPropFlags);
-
-		if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+		if (pTexture->UsesMappableMemory())
 		{
 			void *mappedData;
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
@@ -259,6 +261,10 @@ namespace FastCG
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 						   pTexture->GetAllocation());
 
+			VkMemoryPropertyFlags memPropFlags;
+			vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+											 pTexture->GetAllocation(),
+											 &memPropFlags);
 			if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 			{
 				FASTCG_CHECK_VK_RESULT(vmaFlushAllocation(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
@@ -1013,14 +1019,14 @@ namespace FastCG
 			renderPassBeginInfo.clearValueCount = (uint32_t)rRenderPassCommand.clearValues.size();
 			renderPassBeginInfo.pClearValues = rRenderPassCommand.clearValues.empty() ? nullptr : &rRenderPassCommand.clearValues[0];
 
-			VkSubpassBeginInfo subpassBeginInfo;
-			subpassBeginInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO;
+			VkSubpassBeginInfoKHR subpassBeginInfo;
+			subpassBeginInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO_KHR;
 			subpassBeginInfo.pNext = nullptr;
 			subpassBeginInfo.contents = VK_SUBPASS_CONTENTS_INLINE;
 
-			vkCmdBeginRenderPass2(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-								  &renderPassBeginInfo,
-								  &subpassBeginInfo);
+			VkExt::vkCmdBeginRenderPass2KHR(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+											&renderPassBeginInfo,
+											&subpassBeginInfo);
 
 			VkPipeline currentPipeline{VK_NULL_HANDLE};
 			for (; lastUsedPipelineCommandIdx < rRenderPassCommand.lastPipelineCommandIdx; ++lastUsedPipelineCommandIdx)
@@ -1095,10 +1101,10 @@ namespace FastCG
 				}
 			}
 
-			VkSubpassEndInfo subpassEndInfo;
-			subpassEndInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_END_INFO;
+			VkSubpassEndInfoKHR subpassEndInfo;
+			subpassEndInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_END_INFO_KHR;
 			subpassEndInfo.pNext = nullptr;
-			vkCmdEndRenderPass2(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), &subpassEndInfo);
+			VkExt::vkCmdEndRenderPass2KHR(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), &subpassEndInfo);
 
 			auto TransitionRenderTargetToFinalLayout = [&](const auto *pRenderTarget)
 			{

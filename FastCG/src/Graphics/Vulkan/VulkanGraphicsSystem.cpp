@@ -1,20 +1,17 @@
 #ifdef FASTCG_VULKAN
 
-#if defined FASTCG_WINDOWS
-#include <FastCG/Platform/Windows/WindowsApplication.h>
-#elif defined FASTCG_LINUX
-#include <FastCG/Platform/Linux/X11Application.h>
-#endif
+#include <FastCG/Platform/Application.h>
 #include <FastCG/Graphics/Vulkan/VulkanUtils.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
 #include <FastCG/Core/Version.h>
 #include <FastCG/Core/Macros.h>
+#include <FastCG/Core/Log.h>
 #include <FastCG/Assets/AssetSystem.h>
 
 #include <string>
+#include <sstream>
 #include <limits>
-#include <iostream>
 #include <cassert>
 #include <algorithm>
 
@@ -22,6 +19,15 @@ namespace
 {
     template <typename AType>
     struct StrComparer;
+
+    template <>
+    struct StrComparer<const char *>
+    {
+        static bool Compare(const char *a, const char *b)
+        {
+            return strcmp(a, b) == 0;
+        }
+    };
 
     template <>
     struct StrComparer<VkLayerProperties>
@@ -56,9 +62,12 @@ namespace
 #elif defined FASTCG_LINUX
         auto *pDisplay = FastCG::X11Application::GetInstance()->GetDisplay();
         assert(pDisplay != nullptr);
-        // Uses visual ID from default visual. Only works because we're using a "simple window".
+        // uses visual ID from default visual. Only works because we're using a "simple window".
         auto visualId = XVisualIDFromVisual(DefaultVisual(pDisplay, DefaultScreen(pDisplay)));
         supportsPresentation = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIdx, pDisplay, visualId);
+#elif defined FASTCG_ANDROID
+        // TODO: apparently, there's no need for checking whether a queue family supports presentation on Android
+        supportsPresentation = true;
 #else
 #error "FASTCG: Don't know how to check presentation support"
 #endif
@@ -77,8 +86,9 @@ namespace
                                                               const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                                                               void *pUserData)
     {
-        std::cerr << "[VULKAN]"
-                  << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
+        std::stringstream stream;
+        stream << "[VULKAN]"
+               << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
 
         // if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0)
         // {
@@ -88,71 +98,64 @@ namespace
         bool prevType = false;
         if ((messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) != 0)
         {
-            std::cerr << " - " << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT);
+            stream << " - " << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT);
             prevType = true;
         }
         if ((messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) != 0)
         {
-            std::cerr << (prevType ? "|" : " - ") << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
+            stream << (prevType ? "|" : " - ") << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
             prevType = true;
         }
         if ((messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) != 0)
         {
-            std::cerr << (prevType ? "|" : " - ") << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
+            stream << (prevType ? "|" : " - ") << FastCG::GetVkDebugUtilsMessageTypeFlagBitsString(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
             prevType = true;
         }
-        std::cerr << " - " << pCallbackData->messageIdNumber
-                  << " - " << pCallbackData->pMessage
-                  << std::endl;
+        stream << " - " << pCallbackData->messageIdNumber
+               << " - " << pCallbackData->pMessage
+               << std::endl;
+
+        FASTCG_LOG_DEBUG("%s", stream.str().c_str());
+
         return VK_FALSE;
     }
 #endif
 
-#define FASTCG_VK_EXT_FN(fn) \
-    PFN_##fn fn = nullptr
-
-    namespace VkExt
-    {
-#if _DEBUG
-        FASTCG_VK_EXT_FN(vkCreateDebugUtilsMessengerEXT);
-        FASTCG_VK_EXT_FN(vkDestroyDebugUtilsMessengerEXT);
-        FASTCG_VK_EXT_FN(vkCmdBeginDebugUtilsLabelEXT);
-        FASTCG_VK_EXT_FN(vkCmdEndDebugUtilsLabelEXT);
-        FASTCG_VK_EXT_FN(vkSetDebugUtilsObjectNameEXT);
-#endif
-    }
-
-#undef FASTCG_VK_EXT_FN
-
 #define FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, fn)                                                                 \
-    VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                                      \
-    if (VkExt::fn == nullptr)                                                                                        \
+    FastCG::VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                              \
+    if (FastCG::VkExt::fn == nullptr)                                                                                \
     {                                                                                                                \
         FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Failed to load Vulkan instance extension function " #fn); \
     }
 
-    void LoadVulkanInstanceExtensionFunctions(VkInstance instance)
+    void LoadVulkanInstanceExtensionFunctions(VkInstance instance, const std::vector<const char *> &rExtensions)
     {
 #if _DEBUG
-        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCreateDebugUtilsMessengerEXT);
-        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkDestroyDebugUtilsMessengerEXT);
-        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCmdBeginDebugUtilsLabelEXT);
-        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCmdEndDebugUtilsLabelEXT);
-        FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkSetDebugUtilsObjectNameEXT);
+        if (Contains(rExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        {
+            FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCreateDebugUtilsMessengerEXT);
+            FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkDestroyDebugUtilsMessengerEXT);
+            FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCmdBeginDebugUtilsLabelEXT);
+            FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkCmdEndDebugUtilsLabelEXT);
+            FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, vkSetDebugUtilsObjectNameEXT);
+        }
 #endif
     }
 
 #undef FASTCG_LOAD_VK_INSTANCE_EXT_FN
 
-#define FASTCG_LOAD_VK_DEVICE_EXT_FN(instance, fn)                                                                 \
-    VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(instance, #fn);                                                      \
-    if (VkExt::fn == nullptr)                                                                                      \
+#define FASTCG_LOAD_VK_DEVICE_EXT_FN(device, fn)                                                                   \
+    FastCG::VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(device, #fn);                                                \
+    if (FastCG::VkExt::fn == nullptr)                                                                              \
     {                                                                                                              \
         FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Failed to load Vulkan device extension function " #fn); \
     }
 
     void LoadVulkanDeviceExtensionFunctions(VkDevice device)
     {
+        FASTCG_LOAD_VK_DEVICE_EXT_FN(device, vkCreateRenderPass2KHR);
+        FASTCG_LOAD_VK_DEVICE_EXT_FN(device, vkCmdBeginRenderPass2KHR);
+        FASTCG_LOAD_VK_DEVICE_EXT_FN(device, vkCmdEndRenderPass2KHR);
     }
 
 #undef FASTCG_LOAD_VK_DEVICE_EXT_FN
@@ -193,6 +196,24 @@ namespace
 
 namespace FastCG
 {
+#define FASTCG_IMPL_VK_EXT_FN(fn) PFN_##fn fn = nullptr
+
+    namespace VkExt
+    {
+        FASTCG_IMPL_VK_EXT_FN(vkCreateRenderPass2KHR);
+        FASTCG_IMPL_VK_EXT_FN(vkCmdBeginRenderPass2KHR);
+        FASTCG_IMPL_VK_EXT_FN(vkCmdEndRenderPass2KHR);
+#if _DEBUG
+        FASTCG_IMPL_VK_EXT_FN(vkCreateDebugUtilsMessengerEXT);
+        FASTCG_IMPL_VK_EXT_FN(vkDestroyDebugUtilsMessengerEXT);
+        FASTCG_IMPL_VK_EXT_FN(vkCmdBeginDebugUtilsLabelEXT);
+        FASTCG_IMPL_VK_EXT_FN(vkCmdEndDebugUtilsLabelEXT);
+        FASTCG_IMPL_VK_EXT_FN(vkSetDebugUtilsObjectNameEXT);
+#endif
+    }
+
+#undef FASTCG_IMPL_VK_EXT_FN
+
     VulkanGraphicsSystem::VulkanGraphicsSystem(const GraphicsSystemArgs &rArgs) : BaseGraphicsSystem(rArgs)
     {
     }
@@ -207,6 +228,7 @@ namespace FastCG
         CreateSurface();
         SelectPhysicalDevice();
         AcquirePhysicalDeviceProperties();
+        AcquirePhysicalDeviceSurfaceProperties();
         CreateDeviceAndGetQueues();
         CreateAllocator();
         CreateSynchronizationObjects();
@@ -252,12 +274,12 @@ namespace FastCG
         VkApplicationInfo applicationInfo;
         applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         applicationInfo.pNext = nullptr;
-        applicationInfo.pApplicationName = "";
+        applicationInfo.pApplicationName = FASTCG_PROJECT_NAME;
         // TODO: provide a mechanism for users to specify their app versions
         applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         applicationInfo.pEngineName = "FastCG";
         applicationInfo.engineVersion = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
-        applicationInfo.apiVersion = VK_API_VERSION_1_3;
+        applicationInfo.apiVersion = VK_API_VERSION;
 
 #if _DEBUG
         uint32_t availableLayerCount;
@@ -265,10 +287,10 @@ namespace FastCG
         std::vector<VkLayerProperties> availableLayers(availableLayerCount);
         vkEnumerateInstanceLayerProperties(&availableLayerCount, &availableLayers[0]);
 
-        std::cout << "Available layers:" << std::endl;
+        FASTCG_LOG_DEBUG("Available layers:");
         for (const auto &rLayer : availableLayers)
         {
-            std::cout << rLayer.layerName << std::endl;
+            FASTCG_LOG_DEBUG("- %s", rLayer.layerName);
         }
 #endif
 
@@ -280,7 +302,7 @@ namespace FastCG
         }
         else
         {
-            std::cout << "VK_LAYER_KHRONOS_validation not available, ignoring it" << std::endl;
+            FASTCG_LOG_DEBUG("VK_LAYER_KHRONOS_validation not available, ignoring it");
         }
 #endif
 
@@ -290,26 +312,26 @@ namespace FastCG
         vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, &availableExtensions[0]);
 
 #if _DEBUG
-        std::cout << "Available extensions:" << std::endl;
+        FASTCG_LOG_DEBUG("Available extensions:");
         for (const auto &rExtension : availableExtensions)
         {
-            std::cout << rExtension.extensionName << std::endl;
+            FASTCG_LOG_DEBUG("- %s", rExtension.extensionName);
         }
 #endif
-
-        std::vector<const char *> extensions;
 
         if (!Contains(availableExtensions, "VK_KHR_surface"))
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't find VK_KHR_surface extension");
         }
-        extensions.emplace_back("VK_KHR_surface");
+        mInstanceExtensions.emplace_back("VK_KHR_surface");
 
         const char *platformSurfaceExtName =
 #if defined FASTCG_WINDOWS
             "VK_KHR_win32_surface"
 #elif defined FASTCG_LINUX
             VK_KHR_XLIB_SURFACE_EXTENSION_NAME
+#elif defined FASTCG_ANDROID
+            "VK_KHR_android_surface"
 #else
 #error "FASTCG: Don't know how to enable surfaces in the current platform"
 #endif
@@ -318,14 +340,17 @@ namespace FastCG
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't find platform surface extension");
         }
-        extensions.emplace_back(platformSurfaceExtName);
+        mInstanceExtensions.emplace_back(platformSurfaceExtName);
 
 #if _DEBUG
-        if (!Contains(availableExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        if (Contains(availableExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't find debug utils extension");
+            mInstanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
-        extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        else
+        {
+            FASTCG_LOG_DEBUG("VK_EXT_DEBUG_UTILS_EXTENSION_NAME not available, ignoring it");
+        }
 #endif
 
         VkInstanceCreateInfo instanceCreateInfo;
@@ -335,29 +360,32 @@ namespace FastCG
         instanceCreateInfo.pApplicationInfo = &applicationInfo;
         instanceCreateInfo.enabledLayerCount = (uint32_t)usedLayers.size();
         instanceCreateInfo.ppEnabledLayerNames = usedLayers.empty() ? nullptr : &usedLayers[0];
-        instanceCreateInfo.enabledExtensionCount = (uint32_t)extensions.size();
-        instanceCreateInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : &extensions[0];
+        instanceCreateInfo.enabledExtensionCount = (uint32_t)mInstanceExtensions.size();
+        instanceCreateInfo.ppEnabledExtensionNames = mInstanceExtensions.empty() ? nullptr : &mInstanceExtensions[0];
 
         FASTCG_CHECK_VK_RESULT(vkCreateInstance(&instanceCreateInfo, mAllocationCallbacks.get(), &mInstance));
 
-        LoadVulkanInstanceExtensionFunctions(mInstance);
+        LoadVulkanInstanceExtensionFunctions(mInstance, mInstanceExtensions);
 
 #if _DEBUG
-        VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo;
-        debugUtilsMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugUtilsMessengerCreateInfo.pNext = nullptr;
-        debugUtilsMessengerCreateInfo.flags = 0;
-        debugUtilsMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugUtilsMessengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                                    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debugUtilsMessengerCreateInfo.pfnUserCallback = VulkanDebugCallback;
-        debugUtilsMessengerCreateInfo.pUserData = nullptr;
+        if (Contains(mInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        {
+            VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo;
+            debugUtilsMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+            debugUtilsMessengerCreateInfo.pNext = nullptr;
+            debugUtilsMessengerCreateInfo.flags = 0;
+            debugUtilsMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                                                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+            debugUtilsMessengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                                        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                                        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+            debugUtilsMessengerCreateInfo.pfnUserCallback = VulkanDebugCallback;
+            debugUtilsMessengerCreateInfo.pUserData = nullptr;
 
-        FASTCG_CHECK_VK_RESULT(VkExt::vkCreateDebugUtilsMessengerEXT(mInstance, &debugUtilsMessengerCreateInfo, mAllocationCallbacks.get(), &mDebugMessenger));
+            FASTCG_CHECK_VK_RESULT(VkExt::vkCreateDebugUtilsMessengerEXT(mInstance, &debugUtilsMessengerCreateInfo, mAllocationCallbacks.get(), &mDebugMessenger));
+        }
 #endif
     }
 
@@ -382,6 +410,17 @@ namespace FastCG
         assert(surfaceCreateInfo.dpy != nullptr);
         surfaceCreateInfo.window = X11Application::GetInstance()->CreateSimpleWindow();
         FASTCG_CHECK_VK_RESULT(vkCreateXlibSurfaceKHR(mInstance, &surfaceCreateInfo, mAllocationCallbacks.get(), &mSurface));
+#elif defined FASTCG_ANDROID
+        auto *pWindow = AndroidApplication::GetInstance()->GetWindow();
+        if (pWindow != nullptr)
+        {
+            VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo;
+            surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+            surfaceCreateInfo.pNext = NULL;
+            surfaceCreateInfo.flags = 0;
+            surfaceCreateInfo.window = pWindow;
+            FASTCG_CHECK_VK_RESULT(vkCreateAndroidSurfaceKHR(mInstance, &surfaceCreateInfo, mAllocationCallbacks.get(), &mSurface));
+        }
 #else
 #error "FASTCG: Don't know how to create presentation surface"
 #endif
@@ -397,12 +436,12 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkEnumeratePhysicalDevices(mInstance, &numPhysicalDevices, &physicalDevices[0]));
 
 #if _DEBUG
-        std::cout << "Devices:" << std::endl;
+        FASTCG_LOG_DEBUG("Devices:");
         for (auto &rPhysicalDevice : physicalDevices)
         {
             VkPhysicalDeviceProperties properties;
             vkGetPhysicalDeviceProperties(rPhysicalDevice, &properties);
-            std::cout << properties.deviceName << std::endl;
+            FASTCG_LOG_DEBUG("- %s", properties.deviceName);
         }
 #endif
 
@@ -452,7 +491,7 @@ namespace FastCG
         allocatorCreateInfo.pHeapSizeLimit = nullptr;
         allocatorCreateInfo.pVulkanFunctions = nullptr;
         allocatorCreateInfo.instance = mInstance;
-        allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+        allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION;
         FASTCG_CHECK_VK_RESULT(vmaCreateAllocator(&allocatorCreateInfo, &mAllocator));
     }
 
@@ -465,6 +504,14 @@ namespace FastCG
         for (VkFormat format = VK_FORMAT_UNDEFINED; format < LAST_FORMAT; format = (VkFormat)(((size_t)format) + 1))
         {
             vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &mFormatProperties[format]);
+        }
+    }
+
+    void VulkanGraphicsSystem::AcquirePhysicalDeviceSurfaceProperties()
+    {
+        if (mSurface == VK_NULL_HANDLE)
+        {
+            return;
         }
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -530,9 +577,10 @@ namespace FastCG
         deviceQueueCreateInfo.queueCount = 1;
         deviceQueueCreateInfo.pQueuePriorities = sc_queuePriorities;
 
-        std::vector<const char *> extensions;
+        // TODO: check available extensions
 
-        extensions.push_back("VK_KHR_swapchain");
+        mDeviceExtensions.push_back("VK_KHR_swapchain");
+        mDeviceExtensions.push_back("VK_KHR_create_renderpass2");
 
         VkDeviceCreateInfo deviceCreateInfo;
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -540,13 +588,15 @@ namespace FastCG
         deviceCreateInfo.flags = 0;
         deviceCreateInfo.queueCreateInfoCount = queueCount;
         deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfos[0];
-        deviceCreateInfo.enabledExtensionCount = (uint32_t)extensions.size();
-        deviceCreateInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : &extensions[0];
+        deviceCreateInfo.enabledExtensionCount = (uint32_t)mDeviceExtensions.size();
+        deviceCreateInfo.ppEnabledExtensionNames = mDeviceExtensions.empty() ? nullptr : &mDeviceExtensions[0];
         deviceCreateInfo.enabledLayerCount = 0;
         deviceCreateInfo.ppEnabledLayerNames = nullptr;
         deviceCreateInfo.pEnabledFeatures = nullptr;
 
         FASTCG_CHECK_VK_RESULT(vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, mAllocationCallbacks.get(), &mDevice));
+
+        LoadVulkanDeviceExtensionFunctions(mDevice);
 
         vkGetDeviceQueue(mDevice, mGraphicsAndPresentQueueFamilyIndex, 0, &mGraphicsAndPresentQueue);
     }
@@ -554,6 +604,11 @@ namespace FastCG
     void VulkanGraphicsSystem::RecreateSwapChainAndGetImages()
     {
         DestroySwapChainAndClearImages();
+
+        if (mSurface == VK_NULL_HANDLE)
+        {
+            return;
+        }
 
         VkSwapchainCreateInfoKHR swapChainCreateInfo;
         swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -880,7 +935,10 @@ namespace FastCG
         if (mInstance != VK_NULL_HANDLE)
         {
 #if _DEBUG
-            VkExt::vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
+            if (Contains(mInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+            {
+                VkExt::vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
+            }
 #endif
 
             vkDestroyInstance(mInstance, mAllocationCallbacks.get());
@@ -890,15 +948,20 @@ namespace FastCG
 
     void VulkanGraphicsSystem::Present()
     {
-        auto imageMemoryTransition = GetLastImageMemoryTransition(GetCurrentSwapChainTexture());
-        if (imageMemoryTransition.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+#if defined FASTCG_ANDROID
+        if (!IsHeadless() && !AndroidApplication::GetInstance()->IsPaused())
+#endif
         {
-            GetImmediateGraphicsContext()->AddTextureMemoryBarrier(GetCurrentSwapChainTexture(),
-                                                                   VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                                   imageMemoryTransition.accessMask,
-                                                                   0,
-                                                                   imageMemoryTransition.stageMask,
-                                                                   VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+            auto imageMemoryTransition = GetLastImageMemoryTransition(GetCurrentSwapChainTexture());
+            if (imageMemoryTransition.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            {
+                GetImmediateGraphicsContext()->AddTextureMemoryBarrier(GetCurrentSwapChainTexture(),
+                                                                       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                                       imageMemoryTransition.accessMask,
+                                                                       0,
+                                                                       imageMemoryTransition.stageMask,
+                                                                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+            }
         }
 
         GetImmediateGraphicsContext()->End();
@@ -909,9 +972,20 @@ namespace FastCG
         VkSubmitInfo submitInfo;
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext = nullptr;
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &mAcquireSwapChainImageSemaphores[mCurrentFrame];
-        submitInfo.pWaitDstStageMask = &waitDstStageMask;
+#if defined FASTCG_ANDROID
+        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+        {
+            submitInfo.waitSemaphoreCount = 0;
+            submitInfo.pWaitSemaphores = nullptr;
+            submitInfo.pWaitDstStageMask = nullptr;
+        }
+        else
+#endif
+        {
+            submitInfo.waitSemaphoreCount = 1;
+            submitInfo.pWaitSemaphores = &mAcquireSwapChainImageSemaphores[mCurrentFrame];
+            submitInfo.pWaitDstStageMask = &waitDstStageMask;
+        }
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
         submitInfo.signalSemaphoreCount = 1;
@@ -921,29 +995,34 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't submit commands");
         }
 
-        VkPresentInfoKHR presentInfo;
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.pNext = nullptr;
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = &mSubmitFinishedSemaphores[mCurrentFrame];
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = &mSwapChain;
-        presentInfo.pImageIndices = &mSwapChainIndex;
-        presentInfo.pResults = nullptr;
-
         bool outdatedSwapchain = false;
-        auto result = vkQueuePresentKHR(mGraphicsAndPresentQueue, &presentInfo);
-        switch (result)
+#if defined FASTCG_ANDROID
+        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+#endif
         {
-        case VK_SUCCESS:
-        case VK_SUBOPTIMAL_KHR:
-            break;
-        case VK_ERROR_OUT_OF_DATE_KHR:
-            outdatedSwapchain = true;
-            break;
-        default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't present");
-            break;
+            VkPresentInfoKHR presentInfo;
+            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            presentInfo.pNext = nullptr;
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pWaitSemaphores = &mSubmitFinishedSemaphores[mCurrentFrame];
+            presentInfo.swapchainCount = 1;
+            presentInfo.pSwapchains = &mSwapChain;
+            presentInfo.pImageIndices = &mSwapChainIndex;
+            presentInfo.pResults = nullptr;
+
+            auto result = vkQueuePresentKHR(mGraphicsAndPresentQueue, &presentInfo);
+            switch (result)
+            {
+            case VK_SUCCESS:
+            case VK_SUBOPTIMAL_KHR:
+                break;
+            case VK_ERROR_OUT_OF_DATE_KHR:
+                outdatedSwapchain = true;
+                break;
+            default:
+                FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't present");
+                break;
+            }
         }
 
         mCurrentFrame = (mCurrentFrame + 1) % mMaxSimultaneousFrames;
@@ -971,13 +1050,18 @@ namespace FastCG
 
         GetImmediateGraphicsContext()->Begin();
 
-        if (outdatedSwapchain)
+#if defined FASTCG_ANDROID
+        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+#endif
         {
-            RecreateSwapChainAndGetImages();
-        }
-        else
-        {
-            AcquireNextSwapChainImage();
+            if (outdatedSwapchain)
+            {
+                RecreateSwapChainAndGetImages();
+            }
+            else
+            {
+                AcquireNextSwapChainImage();
+            }
         }
     }
 
@@ -1066,8 +1150,8 @@ namespace FastCG
             return {it->first, it->second};
         }
 
-        VkRenderPassCreateInfo2 renderPassCreateInfo;
-        renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
+        VkRenderPassCreateInfo2KHR renderPassCreateInfo;
+        renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2_KHR;
         renderPassCreateInfo.pNext = nullptr;
         renderPassCreateInfo.flags = 0;
         renderPassCreateInfo.dependencyCount = 0;
@@ -1075,8 +1159,8 @@ namespace FastCG
         renderPassCreateInfo.correlatedViewMaskCount = 0;
         renderPassCreateInfo.pCorrelatedViewMasks = nullptr;
 
-        VkSubpassDescription2 subpassDescription;
-        subpassDescription.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
+        VkSubpassDescription2KHR subpassDescription;
+        subpassDescription.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2_KHR;
         subpassDescription.pNext = nullptr;
         subpassDescription.flags = 0;
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -1090,8 +1174,8 @@ namespace FastCG
         renderPassCreateInfo.subpassCount = 1;
         renderPassCreateInfo.pSubpasses = &subpassDescription;
 
-        std::vector<VkAttachmentDescription2> attachmentDescriptions;
-        std::vector<VkAttachmentReference2> colorAttachmentReferences;
+        std::vector<VkAttachmentDescription2KHR> attachmentDescriptions;
+        std::vector<VkAttachmentReference2KHR> colorAttachmentReferences;
 
         subpassDescription.pDepthStencilAttachment = nullptr;
 
@@ -1108,7 +1192,7 @@ namespace FastCG
 
             attachmentDescriptions.emplace_back();
             auto &rAttachmentDescription = attachmentDescriptions.back();
-            rAttachmentDescription.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
+            rAttachmentDescription.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2_KHR;
             rAttachmentDescription.pNext = nullptr;
             rAttachmentDescription.flags = 0;
             rAttachmentDescription.format = pRenderTarget->GetVulkanFormat();
@@ -1122,14 +1206,14 @@ namespace FastCG
 
             colorAttachmentReferences.emplace_back();
             auto &rColorAttachmentReference = colorAttachmentReferences.back();
-            rColorAttachmentReference.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+            rColorAttachmentReference.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
             rColorAttachmentReference.pNext = nullptr;
             rColorAttachmentReference.attachment = attachmentIdx;
             rColorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             rColorAttachmentReference.aspectMask = pRenderTarget->GetAspectFlags();
         }
 
-        VkAttachmentReference2 depthAttachmentReference;
+        VkAttachmentReference2KHR depthAttachmentReference;
         if (rRenderPassDescription.pDepthStencilBuffer != nullptr)
         {
             auto attachmentIdx = (uint32_t)attachmentDescriptions.size();
@@ -1138,7 +1222,7 @@ namespace FastCG
 
             attachmentDescriptions.emplace_back();
             auto &rAttachmentDescription = attachmentDescriptions.back();
-            rAttachmentDescription.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2;
+            rAttachmentDescription.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2_KHR;
             rAttachmentDescription.pNext = nullptr;
             rAttachmentDescription.flags = 0;
             rAttachmentDescription.format = rRenderPassDescription.pDepthStencilBuffer->GetVulkanFormat();
@@ -1158,7 +1242,7 @@ namespace FastCG
                 finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
 
-            depthAttachmentReference.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+            depthAttachmentReference.sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
             depthAttachmentReference.pNext = nullptr;
             depthAttachmentReference.attachment = attachmentIdx;
             depthAttachmentReference.layout = initialLayout;
@@ -1186,10 +1270,10 @@ namespace FastCG
         subpassDescription.pColorAttachments = colorAttachmentReferences.empty() ? nullptr : &colorAttachmentReferences[0];
 
         VkRenderPass renderPass;
-        FASTCG_CHECK_VK_RESULT(vkCreateRenderPass2(mDevice,
-                                                   &renderPassCreateInfo,
-                                                   mAllocationCallbacks.get(),
-                                                   &renderPass));
+        FASTCG_CHECK_VK_RESULT(VkExt::vkCreateRenderPass2KHR(mDevice,
+                                                             &renderPassCreateInfo,
+                                                             mAllocationCallbacks.get(),
+                                                             &renderPass));
 
         it = mRenderPasses.emplace(renderPassHash, renderPass).first;
 
@@ -1467,7 +1551,7 @@ namespace FastCG
 
         VkPipeline pipeline;
         FASTCG_CHECK_VK_RESULT(vkCreateGraphicsPipelines(mDevice,
-                                                         nullptr,
+                                                         VK_NULL_HANDLE,
                                                          1,
                                                          &pipelineCreateInfo,
                                                          mAllocationCallbacks.get(),
@@ -1497,7 +1581,7 @@ namespace FastCG
             }
             else
             {
-                setLayouts.emplace_back(VK_NULL_HANDLE);
+                setLayouts.emplace_back(nullptr);
             }
         }
 
@@ -1603,6 +1687,11 @@ namespace FastCG
 #ifdef _DEBUG
     void VulkanGraphicsSystem::PushDebugMarker(VkCommandBuffer commandBuffer, const char *pName)
     {
+        if (!Contains(mInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        {
+            return;
+        }
+
         VkDebugUtilsLabelEXT debugLabel;
         debugLabel.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
         debugLabel.pNext = nullptr;
@@ -1616,11 +1705,21 @@ namespace FastCG
 
     void VulkanGraphicsSystem::PopDebugMarker(VkCommandBuffer commandBuffer)
     {
+        if (!Contains(mInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        {
+            return;
+        }
+
         VkExt::vkCmdEndDebugUtilsLabelEXT(commandBuffer);
     }
 
     void VulkanGraphicsSystem::SetObjectName(const char *pObjectName, VkObjectType objectType, uint64_t objectHandle)
     {
+        if (!Contains(mInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        {
+            return;
+        }
+
         VkDebugUtilsObjectNameInfoEXT debugUtilsObjectNameInfo;
         debugUtilsObjectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
         debugUtilsObjectNameInfo.pNext = nullptr;
@@ -1685,6 +1784,26 @@ namespace FastCG
         }
         mDeferredDestroyRequests.clear();
     }
+
+#if defined FASTCG_ANDROID
+    void VulkanGraphicsSystem::OnWindowInitialized()
+    {
+        CreateSurface();
+        AcquirePhysicalDeviceSurfaceProperties();
+        RecreateSwapChainAndGetImages();
+    }
+
+    void VulkanGraphicsSystem::OnWindowTerminated()
+    {
+        mPreTransform = (VkSurfaceTransformFlagBitsKHR)0;
+        mPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+        mSwapChainSurfaceFormat = {};
+        mMaxSimultaneousFrames = 1;
+        mCurrentFrame = 0;
+        DestroySwapChainAndClearImages();
+        DestroySurface();
+    }
+#endif
 }
 
 #endif

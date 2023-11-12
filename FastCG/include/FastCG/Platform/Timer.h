@@ -5,7 +5,7 @@
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 #include <time.h>
 #endif
 
@@ -30,7 +30,7 @@ namespace FastCG
 			}
 			else
 			{
-				FASTCG_THROW_EXCEPTION(Exception, "Cannot query performance counter: %d", 0);
+				FASTCG_THROW_EXCEPTION(Exception, "Couldn't query performance counter: %d", 0);
 				return 0;
 			}
 		}
@@ -65,11 +65,11 @@ namespace FastCG
 			}
 			else
 			{
-				FASTCG_THROW_EXCEPTION(Exception, "Cannot query performance counter frequency: %d", 0);
+				FASTCG_THROW_EXCEPTION(Exception, "Couldn't query performance counter frequency: %d", 0);
 			}
 		}
 	};
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 	class Timer
 	{
 	public:

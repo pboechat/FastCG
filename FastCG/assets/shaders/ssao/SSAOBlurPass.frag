@@ -1,9 +1,3 @@
-#version 430 core
-
-#ifdef ENABLE_INCLUDE_EXTENSION_DIRECTIVE
-#extension GL_GOOGLE_include_directive : enable 
-#endif
-
 #define NOISE_TEXTURE_SIDE 4
 #define NOISE_TEXTURE_SIZE 16
 
@@ -17,11 +11,11 @@ layout(location = 0) out float oAmbientOcclusion;
 
 void main()
 {
-	vec2 texelSize = 1.0 / textureSize(uAmbientOcclusionMap, 0);
+	vec2 texelSize = 1.0 / vec2(textureSize(uAmbientOcclusionMap, 0));
 
 	// simple mean filter
-	float result = 0;
-	vec2 stride = vec2(-NOISE_TEXTURE_SIDE * 0.5);
+	float result = 0.0;
+	vec2 stride = vec2(float(-NOISE_TEXTURE_SIDE) * 0.5);
 	for (int x = 0; x < NOISE_TEXTURE_SIDE; x++) 
 	{
 		for (int y = 0; y < NOISE_TEXTURE_SIDE; y++) 
@@ -34,5 +28,5 @@ void main()
 		}
 	}
 
-	oAmbientOcclusion = result / NOISE_TEXTURE_SIZE;
+	oAmbientOcclusion = result / float(NOISE_TEXTURE_SIZE);
 }

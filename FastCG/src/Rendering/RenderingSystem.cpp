@@ -70,12 +70,12 @@ namespace FastCG
         ImGui::Render();
         auto *pImDrawData = ImGui::GetDrawData();
 
-        mpGraphicsContext->Begin();
+        if (mpGraphicsContext->Begin())
         {
             mpWorldRenderer->Render(pMainCamera, mpGraphicsContext);
             mpImGuiRenderer->Render(pImDrawData, mpGraphicsContext);
+            mpGraphicsContext->End();
         }
-        mpGraphicsContext->End();
     }
 
     void RenderingSystem::Finalize()

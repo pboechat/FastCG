@@ -15,6 +15,8 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif defined FASTCG_LINUX
 #define VK_USE_PLATFORM_XLIB_KHR
+#elif defined FASTCG_ANDROID
+#define VK_USE_PLATFORM_ANDROID_KHR
 #else
 #error "FASTCG: Unhandled platform"
 #endif
@@ -29,6 +31,14 @@
 #endif
 
 #include <vk_mem_alloc.h>
+
+#if defined VK_VERSION_1_3
+#define VK_API_VERSION VK_API_VERSION_1_3;
+#elif defined VK_VERSION_1_1
+#define VK_API_VERSION VK_API_VERSION_1_1;
+#else
+#error "FastCG: Unexpected Vulkan API version"
+#endif
 
 #endif
 

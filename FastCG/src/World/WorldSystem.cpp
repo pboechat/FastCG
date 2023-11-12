@@ -26,15 +26,15 @@
         m##className##s.emplace_back(static_cast<className *>(component)); \
     }
 
-#define FASTCG_UNTRACK_COMPONENT(className, component)                                  \
-    if (component->GetType().IsDerived(className::TYPE))                                \
-    {                                                                                   \
-        auto it = std::find(m##className##s.begin(), m##className##s.end(), component); \
-        if (it == m##className##s.end())                                                \
-        {                                                                               \
-            FASTCG_THROW_EXCEPTION(Exception, "Error unregistering: %s", #className);   \
-        }                                                                               \
-        m##className##s.erase(it);                                                      \
+#define FASTCG_UNTRACK_COMPONENT(className, component)                                                   \
+    if (component->GetType().IsDerived(className::TYPE))                                                 \
+    {                                                                                                    \
+        auto it = std::find(m##className##s.begin(), m##className##s.end(), component);                  \
+        if (it == m##className##s.end())                                                                 \
+        {                                                                                                \
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't untrack component (component: %s)", #className); \
+        }                                                                                                \
+        m##className##s.erase(it);                                                                       \
     }
 
 namespace

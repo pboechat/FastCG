@@ -29,7 +29,7 @@ namespace
         auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Missing bunny model");
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't find bunny model");
         }
 
         const auto &bounds = pModel->GetBounds();
@@ -89,3 +89,5 @@ void PCSSApplication::OnStart()
     auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
     Controls::Instantiate(pGeneralBehavioursGameObject);
 }
+
+FASTCG_MAIN(PCSSApplication)

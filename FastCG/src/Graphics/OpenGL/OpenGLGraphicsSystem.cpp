@@ -1,10 +1,6 @@
 #ifdef FASTCG_OPENGL
 
-#if defined FASTCG_WINDOWS
-#include <FastCG/Platform/Windows/WindowsApplication.h>
-#elif defined FASTCG_LINUX
-#include <FastCG/Platform/Linux/X11Application.h>
-#endif
+#include <FastCG/Platform/Application.h>
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
@@ -16,17 +12,74 @@
 #include <X11/extensions/Xrender.h>
 #endif
 
+#include <stdio.h>
 #include <iostream>
 #include <algorithm>
 
 namespace
 {
-#ifdef FASTCG_LINUX
+#if defined FASTCG_LINUX
     int GLXContextErrorHandler(Display *dpy, XErrorEvent *ev)
     {
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error creating GLX context (error_code: %d)", ev->error_code);
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't create the GLX context (error: %d)", ev->error_code);
         return 0;
     }
+#elif defined FASTCG_ANDROID
+    inline const char *eglGetErrorString(EGLint error)
+    {
+#ifdef CASE_RETURN_STRING
+#undef CASE_RETURN_STRING
+#endif
+
+#define CASE_RETURN_STRING(str) \
+    case str:                   \
+        return #str
+
+        switch (error)
+        {
+            CASE_RETURN_STRING(EGL_SUCCESS);
+            CASE_RETURN_STRING(EGL_NOT_INITIALIZED);
+            CASE_RETURN_STRING(EGL_BAD_ACCESS);
+            CASE_RETURN_STRING(EGL_BAD_ALLOC);
+            CASE_RETURN_STRING(EGL_BAD_ATTRIBUTE);
+            CASE_RETURN_STRING(EGL_BAD_CONTEXT);
+            CASE_RETURN_STRING(EGL_BAD_CONFIG);
+            CASE_RETURN_STRING(EGL_BAD_CURRENT_SURFACE);
+            CASE_RETURN_STRING(EGL_BAD_DISPLAY);
+            CASE_RETURN_STRING(EGL_BAD_SURFACE);
+            CASE_RETURN_STRING(EGL_BAD_MATCH);
+            CASE_RETURN_STRING(EGL_BAD_PARAMETER);
+            CASE_RETURN_STRING(EGL_BAD_NATIVE_PIXMAP);
+            CASE_RETURN_STRING(EGL_BAD_NATIVE_WINDOW);
+            CASE_RETURN_STRING(EGL_CONTEXT_LOST);
+        default:
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "EGL: Unhandled error %d", (int)error);
+            return nullptr;
+        }
+
+#undef CASE_RETURN_STRING
+    }
+
+#ifdef _DEBUG
+#define FASTCG_CHECK_EGL_ERROR(fmt, ...)                                                                  \
+    {                                                                                                     \
+        EGLint __error;                                                                                   \
+        if ((__error = eglGetError()) != EGL_SUCCESS)                                                     \
+        {                                                                                                 \
+            char msg[4096];                                                                               \
+            sprintf(msg, fmt, ##__VA_ARGS__);                                                             \
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "%s (error: %s)", msg, eglGetErrorString(__error)); \
+        }                                                                                                 \
+    }
+#else
+#define FASTCG_CHECK_EGL_ERROR(...)
+#endif
+
+    const EGLint EGL_CONTEXT_ATTRIBS[] = {
+        EGL_CONTEXT_MAJOR_VERSION, 3,
+        EGL_CONTEXT_MINOR_VERSION, 2,
+        EGL_NONE};
+
 #endif
 
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam)
@@ -39,7 +92,6 @@ namespace
                   << " - " << message
                   << std::endl;
     }
-
 }
 
 namespace FastCG
@@ -54,13 +106,15 @@ namespace FastCG
     {
         BaseGraphicsSystem::OnInitialize();
 
+#if !defined FASTCG_ANDROID
         InitializeGlew();
+#endif
 
         CreateOpenGLContext();
 
 #ifdef _DEBUG
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallbackARB(OpenGLDebugCallback, nullptr);
+        glDebugMessageCallback(OpenGLDebugCallback, nullptr);
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
 #endif
@@ -172,12 +226,10 @@ namespace FastCG
             glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()), *pDepthStencilBuffer, 0);
         }
 
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId);
-
-        auto status = glCheckNamedFramebufferStatusEXT(fboId, GL_DRAW_FRAMEBUFFER);
+        auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE)
         {
-            FASTCG_THROW_EXCEPTION(OpenGLException, "Error creating FBO: 0x%x\n", status);
+            FASTCG_THROW_EXCEPTION(OpenGLException, "Couldn't create FBO: 0x%x\n", status);
         }
 
         mFboIds.emplace(fboHash, fboId);
@@ -189,6 +241,8 @@ namespace FastCG
         {
             mTextureToFboHashes[*pDepthStencilBuffer].emplace_back(fboHash);
         }
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId);
 
         return fboId;
     }
@@ -235,6 +289,7 @@ namespace FastCG
         return vaoId;
     }
 
+#if !defined FASTCG_ANDROID
     void OpenGLGraphicsSystem::InitializeGlew()
     {
 #if defined FASTCG_WINDOWS
@@ -264,18 +319,18 @@ namespace FastCG
         auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
         if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
         {
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Error setting current pixel format");
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "WGL: Couldn't set the current pixel format");
         }
 
         mHGLRC = wglCreateContext(mHDC);
         if (mHGLRC == 0)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error creating a temporary WGL context");
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: Couldn't create the temporary WGL context");
         }
 
         if (!wglMakeCurrent(mHDC, mHGLRC))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error making a temporary WGL context current");
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: Couldn't make the temporary WGL context current");
         }
 #elif defined FASTCG_LINUX
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
@@ -302,9 +357,10 @@ namespace FastCG
         GLenum glewInitRes;
         if ((glewInitRes = glewInit()) != GLEW_OK)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error intializing Glew: %s", glewGetErrorString(glewInitRes));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't initialize Glew: %s", glewGetErrorString(glewInitRes));
         }
     }
+#endif
 
     void OpenGLGraphicsSystem::CreateOpenGLContext()
     {
@@ -325,12 +381,12 @@ namespace FastCG
         mHGLRC = wglCreateContextAttribsARB(mHDC, mHGLRC, attribs);
         if (mHGLRC == 0)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error creating the WGL context");
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: Couldn't create the WGL context");
         }
 
         if (!wglMakeCurrent(mHDC, mHGLRC))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error making the WGL context current");
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: Couldn't make the WGL context current");
         }
 
         wglDeleteContext(oldHGLRC);
@@ -401,7 +457,7 @@ namespace FastCG
 
         if (fbConfig == nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "No matching framebuffer config");
+            FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't find an appropriate framebuffer configuration");
         }
 
         auto &rWindow = X11Application::GetInstance()->CreateWindow(pVisualInfo);
@@ -416,17 +472,60 @@ namespace FastCG
 
         if (mpRenderContext == nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error creating the GLX context");
+            FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't create the GLX context");
         }
 
         XSync(pDisplay, False);
 
         if (!glXMakeContextCurrent(pDisplay, rWindow, rWindow, mpRenderContext))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Error making the GLX context current");
+            FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't make the GLX context current");
         }
 
         glXSwapIntervalEXT(pDisplay, rWindow, mArgs.vsync ? 1 : 0);
+#elif defined FASTCG_ANDROID
+        mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if (!eglInitialize(mDisplay, 0, 0))
+        {
+            FASTCG_CHECK_EGL_ERROR("EGL: Couldn't initialize EGL");
+        }
+
+        const EGLint configAttribs[] = {
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_BLUE_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_RED_SIZE, 8,
+            EGL_ALPHA_SIZE, 8,
+            EGL_NONE};
+
+        EGLint numConfigs;
+        if (!eglChooseConfig(mDisplay, configAttribs, &mConfig, 1, &numConfigs))
+        {
+            FASTCG_CHECK_EGL_ERROR("EGL: Couldn't find an appropriate EGL configuration");
+        }
+
+        mHeadlessContext = eglCreateContext(mDisplay, mConfig, EGL_NO_CONTEXT, EGL_CONTEXT_ATTRIBS);
+        if (mHeadlessContext == EGL_NO_CONTEXT)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "EGL: Couldn't create the headless EGL context");
+        }
+
+        const EGLint pbufferAttribs[] = {
+            EGL_WIDTH, 1,
+            EGL_HEIGHT, 1,
+            EGL_NONE};
+
+        mPbufferSurface = eglCreatePbufferSurface(mDisplay, mConfig, pbufferAttribs);
+        if (mPbufferSurface == EGL_NO_SURFACE)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "EGL: Couldn't create the Pbuffer EGL surface");
+        }
+
+        if (!eglMakeCurrent(mDisplay, mPbufferSurface, mPbufferSurface, mHeadlessContext))
+        {
+            FASTCG_CHECK_EGL_ERROR("EGL: Couldn't make the headless EGL context current");
+        }
 #else
 #error FastCG::OpenGLRenderingSystem::CreateOpenGLContext() is not implemented on the current platform
 #endif
@@ -468,6 +567,35 @@ namespace FastCG
 
             mpRenderContext = nullptr;
         }
+#elif defined FASTCG_ANDROID
+        if (mDisplay != nullptr)
+        {
+            if (mWindowSurface != EGL_NO_SURFACE)
+            {
+                eglDestroySurface(mDisplay, mWindowSurface);
+
+                mWindowSurface = EGL_NO_SURFACE;
+            }
+            if (mHeadedContext != EGL_NO_CONTEXT)
+            {
+                eglDestroyContext(mDisplay, mHeadedContext);
+
+                mHeadedContext = EGL_NO_CONTEXT;
+            }
+            if (mPbufferSurface != EGL_NO_SURFACE)
+            {
+                eglDestroyContext(mDisplay, mPbufferSurface);
+
+                mPbufferSurface = EGL_NO_SURFACE;
+            }
+            if (mHeadlessContext != EGL_NO_CONTEXT)
+            {
+                eglDestroyContext(mDisplay, mHeadlessContext);
+
+                mHeadlessContext = EGL_NO_CONTEXT;
+            }
+            eglTerminate(mDisplay);
+        }
 #else
 #error "FastCG::OpenGLRenderingSystem::DestroyOpenGLContext() is not implemented on the current platform"
 #endif
@@ -481,6 +609,12 @@ namespace FastCG
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         auto &rWindow = X11Application::GetInstance()->GetWindow();
         glXSwapBuffers(pDisplay, rWindow);
+#elif defined FASTCG_ANDROID
+        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+        {
+            return;
+        }
+        eglSwapBuffers(mDisplay, mWindowSurface);
 #else
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
 #endif
@@ -505,6 +639,51 @@ namespace FastCG
         return 0;
 #endif
     }
+
+#if defined FASTCG_ANDROID
+    void OpenGLGraphicsSystem::OnWindowInitialized()
+    {
+        assert(mHeadlessContext != EGL_NO_CONTEXT);
+        assert(mHeadedContext == EGL_NO_CONTEXT);
+        assert(mWindowSurface == EGL_NO_SURFACE);
+
+        auto *pWindow = AndroidApplication::GetInstance()->GetWindow();
+        assert(pWindow != nullptr);
+
+        mHeadedContext = eglCreateContext(mDisplay, mConfig, mHeadlessContext, EGL_CONTEXT_ATTRIBS);
+        if (mHeadedContext == EGL_NO_CONTEXT)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create the headed EGL context");
+        }
+
+        mWindowSurface = eglCreateWindowSurface(mDisplay, mConfig, pWindow, NULL);
+        if (mWindowSurface == EGL_NO_SURFACE)
+        {
+            FASTCG_CHECK_EGL_ERROR("Couldn't create the EGL window surface");
+        }
+
+        if (!eglMakeCurrent(mDisplay, mWindowSurface, mWindowSurface, mHeadedContext))
+        {
+            FASTCG_CHECK_EGL_ERROR("Couldn't make the headed EGL context current");
+        }
+    }
+
+    void OpenGLGraphicsSystem::OnWindowTerminated()
+    {
+        if (mWindowSurface != EGL_NO_SURFACE)
+        {
+            eglDestroySurface(mDisplay, mWindowSurface);
+
+            mWindowSurface = EGL_NO_SURFACE;
+        }
+        if (mHeadedContext != EGL_NO_CONTEXT)
+        {
+            eglDestroyContext(mDisplay, mHeadedContext);
+
+            mHeadedContext = EGL_NO_CONTEXT;
+        }
+    }
+#endif
 }
 
 #endif

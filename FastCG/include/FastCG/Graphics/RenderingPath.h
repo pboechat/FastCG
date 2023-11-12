@@ -1,18 +1,14 @@
 #ifndef FASTCG_RENDERING_PATH_H
 #define FASTCG_RENDERING_PATH_H
 
+#include <FastCG/Core/Enums.h>
+
 #include <type_traits>
 #include <cstdint>
 
 namespace FastCG
 {
-    enum class RenderingPath : uint8_t
-    {
-        FORWARD,
-        DEFERRED,
-        LAST
-
-    };
+    FASTCG_DECLARE_SCOPED_ENUM(RenderingPath, uint8_t, FORWARD, DEFERRED);
 
     using RenderingPathInt = std::underlying_type_t<RenderingPath>;
     using RenderingPathMask = uint8_t;

@@ -265,10 +265,12 @@ namespace FastCG
             {
                 return GL_R16F;
             }
+#if defined GL_R16
             else if (bitsPerChannel.r == 16)
             {
                 return GL_R16;
             }
+#endif
             else if (bitsPerChannel.r == 32 && dataType == TextureDataType::FLOAT)
             {
                 return GL_R32F;
@@ -282,10 +284,12 @@ namespace FastCG
             {
                 return GL_RG8;
             }
+#if defined GL_RG16
             else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16)
             {
                 return GL_RG16;
             }
+#endif
             else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && dataType == TextureDataType::FLOAT)
             {
                 return GL_RG16F;
@@ -308,18 +312,22 @@ namespace FastCG
             {
                 return GL_R11F_G11F_B10F;
             }
+#if defined GL_RGB12
             else if (bitsPerChannel.r == 12 && bitsPerChannel.g == 12 && bitsPerChannel.b == 12)
             {
                 return GL_RGB12;
             }
+#endif
             else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && dataType == TextureDataType::FLOAT)
             {
                 return GL_RGB16F;
             }
+#if defined GL_RGB16
             else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16)
             {
                 return GL_RGB16;
             }
+#endif
             else
             {
                 return GL_RGB;
@@ -372,10 +380,12 @@ namespace FastCG
             {
                 return GL_DEPTH_COMPONENT32F;
             }
+#if defined GL_DEPTH_COMPONENT32
             else if (bitsPerChannel.r == 32)
             {
                 return GL_DEPTH_COMPONENT32;
             }
+#endif
             else
             {
                 return GL_DEPTH_COMPONENT;
@@ -398,10 +408,14 @@ namespace FastCG
             return GL_RGB;
         case TextureFormat::RGBA:
             return GL_RGBA;
+#if defined GL_BRG
         case TextureFormat::BGR:
             return GL_BGR;
+#endif
+#if defined GL_BGRA
         case TextureFormat::BGRA:
             return GL_BGRA;
+#endif
         case TextureFormat::DEPTH_STENCIL:
             return GL_DEPTH_STENCIL;
         case TextureFormat::DEPTH:

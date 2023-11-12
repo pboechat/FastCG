@@ -5,51 +5,50 @@
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 #include <FastCG/Core/StringUtils.h>
-#include <FastCG/Core/MsgBox.h>
+#include <FastCG/Core/CollectionUtils.h>
+
+#include <vector>
 
 namespace
 {
-#define DECLARE_CHECK_STATUS_FN(object)                                                                                          \
-    void Check##object##Status(GLuint objectId, GLenum status, const std::string &rIdentifier)                                   \
-    {                                                                                                                            \
-        GLint statusValue;                                                                                                       \
-        glGet##object##iv(objectId, status, &statusValue);                                                                       \
-        GLint infoLogLength;                                                                                                     \
-        glGet##object##iv(objectId, GL_INFO_LOG_LENGTH, &infoLogLength);                                                         \
-        if (infoLogLength > 0)                                                                                                   \
-        {                                                                                                                        \
-            std::string infoLog;                                                                                                 \
-            infoLog.reserve(infoLogLength);                                                                                      \
-            glGet##object##InfoLog(objectId, infoLogLength, &infoLogLength, &infoLog[0]);                                        \
-            if (statusValue == GL_TRUE)                                                                                          \
-            {                                                                                                                    \
-                FASTCG_MSG_BOX("OpenGLShader", #object " info log ('%s'): %s", rIdentifier.c_str(), infoLog.c_str())             \
-            }                                                                                                                    \
-            else                                                                                                                 \
-            {                                                                                                                    \
-                FASTCG_THROW_EXCEPTION(FastCG::Exception, #object " info log ('%s'): %s", rIdentifier.c_str(), infoLog.c_str()); \
-            }                                                                                                                    \
-        }                                                                                                                        \
+#define DECLARE_CHECK_STATUS_FN(object)                                                        \
+    bool Check##object##Status(GLuint objectId, GLenum status, std::string &rInfoLog)          \
+    {                                                                                          \
+        GLint statusValue;                                                                     \
+        glGet##object##iv(objectId, status, &statusValue);                                     \
+        if (!statusValue)                                                                      \
+        {                                                                                      \
+            GLint infoLogLength;                                                               \
+            glGet##object##iv(objectId, GL_INFO_LOG_LENGTH, &infoLogLength);                   \
+            rInfoLog.resize(infoLogLength + 1);                                                \
+            if (infoLogLength > 0)                                                             \
+            {                                                                                  \
+                glGet##object##InfoLog(objectId, infoLogLength, &infoLogLength, &rInfoLog[0]); \
+            }                                                                                  \
+            rInfoLog[infoLogLength] = '\0';                                                    \
+            return false;                                                                      \
+        }                                                                                      \
+        return true;                                                                           \
     }
 
     DECLARE_CHECK_STATUS_FN(Shader)
     DECLARE_CHECK_STATUS_FN(Program)
 
-    void GetResourceLocations(GLuint programId, std::unordered_map<std::string, FastCG::OpenGLResourceInfo> &rResourceInfos)
+    void GetShaderResourceLocations(const std::string &rIdentifier, GLuint programId, std::unordered_map<std::string, FastCG::OpenGLResourceInfo> &rResourceInfos)
     {
         for (GLenum iface : {GL_UNIFORM_BLOCK, GL_SHADER_STORAGE_BLOCK, GL_UNIFORM})
         {
-            GLint numActiveResources = 0;
-            glGetProgramInterfaceiv(programId, iface, GL_ACTIVE_RESOURCES, &numActiveResources);
-            FASTCG_CHECK_OPENGL_ERROR();
+            GLint activeResourcesCount = 0;
+            glGetProgramInterfaceiv(programId, iface, GL_ACTIVE_RESOURCES, &activeResourcesCount);
+            FASTCG_CHECK_OPENGL_ERROR("Couldn't get shader active resources count (program: %s)", rIdentifier.c_str());
 
-            for (GLint i = 0; i < numActiveResources; ++i)
+            for (GLint i = 0; i < activeResourcesCount; ++i)
             {
                 GLsizei length = 0;
                 GLchar buffer[128];
 
                 glGetProgramResourceName(programId, iface, i, FASTCG_ARRAYSIZE(buffer), &length, buffer);
-                FASTCG_CHECK_OPENGL_ERROR();
+                FASTCG_CHECK_OPENGL_ERROR("Couldn't get shader resource name (program: %s, resource idx: %d)", rIdentifier.c_str(), i);
 
                 std::string resourceName(buffer, length);
 
@@ -67,7 +66,7 @@ namespace
                 {
                     property = GL_LOCATION;
                     glGetProgramResourceiv(programId, iface, i, 1, &property, 1, nullptr, &location);
-                    FASTCG_CHECK_OPENGL_ERROR();
+                    FASTCG_CHECK_OPENGL_ERROR("Couldn't get uniform location (program: %s, resource: %s)", rIdentifier.c_str(), resourceName.c_str());
 
                     if (location == -1)
                     {
@@ -78,13 +77,14 @@ namespace
 
                     property = GL_TYPE;
                     glGetProgramResourceiv(programId, iface, i, 1, &property, 1, nullptr, &type);
+                    FASTCG_CHECK_OPENGL_ERROR("Couldn't get uniform type (program: %s, resource: %s)", rIdentifier.c_str(), resourceName.c_str());
                 }
                 else
                 {
                     property = GL_BUFFER_BINDING;
                     glGetProgramResourceiv(programId, iface, i, 1, &property, 1, nullptr, &binding);
+                    FASTCG_CHECK_OPENGL_ERROR("Couldn't get buffer binding (program: %s, resource idx: %d)", rIdentifier.c_str(), i);
                 }
-                FASTCG_CHECK_OPENGL_ERROR();
 
                 if (binding == -1)
                 {
@@ -120,7 +120,52 @@ namespace FastCG
             {
                 glShaderSource(shaderId, 1, (const char **)&rProgramData.pData, nullptr);
                 glCompileShader(shaderId);
+
+                std::string infoLog;
+                if (!CheckShaderStatus(shaderId, GL_COMPILE_STATUS, infoLog))
+                {
+                    std::vector<std::string> tokens;
+                    StringUtils::Split(infoLog, ":", tokens);
+                    assert(tokens.size() >= 4);
+
+                    std::vector<std::string> lines;
+                    StringUtils::Split((const char *)rProgramData.pData, "\n", lines);
+
+                    auto errorLine = (size_t)atoll(tokens[1].c_str());
+                    assert(errorLine > 0);
+                    assert(lines.size() > errorLine);
+                    std::string snippet;
+                    if (errorLine > 1)
+                    {
+                        snippet = "    " + lines[errorLine - 2] + "\n";
+                    }
+                    snippet += "--> " + lines[errorLine - 1] + "\n";
+                    if (lines.size() > errorLine)
+                    {
+                        snippet += "    " + lines[errorLine] + "\n";
+                    }
+
+                    std::vector<std::string> subTokens;
+                    CollectionUtils::Slice(tokens, 2, tokens.size(), subTokens);
+                    auto cause = StringUtils::Join(subTokens, ":");
+
+                    FASTCG_THROW_EXCEPTION(FastCG::Exception,
+                                           "Couldn't compile shader module (program: %s, type: %s):\n%s\n%s",
+                                           mName.c_str(),
+                                           GetShaderTypeString(shaderType),
+                                           cause.c_str(),
+                                           snippet.c_str());
+                }
             }
+#if defined FASTCG_ANDROID
+            else
+            {
+                FASTCG_THROW_EXCEPTION(Exception,
+                                       "Couldn't find shader code (program: %s, type: %s)",
+                                       mName.c_str(),
+                                       GetShaderTypeString(shaderType));
+            }
+#else
             else
             {
                 if (GLEW_ARB_gl_spirv)
@@ -130,13 +175,23 @@ namespace FastCG
                 }
                 else
                 {
-                    FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Cannot use SPIR-V shaders!");
+                    FASTCG_THROW_EXCEPTION(Exception,
+                                           "Can't use shader SPIR-V module (program: %s, type: %s)",
+                                           mName.c_str(),
+                                           GetShaderTypeString(shaderType));
+                }
+
+                std::string infoLog;
+                if (!CheckShaderStatus(shaderId, GL_COMPILE_STATUS, infoLog))
+                {
+                    FASTCG_THROW_EXCEPTION(Exception,
+                                           "Couldn't compile shader module (program: %s, type: %s):\n%s",
+                                           mName.c_str(),
+                                           GetShaderTypeString(shaderType),
+                                           infoLog.c_str());
                 }
             }
-
-            FASTCG_CHECK_OPENGL_ERROR();
-
-            CheckShaderStatus(shaderId, GL_COMPILE_STATUS, mName);
+#endif
 
             mShadersIds[i] = shaderId;
 
@@ -154,9 +209,18 @@ namespace FastCG
         }
 
         glLinkProgram(mProgramId);
-        CheckProgramStatus(mProgramId, GL_LINK_STATUS, GetName());
+        {
+            std::string infoLog;
+            if (!CheckProgramStatus(mProgramId, GL_LINK_STATUS, infoLog))
+            {
+                FASTCG_THROW_EXCEPTION(Exception,
+                                       "Couldn't link shader program (program: %s):\n%s",
+                                       mName.c_str(),
+                                       infoLog.c_str());
+            }
+        }
 
-        GetResourceLocations(mProgramId, mResourceInfo);
+        GetShaderResourceLocations(mName, mProgramId, mResourceInfo);
 
         for (const auto &shaderId : mShadersIds)
         {
@@ -165,7 +229,16 @@ namespace FastCG
 
 #ifdef _DEBUG
         glValidateProgram(mProgramId);
-        CheckProgramStatus(mProgramId, GL_VALIDATE_STATUS, GetName());
+        {
+            std::string infoLog;
+            if (!CheckProgramStatus(mProgramId, GL_VALIDATE_STATUS, infoLog))
+            {
+                FASTCG_THROW_EXCEPTION(Exception,
+                                       "Couldn't validate shader program (program: %s):\n%s",
+                                       mName.c_str(),
+                                       infoLog.c_str());
+            }
+        }
 #endif
 
 #ifdef _DEBUG

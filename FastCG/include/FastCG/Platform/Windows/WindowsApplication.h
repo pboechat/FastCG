@@ -7,6 +7,8 @@
 
 #include <Windows.h>
 
+LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);
+
 namespace FastCG
 {
     class WindowsApplication : public BaseApplication
@@ -28,7 +30,7 @@ namespace FastCG
         }
         uint64_t GetNativeKey(Key key) const override;
 
-        friend LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);
+        friend LRESULT(::WndProc)(HWND, UINT, WPARAM, LPARAM);
 
     protected:
         void OnPreInitialize() override;

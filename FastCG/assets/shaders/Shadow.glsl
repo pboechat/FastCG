@@ -11,7 +11,7 @@ vec3 GetShadowMapCoordinates(ShadowMapData shadowMapData, vec3 worldPosition)
 {
 	vec4 clipPos = shadowMapData.viewProjection * vec4(worldPosition, 1);
 	vec3 ndc = clipPos.xyz / clipPos.w;
-#if VULKAN
+#ifdef VULKAN
 	return vec3(ndc.x * 0.5 + 0.5, 
 				ndc.y * -0.5 + 0.5, // flip y
 				ndc.z); // z already in [0, 1]

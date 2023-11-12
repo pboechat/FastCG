@@ -8,9 +8,9 @@ namespace FastCG
     std::vector<std::string> AssetSystem::List(const std::string &rRelDirectoryPath, bool recursive /* = false*/) const
     {
         std::vector<std::string> fileList;
-        for (const auto &bundleRoot : mBundleRoots)
+        for (const auto &rBundleRoot : mBundleRoots)
         {
-            auto absDirPath = bundleRoot + "/" + rRelDirectoryPath;
+            auto absDirPath = rBundleRoot + "/" + rRelDirectoryPath;
             auto partialFileList = Directory::List(absDirPath, recursive);
             fileList.insert(fileList.end(), partialFileList.begin(), partialFileList.end());
         }
@@ -19,9 +19,9 @@ namespace FastCG
 
     bool AssetSystem::Resolve(const std::string &rRelFilePath, std::string &rAbsFilePath) const
     {
-        for (const auto &bundleRoot : mBundleRoots)
+        for (const auto &rBundleRoot : mBundleRoots)
         {
-            auto absFilePath = bundleRoot + "/" + rRelFilePath;
+            auto absFilePath = rBundleRoot + "/" + rRelFilePath;
             if (File::Exists(absFilePath))
             {
                 rAbsFilePath = absFilePath;
@@ -41,9 +41,9 @@ namespace FastCG
     void AssetSystem::Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths, bool includeNonExistant /* = false*/) const
     {
         rAbsFilePaths.clear();
-        for (const auto &bundleRoot : mBundleRoots)
+        for (const auto &rBundleRoot : mBundleRoots)
         {
-            auto absFilePath = bundleRoot + "/" + rRelFilePath;
+            auto absFilePath = rBundleRoot + "/" + rRelFilePath;
             if (includeNonExistant || File::Exists(absFilePath))
             {
                 rAbsFilePaths.emplace_back(absFilePath);

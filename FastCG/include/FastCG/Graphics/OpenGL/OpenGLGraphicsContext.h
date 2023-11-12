@@ -22,7 +22,7 @@ namespace FastCG
         OpenGLGraphicsContext(const Args &rArgs);
         virtual ~OpenGLGraphicsContext();
 
-        void Begin();
+        bool Begin();
         void PushDebugMarker(const char *pName);
         void PopDebugMarker();
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);

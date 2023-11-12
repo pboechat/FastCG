@@ -93,6 +93,7 @@ namespace FastCG
 			return mSettings.rendering.path;
 		}
 
+		int Run();
 		int Run(int argc, char **argv);
 
 		inline void Exit()
@@ -146,5 +147,22 @@ namespace FastCG
 	};
 
 }
+
+#if defined FASTCG_ANDROID
+#define FASTCG_MAIN(appType)                   \
+	void android_main(android_app *androidApp) \
+	{                                          \
+		appType app;                           \
+		app.SetAndroidApp(androidApp);         \
+		app.Run();                             \
+	}
+#else
+#define FASTCG_MAIN(appType)        \
+	int main(int argc, char **argv) \
+	{                               \
+		appType app;                \
+		return app.Run(argc, argv); \
+	}
+#endif
 
 #endif

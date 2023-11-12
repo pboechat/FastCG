@@ -13,6 +13,12 @@ namespace FastCG
 {
     using Application = X11Application;
 }
+#elif defined FASTCG_ANDROID
+#include <FastCG/Platform/Android/AndroidApplication.h>
+namespace FastCG
+{
+    using Application = AndroidApplication;
+}
 #else
 #error "FASTCG: Unhandled platform"
 #endif

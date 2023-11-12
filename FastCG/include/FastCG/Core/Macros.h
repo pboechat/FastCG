@@ -1,12 +1,6 @@
 #ifndef FASTCG_MACROS_H
 #define FASTCG_MACROS_H
 
-#if defined FASTCG_WINDOWS
-#include <Windows.h>
-#elif defined FASTCG_LINUX
-#include <signal.h>
-#endif
-
 #define FASTCG_EXPAND(x) x
 
 // source: https://gist.github.com/thwarted/8ce47e1897a578f4e80a
@@ -74,27 +68,31 @@
 #define FASTCG_ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
 
 #ifdef _DEBUG
-#if defined FASTCG_WINDOWS
+#if defined _MSC_VER
 #define FASTCG_BREAK_TO_DEBUGGER() __debugbreak()
-#elif defined FASTCG_LINUX
-#define FASTCG_BREAK_TO_DEBUGGER() raise(SIGTRAP)
+#elif defined __GNUC__ || defined __clang__
+#define FASTCG_BREAK_TO_DEBUGGER() // __builtin_trap()
 #else
-#error "FASTCG_BREAK_TO_DEBUGGER() is not implemented on the current platform"
+#error "FASTCG_BREAK_TO_DEBUGGER() is not implemented on the current compiler"
 #endif
 #else
 #define FASTCG_BREAK_TO_DEBUGGER()
 #endif
 
-#if defined FASTCG_WINDOWS
+#if defined _MSC_VER
 #define FASTCG_WARN_PUSH _Pragma("warning(push)")
-#define FASTCG_WARN_IGNORE_MACRO_ARGS _Pragma("warning(disable:4003)")
+#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("warning(disable:C4996)")
 #define FASTCG_WARN_POP _Pragma("warning(pop)")
-#elif defined FASTCG_LINUX
+#elif defined __GNUC__
 #define FASTCG_WARN_PUSH _Pragma("GCC diagnostic push")
-#define FASTCG_WARN_IGNORE_MACRO_ARGS _Pragma("GCC diagnostic ignored \"-W\"")
+#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 #define FASTCG_WARN_POP _Pragma("GCC diagnostic pop")
+#elif defined __clang__
+#define FASTCG_WARN_PUSH _Pragma("clang diagnostic push")
+#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\""")
+#define FASTCG_WARN_POP _Pragma("clang diagnostic pop")
 #else
-#error "FASTCG_WARN_* macros are not implemented on the current platform"
+#error "FASTCG_WARN_* macros are not implemented on the current compiler"
 #endif
 
 #endif

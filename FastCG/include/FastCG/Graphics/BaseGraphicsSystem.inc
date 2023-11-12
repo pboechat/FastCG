@@ -150,7 +150,7 @@ namespace FastCG
                                       TextureType::TEXTURE_2D,
                                       TextureUsageFlagBit::RENDER_TARGET,
                                       TextureFormat::RGBA,
-                                      {32, 32, 32, 32},
+                                      {8, 8, 8, 8},
                                       TextureDataType::FLOAT,
                                       TextureFilter::POINT_FILTER,
                                       TextureWrapMode::CLAMP,

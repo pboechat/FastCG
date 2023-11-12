@@ -186,12 +186,15 @@ namespace FastCG
                     if (static_cast<Atom>(event.xclient.data.l[0]) == mDeleteWindowAtom)
                     {
                         mRunning = false;
+                        goto __exit;
                     }
                 }
             }
 
             RunMainLoopIteration(Timer::GetTime() - osStart);
         }
+    __exit:
+        return;
     }
 
     Window &X11Application::CreateSimpleWindow()
@@ -239,7 +242,7 @@ namespace FastCG
                                 &windowAttribs);
         if (mWindow == None)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Failed to create a window");
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create a window");
         }
 
         if (windowAttribs.colormap != None)

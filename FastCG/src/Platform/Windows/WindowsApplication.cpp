@@ -105,53 +105,53 @@ namespace
 	}
 }
 
-namespace FastCG
+LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	auto *pApplication = FastCG::WindowsApplication::GetInstance();
+	switch (uMsg)
 	{
-		auto *app = WindowsApplication::GetInstance();
-		switch (uMsg)
-		{
-		case WM_DESTROY:
-		case WM_QUIT:
-		case WM_CLOSE:
-			PostQuitMessage(0);
-			break;
-		case WM_SIZE:
-			app->WindowResizeCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
-			break;
-		case WM_LBUTTONDOWN:
-			app->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::PRESSED);
-			break;
-		case WM_RBUTTONDOWN:
-			app->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::PRESSED);
-			break;
-		case WM_MBUTTONDOWN:
-			app->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::PRESSED);
-			break;
-		case WM_LBUTTONUP:
-			app->MouseButtonCallback(MouseButton::LEFT_BUTTON, MouseButtonState::RELEASED);
-			break;
-		case WM_RBUTTONUP:
-			app->MouseButtonCallback(MouseButton::RIGHT_BUTTON, MouseButtonState::RELEASED);
-			break;
-		case WM_MBUTTONUP:
-			app->MouseButtonCallback(MouseButton::MIDDLE_BUTTON, MouseButtonState::RELEASED);
-			break;
-		case WM_MOUSEMOVE:
-			app->MouseMoveCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
-			break;
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-			app->KeyboardCallback(TranslateKey((uint64_t)wParam), uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
-			break;
-		default:
-			break;
-		}
-
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+	case WM_DESTROY:
+	case WM_QUIT:
+	case WM_CLOSE:
+		PostQuitMessage(0);
+		break;
+	case WM_SIZE:
+		pApplication->WindowResizeCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
+		break;
+	case WM_LBUTTONDOWN:
+		pApplication->MouseButtonCallback(FastCG::MouseButton::LEFT_BUTTON, FastCG::MouseButtonState::PRESSED);
+		break;
+	case WM_RBUTTONDOWN:
+		pApplication->MouseButtonCallback(FastCG::MouseButton::RIGHT_BUTTON, FastCG::MouseButtonState::PRESSED);
+		break;
+	case WM_MBUTTONDOWN:
+		pApplication->MouseButtonCallback(FastCG::MouseButton::MIDDLE_BUTTON, FastCG::MouseButtonState::PRESSED);
+		break;
+	case WM_LBUTTONUP:
+		pApplication->MouseButtonCallback(FastCG::MouseButton::LEFT_BUTTON, FastCG::MouseButtonState::RELEASED);
+		break;
+	case WM_RBUTTONUP:
+		pApplication->MouseButtonCallback(FastCG::MouseButton::RIGHT_BUTTON, FastCG::MouseButtonState::RELEASED);
+		break;
+	case WM_MBUTTONUP:
+		pApplication->MouseButtonCallback(FastCG::MouseButton::MIDDLE_BUTTON, FastCG::MouseButtonState::RELEASED);
+		break;
+	case WM_MOUSEMOVE:
+		pApplication->MouseMoveCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
+		break;
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+		pApplication->KeyboardCallback(TranslateKey((uint64_t)wParam), uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
+		break;
+	default:
+		break;
 	}
 
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+namespace FastCG
+{
 	void WindowsApplication::OnPreInitialize()
 	{
 		BaseApplication::OnPreInitialize();
@@ -180,7 +180,7 @@ namespace FastCG
 
 		if (!RegisterClassEx(&windowClass))
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error registering window class");
+			FASTCG_THROW_EXCEPTION(Exception, "Couldn't register window class");
 		}
 
 		auto dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
@@ -201,7 +201,7 @@ namespace FastCG
 
 		if (mHWnd == 0)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Error creating window");
+			FASTCG_THROW_EXCEPTION(Exception, "Couldn't create window");
 		}
 
 		ShowWindow(mHWnd, SW_SHOW);
@@ -230,6 +230,7 @@ namespace FastCG
 			{
 				if (!GetMessage(&msg, NULL, 0, 0))
 				{
+					mRunning = false;
 					goto __exit;
 				}
 

@@ -1,5 +1,6 @@
 #ifdef FASTCG_OPENGL
 
+#include <FastCG/Platform/Application.h>
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
@@ -17,7 +18,7 @@ namespace FastCG
     {
 #if !defined FASTCG_DISABLE_GPU_TIMING
         glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't generate time queries");
 #endif
     }
 
@@ -28,15 +29,23 @@ namespace FastCG
 #endif
     }
 
-    void OpenGLGraphicsContext::Begin()
+    bool OpenGLGraphicsContext::Begin()
     {
+#if defined FASTCG_ANDROID
+        if (OpenGLGraphicsSystem::GetInstance()->IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+        {
+            return false;
+        }
+#endif
+
         assert(mEnded);
         mEnded = false;
 #if !defined FASTCG_DISABLE_GPU_TIMING
         mElapsedTime = 0;
         glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[mCurrentQuery]);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't begin time queries");
 #endif
+        return true;
     }
 
     void OpenGLGraphicsContext::PushDebugMarker(const char *pName)
@@ -224,7 +233,7 @@ namespace FastCG
             return;
         }
         glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), rResourceInfo.binding, *pBuffer);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind buffer to resource (buffer: %s, resource: %s, binding: %d)", pBuffer->GetName().c_str(), pName, rResourceInfo.binding);
         mResourceUsage.emplace(pName);
     }
 
@@ -246,7 +255,7 @@ namespace FastCG
         glActiveTexture(GL_TEXTURE0 + rResourceInfo.binding);
         glBindTexture(GL_TEXTURE_2D, *pTexture);
         glUniform1i(rResourceInfo.location, rResourceInfo.binding);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture to resource (texture: %s, location: %d, binding: %d)", pTexture->GetName().c_str(), rResourceInfo.location, rResourceInfo.binding);
     }
 
     void OpenGLGraphicsContext::Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst)
@@ -278,7 +287,8 @@ namespace FastCG
         {
             auto drawFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pDst, 1, nullptr);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFbo);
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+            GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+            glDrawBuffers(1, drawBuffers);
             dstWidth = (GLint)pDst->GetWidth();
             dstHeight = (GLint)pDst->GetHeight();
         }
@@ -401,7 +411,7 @@ namespace FastCG
     {
         SetupDraw();
         glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't draw");
     }
 
     void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
@@ -409,18 +419,18 @@ namespace FastCG
         assert(firstInstance == 0);
         SetupDraw();
         glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't draw instanced");
     }
 
     void OpenGLGraphicsContext::End()
     {
         assert(!mEnded);
         mpBoundShader = nullptr;
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't end graphics context");
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
         glEndQuery(GL_TIME_ELAPSED);
-        FASTCG_CHECK_OPENGL_ERROR();
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't end time queries");
         mEndedQuery[mCurrentQuery] = true;
 #endif
         mEnded = true;

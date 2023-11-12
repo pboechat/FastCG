@@ -41,12 +41,8 @@ namespace FastCG
             CASE_RETURN_STRING(VK_ERROR_TOO_MANY_OBJECTS);
             CASE_RETURN_STRING(VK_ERROR_FORMAT_NOT_SUPPORTED);
             CASE_RETURN_STRING(VK_ERROR_FRAGMENTED_POOL);
-            CASE_RETURN_STRING(VK_ERROR_UNKNOWN);
             CASE_RETURN_STRING(VK_ERROR_OUT_OF_POOL_MEMORY);
             CASE_RETURN_STRING(VK_ERROR_INVALID_EXTERNAL_HANDLE);
-            CASE_RETURN_STRING(VK_ERROR_FRAGMENTATION);
-            CASE_RETURN_STRING(VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS);
-            CASE_RETURN_STRING(VK_PIPELINE_COMPILE_REQUIRED);
             CASE_RETURN_STRING(VK_ERROR_SURFACE_LOST_KHR);
             CASE_RETURN_STRING(VK_ERROR_NATIVE_WINDOW_IN_USE_KHR);
             CASE_RETURN_STRING(VK_SUBOPTIMAL_KHR);
@@ -55,12 +51,14 @@ namespace FastCG
             CASE_RETURN_STRING(VK_ERROR_VALIDATION_FAILED_EXT);
             CASE_RETURN_STRING(VK_ERROR_INVALID_SHADER_NV);
             CASE_RETURN_STRING(VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT);
-            CASE_RETURN_STRING(VK_ERROR_NOT_PERMITTED_KHR);
             CASE_RETURN_STRING(VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
-            CASE_RETURN_STRING(VK_THREAD_IDLE_KHR);
-            CASE_RETURN_STRING(VK_THREAD_DONE_KHR);
-            CASE_RETURN_STRING(VK_OPERATION_DEFERRED_KHR);
-            CASE_RETURN_STRING(VK_OPERATION_NOT_DEFERRED_KHR);
+#if !defined FASTCG_ANDROID
+            // FIXME: Vulkan header in NDK 21 doesn't define VK_ERROR_UNKNOWN
+            CASE_RETURN_STRING(VK_ERROR_UNKNOWN);
+#endif
+#if defined VK_API_VERSION_1_2
+            CASE_RETURN_STRING(VK_ERROR_FRAGMENTATION);
+#endif
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled VkResult %d", (int)vkResult);
             return nullptr;
@@ -304,13 +302,17 @@ namespace FastCG
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_PREINITIALIZED);
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL);
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL);
+            CASE_RETURN_STRING(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+#if defined VK_API_VERSION_1_2
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL);
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL);
+#endif
+#if defined VK_API_VERSION_1_3
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
-            CASE_RETURN_STRING(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+#endif
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled image layout %d", (int)layout);
             return nullptr;
@@ -354,7 +356,7 @@ namespace FastCG
         return usageFlags;
     }
 
-    inline VkImageAspectFlags GetVkImageAspectFlags(TextureFormat format)
+    inline VkImageAspectFlags GetVkImageAspectFlags(TextureFormat format, TextureDataType dataType)
     {
         switch (format)
         {
@@ -366,7 +368,14 @@ namespace FastCG
         case TextureFormat::BGRA:
             return VK_IMAGE_ASPECT_COLOR_BIT;
         case TextureFormat::DEPTH_STENCIL:
-            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+            if (dataType == TextureDataType::FLOAT)
+            {
+                return VK_IMAGE_ASPECT_DEPTH_BIT;
+            }
+            else
+            {
+                return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+            }
         case TextureFormat::DEPTH:
             return VK_IMAGE_ASPECT_DEPTH_BIT;
         default:
@@ -721,6 +730,7 @@ namespace FastCG
         {VK_FORMAT_B8G8R8A8_UINT, TextureFormat::RGBA, BitsPerChannel{8, 8, 8, 8}, TextureDataType::UNSIGNED_CHAR},
         {VK_FORMAT_D24_UNORM_S8_UINT, TextureFormat::DEPTH_STENCIL, BitsPerChannel{24, 8}, TextureDataType::UNSIGNED_INT},
         {VK_FORMAT_D24_UNORM_S8_UINT, TextureFormat::DEPTH_STENCIL, BitsPerChannel{24, 8}, TextureDataType::UNSIGNED_CHAR},
+        {VK_FORMAT_X8_D24_UNORM_PACK32, TextureFormat::DEPTH_STENCIL, BitsPerChannel{24, 8}, TextureDataType::FLOAT},
         {VK_FORMAT_D32_SFLOAT, TextureFormat::DEPTH, BitsPerChannel{32}, TextureDataType::FLOAT},
         {VK_FORMAT_D16_UNORM, TextureFormat::DEPTH, BitsPerChannel{16}, TextureDataType::FLOAT},
     };
@@ -738,7 +748,11 @@ namespace FastCG
                                         rTableEntry.dataType == dataType; });
         if (it == pTableEnd)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled format conversion");
+            FASTCG_THROW_EXCEPTION(Exception,
+                                   "Vulkan: Unhandled format conversion (format: %s, rgba: %d/%d/%d/%d, dataType: %s)",
+                                   GetTextureFormatString(format),
+                                   bitsPerChannel.r, bitsPerChannel.g, bitsPerChannel.b, bitsPerChannel.a,
+                                   GetTextureDataTypeString(dataType));
             return (VkFormat)0;
         }
         return it->vkFormat;

@@ -3,7 +3,7 @@
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 #include <sys/stat.h>
 #endif
 
@@ -80,7 +80,7 @@ namespace FastCG
 #if defined FASTCG_WINDOWS
 		unsigned long fileAttributes = GetFileAttributes(rFilePath.c_str());
 		return (fileAttributes != INVALID_FILE_ATTRIBUTES);
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 		struct stat fileStat;
 		return stat(rFilePath.c_str(), &fileStat) == 0;
 #else

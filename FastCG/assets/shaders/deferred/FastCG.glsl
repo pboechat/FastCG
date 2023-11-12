@@ -17,7 +17,7 @@ vec3 GetViewPositionFromScreenPositionAndDepth(mat4 inverseProjection, vec2 scre
 {
     vec3 ndc;
     ndc.x = 2.0 * (screenPos.x / screenSize.x) - 1.0;
-#if VULKAN
+#ifdef VULKAN
     ndc.y = 2.0 * ((screenSize.y - screenPos.y) / screenSize.y) - 1.0;
     // FIXME:
     ndc.z = depth; // [0, 1]
@@ -32,7 +32,7 @@ vec3 GetViewPositionFromScreenPositionAndDepth(mat4 inverseProjection, vec2 scre
 
 bool HasBump(vec4 tangent, vec4 extraData)
 {
-	return extraData.x != 0 && extraData.y != 0 && extraData.z != 0;
+	return extraData.x != 0.0 && extraData.y != 0.0 && extraData.z != 0.0;
 }
 
 #endif

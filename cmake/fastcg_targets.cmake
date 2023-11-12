@@ -6,48 +6,82 @@ function(_fastcg_remove)
     endforeach()
 endfunction()
 
-function(_fastcg_compile_glsl_shaders)
+function(_fastcg_add_glsl_shader_target)
     get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
 
     set(SRC_SHADERS_DIR "${SOURCE_DIR}/assets/shaders")
     set(DST_SHADERS_DIR "${FASTCG_DEPLOY}/assets/${ARGV0}/shaders")
+    set(TMP_SHADERS_DIR "${CMAKE_BINARY_DIR}/assets/shaders/${ARGV0}")
 
-    set(FASTCG_SHADER_COMPILER_ARGS -e main --source-entrypoint main)
+    set(SHADER_COMPILER_ARGS -e main --source-entrypoint main)
 
-    if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
-        set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} --target-env opengl)
-    elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
-        set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} --target-env vulkan1.3)
+    if(FASTCG_PLATFORM STREQUAL "Android")
+        set(GLSL_VERSION "320 es")
     else()
-        message(FATAL_ERROR "Don't know how to compile GLSL shaders for ${FASTCG_GRAPHICS_SYSTEM}")
+        set(GLSL_VERSION "430")
     endif()
 
-    set(FASTCG_SHADER_COMPILER_ARGS ${FASTCG_SHADER_COMPILER_ARGS} -DENABLE_INCLUDE_EXTENSION_DIRECTIVE)
+    if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
+        set(SHADER_COMPILER_ARGS ${SHADER_COMPILER_ARGS} --target-env opengl)
+    else()
+        set(SHADER_COMPILER_ARGS ${SHADER_COMPILER_ARGS} --target-env vulkan1.1)
+    endif()
 
     file(GLOB_RECURSE GLSL_HEADERS "${SRC_SHADERS_DIR}/*.glsl")
+    foreach(GLSL_HEADER IN LISTS GLSL_HEADERS)
+        file(RELATIVE_PATH REL_GLSL_HEADER ${SRC_SHADERS_DIR} ${GLSL_HEADER})
+        if(FASTCG_USE_TEXT_SHADERS)
+            set(NEW_GLSL_HEADER "${DST_SHADERS_DIR}/${REL_GLSL_HEADER}")
+        else()
+            set(NEW_GLSL_HEADER "${TMP_SHADERS_DIR}/${REL_GLSL_HEADER}")
+        endif()
+        add_custom_command(
+            OUTPUT ${NEW_GLSL_HEADER}
+            COMMAND ${CMAKE_COMMAND} -E copy ${GLSL_HEADER} ${NEW_GLSL_HEADER}
+            DEPENDS ${GLSL_HEADER}
+        )
+        list(APPEND NEW_GLSL_HEADERS ${NEW_GLSL_HEADER})
+    endforeach(GLSL_HEADER)
+    
     file(GLOB_RECURSE GLSL_SOURCES "${SRC_SHADERS_DIR}/*.vert" "${SRC_SHADERS_DIR}/*.frag")
     foreach(GLSL_SOURCE IN LISTS GLSL_SOURCES)
         file(RELATIVE_PATH REL_GLSL_SOURCE ${SRC_SHADERS_DIR} ${GLSL_SOURCE})
-        get_filename_component(GLSL_SOURCE_DIR ${REL_GLSL_SOURCE} DIRECTORY)
-        get_filename_component(GLSL_SOURCE_BASENAME ${REL_GLSL_SOURCE} NAME_WE)
-        get_filename_component(GLSL_SOURCE_EXT ${REL_GLSL_SOURCE} EXT)
-        string(SUBSTRING ${GLSL_SOURCE_EXT} 1 -1 GLSL_SOURCE_EXT)
-        set(SPIRV_DIR ${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR})
-        set(SPIRV_FILE "${SPIRV_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
-        add_custom_command(
-            OUTPUT ${SPIRV_FILE}
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${SPIRV_DIR}
-            COMMAND ${FASTCG_GLSLANGVALIDATOR} ${FASTCG_SHADER_COMPILER_ARGS} ${GLSL_SOURCE} -o ${SPIRV_FILE} $<IF:$<CONFIG:Debug>,-g,>  # generate debug info if in Debug config
-            DEPENDS ${GLSL_SOURCE} ${GLSL_HEADERS}
-        )
-        list(APPEND GLSL_SPIRV_FILES ${SPIRV_FILE})
+        
+        if(FASTCG_USE_TEXT_SHADERS)
+            set(DST_GLSL_SOURCE "${DST_SHADERS_DIR}/${REL_GLSL_SOURCE}")
+            add_custom_command(
+                OUTPUT ${DST_GLSL_SOURCE}
+                COMMAND ${CMAKE_COMMAND} -E copy ${GLSL_SOURCE} ${DST_GLSL_SOURCE}
+                DEPENDS ${GLSL_SOURCE} ${NEW_GLSL_HEADERS}
+            )
+        else()
+            get_filename_component(GLSL_SOURCE_DIR ${REL_GLSL_SOURCE} DIRECTORY)
+            get_filename_component(GLSL_SOURCE_BASENAME ${REL_GLSL_SOURCE} NAME_WE)
+            get_filename_component(GLSL_SOURCE_EXT ${REL_GLSL_SOURCE} EXT)
+            
+            string(SUBSTRING ${GLSL_SOURCE_EXT} 1 -1 GLSL_SOURCE_EXT)
+            set(SPIRV_DIR ${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR})
+            set(DST_GLSL_SOURCE "${SPIRV_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
+
+            set(TMP_GLSL_SOURCE "${TMP_SHADERS_DIR}/${REL_GLSL_SOURCE}")
+            
+            add_custom_command(
+                OUTPUT ${DST_GLSL_SOURCE}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${SPIRV_DIR}
+                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}"
+                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,-g0>  # generate debug info iif in Debug config
+                DEPENDS ${GLSL_SOURCE} ${NEW_GLSL_HEADERS}
+            )
+        endif()
+        list(APPEND DST_GLSL_SOURCES ${DST_GLSL_SOURCE})
     endforeach(GLSL_SOURCE)
-    if(GLSL_SPIRV_FILES)
+
+    if(DST_GLSL_SOURCES)
         add_custom_target(
-            ${ARGV0}_FASTCG_COMPILE_GLSL_SHADERS
-            DEPENDS ${GLSL_SPIRV_FILES}
+            ${ARGV0}_GLSL_SHADERS
+            DEPENDS ${DST_GLSL_SOURCES}
         )
-        add_dependencies(${ARGV0} ${ARGV0}_FASTCG_COMPILE_GLSL_SHADERS)
+        add_dependencies(${ARGV0} ${ARGV0}_GLSL_SHADERS)
     endif()
 endfunction()
 
@@ -60,7 +94,7 @@ function(_fastcg_copy_assets)
     file(GLOB_RECURSE SRC_ASSET_FILES "${SRC_ASSETS_DIR}/*.*")
     foreach(SRC_ASSET_FILE IN LISTS SRC_ASSET_FILES)
         file(RELATIVE_PATH REL_ASSET_FILE ${SRC_ASSETS_DIR} ${SRC_ASSET_FILE})
-        if(REL_ASSET_FILE MATCHES "shaders" AND NOT FASTCG_USE_TEXT_SHADERS)
+        if(REL_ASSET_FILE MATCHES "shaders")
             continue()
         endif()
         set(DST_ASSET_FILE "${DST_ASSETS_DIR}/${REL_ASSET_FILE}")
@@ -73,26 +107,27 @@ function(_fastcg_copy_assets)
     endforeach(SRC_ASSET_FILE)
     if(DST_ASSET_FILES)
         add_custom_target(
-            ${ARGV0}_FASTCG_COPY_ASSETS
+            ${ARGV0}_COPY_ASSETS
             DEPENDS ${DST_ASSET_FILES}
         )
-        add_dependencies(${ARGV0} ${ARGV0}_FASTCG_COPY_ASSETS)
+        add_dependencies(${ARGV0} ${ARGV0}_COPY_ASSETS)
     endif()
 endfunction()
 
 function(_fastcg_prepare_assets)
-    if(NOT FASTCG_USE_TEXT_SHADERS)
-        _fastcg_compile_glsl_shaders(${ARGV})
-    endif()
+    _fastcg_add_glsl_shader_target(${ARGV})
     _fastcg_copy_assets(${ARGV})
 endfunction()
 
 function(_fastcg_add_definitions)
+    add_definitions(-DFASTCG_PROJECT_NAME="${ARGV0}")
     add_definitions(-DFASTCG_PLATFORM="${FASTCG_PLATFORM}")
     if(FASTCG_PLATFORM STREQUAL "Windows")
         add_definitions(-DFASTCG_WINDOWS)
     elseif(FASTCG_PLATFORM STREQUAL "Linux")
-        add_definitions(-DFASTCG_LINUX)
+        add_definitions(-DFASTCG_LINUX -DFASTCG_POSIX)
+    elseif(FASTCG_PLATFORM STREQUAL "Android")
+        add_definitions(-DFASTCG_ANDROID -DFASTCG_POSIX)
     endif()
     add_definitions(-DFASTCG_GRAPHICS_SYSTEM="${FASTCG_GRAPHICS_SYSTEM}")
     if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
@@ -107,15 +142,15 @@ function(_fastcg_add_definitions)
     if (FASTCG_DISABLE_GPU_VALIDATION)
         add_definitions(-DFASTCG_DISABLE_GPU_VALIDATION)
     endif()
-    if(FASTCG_PLATFORM STREQUAL "Linux")
-        target_compile_definitions(${ARGV0} PUBLIC $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
-    endif()
+    target_compile_definitions(${ARGV0} PUBLIC $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
 endfunction()
 
 function(_fastcg_set_target_properties)
     set(DEPLOY_DIR "${FASTCG_DEPLOY}/${ARGV0}")
+
     set_target_properties(${ARGV0} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${DEPLOY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${DEPLOY_DIR}
         DEBUG_POSTFIX "d"
     )
 
@@ -123,6 +158,7 @@ function(_fastcg_set_target_properties)
         string(TOUPPER ${CMAKE_CONFIGURATION_TYPE} CMAKE_CONFIGURATION_TYPE)
         set_target_properties(${ARGV0} PROPERTIES 
             RUNTIME_OUTPUT_DIRECTORY_${CMAKE_CONFIGURATION_TYPE} ${DEPLOY_DIR}
+            LIBRARY_OUTPUT_DIRECTORY_${CMAKE_CONFIGURATION_TYPE} ${DEPLOY_DIR}
             VS_DEBUGGER_WORKING_DIRECTORY ${DEPLOY_DIR}
             DEBUG_POSTFIX "d"
         )
@@ -135,8 +171,86 @@ function(_fastcg_add_library)
     _fastcg_prepare_assets(${ARGV0})
 endfunction()
 
+function(_fastcg_add_apk_targets)
+    set(SRC_GRADLE_PROJECT_DIR "${CMAKE_SOURCE_DIR}/resources/Android/gradle/project")
+    set(DST_GRADLE_PROJECT_DIR "${CMAKE_BINARY_DIR}/gradle/${ARGV0}")
+
+    file(GLOB_RECURSE SRC_GRADLE_PROJECT_FILES "${SRC_GRADLE_PROJECT_DIR}/*.*")
+    foreach(SRC_GRADLE_PROJECT_FILE IN LISTS SRC_GRADLE_PROJECT_FILES)
+        file(RELATIVE_PATH REL_GRADLE_PROJECT_FILE ${SRC_GRADLE_PROJECT_DIR} ${SRC_GRADLE_PROJECT_FILE})
+        set(DST_GRADLE_PROJECT_FILE "${DST_GRADLE_PROJECT_DIR}/${REL_GRADLE_PROJECT_FILE}")
+        if(DST_GRADLE_PROJECT_FILE MATCHES "\\.template$")
+            string(REGEX REPLACE "\\.template$" "" DST_GRADLE_PROJECT_FILE "${DST_GRADLE_PROJECT_FILE}")
+            add_custom_command(
+                OUTPUT ${DST_GRADLE_PROJECT_FILE}
+                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_template_engine.cmake "${SRC_GRADLE_PROJECT_FILE}" "${DST_GRADLE_PROJECT_FILE}" "project_name=${ARGV0};debuggable=$<IF:$<CONFIG:Debug>,true,false>"
+                DEPENDS ${SRC_GRADLE_PROJECT_FILE}
+            )
+        else()
+            add_custom_command(
+                OUTPUT ${DST_GRADLE_PROJECT_FILE}
+                COMMAND ${CMAKE_COMMAND} -E copy ${SRC_GRADLE_PROJECT_FILE} ${DST_GRADLE_PROJECT_FILE}
+                DEPENDS ${SRC_GRADLE_PROJECT_FILE}
+            )
+        endif()
+        list(APPEND DST_GRADLE_RESOURCE_FILES ${DST_GRADLE_PROJECT_FILE})
+    endforeach(SRC_GRADLE_PROJECT_FILE)
+
+    if(DST_GRADLE_RESOURCE_FILES)
+        add_custom_target(
+            ${ARGV0}_PREPARE_GRADLE_PROJECT
+            DEPENDS ${ARGV0} ${DST_GRADLE_RESOURCE_FILES}
+        )
+    else()
+        add_custom_target(
+            ${ARGV0}_PREPARE_GRADLE_PROJECT
+            DEPENDS ${ARGV0}
+        )
+    endif()
+
+    set(FASTCG_ASSETS_DIR "${FASTCG_DEPLOY}/assets/FastCG")
+    set(ASSETS_DIR "${FASTCG_DEPLOY}/assets/${ARGV0}")
+
+    add_custom_command(
+        TARGET ${ARGV0}_PREPARE_GRADLE_PROJECT PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/FastCG
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${FASTCG_ASSETS_DIR} ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/FastCG
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/${ARGV0}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${ASSETS_DIR} ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/${ARGV0}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${ARGV0}> ${DST_GRADLE_PROJECT_DIR}/app/src/main/jniLibs/arm64-v8a/lib${ARGV0}.so
+    )
+
+    add_custom_target(
+        ${ARGV0}_BUILD_APK
+        WORKING_DIRECTORY ${DST_GRADLE_PROJECT_DIR}
+        COMMAND gradlew assemble$<CONFIG>
+        BYPRODUCTS ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/app-$<LOWER_CASE:$<CONFIG>>.apk
+        DEPENDS ${ARGV0}_PREPARE_GRADLE_PROJECT
+    )
+
+    add_custom_target(
+        ${ARGV0}_DEPLOY_APK
+        COMMAND ${FASTCG_ADB} shell am force-stop com.fastcg.${ARGV0}
+        COMMAND ${FASTCG_ADB} install ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/app-$<LOWER_CASE:$<CONFIG>>.apk
+        DEPENDS ${ARGV0}_BUILD_APK
+    )
+endfunction()
+
+function(_fastcg_add_android_executable)
+    set(REMAINING_ARGS ${ARGN})
+    list(REMOVE_AT REMAINING_ARGS 0)
+    # turn executables into shared libraries
+    add_library(${ARGV0} SHARED ${REMAINING_ARGS})
+
+    _fastcg_add_apk_targets(${ARGV0})
+endfunction()
+
 function(fastcg_add_executable)
-    add_executable(${ARGN})
+    if(FASTCG_PLATFORM STREQUAL "Android")
+        _fastcg_add_android_executable(${ARGN})
+    else()
+        add_executable(${ARGN})
+    endif()
     _fastcg_add_definitions(${ARGV0})
     _fastcg_set_target_properties(${ARGV0})
     target_link_libraries(${ARGV0} ${FastCG_LIBRARIES})
@@ -151,6 +265,8 @@ function(fastcg_add_library)
     _fastcg_add_library(${ARGN})
     _fastcg_add_definitions(${ARGV0})
 endfunction()
+
+# Custom commands
 
 if(DEFINED FASTCG_EXEC)
     separate_arguments(FASTCG_EXEC_ARGS)

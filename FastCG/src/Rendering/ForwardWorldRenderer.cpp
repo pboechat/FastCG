@@ -36,7 +36,7 @@ namespace FastCG
                                                                                TextureType::TEXTURE_2D,
                                                                                TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                                TextureFormat::RGBA,
-                                                                               {10, 10, 10, 2},
+                                                                               {8, 8, 8, 8},
                                                                                TextureDataType::FLOAT,
                                                                                TextureFilter::LINEAR_FILTER,
                                                                                TextureWrapMode::CLAMP,

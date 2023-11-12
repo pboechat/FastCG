@@ -1,9 +1,3 @@
-#version 430 core
-
-#ifdef ENABLE_INCLUDE_EXTENSION_DIRECTIVE
-#extension GL_GOOGLE_include_directive : enable 
-#endif
-
 #include "FastCG.glsl"
 #include "Scene.glsl"
 #include "Lighting.glsl"
@@ -22,7 +16,7 @@ void main()
 {
 	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1);
 	vec3 viewPosition = vec3(uView * worldPosition);
-	vLightDirection = normalize(uLight0ViewPosition.xyz - (step(0, GetLightType()) * viewPosition));
+	vLightDirection = normalize(uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
 	vPosition = worldPosition.xyz;
 	vNormal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
 	vUV = iUV;

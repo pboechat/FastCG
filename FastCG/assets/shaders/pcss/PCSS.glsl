@@ -19,30 +19,30 @@ struct PCSSData
 void FindBlocker(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, out float avgBlockerDistance, out int numBlockers)
 {
 	numBlockers = 0;
-	float blockerDistanceSum = 0;
+	float blockerDistanceSum = 0.0;
     float zThreshold = shadowMapCoords.z - pcssData.shadowMapData.bias;
 	for (int i = 0; i < pcssData.blockerSearchSamples; i++)
 	{
-		float z = texture(shadowMap, shadowMapCoords.xy + PoissonDiskSample(i / float(pcssData.blockerSearchSamples)) * pcssData.uvScale).x;
+		float z = texture(shadowMap, shadowMapCoords.xy + PoissonDiskSample(float(i) / float(pcssData.blockerSearchSamples)) * pcssData.uvScale).x;
 		if (z < zThreshold)
 		{
 			blockerDistanceSum += z;
 			numBlockers++;
 		}
 	}
-	avgBlockerDistance = blockerDistanceSum / numBlockers;
+	avgBlockerDistance = blockerDistanceSum / float(numBlockers);
 }
 
 float PCF(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, float uvRadius)
 {
-	float sum = 0;
+	float sum = 0.0;
     float zThreshold = shadowMapCoords.z - pcssData.shadowMapData.bias;
 	for (int i = 0; i < pcssData.pcfSamples; i++)
 	{
-		float z = texture(shadowMap, shadowMapCoords.xy + PoissonDiskSample(i / float(pcssData.pcfSamples)) * uvRadius).x;
+		float z = texture(shadowMap, shadowMapCoords.xy + PoissonDiskSample(float(i) / float(pcssData.pcfSamples)) * uvRadius).x;
 		sum += float(z <= zThreshold);
 	}
-	return sum / pcssData.pcfSamples;
+	return sum / float(pcssData.pcfSamples);
 }
 
 float GetPCSS(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
@@ -55,7 +55,7 @@ float GetPCSS(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
 	FindBlocker(pcssData, shadowMap, shadowMapCoords, avgBlockerDistance, numBlockers);
 	if (numBlockers < 1)
 	{
-		return 1;
+		return 1.0;
 	}
 
     // penumbra estimation
@@ -63,7 +63,7 @@ float GetPCSS(PCSSData pcssData, sampler2D shadowMap, vec3 worldPosition)
 
 	// percentage-close filtering
 	float uvRadius = penumbraWidth * pcssData.uvScale;
-	return 1 - PCF(pcssData, shadowMap, shadowMapCoords, uvRadius);
+	return 1.0 - PCF(pcssData, shadowMap, shadowMapCoords, uvRadius);
 }
 
 // for debugging purposes

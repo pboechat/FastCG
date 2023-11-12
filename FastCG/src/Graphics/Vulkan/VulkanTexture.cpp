@@ -51,7 +51,6 @@ namespace FastCG
 
         const auto *pFormatProperties = VulkanGraphicsSystem::GetInstance()->GetFormatProperties(imageCreateInfo.format);
         assert(pFormatProperties != nullptr);
-        bool usesMappableMemory = false;
         if ((pFormatProperties->optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) != 0)
         {
             imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -60,11 +59,11 @@ namespace FastCG
         {
             imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
             // linearly tiled images should use mappable memory at the moment
-            usesMappableMemory = true;
+            mUsesMappableMemory = true;
         }
         else
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: No tiling features found for format %s", GetVkFormatString(imageCreateInfo.format));
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: No tiling features found for format %s (texture: %s)", GetVkFormatString(imageCreateInfo.format), mName.c_str());
         }
 
         imageCreateInfo.usage = GetVkImageUsageFlags(GetUsage(), GetFormat());
@@ -72,7 +71,7 @@ namespace FastCG
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
         VmaAllocationCreateInfo allocationCreateInfo;
-        if (usesMappableMemory)
+        if (mUsesMappableMemory)
         {
             allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
         }
@@ -155,7 +154,7 @@ namespace FastCG
                                                      &mDefaultImageView));
             break;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Can't create image view for texture type %s", GetTextureTypeString(GetType()));
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Can't create image view for texture type %s (texture: %s)", GetTextureTypeString(GetType()), mName.c_str());
             break;
         }
 

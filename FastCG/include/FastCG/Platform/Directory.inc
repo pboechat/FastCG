@@ -1,9 +1,11 @@
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
 #include <cstring>
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 #include <sys/stat.h>
+#if defined FASTCG_POSIX
 #include <dirent.h>
+#endif
 #endif
 
 namespace
@@ -33,12 +35,12 @@ namespace
 			}
 			FindClose(findHandle);
 		}
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 		if (auto dir = opendir(rDirectoryPath.c_str()))
 		{
 			while (auto file = readdir(dir))
 			{
-				if (!file->d_name || file->d_name[0] == '.')
+				if (!file->d_name[0] || file->d_name[0] == '.')
 				{
 					continue;
 				}
@@ -66,7 +68,7 @@ namespace FastCG
 #if defined FASTCG_WINDOWS
 		auto directoryAttributes = GetFileAttributes(rDirectoryPath.c_str());
 		return (directoryAttributes != INVALID_FILE_ATTRIBUTES && (directoryAttributes & FILE_ATTRIBUTE_DIRECTORY));
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 		struct stat fileStat;
 		return stat(rDirectoryPath.c_str(), &fileStat) == 0 && (fileStat.st_mode & S_IFDIR) != 0;
 #else

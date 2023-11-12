@@ -80,7 +80,7 @@ namespace
 		auto *pModelGameObject = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/doomsday.obj"), pMissingMaterial);
 		if (pModelGameObject == nullptr)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Missing doomsday model");
+			FASTCG_THROW_EXCEPTION(Exception, "Couldn't find doomsday model");
 		}
 
 		const auto &bounds = pModelGameObject->GetBounds();
@@ -131,3 +131,5 @@ void BumpMappingApplication::OnStart()
 	Controls::Instantiate(pGeneralBehavioursGameObject);
 	LightsAnimator::Instantiate(pGeneralBehavioursGameObject);
 }
+
+FASTCG_MAIN(BumpMappingApplication)

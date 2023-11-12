@@ -5,11 +5,11 @@
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
 
+#include <spirv_cross.hpp>
+
 #include <memory>
 #include <cstring>
 #include <algorithm>
-
-#include <spirv_cross/spirv_cross.hpp>
 
 namespace
 {

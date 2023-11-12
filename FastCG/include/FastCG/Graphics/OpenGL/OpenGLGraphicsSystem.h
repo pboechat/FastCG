@@ -44,10 +44,19 @@ namespace FastCG
         {
             return mDeviceProperties;
         }
-        void DestroyTexture(const OpenGLTexture *pTexture);
+        void DestroyTexture(const OpenGLTexture *pTexture) override;
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
 
+#if defined FASTCG_ANDROID
+        inline bool IsHeadless() const
+        {
+            return mHeadedContext == EGL_NO_CONTEXT;
+        }
+
+        void OnWindowInitialized();
+        void OnWindowTerminated();
+#endif
     protected:
         OpenGLGraphicsSystem(const GraphicsSystemArgs &rArgs);
         virtual ~OpenGLGraphicsSystem();
@@ -58,6 +67,13 @@ namespace FastCG
         HGLRC mHGLRC{0};
 #elif defined FASTCG_LINUX
         GLXContext mpRenderContext{nullptr};
+#elif defined FASTCG_ANDROID
+        EGLDisplay mDisplay{nullptr};
+        EGLConfig mConfig{nullptr};
+        EGLContext mHeadlessContext{EGL_NO_CONTEXT};
+        EGLSurface mPbufferSurface{EGL_NO_SURFACE};
+        EGLContext mHeadedContext{EGL_NO_CONTEXT};
+        EGLSurface mWindowSurface{EGL_NO_SURFACE};
 #endif
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mFboIds;
         std::unordered_map<GLint, std::vector<size_t>, IdentityHasher<GLint>> mTextureToFboHashes;
@@ -69,7 +85,9 @@ namespace FastCG
         void Resize() {}
         void Present();
         double GetGpuElapsedTime() const;
+#if !defined FASTCG_ANDROID
         void InitializeGlew();
+#endif
         void CreateOpenGLContext();
         void QueryDeviceProperties();
         void DestroyOpenGLContext();

@@ -33,6 +33,9 @@ namespace FastCG
         button.result = 0;                                           \
         Messagebox(title, wMsg, &button, 1);                         \
     }
+#elif defined FASTCG_ANDROID
+// TODO: implement a dialog box on Android - although I guess there's no easy way to do it
+#define FASTCG_MSG_BOX(...)
 #else
 #error "FASTCG_MSG_BOX() is not implemented on the current platform"
 #endif

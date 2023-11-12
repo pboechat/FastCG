@@ -15,7 +15,10 @@ namespace FastCG
         auto format = GetOpenGLFormat(mFormat);
 
         glGenTextures(1, &mTextureId);
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't generate texture (texture: %s)", rArgs.name.c_str());
+
         glBindTexture(target, mTextureId);
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture (texture: %s)", rArgs.name.c_str());
 #ifdef _DEBUG
         {
             std::string textureLabel = GetName() + " (GL_TEXTURE)";
@@ -32,13 +35,13 @@ namespace FastCG
             glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE);
         }
         glTexImage2D(target, 0, internalFormat, (GLsizei)mWidth, (GLsizei)mHeight, 0, format, GetOpenGLDataType(mFormat, mBitsPerChannel), rArgs.pData);
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't create texture image (texture: %s)", rArgs.name.c_str());
 
         if (rArgs.generateMipmap)
         {
             glGenerateMipmap(target);
+            FASTCG_CHECK_OPENGL_ERROR("Couldn't generate mipmaps (texture: %s)", rArgs.name.c_str());
         }
-
-        FASTCG_CHECK_OPENGL_ERROR();
     }
 
     OpenGLTexture::~OpenGLTexture()

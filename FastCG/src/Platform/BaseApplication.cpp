@@ -18,6 +18,7 @@
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Core/System.h>
 #include <FastCG/Core/MsgBox.h>
+#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Exception.h>
 #include <FastCG/Assets/AssetSystem.h>
 
@@ -106,14 +107,8 @@ namespace FastCG
 		smpInstance = nullptr;
 	}
 
-	int BaseApplication::Run(int argc, char **argv)
+	int BaseApplication::Run()
 	{
-		if (!ParseCommandLineArguments(argc, argv))
-		{
-			OnPrintUsage();
-			return -1;
-		}
-
 		try
 		{
 			Initialize();
@@ -131,68 +126,99 @@ namespace FastCG
 		}
 		catch (Exception &e)
 		{
+			FASTCG_LOG_ERROR("Fatal Exception: %s", e.GetFullDescription().c_str());
 			FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
 			return -1;
 		}
 	}
 
-	void BaseApplication::Initialize()
+	int BaseApplication::Run(int argc, char **argv)
 	{
-		OnPreInitialize();
-
-		AssetSystem::Create({mSettings.assets.bundles});
-#ifdef _DEBUG
-		DebugMenuSystem::Create({});
-#endif
-		GraphicsSystem::Create({mScreenWidth,
-								mScreenHeight,
-								mSettings.maxSimultaneousFrames,
-								mSettings.vsync});
-		InputSystem::Create({});
-		ImGuiSystem::Create({mScreenWidth,
-							 mScreenHeight});
-		RenderingSystem::Create({mSettings.rendering.path,
-								 mScreenWidth,
-								 mScreenHeight,
-								 mSettings.rendering.clearColor,
-								 mSettings.rendering.ambientLight,
-								 mRenderingStatistics});
-		WorldSystem::Create({mScreenWidth,
-							 mScreenHeight});
-
-		GraphicsSystem::GetInstance()->Initialize();
-
-		for (const auto &rImportCallback : mSettings.assets.importCallbacks)
+		if (!ParseCommandLineArguments(argc, argv))
 		{
-			rImportCallback();
+			FASTCG_LOG_ERROR("Failed to parse command line arguments");
+			OnPrintUsage();
+			return -1;
 		}
 
-		ImGuiSystem::GetInstance()->Initialize();
-		RenderingSystem::GetInstance()->Initialize();
-		WorldSystem::GetInstance()->Initialize();
+		return Run();
+	}
 
+	void BaseApplication::Initialize()
+	{
+		FASTCG_LOG_VERBOSE("Pre-initializing application");
+		OnPreInitialize();
+
+		{
+			FASTCG_LOG_VERBOSE("Creating systems");
+
+			AssetSystem::Create({mSettings.assets.bundles});
+#ifdef _DEBUG
+			DebugMenuSystem::Create({});
+#endif
+			GraphicsSystem::Create({mScreenWidth,
+									mScreenHeight,
+									mSettings.maxSimultaneousFrames,
+									mSettings.vsync});
+			InputSystem::Create({});
+			ImGuiSystem::Create({mScreenWidth,
+								 mScreenHeight});
+			RenderingSystem::Create({mSettings.rendering.path,
+									 mScreenWidth,
+									 mScreenHeight,
+									 mSettings.rendering.clearColor,
+									 mSettings.rendering.ambientLight,
+									 mRenderingStatistics});
+			WorldSystem::Create({mScreenWidth,
+								 mScreenHeight});
+		}
+
+		{
+			FASTCG_LOG_VERBOSE("Initializing systems");
+
+			GraphicsSystem::GetInstance()->Initialize();
+
+			for (const auto &rImportCallback : mSettings.assets.importCallbacks)
+			{
+				rImportCallback();
+			}
+
+			ImGuiSystem::GetInstance()->Initialize();
+			RenderingSystem::GetInstance()->Initialize();
+			WorldSystem::GetInstance()->Initialize();
+		}
+
+		FASTCG_LOG_VERBOSE("Post-initializing application");
 		OnPostInitialize();
 	}
 
 	void BaseApplication::Finalize()
 	{
+		FASTCG_LOG_VERBOSE("Pre-finalizing application");
 		OnPreFinalize();
 
-		WorldSystem::GetInstance()->Finalize();
-		RenderingSystem::GetInstance()->Finalize();
-		ImGuiSystem::GetInstance()->Finalize();
-		GraphicsSystem::GetInstance()->Finalize();
+		{
+			FASTCG_LOG_VERBOSE("Finalizing systems");
+			WorldSystem::GetInstance()->Finalize();
+			RenderingSystem::GetInstance()->Finalize();
+			ImGuiSystem::GetInstance()->Finalize();
+			GraphicsSystem::GetInstance()->Finalize();
+		}
 
-		WorldSystem::Destroy();
-		RenderingSystem::Destroy();
-		ImGuiSystem::Destroy();
-		InputSystem::Destroy();
-		GraphicsSystem::Destroy();
+		{
+			FASTCG_LOG_VERBOSE("Destroying systems");
+			WorldSystem::Destroy();
+			RenderingSystem::Destroy();
+			ImGuiSystem::Destroy();
+			InputSystem::Destroy();
+			GraphicsSystem::Destroy();
 #ifdef _DEBUG
-		DebugMenuSystem::Destroy();
+			DebugMenuSystem::Destroy();
 #endif
-		AssetSystem::Destroy();
+			AssetSystem::Destroy();
+		}
 
+		FASTCG_LOG_VERBOSE("Post-finalizing application");
 		OnPostFinalize();
 	}
 

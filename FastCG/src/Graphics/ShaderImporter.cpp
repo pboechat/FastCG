@@ -1,3 +1,4 @@
+#include <FastCG/Graphics/RenderingPath.h>
 #include <FastCG/Graphics/ShaderSource.h>
 #include <FastCG/Graphics/ShaderImporter.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
@@ -5,6 +6,7 @@
 #include <FastCG/Platform/File.h>
 #include <FastCG/Platform/Application.h>
 #include <FastCG/Core/Macros.h>
+#include <FastCG/Core/Log.h>
 #include <FastCG/Assets/AssetSystem.h>
 
 #include <vector>
@@ -70,11 +72,12 @@ namespace FastCG
             ShaderTypeValueArray<std::string> programFileNames;
         };
 
-        const auto allowedRenderingPathMask = 1 << (RenderingPathMask)Application::GetInstance()->GetRenderingPath();
+        const auto renderingPath = Application::GetInstance()->GetRenderingPath();
+        const auto allowedRenderingPathMask = 1 << (RenderingPathMask)renderingPath;
         std::unordered_map<std::string, ShaderInfo> shaderInfos;
         for (const auto &rShaderFileName : AssetSystem::GetInstance()->List("shaders", true))
         {
-            // only import shaders fro mthe selected rendering path
+            // only import shaders from the selected rendering path
             if ((allowedRenderingPathMask & GetSuitableRenderingPathMask(rShaderFileName)) == 0)
             {
                 continue;
@@ -105,6 +108,9 @@ namespace FastCG
 
             rShaderInfo.programFileNames[(ShaderTypeInt)shaderType] = rShaderFileName;
         }
+
+        FASTCG_LOG_VERBOSE("Importing shaders (%s):", GetRenderingPathString(renderingPath));
+
         Shader::Args shaderArgs{};
         for (const auto &rEntry : shaderInfos)
         {
@@ -119,9 +125,11 @@ namespace FastCG
                     continue;
                 }
 
+                FASTCG_LOG_VERBOSE("- %s (%s)", shaderArgs.name.c_str(), shaderArgs.text ? "text" : "binary");
+
                 if (shaderArgs.text)
                 {
-                    auto programSource = ShaderSource::ParseFile(rShaderInfo.programFileNames[i]);
+                    auto programSource = ShaderSource::ParseFile(rShaderInfo.programFileNames[i], (ShaderType)i);
                     shaderArgs.programsData[i].dataSize = programSource.size() + 1;
                     programsData[i] = std::make_unique<uint8_t[]>(shaderArgs.programsData[i].dataSize);
                     std::copy(programSource.cbegin(), programSource.cend(), (char *)programsData[i].get());

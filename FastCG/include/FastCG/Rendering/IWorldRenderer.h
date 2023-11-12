@@ -9,6 +9,8 @@ namespace FastCG
     class IWorldRenderer
     {
     public:
+        virtual ~IWorldRenderer() = default;
+
         virtual float GetShadowMapBias() const = 0;
         virtual void SetShadowMapBias(float shadowMapBias) = 0;
         virtual float GetPCSSUvScale() const = 0;

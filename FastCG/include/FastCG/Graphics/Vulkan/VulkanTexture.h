@@ -61,6 +61,7 @@ namespace FastCG
         VmaAllocationInfo mAllocationInfo;
         VkImageView mDefaultImageView{VK_NULL_HANDLE};
         VkSampler mDefaultSampler{VK_NULL_HANDLE};
+        bool mUsesMappableMemory{false};
 
         inline VkImage GetImage() const
         {
@@ -92,7 +93,7 @@ namespace FastCG
         }
         inline VkImageAspectFlags GetAspectFlags() const
         {
-            return GetVkImageAspectFlags(GetFormat());
+            return GetVkImageAspectFlags(GetFormat(), GetDataType());
         }
         inline VkImageLayout GetRestingLayout() const
         {
@@ -106,6 +107,11 @@ namespace FastCG
         {
             return GetVkImagePipelineStageFlags(GetUsage());
         }
+        inline bool UsesMappableMemory() const
+        {
+            return mUsesMappableMemory;
+        }
+
         void CreateImage();
         void DestroyImage();
         void TransitionToRestingLayout();

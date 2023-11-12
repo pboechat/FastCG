@@ -25,7 +25,7 @@ namespace
 		auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/armadillo.obj"), pDefaultMaterial);
 		if (pModel == nullptr)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Missing armadillo model");
+			FASTCG_THROW_EXCEPTION(Exception, "Couldn't find armadillo model");
 		}
 
 		const auto &bounds = pModel->GetBounds();
@@ -75,3 +75,5 @@ void SSAOApplication::OnStart()
 	auto *pGeneralBehavioursGameObject = GameObject::Instantiate("General Behaviours");
 	Controls::Instantiate(pGeneralBehavioursGameObject);
 }
+
+FASTCG_MAIN(SSAOApplication)

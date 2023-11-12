@@ -3,7 +3,7 @@
 
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 #include <unistd.h>
 #endif
 
@@ -16,7 +16,7 @@ namespace FastCG
 		{
 #if defined FASTCG_WINDOWS
 			::Sleep(static_cast<DWORD>(seconds * 1e3));
-#elif defined FASTCG_LINUX
+#elif defined FASTCG_POSIX
 			sleep((unsigned int)seconds);
 #else
 #error "Thread::Sleep() not implemented on current platform"

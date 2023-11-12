@@ -154,6 +154,8 @@ namespace FastCG
     class IInspectableProperty
     {
     public:
+        virtual ~IInspectableProperty() = default;
+
         virtual InspectablePropertyType GetType() const = 0;
         virtual const std::string &GetName() const = 0;
         virtual void GetValue(void *pValue) const = 0;
@@ -220,7 +222,7 @@ namespace FastCG
         {
         }
 
-        inline InspectablePropertyType GetType() const
+        inline InspectablePropertyType GetType() const override
         {
             return GetInspectablePropertyTypeFromType<InspectablePropertyTypeT>::value;
         }
@@ -325,7 +327,7 @@ namespace FastCG
         {
         }
 
-        inline InspectablePropertyType GetType() const
+        inline InspectablePropertyType GetType() const override
         {
             return GetInspectablePropertyTypeFromType<InspectablePropertyTypeT>::value;
         }

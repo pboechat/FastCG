@@ -1,0 +1,154 @@
+package com.fastcg;
+
+import android.os.Bundle;
+import android.app.NativeActivity;
+import android.os.Bundle;
+import android.util.Log;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import android.content.res.AssetManager;
+
+public class MainActivity extends NativeActivity 
+{
+    @Override
+    protected void onCreate(Bundle savedInstanceState) 
+	{
+		deleteAssetsInInternalStorage();
+        copyAssetsToInternalStorage("");
+		
+		super.onCreate(savedInstanceState);
+    }
+	
+	private boolean deleteAssetsInInternalStorage()
+	{
+		return deleteDirectory(new File(getFilesDir().getAbsolutePath() + "/assets"));
+	}
+	
+	private boolean deleteDirectory(File directory) 
+	{
+		if (directory.isDirectory()) 
+		{
+			File[] files = directory.listFiles();
+			if (files != null) 
+			{
+				for (File file : files) 
+				{
+					if (file.isDirectory()) 
+					{
+						deleteDirectory(file);
+					} 
+					else 
+					{
+						file.delete();
+					}
+				}
+			}
+		}
+		return directory.delete();
+	}
+	
+	private void copyAssetsToInternalStorage(String path) 
+	{
+        AssetManager assetManager = getAssets();
+        String[] assets = null;
+        try 
+		{
+            assets = assetManager.list(path);
+            if (assets == null || assets.length == 0) 
+			{
+                copyAssetToInternalStorage(path);
+            } 
+			else 
+			{
+                String fullPath = getFilesDir().getAbsolutePath() + "/assets/" + path;
+                File dir = new File(fullPath);
+                if (!dir.exists()) 
+				{
+                    dir.mkdir();
+                }
+                for (String asset : assets) 
+				{
+                    copyAssetsToInternalStorage(path.equals("") ? asset : path + "/" + asset);
+                }
+            }
+        } 
+		catch (IOException e) 
+		{
+            Log.e("FASTCG", "Failed to copy asset file: " + path, e);
+        }
+    }
+	
+	private void copyAssetToInternalStorage(String filename) 
+	{
+        AssetManager assetManager = getAssets();
+        InputStream in = null;
+        OutputStream out = null;
+        try 
+		{
+            in = assetManager.open(filename);
+            File outFile = new File(getFilesDir() + "/assets/" + filename);
+            File dir = outFile.getParentFile();
+            if (!dir.exists()) 
+			{
+                dir.mkdirs();
+            }
+            out = new FileOutputStream(outFile);
+            copyFile(in, out);
+        } 
+		catch(IOException e) 
+		{
+            Log.e("FASTCG", "Failed to copy asset file: " + filename, e);
+        } 
+		finally 
+		{
+            if (in != null) 
+			{
+                try 
+				{
+                    in.close();
+                } 
+				catch (IOException e) 
+				{
+                    // Handle error
+                }
+            }
+            if (out != null) 
+			{
+                try 
+				{
+                    out.close();
+                } 
+				catch (IOException e) 
+				{
+                    // Handle error
+                }
+            }
+        }
+    }
+	
+	private void copyFile(InputStream in, OutputStream out) throws IOException 
+	{
+        byte[] buffer = new byte[1024];
+        int read;
+        while((read = in.read(buffer)) != -1)
+		{
+            out.write(buffer, 0, read);
+        }
+    }
+	
+	// FIXME:
+	/*public void safeFinish() 
+	{
+		runOnUiThread(new Runnable() 
+		{
+			@Override
+			public void run() 
+			{
+				finish();
+			}
+		});
+    }*/
+}

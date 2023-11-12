@@ -21,3 +21,5 @@ void DeferredRenderingApplication::OnStart()
 {
 	GameObjectLoader::Load(AssetSystem::GetInstance()->Resolve("scenes/deferred_rendering.scene"));
 }
+
+FASTCG_MAIN(DeferredRenderingApplication)

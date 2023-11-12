@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:label="@string/app_name"
+        android:allowBackup="true"
+        android:supportsRtl="true">
+        <activity android:name="com.fastcg.MainActivity"
+            android:label="@string/app_name"
+			android:screenOrientation="landscape"
+            android:exported="true"
+			android:debuggable="${debuggable}">
+			<meta-data android:name="android.app.lib_name" android:value="${project_name}" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

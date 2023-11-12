@@ -25,6 +25,24 @@
 
 namespace FastCG
 {
+#define FASTCG_DECL_VK_EXT_FN(fn) extern PFN_##fn fn
+
+    namespace VkExt
+    {
+        FASTCG_DECL_VK_EXT_FN(vkCreateRenderPass2KHR);
+        FASTCG_DECL_VK_EXT_FN(vkCmdBeginRenderPass2KHR);
+        FASTCG_DECL_VK_EXT_FN(vkCmdEndRenderPass2KHR);
+#if _DEBUG
+        FASTCG_DECL_VK_EXT_FN(vkCreateDebugUtilsMessengerEXT);
+        FASTCG_DECL_VK_EXT_FN(vkDestroyDebugUtilsMessengerEXT);
+        FASTCG_DECL_VK_EXT_FN(vkCmdBeginDebugUtilsLabelEXT);
+        FASTCG_DECL_VK_EXT_FN(vkCmdEndDebugUtilsLabelEXT);
+        FASTCG_DECL_VK_EXT_FN(vkSetDebugUtilsObjectNameEXT);
+#endif
+    }
+
+#undef FASTCG_DECL_VK_EXT_FN
+
     struct VulkanImageMemoryTransition
     {
         VkImageLayout layout;
@@ -45,9 +63,18 @@ namespace FastCG
         {
             return mCurrentFrame;
         }
-        inline void DestroyBuffer(const VulkanBuffer *pBuffer);
-        inline void DestroyShader(const VulkanShader *pShader);
-        inline void DestroyTexture(const VulkanTexture *pTexture);
+        inline void DestroyBuffer(const VulkanBuffer *pBuffer) override;
+        inline void DestroyShader(const VulkanShader *pShader) override;
+        inline void DestroyTexture(const VulkanTexture *pTexture) override;
+#if defined FASTCG_ANDROID
+        inline bool IsHeadless() const
+        {
+            return mSurface == VK_NULL_HANDLE;
+        }
+
+        void OnWindowInitialized();
+        void OnWindowTerminated();
+#endif
 
     protected:
         using Super = BaseGraphicsSystem<VulkanBuffer, VulkanGraphicsContext, VulkanShader, VulkanTexture>;
@@ -97,6 +124,7 @@ namespace FastCG
         };
 
         VkInstance mInstance{VK_NULL_HANDLE};
+        std::vector<const char *> mInstanceExtensions;
         VkSurfaceKHR mSurface{VK_NULL_HANDLE};
         VkPhysicalDevice mPhysicalDevice{VK_NULL_HANDLE};
         VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
@@ -104,15 +132,16 @@ namespace FastCG
         VkFormatProperties mFormatProperties[((size_t)LAST_FORMAT) + 1]{};
         std::unique_ptr<VkAllocationCallbacks> mAllocationCallbacks{nullptr};
         VkDevice mDevice{VK_NULL_HANDLE};
+        std::vector<const char *> mDeviceExtensions;
         uint32_t mGraphicsAndPresentQueueFamilyIndex{~0u};
         VkQueue mGraphicsAndPresentQueue{VK_NULL_HANDLE};
-        VkSurfaceTransformFlagBitsKHR mPreTransform;
-        VkPresentModeKHR mPresentMode;
-        uint32_t mMaxSimultaneousFrames{0};
+        VkSurfaceTransformFlagBitsKHR mPreTransform{(VkSurfaceTransformFlagBitsKHR)0};
+        VkPresentModeKHR mPresentMode{VK_PRESENT_MODE_IMMEDIATE_KHR};
+        VkSurfaceFormatKHR mSwapChainSurfaceFormat{};
+        uint32_t mMaxSimultaneousFrames{1};
         uint32_t mCurrentFrame{0};
         uint32_t mSwapChainIndex{0};
         VkSwapchainKHR mSwapChain{VK_NULL_HANDLE};
-        VkSurfaceFormatKHR mSwapChainSurfaceFormat;
         std::vector<const VulkanTexture *> mSwapChainTextures;
         std::vector<VkSemaphore> mAcquireSwapChainImageSemaphores;
         std::vector<VkSemaphore> mSubmitFinishedSemaphores;
@@ -154,6 +183,7 @@ namespace FastCG
         void SelectPhysicalDevice();
         void CreateAllocator();
         void AcquirePhysicalDeviceProperties();
+        void AcquirePhysicalDeviceSurfaceProperties();
         void CreateDeviceAndGetQueues();
         void RecreateSwapChainAndGetImages();
         void AcquireNextSwapChainImage();

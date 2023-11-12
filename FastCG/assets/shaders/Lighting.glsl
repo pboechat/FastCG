@@ -51,7 +51,7 @@ vec4 Phong(vec4 diffuse, vec4 specular, float shininess, vec3 lightDirection, ve
     vec4 diffuseContribution = uLight0DiffuseColor * uLight0Intensity * diffuse * diffuseAttenuation;
 
     vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
-    float specularAttenuation = max(pow(max(dot(reflectionDirection, viewerDirection), 0.0), shininess), 0);
+    float specularAttenuation = max(pow(max(dot(reflectionDirection, viewerDirection), 0.0), shininess), 0.0);
     vec4 specularContribution = uLight0SpecularColor * uLight0Intensity * specular * specularAttenuation;
 
     return DistanceAttenuation(worldPosition) * (uAmbientColor + diffuseContribution + specularContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
@@ -71,7 +71,7 @@ vec4 BlinnPhong(vec4 diffuse, vec4 specular, float shininess, vec3 lightDirectio
     vec4 diffuseContribution = uLight0DiffuseColor * uLight0Intensity * diffuse * diffuseAttenuation;
 
     vec3 halfwayVector = normalize(lightDirection + viewerDirection);
-    float specularAttenuation = max(pow(max(dot(halfwayVector, normal), 0.0), shininess), 0);
+    float specularAttenuation = max(pow(max(dot(halfwayVector, normal), 0.0), shininess), 0.0);
     vec4 specularContribution = uLight0SpecularColor * uLight0Intensity * specular * specularAttenuation;
 
     return DistanceAttenuation(worldPosition) * (uAmbientColor + diffuseContribution + specularContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);

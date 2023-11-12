@@ -1,17 +1,11 @@
-#version 430 core
-
-#ifdef ENABLE_INCLUDE_EXTENSION_DIRECTIVE
-#extension GL_GOOGLE_include_directive : enable 
-#endif
-
 #include "../FastCG.glsl"
-#include "SSAOHighFrequencyPass.glsl"
+#include "SSAOHighFrequencyPass.glsl" 
 
 layout(BINDING_0_1) uniform sampler2D uNoiseMap;
 layout(BINDING_0_2) uniform sampler2D uDepth;
 
 layout(location = 0) in vec2 vUV;
-layout(location = 1) noperspective in vec3 vViewRay;
+layout(location = 1) in vec3 vViewRay;
 
 layout(location = 0) out float oAmbientOcclusion;
 
@@ -19,7 +13,7 @@ layout(location = 0) out float oAmbientOcclusion;
 
 void main()
 {
-	vec2 noiseUv = textureSize(uDepth, 0) / textureSize(uNoiseMap, 0) * vUV;
+	vec2 noiseUv = vec2(textureSize(uDepth, 0) / textureSize(uNoiseMap, 0)) * vUV;
 	vec3 randomVector = texture(uNoiseMap, noiseUv).xyz;
 
 	float z = GetViewSpaceZ(uProjection, texture(uDepth, vUV).x);
@@ -36,9 +30,9 @@ void main()
 	// of the current and neighbouring fragments
 	vec3 normal = normalize(cross(viewPosRight, viewPosBottom));
 
-#if VULKAN
+#ifdef VULKAN
 	// FIXME:
-	normal *= -1;
+	normal *= -1.0;
 #endif
 
 	// compute the sampling tangent space matrix from normal, 
@@ -47,16 +41,16 @@ void main()
 	vec3 binormal = cross(normal, tangent);
 	mat3 tangentSpaceMatrix = mat3(tangent, binormal, normal);
 
-	float occlusion = 0;
+	float occlusion = 0.0;
 	for (int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
 		vec3 sampleViewPos = viewPos + (tangentSpaceMatrix * uRandomSamples[i].xyz) * uAspectRatio;
 
-		vec4 sampleClipPos = uProjection * vec4(sampleViewPos, 1);
+		vec4 sampleClipPos = uProjection * vec4(sampleViewPos, 1.0);
 
 		vec2 sampleUv = sampleClipPos.xy / sampleClipPos.w;
 		sampleUv.x = sampleUv.x * 0.5 + 0.5;
-#if VULKAN
+#ifdef VULKAN
 		sampleUv.y = sampleUv.y * -0.5 + 0.5;
 #else
 		sampleUv.y = sampleUv.y * 0.5 + 0.5;
@@ -70,5 +64,5 @@ void main()
 		occlusion += (actualViewPos.z <= sampleViewPos.z - uBias ? 1.0 : 0.0) * rangeCheck;  
 	}
 
-	oAmbientOcclusion = 1 - (occlusion / NUMBER_OF_RANDOM_SAMPLES);
+	oAmbientOcclusion = 1.0 - (occlusion / float(NUMBER_OF_RANDOM_SAMPLES));
 }
