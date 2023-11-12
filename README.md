@@ -11,9 +11,11 @@ Features:
 - Platform Support:
     - Windows
     - Linux
+    - Android
 - Rendering Backend Support:
     - OpenGL 4.3 (core profile)
-    - Vulkan 1.3
+    - OpenGL ES 3.2
+    - Vulkan 1.1/1.3
 - Material System:
     - Basic shaders including diffuse, specular, bump, and more.
 - Rendering Paths:
@@ -29,4 +31,4 @@ Features:
     - Supports OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
 - Immediate-mode GUI support (via [Dear ImGUI](https://github.com/ocornut/imgui))
 - API Design:
-    - Unity-inspired component-based API.
+    - Component-oriented API.
