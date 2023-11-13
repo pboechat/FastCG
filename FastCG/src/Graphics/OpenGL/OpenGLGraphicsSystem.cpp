@@ -61,15 +61,18 @@ namespace
     }
 
 #ifdef _DEBUG
-#define FASTCG_CHECK_EGL_ERROR(fmt, ...)                                                                  \
-    {                                                                                                     \
-        EGLint __error;                                                                                   \
-        if ((__error = eglGetError()) != EGL_SUCCESS)                                                     \
-        {                                                                                                 \
-            char msg[4096];                                                                               \
-            sprintf(msg, fmt, ##__VA_ARGS__);                                                             \
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "%s (error: %s)", msg, eglGetErrorString(__error)); \
-        }                                                                                                 \
+#define FASTCG_CHECK_EGL_ERROR(fmt, ...)                                                                               \
+    {                                                                                                                  \
+        EGLint __error;                                                                                                \
+        if ((__error = eglGetError()) != EGL_SUCCESS)                                                                  \
+        {                                                                                                              \
+            char __eglErrorBuffer[4096];                                                                               \
+            FASTCG_WARN_PUSH                                                                                           \
+            FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                                                       \
+            sprintf(__eglErrorBuffer, fmt, ##__VA_ARGS__);                                                             \
+            FASTCG_WARN_POP                                                                                            \
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "%s (error: %s)", __eglErrorBuffer, eglGetErrorString(__error)); \
+        }                                                                                                              \
     }
 #else
 #define FASTCG_CHECK_EGL_ERROR(...)

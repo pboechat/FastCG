@@ -54,15 +54,18 @@ inline const char *glGetErrorString(GLenum error)
 }
 
 #ifdef _DEBUG
-#define FASTCG_CHECK_OPENGL_ERROR(fmt, ...)                                                                    \
-	{                                                                                                          \
-		GLenum __error;                                                                                        \
-		if ((__error = glGetError()) != GL_NO_ERROR)                                                           \
-		{                                                                                                      \
-			char msg[4096];                                                                                    \
-			sprintf(msg, fmt, ##__VA_ARGS__);                                                                  \
-			FASTCG_THROW_EXCEPTION(FastCG::OpenGLException, "%s (error: %s)", msg, glGetErrorString(__error)); \
-		}                                                                                                      \
+#define FASTCG_CHECK_OPENGL_ERROR(fmt, ...)                                                                                    \
+	{                                                                                                                          \
+		GLenum __error;                                                                                                        \
+		if ((__error = glGetError()) != GL_NO_ERROR)                                                                           \
+		{                                                                                                                      \
+			char __openGLErrorBuffer[4096];                                                                                    \
+			FASTCG_WARN_PUSH                                                                                                   \
+			FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                                                               \
+			snprintf(__openGLErrorBuffer, FASTCG_ARRAYSIZE(__openGLErrorBuffer), fmt, ##__VA_ARGS__);                          \
+			FASTCG_WARN_POP                                                                                                    \
+			FASTCG_THROW_EXCEPTION(FastCG::OpenGLException, "%s (error: %s)", __openGLErrorBuffer, glGetErrorString(__error)); \
+		}                                                                                                                      \
 	}
 #else
 #define FASTCG_CHECK_OPENGL_ERROR(...)

@@ -78,20 +78,22 @@ namespace FastCG
 
 #ifdef _DEBUG
 
-#define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)               \
-	{                                                                    \
-		char __buffer[4096];                                             \
-		constexpr auto __bufferLength = sizeof(__buffer) / sizeof(char); \
-		snprintf(__buffer, __bufferLength, format, ##__VA_ARGS__);       \
-		exceptionType __exception(__buffer);                             \
-		__exception.SetFunction(__FUNCTION__);                           \
-		__exception.SetFile(__FILE__);                                   \
-		__exception.SetLine(__LINE__);                                   \
-		FASTCG_BREAK_TO_DEBUGGER();                                      \
-		throw __exception;                                               \
+#define FASTCG_THROW_EXCEPTION(exceptionType, fmt, ...)                                       \
+	{                                                                                         \
+		char __exceptionBuffer[4106];                                                         \
+		FASTCG_WARN_PUSH                                                                      \
+		FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                                  \
+		snprintf(__exceptionBuffer, FASTCG_ARRAYSIZE(__exceptionBuffer), fmt, ##__VA_ARGS__); \
+		FASTCG_WARN_POP                                                                       \
+		exceptionType __exception(__exceptionBuffer);                                         \
+		__exception.SetFunction(__FUNCTION__);                                                \
+		__exception.SetFile(__FILE__);                                                        \
+		__exception.SetLine(__LINE__);                                                        \
+		FASTCG_BREAK_TO_DEBUGGER();                                                           \
+		throw __exception;                                                                    \
 	}
 #else
-#define FASTCG_THROW_EXCEPTION(exceptionType, format, ...)
+#define FASTCG_THROW_EXCEPTION(exceptionType, fmt, ...)
 #endif
 }
 

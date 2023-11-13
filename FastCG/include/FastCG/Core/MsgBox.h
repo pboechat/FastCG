@@ -6,38 +6,42 @@
 #if defined FASTCG_WINDOWS
 #include <Windows.h>
 #elif defined FASTCG_LINUX
-#include <stdio.h>
 #include <wchar.h>
 #include <messagebox.h>
 #endif
 
+#include <stdio.h>
+
 namespace FastCG
 {
 #if defined FASTCG_WINDOWS
-#define FASTCG_MSG_BOX(title, fmt, ...)                            \
-    {                                                              \
-        char msg[4096];                                            \
-        sprintf_s(msg, FASTCG_ARRAYSIZE(msg), fmt, ##__VA_ARGS__); \
-        MessageBoxA(NULL, msg, title, MB_ICONWARNING);             \
+#define FASTCG_MSG_BOX(title, fmt, ...)                                                 \
+    {                                                                                   \
+        char __msgBoxBuffer[4096];                                                      \
+        FASTCG_WARN_PUSH                                                                \
+        FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                            \
+        snprintf(__msgBoxBuffer, FASTCG_ARRAYSIZE(__msgBoxBuffer), fmt, ##__VA_ARGS__); \
+        FASTCG_WARN_POP                                                                 \
+        MessageBoxA(NULL, __msgBoxBuffer, title, MB_ICONWARNING);                       \
     }
 #elif defined FASTCG_LINUX
-#define FASTCG_MSG_BOX(title, fmt, ...)                              \
-    {                                                                \
-        wchar_t wMsg[4096];                                          \
-        wchar_t wFmt[1024];                                          \
-        swprintf(wFmt, FASTCG_ARRAYSIZE(wFmt), L"%hs", fmt);         \
-        swprintf(wMsg, FASTCG_ARRAYSIZE(wMsg), wFmt, ##__VA_ARGS__); \
-        wchar_t wButtonLabel[] = L"OK";                              \
-        Button button;                                               \
-        button.label = wButtonLabel;                                 \
-        button.result = 0;                                           \
-        Messagebox(title, wMsg, &button, 1);                         \
+#define FASTCG_MSG_BOX(title, fmt, ...)                                                            \
+    {                                                                                              \
+        wchar_t __wMsgBoxBuffer[4096];                                                             \
+        wchar_t __wMsgBoxFmt[1024];                                                                \
+        swprintf(__wMsgBoxFmt, FASTCG_ARRAYSIZE(__wMsgBoxFmt), L"%hs", __wMsgBoxFmt);              \
+        swprintf(__wMsgBoxBuffer, FASTCG_ARRAYSIZE(__wMsgBoxBuffer), __wMsgBoxFmt, ##__VA_ARGS__); \
+        wchar_t wButtonLabel[] = L"OK";                                                            \
+        Button button;                                                                             \
+        button.label = wButtonLabel;                                                               \
+        button.result = 0;                                                                         \
+        Messagebox(title, __wMsgBoxBuffer, &button, 1);                                            \
     }
 #elif defined FASTCG_ANDROID
-// TODO: implement a dialog box on Android - although I guess there's no easy way to do it
+    // TODO: implement a dialog box on Android - although I guess there's no easy way to do it
 #define FASTCG_MSG_BOX(...)
 #else
-#error "FASTCG_MSG_BOX() is not implemented on the current platform"
+#error "FASTCG_MSG_BOX() macro is not implemented on the current platform"
 #endif
 
 }
