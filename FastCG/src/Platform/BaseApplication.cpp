@@ -126,7 +126,7 @@ namespace FastCG
 		}
 		catch (Exception &e)
 		{
-			FASTCG_LOG_ERROR("Fatal Exception: %s", e.GetFullDescription().c_str());
+			FASTCG_LOG_ERROR(BaseApplication, "Fatal Exception: %s", e.GetFullDescription().c_str());
 			FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
 			return -1;
 		}
@@ -136,7 +136,7 @@ namespace FastCG
 	{
 		if (!ParseCommandLineArguments(argc, argv))
 		{
-			FASTCG_LOG_ERROR("Failed to parse command line arguments");
+			FASTCG_LOG_ERROR(BaseApplication, "Failed to parse command line arguments");
 			OnPrintUsage();
 			return -1;
 		}
@@ -146,11 +146,11 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
-		FASTCG_LOG_VERBOSE("Pre-initializing application");
+		FASTCG_LOG_VERBOSE(BaseApplication, "Pre-initializing application");
 		OnPreInitialize();
 
 		{
-			FASTCG_LOG_VERBOSE("Creating systems");
+			FASTCG_LOG_VERBOSE(BaseApplication, "Creating systems");
 
 			AssetSystem::Create({mSettings.assets.bundles});
 #ifdef _DEBUG
@@ -174,7 +174,7 @@ namespace FastCG
 		}
 
 		{
-			FASTCG_LOG_VERBOSE("Initializing systems");
+			FASTCG_LOG_VERBOSE(BaseApplication, "Initializing systems");
 
 			GraphicsSystem::GetInstance()->Initialize();
 
@@ -188,17 +188,17 @@ namespace FastCG
 			WorldSystem::GetInstance()->Initialize();
 		}
 
-		FASTCG_LOG_VERBOSE("Post-initializing application");
+		FASTCG_LOG_VERBOSE(BaseApplication, "Post-initializing application");
 		OnPostInitialize();
 	}
 
 	void BaseApplication::Finalize()
 	{
-		FASTCG_LOG_VERBOSE("Pre-finalizing application");
+		FASTCG_LOG_VERBOSE(BaseApplication, "Pre-finalizing application");
 		OnPreFinalize();
 
 		{
-			FASTCG_LOG_VERBOSE("Finalizing systems");
+			FASTCG_LOG_VERBOSE(BaseApplication, "Finalizing systems");
 			WorldSystem::GetInstance()->Finalize();
 			RenderingSystem::GetInstance()->Finalize();
 			ImGuiSystem::GetInstance()->Finalize();
@@ -206,7 +206,7 @@ namespace FastCG
 		}
 
 		{
-			FASTCG_LOG_VERBOSE("Destroying systems");
+			FASTCG_LOG_VERBOSE(BaseApplication, "Destroying systems");
 			WorldSystem::Destroy();
 			RenderingSystem::Destroy();
 			ImGuiSystem::Destroy();
@@ -218,7 +218,7 @@ namespace FastCG
 			AssetSystem::Destroy();
 		}
 
-		FASTCG_LOG_VERBOSE("Post-finalizing application");
+		FASTCG_LOG_VERBOSE(BaseApplication, "Post-finalizing application");
 		OnPostFinalize();
 	}
 

@@ -115,17 +115,17 @@ namespace
                << " - " << pCallbackData->pMessage
                << std::endl;
 
-        FASTCG_LOG_DEBUG("%s", stream.str().c_str());
+        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "%s", stream.str().c_str());
 
         return VK_FALSE;
     }
 #endif
 
-#define FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, fn)                                                                 \
-    FastCG::VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                              \
-    if (FastCG::VkExt::fn == nullptr)                                                                                \
-    {                                                                                                                \
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Failed to load Vulkan instance extension function " #fn); \
+#define FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, fn)                                                        \
+    FastCG::VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                     \
+    if (FastCG::VkExt::fn == nullptr)                                                                       \
+    {                                                                                                       \
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't load Vulkan instance extension function " #fn); \
     }
 
     void LoadVulkanInstanceExtensionFunctions(VkInstance instance, const std::vector<const char *> &rExtensions)
@@ -144,11 +144,11 @@ namespace
 
 #undef FASTCG_LOAD_VK_INSTANCE_EXT_FN
 
-#define FASTCG_LOAD_VK_DEVICE_EXT_FN(device, fn)                                                                   \
-    FastCG::VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(device, #fn);                                                \
-    if (FastCG::VkExt::fn == nullptr)                                                                              \
-    {                                                                                                              \
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Failed to load Vulkan device extension function " #fn); \
+#define FASTCG_LOAD_VK_DEVICE_EXT_FN(device, fn)                                                          \
+    FastCG::VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(device, #fn);                                       \
+    if (FastCG::VkExt::fn == nullptr)                                                                     \
+    {                                                                                                     \
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't load Vulkan device extension function " #fn); \
     }
 
     void LoadVulkanDeviceExtensionFunctions(VkDevice device)
@@ -287,10 +287,10 @@ namespace FastCG
         std::vector<VkLayerProperties> availableLayers(availableLayerCount);
         vkEnumerateInstanceLayerProperties(&availableLayerCount, &availableLayers[0]);
 
-        FASTCG_LOG_DEBUG("Available layers:");
+        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Available layers:");
         for (const auto &rLayer : availableLayers)
         {
-            FASTCG_LOG_DEBUG("- %s", rLayer.layerName);
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "- %s", rLayer.layerName);
         }
 #endif
 
@@ -302,7 +302,7 @@ namespace FastCG
         }
         else
         {
-            FASTCG_LOG_DEBUG("VK_LAYER_KHRONOS_validation not available, ignoring it");
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "VK_LAYER_KHRONOS_validation not available, ignoring it");
         }
 #endif
 
@@ -312,10 +312,10 @@ namespace FastCG
         vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, &availableExtensions[0]);
 
 #if _DEBUG
-        FASTCG_LOG_DEBUG("Available extensions:");
+        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Available extensions:");
         for (const auto &rExtension : availableExtensions)
         {
-            FASTCG_LOG_DEBUG("- %s", rExtension.extensionName);
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "- %s", rExtension.extensionName);
         }
 #endif
 
@@ -349,7 +349,7 @@ namespace FastCG
         }
         else
         {
-            FASTCG_LOG_DEBUG("VK_EXT_DEBUG_UTILS_EXTENSION_NAME not available, ignoring it");
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "VK_EXT_DEBUG_UTILS_EXTENSION_NAME not available, ignoring it");
         }
 #endif
 
@@ -436,12 +436,12 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(vkEnumeratePhysicalDevices(mInstance, &numPhysicalDevices, &physicalDevices[0]));
 
 #if _DEBUG
-        FASTCG_LOG_DEBUG("Devices:");
+        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Devices:");
         for (auto &rPhysicalDevice : physicalDevices)
         {
             VkPhysicalDeviceProperties properties;
             vkGetPhysicalDeviceProperties(rPhysicalDevice, &properties);
-            FASTCG_LOG_DEBUG("- %s", properties.deviceName);
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "- %s", properties.deviceName);
         }
 #endif
 

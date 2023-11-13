@@ -8,11 +8,11 @@ namespace FastCG
 {
     void MaterialDefinitionImporter::Import()
     {
-        FASTCG_LOG_VERBOSE("Importing materials:");
+        FASTCG_LOG_VERBOSE(MaterialDefinitionImporter, "Importing materials:");
         for (const auto &rMaterialFileName : AssetSystem::GetInstance()->List("materials", true))
         {
             auto pMaterialDefinition = MaterialDefinitionLoader::Load(rMaterialFileName);
-            FASTCG_LOG_VERBOSE("- %s", pMaterialDefinition->GetName().c_str());
+            FASTCG_LOG_VERBOSE(MaterialDefinitionImporter, "- %s", pMaterialDefinition->GetName().c_str());
             MaterialDefinitionRegistry::GetInstance()->AddMaterialDefinition(std::move(pMaterialDefinition));
         }
     }

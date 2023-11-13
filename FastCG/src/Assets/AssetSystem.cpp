@@ -20,10 +20,10 @@ namespace FastCG
         mBundleRoots.emplace_back(assetsRoot + "/FastCG");
         std::transform(rArgs.rBundles.cbegin(), rArgs.rBundles.cend(), std::back_inserter(mBundleRoots), [&](const auto &bundle)
                        { return assetsRoot + "/" + bundle; });
-        FASTCG_LOG_VERBOSE("Bundle roots:");
+        FASTCG_LOG_VERBOSE(AssetSystem, "Bundle roots:");
         for (const auto &rBundleRoot : mBundleRoots)
         {
-            FASTCG_LOG_VERBOSE("- %s", rBundleRoot.c_str());
+            FASTCG_LOG_VERBOSE(AssetSystem, "- %s", rBundleRoot.c_str());
         }
     }
 
