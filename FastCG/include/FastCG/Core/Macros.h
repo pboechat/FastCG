@@ -89,7 +89,7 @@
 #define FASTCG_WARN_POP _Pragma("GCC diagnostic pop")
 #elif defined __clang__
 #define FASTCG_WARN_PUSH _Pragma("clang diagnostic push")
-#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\""")
+#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")
 #define FASTCG_WARN_POP _Pragma("clang diagnostic pop")
 #else
 #error "FASTCG_WARN_* macros are not implemented on the current compiler"
