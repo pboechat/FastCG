@@ -5,7 +5,12 @@
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
 
+#if defined FASTCG_LINUX
+// use local spirv-cross on Linux
+#include <spirv_cross/spirv_cross.hpp>
+#else
 #include <spirv_cross.hpp>
+#endif
 
 #include <memory>
 #include <cstring>
