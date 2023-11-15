@@ -73,7 +73,8 @@ function(_fastcg_add_glsl_shader_target)
                 OUTPUT ${DST_GLSL_SOURCE}
                 COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_TEXT_SOURCE} # clean up text source in the destination directory (just in case)
                 COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in a tmp directory
-                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,-g0>  # generate binary source in the destination directory
+                # FIXME: can't compile non-debug shaders with -g0 otherwise runtime reflection doesn't work
+                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,>  # generate binary source in the destination directory
                 DEPENDS ${GLSL_SOURCE} ${TMP_GLSL_HEADERS}
             )
         endif()
