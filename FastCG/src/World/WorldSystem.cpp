@@ -12,6 +12,7 @@
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Core/Math.h>
+#include <FastCG/Core/Log.h>
 
 #include <imgui.h>
 
@@ -617,6 +618,8 @@ namespace FastCG
 
     void WorldSystem::Initialize()
     {
+        FASTCG_LOG_DEBUG(RenderingSystem, "\tInitializing world system");
+
 #ifdef _DEBUG
         DebugMenuSystem::GetInstance()->AddCallback("World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
         DebugMenuSystem::GetInstance()->AddItem("World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));

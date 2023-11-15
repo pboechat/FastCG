@@ -7,7 +7,9 @@
 #include <FastCG/Input/Key.h>
 #include <FastCG/Graphics/ShaderImporter.h>
 #include <FastCG/Graphics/RenderingPath.h>
+#include <FastCG/Core/Version.h>
 #include <FastCG/Core/Macros.h>
+#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Colors.h>
 
 #include <glm/glm.hpp>
@@ -148,20 +150,27 @@ namespace FastCG
 
 }
 
+#define FASTCG_LOG_BUILD_PROPERTIES()                                       \
+	FASTCG_LOG_DEBUG(Build, "Platform: %s", FASTCG_PLATFORM);               \
+	FASTCG_LOG_DEBUG(Build, "Graphics system: %s", FASTCG_GRAPHICS_SYSTEM); \
+	FASTCG_LOG_DEBUG(Build, "FastCG version: %d.%d.%d", FastCG::MAJOR_VERSION, FastCG::MINOR_VERSION, FastCG::PATCH_VERSION)
+
 #if defined FASTCG_ANDROID
 #define FASTCG_MAIN(appType)                   \
 	void android_main(android_app *androidApp) \
 	{                                          \
+		FASTCG_LOG_BUILD_PROPERTIES();         \
 		appType app;                           \
 		app.SetAndroidApp(androidApp);         \
 		app.Run();                             \
 	}
 #else
-#define FASTCG_MAIN(appType)        \
-	int main(int argc, char **argv) \
-	{                               \
-		appType app;                \
-		return app.Run(argc, argv); \
+#define FASTCG_MAIN(appType)           \
+	int main(int argc, char **argv)    \
+	{                                  \
+		FASTCG_LOG_BUILD_PROPERTIES(); \
+		appType app;                   \
+		return app.Run(argc, argv);    \
 	}
 #endif
 

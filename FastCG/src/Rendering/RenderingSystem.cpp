@@ -4,6 +4,7 @@
 #include <FastCG/Rendering/RenderBatchStrategy.h>
 #include <FastCG/Rendering/ForwardWorldRenderer.h>
 #include <FastCG/Rendering/DeferredWorldRenderer.h>
+#include <FastCG/Core/Log.h>
 
 #include <imgui.h>
 
@@ -18,6 +19,8 @@ namespace FastCG
 
     void RenderingSystem::Initialize()
     {
+        FASTCG_LOG_DEBUG(RenderingSystem, "\tInitializing rendering system");
+
         switch (mArgs.renderingPath)
         {
         case RenderingPath::FORWARD:

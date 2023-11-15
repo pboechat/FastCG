@@ -30,47 +30,51 @@ function(_fastcg_add_glsl_shader_target)
     file(GLOB_RECURSE GLSL_HEADERS "${SRC_SHADERS_DIR}/*.glsl")
     foreach(GLSL_HEADER IN LISTS GLSL_HEADERS)
         file(RELATIVE_PATH REL_GLSL_HEADER ${SRC_SHADERS_DIR} ${GLSL_HEADER})
+        set(DST_GLSL_HEADER "${DST_SHADERS_DIR}/${REL_GLSL_HEADER}")
+        set(TMP_GLSL_HEADER "${TMP_SHADERS_DIR}/${REL_GLSL_HEADER}")
         if(FASTCG_USE_TEXT_SHADERS)
-            set(NEW_GLSL_HEADER "${DST_SHADERS_DIR}/${REL_GLSL_HEADER}")
+            set(GLSL_HEADER_ ${DST_GLSL_HEADER})
         else()
-            set(NEW_GLSL_HEADER "${TMP_SHADERS_DIR}/${REL_GLSL_HEADER}")
+            set(GLSL_HEADER_ ${TMP_GLSL_HEADER})
         endif()
         add_custom_command(
-            OUTPUT ${NEW_GLSL_HEADER}
-            COMMAND ${CMAKE_COMMAND} -E copy ${GLSL_HEADER} ${NEW_GLSL_HEADER}
+            OUTPUT ${GLSL_HEADER_}
+            COMMAND ${CMAKE_COMMAND} -E copy ${GLSL_HEADER} ${GLSL_HEADER_} # copy headers to either destination or tmp directories
             DEPENDS ${GLSL_HEADER}
         )
-        list(APPEND NEW_GLSL_HEADERS ${NEW_GLSL_HEADER})
+        list(APPEND DST_GLSL_HEADERS ${DST_GLSL_HEADER})
+        list(APPEND TMP_GLSL_HEADERS ${TMP_GLSL_HEADER})
     endforeach(GLSL_HEADER)
-    
+
     file(GLOB_RECURSE GLSL_SOURCES "${SRC_SHADERS_DIR}/*.vert" "${SRC_SHADERS_DIR}/*.frag")
     foreach(GLSL_SOURCE IN LISTS GLSL_SOURCES)
         file(RELATIVE_PATH REL_GLSL_SOURCE ${SRC_SHADERS_DIR} ${GLSL_SOURCE})
+
+        get_filename_component(GLSL_SOURCE_DIR ${REL_GLSL_SOURCE} DIRECTORY)
+        get_filename_component(GLSL_SOURCE_BASENAME ${REL_GLSL_SOURCE} NAME_WE)
+        get_filename_component(GLSL_SOURCE_EXT ${REL_GLSL_SOURCE} EXT)
+        
+        string(SUBSTRING ${GLSL_SOURCE_EXT} 1 -1 GLSL_SOURCE_EXT)
+        set(DST_TEXT_SOURCE "${DST_SHADERS_DIR}/${REL_GLSL_SOURCE}")
+        set(DST_BINARY_SOURCE "${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
         
         if(FASTCG_USE_TEXT_SHADERS)
-            set(DST_GLSL_SOURCE "${DST_SHADERS_DIR}/${REL_GLSL_SOURCE}")
+            set(DST_GLSL_SOURCE ${DST_TEXT_SOURCE})
             add_custom_command(
                 OUTPUT ${DST_GLSL_SOURCE}
-                COMMAND ${CMAKE_COMMAND} -E copy ${GLSL_SOURCE} ${DST_GLSL_SOURCE}
-                DEPENDS ${GLSL_SOURCE} ${NEW_GLSL_HEADERS}
+                COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_BINARY_SOURCE} # clean up binary source in the destination directory (just in case)
+                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${DST_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in the destination directory
+                DEPENDS ${GLSL_SOURCE} ${DST_GLSL_HEADERS}
             )
         else()
-            get_filename_component(GLSL_SOURCE_DIR ${REL_GLSL_SOURCE} DIRECTORY)
-            get_filename_component(GLSL_SOURCE_BASENAME ${REL_GLSL_SOURCE} NAME_WE)
-            get_filename_component(GLSL_SOURCE_EXT ${REL_GLSL_SOURCE} EXT)
-            
-            string(SUBSTRING ${GLSL_SOURCE_EXT} 1 -1 GLSL_SOURCE_EXT)
-            set(SPIRV_DIR ${DST_SHADERS_DIR}/${GLSL_SOURCE_DIR})
-            set(DST_GLSL_SOURCE "${SPIRV_DIR}/${GLSL_SOURCE_BASENAME}.${GLSL_SOURCE_EXT}_spv")
-
             set(TMP_GLSL_SOURCE "${TMP_SHADERS_DIR}/${REL_GLSL_SOURCE}")
-            
+            set(DST_GLSL_SOURCE ${DST_BINARY_SOURCE})
             add_custom_command(
                 OUTPUT ${DST_GLSL_SOURCE}
-                COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_SHADERS_DIR}/${REL_GLSL_SOURCE} # try to remove text-based source just in case
-                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}"
-                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,-g0>  # generate binary-based source
-                DEPENDS ${GLSL_SOURCE} ${NEW_GLSL_HEADERS}
+                COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_TEXT_SOURCE} # clean up text source in the destination directory (just in case)
+                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in a tmp directory
+                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,-g0>  # generate binary source in the destination directory
+                DEPENDS ${GLSL_SOURCE} ${TMP_GLSL_HEADERS}
             )
         endif()
         list(APPEND DST_GLSL_SOURCES ${DST_GLSL_SOURCE})
@@ -81,6 +85,13 @@ function(_fastcg_add_glsl_shader_target)
             ${ARGV0}_GLSL_SHADERS
             DEPENDS ${DST_GLSL_SOURCES}
         )
+        if(NOT FASTCG_USE_TEXT_SHADERS)
+            # clean up text headers in the destination directory (just in case)
+            add_custom_command(
+                TARGET ${ARGV0}_GLSL_SHADERS PRE_BUILD
+                COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_GLSL_HEADERS}
+            )
+        endif()
         add_dependencies(${ARGV0} ${ARGV0}_GLSL_SHADERS)
     endif()
 endfunction()

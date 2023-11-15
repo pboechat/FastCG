@@ -2,6 +2,7 @@
 #include <FastCG/UI/ImGuiRenderer.h>
 #include <FastCG/Platform/Application.h>
 #include <FastCG/Input/InputSystem.h>
+#include <FastCG/Core/Log.h>
 
 #include <imgui.h>
 
@@ -184,6 +185,8 @@ namespace FastCG
 
     void ImGuiSystem::Initialize()
     {
+        FASTCG_LOG_DEBUG(ImGuiSystem, "\tInitializing ImGui system");
+
         ImGui::CreateContext();
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     }

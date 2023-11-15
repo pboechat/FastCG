@@ -18,7 +18,6 @@
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Core/System.h>
 #include <FastCG/Core/MsgBox.h>
-#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Exception.h>
 #include <FastCG/Assets/AssetSystem.h>
 

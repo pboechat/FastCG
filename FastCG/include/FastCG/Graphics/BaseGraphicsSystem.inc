@@ -1,5 +1,6 @@
 #include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Debug/DebugMenuSystem.h>
+#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Exception.h>
 
 #include <imgui.h>
@@ -94,6 +95,8 @@ namespace FastCG
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
     void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::Initialize()
     {
+        FASTCG_LOG_DEBUG(BaseGraphicsSystem, "\tInitializing graphics system");
+
 #ifdef _DEBUG
         DebugMenuSystem::GetInstance()->AddCallback("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuCallback, this, std::placeholders::_1));
         DebugMenuSystem::GetInstance()->AddItem("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuItemCallback, this, std::placeholders::_1));

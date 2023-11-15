@@ -129,7 +129,7 @@ namespace FastCG
 
                 if (shaderArgs.text)
                 {
-                    auto programSource = ShaderSource::ParseFile(rShaderInfo.programFileNames[i], (ShaderType)i);
+                    auto programSource = ShaderSource::ParseFile(rShaderInfo.programFileNames[i]);
                     shaderArgs.programsData[i].dataSize = programSource.size() + 1;
                     programsData[i] = std::make_unique<uint8_t[]>(shaderArgs.programsData[i].dataSize);
                     std::copy(programSource.cbegin(), programSource.cend(), (char *)programsData[i].get());
