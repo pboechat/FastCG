@@ -70,12 +70,20 @@ namespace FastCG
         ImGui::Render();
         auto *pImDrawData = ImGui::GetDrawData();
 
-        if (mpGraphicsContext->Begin())
+        if (!GraphicsSystem::GetInstance()->IsHeadless())
         {
-            mpWorldRenderer->Render(pMainCamera, mpGraphicsContext);
-            mpImGuiRenderer->Render(pImDrawData, mpGraphicsContext);
+            mpGraphicsContext->Begin();
+            {
+                mpWorldRenderer->Render(pMainCamera, mpGraphicsContext);
+                mpImGuiRenderer->Render(pImDrawData, mpGraphicsContext);
+            }
             mpGraphicsContext->End();
         }
+    }
+
+    void RenderingSystem::Resize()
+    {
+        mpWorldRenderer->Resize();
     }
 
     void RenderingSystem::Finalize()

@@ -4,6 +4,7 @@
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsContext.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Core/Log.h>
 
 #include <limits>
 #include <cstring>
@@ -28,14 +29,14 @@ namespace FastCG
 	VulkanGraphicsContext::VulkanGraphicsContext(const Args &rArgs)
 		: BaseGraphicsContext<VulkanBuffer, VulkanShader, VulkanTexture>(rArgs)
 	{
+		InitializeTimeElapsedData();
 	}
 
 	VulkanGraphicsContext::~VulkanGraphicsContext() = default;
 
-	bool VulkanGraphicsContext::Begin()
+	void VulkanGraphicsContext::Begin()
 	{
 		assert(mEnded);
-		mEnded = false;
 		mRenderPassDescription.renderTargets.resize(0);
 		mRenderPassDescription.pDepthStencilBuffer = nullptr;
 		memset(&mPipelineDescription, 0, sizeof(mPipelineDescription));
@@ -44,23 +45,17 @@ namespace FastCG
 		mVertexBuffers.resize(0);
 		mpIndexBuffer = VK_NULL_HANDLE;
 		mPipelineResourcesUsage.resize(0);
-#if defined FASTCG_ANDROID
-		if (VulkanGraphicsSystem::GetInstance()->IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
-		{
-			return false;
-		}
-#endif
 #if !defined FASTCG_DISABLE_GPU_TIMING
-		if (mTimeElapsedQueries.empty())
+		if (mTimeElapsedQueries.size() != VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames())
 		{
-			mTimeElapsedQueries.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
-			mElapsedTimes.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+			InitializeTimeElapsedData();
 		}
 		mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = {VulkanGraphicsSystem::GetInstance()->NextQuery(), VulkanGraphicsSystem::GetInstance()->NextQuery()};
 		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start);
 		mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = 0;
 #endif
-		return true;
+		mEnded = false;
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Context began (context: %s)", GetName().c_str());
 	}
 
 	void VulkanGraphicsContext::PushDebugMarker(const char *pName)
@@ -639,6 +634,10 @@ namespace FastCG
 
 	void VulkanGraphicsContext::End()
 	{
+		assert(!mEnded);
+
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Ending context (context: %s)", GetName().c_str());
+
 		constexpr size_t MAX_WRITES = 128;
 		constexpr size_t MAX_RESOURCES = MAX_WRITES;
 
@@ -672,8 +671,10 @@ namespace FastCG
 		size_t lastUsedCopyCommandIdx = 0;
 		auto ProcessCopies = [&](size_t end)
 		{
-			for (; lastUsedCopyCommandIdx < end; ++lastUsedCopyCommandIdx)
+			for (size_t i = lastUsedCopyCommandIdx, ic = 0; lastUsedCopyCommandIdx < end; ++lastUsedCopyCommandIdx, ++ic)
 			{
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tCopy [%zu/%zu]", ic, end - i - 1);
+
 				const auto &rCopyCommand = mCopyCommands[lastUsedCopyCommandIdx];
 
 #if _DEBUG
@@ -684,6 +685,7 @@ namespace FastCG
 				{
 				case CopyCommandType::BUFFER_TO_BUFFER:
 				{
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t Buffer %s -> Buffer %s", rCopyCommand.args.srcBufferData.pBuffer->GetName().c_str(), rCopyCommand.args.dstBufferData.pBuffer->GetName().c_str());
 					VkBufferCopy copyRegion;
 					copyRegion.srcOffset = 0;
 					copyRegion.dstOffset = 0;
@@ -710,6 +712,8 @@ namespace FastCG
 					{
 						pDstTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
 					}
+
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t Buffer %s -> Image %s", rCopyCommand.args.srcBufferData.pBuffer->GetName().c_str(), pDstTexture->GetName().c_str());
 
 					AddTextureMemoryBarrier(pDstTexture,
 											VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -750,6 +754,8 @@ namespace FastCG
 					{
 						pDstTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
 					}
+
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t Image %s -> Image %s (Copy)", pSrcTexture->GetName().c_str(), pDstTexture->GetName().c_str());
 
 					AddTextureMemoryBarrier(pSrcTexture,
 											VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -802,6 +808,8 @@ namespace FastCG
 						pDstTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
 					}
 
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t Image %s -> Image %s (Blit)", pSrcTexture->GetName().c_str(), pDstTexture->GetName().c_str());
+
 					AddTextureMemoryBarrier(pSrcTexture,
 											VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 											0,
@@ -848,16 +856,31 @@ namespace FastCG
 
 		size_t lastUsedPipelineCommandIdx = 0;
 		size_t lastUsedDrawCommandIdx = 0;
-		for (auto &rRenderPassCommand : mRenderPassCommands)
+
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Iterating over renderpasses (%zu)", mRenderPassCommands.size());
+
+		for (size_t i = 0; i < mRenderPassCommands.size(); ++i)
 		{
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tRenderpass [%zu/%zu]", i, mRenderPassCommands.size() - 1);
+
+			auto &rRenderPassCommand = mRenderPassCommands[i];
+
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tProcessing pre-renderpass copies (%zu)", rRenderPassCommand.lastCopyCommandIdx - lastUsedCopyCommandIdx);
+
 			ProcessCopies(rRenderPassCommand.lastCopyCommandIdx);
 
-			for (size_t j = lastUsedPipelineCommandIdx; j < rRenderPassCommand.lastPipelineCommandIdx; ++j)
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tSetting up pipeline resources (%zu)", rRenderPassCommand.lastPipelineCommandIdx - lastUsedPipelineCommandIdx);
+
+			for (size_t j = lastUsedPipelineCommandIdx, jc = 0; j < rRenderPassCommand.lastPipelineCommandIdx; ++j, ++jc)
 			{
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rRenderPassCommand.lastPipelineCommandIdx - lastUsedPipelineCommandIdx);
+
 				auto &rPipelineCommand = mPipelineCommands[j];
 
-				for (size_t k = lastUsedDrawCommandIdx; k < rPipelineCommand.lastDrawCommandIdx; ++k)
+				for (size_t k = lastUsedDrawCommandIdx, kc = 0; k < rPipelineCommand.lastDrawCommandIdx; ++k, ++kc)
 				{
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - lastUsedDrawCommandIdx);
+
 					auto &rDrawCommand = mDrawCommands[k];
 
 					rDrawCommand.descriptorSets.resize(rPipelineCommand.pipelineResourcesLayout.size());
@@ -867,6 +890,8 @@ namespace FastCG
 					uint32_t lastDescriptorBufferInfoIdx = 0;
 					for (size_t l = 0; l < rPipelineCommand.pipelineResourcesLayout.size(); ++l)
 					{
+						FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t\tPipeline resource [%zu/%zu]", l, rPipelineCommand.pipelineResourcesLayout.size() - 1);
+
 						auto &rDescriptorSetLayout = rPipelineCommand.pipelineResourcesLayout[l];
 						auto &rDescriptorSetUsage = rDrawCommand.pipelineResourcesUsage[l];
 						auto &rDescriptorSet = rDrawCommand.descriptorSets[l];
@@ -962,6 +987,8 @@ namespace FastCG
 				}
 			}
 
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tTransiting rendertargets to initial layouts (%zu)", rRenderPassCommand.renderTargets.size());
+
 			auto TransitionRenderTargetToInitialLayout = [&](const VulkanTexture *pRenderTarget)
 			{
 				if (pRenderTarget == nullptr)
@@ -1010,6 +1037,8 @@ namespace FastCG
 				continue;
 			}
 
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tRecording draw commands");
+
 			VkRenderPassBeginInfo renderPassBeginInfo;
 			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassBeginInfo.pNext = nullptr;
@@ -1029,8 +1058,10 @@ namespace FastCG
 											&subpassBeginInfo);
 
 			VkPipeline currentPipeline{VK_NULL_HANDLE};
-			for (; lastUsedPipelineCommandIdx < rRenderPassCommand.lastPipelineCommandIdx; ++lastUsedPipelineCommandIdx)
+			for (size_t j = lastUsedPipelineCommandIdx, jc = 0; lastUsedPipelineCommandIdx < rRenderPassCommand.lastPipelineCommandIdx; ++lastUsedPipelineCommandIdx, ++jc)
 			{
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rRenderPassCommand.lastPipelineCommandIdx - j);
+
 				auto &rPipelineCommand = mPipelineCommands[lastUsedPipelineCommandIdx];
 
 				if (rPipelineCommand.lastDrawCommandIdx == lastUsedDrawCommandIdx)
@@ -1042,8 +1073,10 @@ namespace FastCG
 								  VK_PIPELINE_BIND_POINT_GRAPHICS,
 								  rPipelineCommand.pipeline.pipeline);
 
-				for (; lastUsedDrawCommandIdx < rPipelineCommand.lastDrawCommandIdx; ++lastUsedDrawCommandIdx)
+				for (size_t k = lastUsedDrawCommandIdx, kc = 0; lastUsedDrawCommandIdx < rPipelineCommand.lastDrawCommandIdx; ++lastUsedDrawCommandIdx, ++kc)
 				{
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - k);
+
 					const auto &rDrawCommand = mDrawCommands[lastUsedDrawCommandIdx];
 
 #if _DEBUG
@@ -1139,7 +1172,11 @@ namespace FastCG
 
 			std::for_each(rRenderPassCommand.renderTargets.begin(), rRenderPassCommand.renderTargets.end(), TransitionRenderTargetToFinalLayout);
 			TransitionRenderTargetToFinalLayout(rRenderPassCommand.pDepthStencilBuffer);
+
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tTransiting rendertargets to final layouts (%zu)", rRenderPassCommand.renderTargets.size());
 		}
+
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Processing frame-end copies (%zu)", mCopyCommands.size() - lastUsedCopyCommandIdx);
 
 		ProcessCopies(mCopyCommands.size());
 #if _DEBUG
@@ -1147,6 +1184,8 @@ namespace FastCG
 #endif
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Enqueing timestamp queries");
+
 		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].end);
 #endif
 
@@ -1159,25 +1198,42 @@ namespace FastCG
 		mMarkerCommands.resize(0);
 #endif
 
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Context ended (context: %s)", GetName().c_str());
+
 		mEnded = true;
 	}
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
+	void VulkanGraphicsContext::InitializeTimeElapsedData()
+	{
+		mTimeElapsedQueries.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+		memset(&mTimeElapsedQueries[0], (int)~0u, VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames() * sizeof(TimeElapsedQuery));
+		mElapsedTimes.resize(VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
+		memset(&mElapsedTimes[0], 0, VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames() * sizeof(double));
+	}
+
 	void VulkanGraphicsContext::RetrieveElapsedTime()
 	{
 		assert(mEnded);
 
-		uint64_t timestamps[2];
-		vkGetQueryPoolResults(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-							  VulkanGraphicsSystem::GetInstance()->GetCurrentQueryPool(),
-							  mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start,
-							  2,
-							  sizeof(timestamps),
-							  timestamps,
-							  sizeof(uint64_t),
-							  VK_QUERY_RESULT_64_BIT);
+		if (mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start != ~0u)
+		{
+			uint64_t timestamps[2];
+			vkGetQueryPoolResults(VulkanGraphicsSystem::GetInstance()->GetDevice(),
+								  VulkanGraphicsSystem::GetInstance()->GetCurrentQueryPool(),
+								  mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].start,
+								  2,
+								  sizeof(timestamps),
+								  timestamps,
+								  sizeof(uint64_t),
+								  VK_QUERY_RESULT_64_BIT);
 
-		mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = (timestamps[1] - timestamps[0]) * VulkanGraphicsSystem::GetInstance()->GetPhysicalDeviceProperties().limits.timestampPeriod * 1e-9;
+			mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = (timestamps[1] - timestamps[0]) * VulkanGraphicsSystem::GetInstance()->GetPhysicalDeviceProperties().limits.timestampPeriod * 1e-9;
+		}
+		else
+		{
+			mElapsedTimes[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()] = 0;
+		}
 	}
 #endif
 

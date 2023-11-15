@@ -3,6 +3,7 @@
 #include <FastCG/Platform/Timer.h>
 #include <FastCG/Platform/Android/AndroidApplication.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Exception.h>
 
 #include <android/native_window.h>
@@ -115,14 +116,19 @@ void onAppCmd(android_app *app, int32_t cmd)
     case APP_CMD_INIT_WINDOW:
         if (app->window != nullptr)
         {
-            FastCG::GraphicsSystem::GetInstance()->OnWindowInitialized();
+            FASTCG_LOG_VERBOSE(AndroidApplication, "Window Initialized");
+
             // obtain the actual size of the window
             FastCG::AndroidApplication::GetInstance()->WindowResizeCallback(
                 (uint32_t)ANativeWindow_getWidth(app->window),
                 (uint32_t)ANativeWindow_getHeight(app->window));
+
+            FastCG::GraphicsSystem::GetInstance()->OnWindowInitialized();
         }
         break;
     case APP_CMD_TERM_WINDOW:
+        FASTCG_LOG_VERBOSE(AndroidApplication, "Window Terminated");
+
         FastCG::GraphicsSystem::GetInstance()->OnWindowTerminated();
         break;
     case APP_CMD_WINDOW_RESIZED:
@@ -153,12 +159,14 @@ void onAppCmd(android_app *app, int32_t cmd)
         // not implemented
         break;
     case APP_CMD_RESUME:
+        FASTCG_LOG_VERBOSE(AndroidApplication, "App Resumed");
         FastCG::AndroidApplication::GetInstance()->SetPaused(false);
         break;
     case APP_CMD_SAVE_STATE:
         // not implemented
         break;
     case APP_CMD_PAUSE:
+        FASTCG_LOG_VERBOSE(AndroidApplication, "App Paused");
         FastCG::AndroidApplication::GetInstance()->SetPaused(true);
         break;
     case APP_CMD_STOP:

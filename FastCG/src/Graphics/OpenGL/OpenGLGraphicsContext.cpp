@@ -29,15 +29,8 @@ namespace FastCG
 #endif
     }
 
-    bool OpenGLGraphicsContext::Begin()
+    void OpenGLGraphicsContext::Begin()
     {
-#if defined FASTCG_ANDROID
-        if (OpenGLGraphicsSystem::GetInstance()->IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
-        {
-            return false;
-        }
-#endif
-
         assert(mEnded);
         mEnded = false;
 #if !defined FASTCG_DISABLE_GPU_TIMING
@@ -45,7 +38,6 @@ namespace FastCG
         glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[mCurrentQuery]);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't begin time queries");
 #endif
-        return true;
     }
 
     void OpenGLGraphicsContext::PushDebugMarker(const char *pName)

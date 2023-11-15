@@ -55,6 +55,7 @@ namespace FastCG
 
         void Initialize();
         void Render();
+        void Resize();
         void Finalize();
     };
 

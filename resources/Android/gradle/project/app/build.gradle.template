@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
 	namespace "com.fastcg.${project_name}"
-    compileSdkVersion 29
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.fastcg.${project_name}"
-        minSdkVersion 29
-        targetSdkVersion 29
+        minSdkVersion 33
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
@@ -15,19 +15,47 @@ android {
             abiFilters 'arm64-v8a'
         }
     }
+	
+	signingConfigs {
+        development {
+            keyAlias FASTCG_KEY_ALIAS
+            keyPassword FASTCG_KEY_PASSWORD
+            storeFile file(FASTCG_STORE_FILE)
+            storePassword FASTCG_STORE_PASSWORD
+        }
+    }
 
     buildTypes {
 		debug {
             debuggable true
+			signingConfig signingConfigs.development
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
+			signingConfig signingConfigs.development
         }
     }
 
     sourceSets {
         main {
             jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+	
+	lintOptions {
+		// FIXME: fix those errors!
+        disable 'HardcodedDebugMode'
+    }
+	
+	packagingOptions {
+		jniLibs {
+		  useLegacyPackaging false
+		}
+	}
+	
+	applicationVariants.all { 
+		variant -> variant.outputs.all {
+            outputFileName = "${project_name}-${variant.buildType.name}.apk"
         }
     }
 }

@@ -44,16 +44,18 @@ namespace FastCG
         {
             return mDeviceProperties;
         }
+        inline bool IsHeadless() const
+        {
+#if defined FASTCG_ANDROID
+            return mHeadedContext == EGL_NO_CONTEXT;
+#else
+            return false;
+#endif
+        }
         void DestroyTexture(const OpenGLTexture *pTexture) override;
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
-
 #if defined FASTCG_ANDROID
-        inline bool IsHeadless() const
-        {
-            return mHeadedContext == EGL_NO_CONTEXT;
-        }
-
         void OnWindowInitialized();
         void OnWindowTerminated();
 #endif

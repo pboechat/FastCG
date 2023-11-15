@@ -25,7 +25,7 @@ namespace FastCG
         VulkanGraphicsContext(const Args &rArgs);
         virtual ~VulkanGraphicsContext();
 
-        bool Begin();
+        void Begin();
         void PushDebugMarker(const char *pName);
         void PopDebugMarker();
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);
@@ -227,6 +227,7 @@ namespace FastCG
                                 int32_t vertexOffset);
         void EnqueueTimestampQuery(uint32_t query);
 #if !defined FASTCG_DISABLE_GPU_TIMING
+        void InitializeTimeElapsedData();
         void RetrieveElapsedTime();
 #endif
 

@@ -84,16 +84,16 @@
 #define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("warning(disable:C4996)")
 #define FASTCG_WARN_IGNORE_FORMAT_TRUNCATION
 #define FASTCG_WARN_POP _Pragma("warning(pop)")
-#elif defined __GNUC__
-#define FASTCG_WARN_PUSH _Pragma("GCC diagnostic push")
-#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#define FASTCG_WARN_IGNORE_FORMAT_TRUNCATION _Pragma("GCC diagnostic ignored \"-Wformat-truncation=\"")
-#define FASTCG_WARN_POP _Pragma("GCC diagnostic pop")
 #elif defined __clang__
 #define FASTCG_WARN_PUSH _Pragma("clang diagnostic push")
 #define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")
-#define FASTCG_WARN_IGNORE_FORMAT_TRUNCATION _Pragma("GCC diagnostic ignored \"-Wformat-truncation=\"")
+#define FASTCG_WARN_IGNORE_FORMAT_TRUNCATION
 #define FASTCG_WARN_POP _Pragma("clang diagnostic pop")
+#elif defined __GNUC__
+#define FASTCG_WARN_PUSH _Pragma("GCC diagnostic push")
+#define FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define FASTCG_WARN_IGNORE_FORMAT_TRUNCATION _Pragma("GCC diagnostic ignored \"-Wformat-truncation\"")
+#define FASTCG_WARN_POP _Pragma("GCC diagnostic pop")
 #else
 #error "FASTCG_WARN_* macros are not implemented on the current compiler"
 #endif

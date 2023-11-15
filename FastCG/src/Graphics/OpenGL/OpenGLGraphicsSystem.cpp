@@ -587,7 +587,7 @@ namespace FastCG
             }
             if (mPbufferSurface != EGL_NO_SURFACE)
             {
-                eglDestroyContext(mDisplay, mPbufferSurface);
+                eglDestroySurface(mDisplay, mPbufferSurface);
 
                 mPbufferSurface = EGL_NO_SURFACE;
             }
@@ -613,11 +613,10 @@ namespace FastCG
         auto &rWindow = X11Application::GetInstance()->GetWindow();
         glXSwapBuffers(pDisplay, rWindow);
 #elif defined FASTCG_ANDROID
-        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+        if (!IsHeadless())
         {
-            return;
+            eglSwapBuffers(mDisplay, mWindowSurface);
         }
-        eglSwapBuffers(mDisplay, mWindowSurface);
 #else
 #error "OpenGLRenderingSystem::Present() not implemented on the current platform"
 #endif

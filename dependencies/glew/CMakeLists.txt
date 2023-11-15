@@ -24,7 +24,3 @@ source_group("src" FILES ${SOURCES})
 
 fastcg_add_dependency_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 add_definitions(-DGLEW_STATIC)
-set_target_properties(${PROJECT_NAME} PROPERTIES 
-	POSITION_INDEPENDENT_CODE C 
-	LINKER_LANGUAGE C
-)

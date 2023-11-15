@@ -146,11 +146,11 @@ namespace FastCG
 
 	void BaseApplication::Initialize()
 	{
-		FASTCG_LOG_VERBOSE(BaseApplication, "Pre-initializing application");
+		FASTCG_LOG_DEBUG(BaseApplication, "Pre-initializing application");
 		OnPreInitialize();
 
 		{
-			FASTCG_LOG_VERBOSE(BaseApplication, "Creating systems");
+			FASTCG_LOG_DEBUG(BaseApplication, "Creating systems");
 
 			AssetSystem::Create({mSettings.assets.bundles});
 #ifdef _DEBUG
@@ -174,7 +174,7 @@ namespace FastCG
 		}
 
 		{
-			FASTCG_LOG_VERBOSE(BaseApplication, "Initializing systems");
+			FASTCG_LOG_DEBUG(BaseApplication, "Initializing systems");
 
 			GraphicsSystem::GetInstance()->Initialize();
 
@@ -188,17 +188,17 @@ namespace FastCG
 			WorldSystem::GetInstance()->Initialize();
 		}
 
-		FASTCG_LOG_VERBOSE(BaseApplication, "Post-initializing application");
+		FASTCG_LOG_DEBUG(BaseApplication, "Post-initializing application");
 		OnPostInitialize();
 	}
 
 	void BaseApplication::Finalize()
 	{
-		FASTCG_LOG_VERBOSE(BaseApplication, "Pre-finalizing application");
+		FASTCG_LOG_DEBUG(BaseApplication, "Pre-finalizing application");
 		OnPreFinalize();
 
 		{
-			FASTCG_LOG_VERBOSE(BaseApplication, "Finalizing systems");
+			FASTCG_LOG_DEBUG(BaseApplication, "Finalizing systems");
 			WorldSystem::GetInstance()->Finalize();
 			RenderingSystem::GetInstance()->Finalize();
 			ImGuiSystem::GetInstance()->Finalize();
@@ -206,7 +206,7 @@ namespace FastCG
 		}
 
 		{
-			FASTCG_LOG_VERBOSE(BaseApplication, "Destroying systems");
+			FASTCG_LOG_DEBUG(BaseApplication, "Destroying systems");
 			WorldSystem::Destroy();
 			RenderingSystem::Destroy();
 			ImGuiSystem::Destroy();
@@ -218,7 +218,7 @@ namespace FastCG
 			AssetSystem::Destroy();
 		}
 
-		FASTCG_LOG_VERBOSE(BaseApplication, "Post-finalizing application");
+		FASTCG_LOG_DEBUG(BaseApplication, "Post-finalizing application");
 		OnPostFinalize();
 	}
 
@@ -329,6 +329,7 @@ namespace FastCG
 		mScreenWidth = width;
 		mScreenHeight = height;
 		GraphicsSystem::GetInstance()->Resize();
+		RenderingSystem::GetInstance()->Resize();
 		OnResize();
 	}
 }

@@ -76,8 +76,4 @@ source_group("shaders" FILES ${GENERAL_SHADERS})
 
 fastcg_add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
 add_definitions(${PLATFORM_DEFINES} ${GRAPHICS_SYSTEM_DEFINES})
-set_target_properties(${PROJECT_NAME} PROPERTIES 
-	POSITION_INDEPENDENT_CODE CXX 
-	LINKER_LANGUAGE CXX
-)
 target_link_libraries(${PROJECT_NAME} ${LIBRARIES_INTERNAL})

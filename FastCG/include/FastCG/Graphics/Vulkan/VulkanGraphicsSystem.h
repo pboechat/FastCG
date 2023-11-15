@@ -66,12 +66,11 @@ namespace FastCG
         inline void DestroyBuffer(const VulkanBuffer *pBuffer) override;
         inline void DestroyShader(const VulkanShader *pShader) override;
         inline void DestroyTexture(const VulkanTexture *pTexture) override;
-#if defined FASTCG_ANDROID
         inline bool IsHeadless() const
         {
             return mSurface == VK_NULL_HANDLE;
         }
-
+#if defined FASTCG_ANDROID
         void OnWindowInitialized();
         void OnWindowTerminated();
 #endif
@@ -130,15 +129,17 @@ namespace FastCG
         VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
         VkPhysicalDeviceMemoryProperties mPhysicalDeviceMemoryProperties{};
         VkFormatProperties mFormatProperties[((size_t)LAST_FORMAT) + 1]{};
+        VkSurfaceCapabilitiesKHR mSurfaceCapabilities{};
         std::unique_ptr<VkAllocationCallbacks> mAllocationCallbacks{nullptr};
         VkDevice mDevice{VK_NULL_HANDLE};
         std::vector<const char *> mDeviceExtensions;
         uint32_t mGraphicsAndPresentQueueFamilyIndex{~0u};
         VkQueue mGraphicsAndPresentQueue{VK_NULL_HANDLE};
-        VkSurfaceTransformFlagBitsKHR mPreTransform{(VkSurfaceTransformFlagBitsKHR)0};
         VkPresentModeKHR mPresentMode{VK_PRESENT_MODE_IMMEDIATE_KHR};
         VkSurfaceFormatKHR mSwapChainSurfaceFormat{};
-        uint32_t mMaxSimultaneousFrames{1};
+        // FIXME: because of headless-mode, forcing max simultaneous frame to three so we don't need to write complex logic
+        // to recreate objects that depend on the number of simultaneous frames (eg, fences).
+        uint32_t mMaxSimultaneousFrames{3};
         uint32_t mCurrentFrame{0};
         uint32_t mSwapChainIndex{0};
         VkSwapchainKHR mSwapChain{VK_NULL_HANDLE};

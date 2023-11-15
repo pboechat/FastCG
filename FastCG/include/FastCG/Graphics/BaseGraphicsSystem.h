@@ -95,6 +95,7 @@ namespace FastCG
         inline virtual void DestroyTexture(const Texture *pTexture);
         inline const Shader *FindShader(const std::string &rName) const;
         inline const Texture *GetMissingTexture(TextureType textureType) const;
+        inline bool IsHeadless() const;
 #if defined FASTCG_ANDROID
         inline void OnWindowInitialized();
         inline void OnWindowTerminated();

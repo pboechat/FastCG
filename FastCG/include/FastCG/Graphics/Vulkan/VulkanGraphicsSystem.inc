@@ -89,7 +89,7 @@ namespace FastCG
 
     const VulkanTexture *VulkanGraphicsSystem::GetCurrentSwapChainTexture() const
     {
-        return mSwapChainTextures[mCurrentFrame];
+        return mSwapChainTextures[mSwapChainIndex];
     }
 
     VulkanGraphicsContext *VulkanGraphicsSystem::GetImmediateGraphicsContext() const

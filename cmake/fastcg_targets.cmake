@@ -67,9 +67,9 @@ function(_fastcg_add_glsl_shader_target)
             
             add_custom_command(
                 OUTPUT ${DST_GLSL_SOURCE}
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${SPIRV_DIR}
+                COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_SHADERS_DIR}/${REL_GLSL_SOURCE} # try to remove text-based source just in case
                 COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}"
-                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,-g0>  # generate debug info iif in Debug config
+                COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,-g0>  # generate binary-based source
                 DEPENDS ${GLSL_SOURCE} ${NEW_GLSL_HEADERS}
             )
         endif()
@@ -136,11 +136,14 @@ function(_fastcg_add_definitions)
         # FIXME: use [0, 1] depth!
         add_definitions(-DFASTCG_VULKAN) # -DGLM_FORCE_DEPTH_ZERO_TO_ONE)
     endif()
-    if (FASTCG_DISABLE_GPU_TIMING)
+    if(FASTCG_DISABLE_GPU_TIMING)
         add_definitions(-DFASTCG_DISABLE_GPU_TIMING)
     endif()
-    if (FASTCG_DISABLE_GPU_VALIDATION)
+    if(FASTCG_DISABLE_GPU_VALIDATION)
         add_definitions(-DFASTCG_DISABLE_GPU_VALIDATION)
+    endif()
+    if(FASTCG_ENABLE_VERBOSE_LOGGING)
+    add_definitions(-DFASTCG_LOG_SEVERITY=4)
     endif()
     target_compile_definitions(${ARGV0} PUBLIC $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
 endfunction()
@@ -210,6 +213,7 @@ function(_fastcg_add_apk_targets)
 
     set(FASTCG_ASSETS_DIR "${FASTCG_DEPLOY}/assets/FastCG")
     set(ASSETS_DIR "${FASTCG_DEPLOY}/assets/${ARGV0}")
+    file(TO_CMAKE_PATH "$ENV{NDKROOT}" NDKROOT_PATH)
 
     add_custom_command(
         TARGET ${ARGV0}_PREPARE_GRADLE_PROJECT PRE_BUILD
@@ -217,6 +221,7 @@ function(_fastcg_add_apk_targets)
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${FASTCG_ASSETS_DIR} ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/FastCG
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/${ARGV0}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${ASSETS_DIR} ${DST_GRADLE_PROJECT_DIR}/app/src/main/assets/${ARGV0}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resources/logo.png ${DST_GRADLE_PROJECT_DIR}/app/src/main/res/drawable/logo.png
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${ARGV0}> ${DST_GRADLE_PROJECT_DIR}/app/src/main/jniLibs/arm64-v8a/lib${ARGV0}.so
     )
 
@@ -224,15 +229,22 @@ function(_fastcg_add_apk_targets)
         ${ARGV0}_BUILD_APK
         WORKING_DIRECTORY ${DST_GRADLE_PROJECT_DIR}
         COMMAND gradlew assemble$<CONFIG>
-        BYPRODUCTS ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/app-$<LOWER_CASE:$<CONFIG>>.apk
+        BYPRODUCTS ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/${ARGV0}-$<LOWER_CASE:$<CONFIG>>.apk
         DEPENDS ${ARGV0}_PREPARE_GRADLE_PROJECT
     )
 
     add_custom_target(
         ${ARGV0}_DEPLOY_APK
         COMMAND ${FASTCG_ADB} shell am force-stop com.fastcg.${ARGV0}
-        COMMAND ${FASTCG_ADB} install ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/app-$<LOWER_CASE:$<CONFIG>>.apk
+        COMMAND ${FASTCG_IGNORE_RETURN_PREFIX} ${FASTCG_ADB} uninstall com.fastcg.${ARGV0} ${FASTCG_IGNORE_RETURN_SUFFIX}
+        COMMAND ${FASTCG_ADB} install ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/${ARGV0}-$<LOWER_CASE:$<CONFIG>>.apk
         DEPENDS ${ARGV0}_BUILD_APK
+    )
+
+    add_custom_target(
+        ${ARGV0}_LAUNCH_APK
+        COMMAND ${FASTCG_ADB} shell am start com.fastcg.${ARGV0}/com.fastcg.MainActivity
+        DEPENDS ${ARGV0}_DEPLOY_APK
     )
 endfunction()
 

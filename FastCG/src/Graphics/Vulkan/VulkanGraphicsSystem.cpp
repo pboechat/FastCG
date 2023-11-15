@@ -67,7 +67,7 @@ namespace
         supportsPresentation = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIdx, pDisplay, visualId);
 #elif defined FASTCG_ANDROID
         // TODO: apparently, there's no need for checking whether a queue family supports presentation on Android
-        supportsPresentation = true;
+        return true;
 #else
 #error "FASTCG: Don't know how to check presentation support"
 #endif
@@ -343,13 +343,10 @@ namespace FastCG
         mInstanceExtensions.emplace_back(platformSurfaceExtName);
 
 #if _DEBUG
-        if (Contains(availableExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+        // VK_EXT_debug_utils is an extension of the validation layer
+        if (Contains(availableLayers, "VK_LAYER_KHRONOS_validation"))
         {
             mInstanceExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
-        else
-        {
-            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "VK_EXT_DEBUG_UTILS_EXTENSION_NAME not available, ignoring it");
         }
 #endif
 
@@ -514,23 +511,24 @@ namespace FastCG
             return;
         }
 
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mSurface, &surfaceCapabilities));
+        FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mSurface, &mSurfaceCapabilities));
 
-        if (mArgs.rScreenWidth < surfaceCapabilities.minImageExtent.width || mArgs.rScreenWidth > surfaceCapabilities.maxImageExtent.width)
+        if (mArgs.rScreenWidth < mSurfaceCapabilities.minImageExtent.width || mArgs.rScreenWidth > mSurfaceCapabilities.maxImageExtent.width)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen width");
         }
 
-        if (mArgs.rScreenHeight < surfaceCapabilities.minImageExtent.height || mArgs.rScreenHeight > surfaceCapabilities.maxImageExtent.height)
+        if (mArgs.rScreenHeight < mSurfaceCapabilities.minImageExtent.height || mArgs.rScreenHeight > mSurfaceCapabilities.maxImageExtent.height)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Invalid screen height");
         }
 
-        mPreTransform = surfaceCapabilities.currentTransform;
+        mMaxSimultaneousFrames = std::max(std::min(mArgs.maxSimultaneousFrames, mSurfaceCapabilities.maxImageCount), mSurfaceCapabilities.minImageCount);
 
-        mMaxSimultaneousFrames = std::max(std::min(mArgs.maxSimultaneousFrames, surfaceCapabilities.maxImageCount), surfaceCapabilities.minImageCount);
-        assert(mMaxSimultaneousFrames > 0);
+        // FIXME: because of headless-mode, forcing max simultaneous frame to three so we don't need to write complex logic
+        // to recreate objects that depend on the number of simultaneous frames (eg, fences).
+        assert(mMaxSimultaneousFrames >= 3);
+        mMaxSimultaneousFrames = 3;
 
         uint32_t surfaceFormatsCount = 0;
         FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mSurface, &surfaceFormatsCount, nullptr));
@@ -610,6 +608,17 @@ namespace FastCG
             return;
         }
 
+        VkCompositeAlphaFlagBitsKHR compositeAlpha;
+        if ((mSurfaceCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) != 0)
+        {
+            compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        }
+        else
+        {
+            assert((mSurfaceCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) != 0);
+            compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+        }
+
         VkSwapchainCreateInfoKHR swapChainCreateInfo;
         swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         swapChainCreateInfo.pNext = nullptr;
@@ -624,8 +633,13 @@ namespace FastCG
         swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapChainCreateInfo.queueFamilyIndexCount = 0;
         swapChainCreateInfo.pQueueFamilyIndices = nullptr;
-        swapChainCreateInfo.preTransform = mPreTransform;
-        swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+#if defined FASTCG_ANDROID
+        // let the presentation engine transform the image if necessary
+        swapChainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR;
+#else
+        swapChainCreateInfo.preTransform = mSurfaceCapabilities.currentTransform;
+#endif
+        swapChainCreateInfo.compositeAlpha = compositeAlpha;
         swapChainCreateInfo.presentMode = mPresentMode;
         swapChainCreateInfo.clipped = VK_TRUE;
         swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
@@ -948,9 +962,7 @@ namespace FastCG
 
     void VulkanGraphicsSystem::Present()
     {
-#if defined FASTCG_ANDROID
-        if (!IsHeadless() && !AndroidApplication::GetInstance()->IsPaused())
-#endif
+        if (!IsHeadless())
         {
             auto imageMemoryTransition = GetLastImageMemoryTransition(GetCurrentSwapChainTexture());
             if (imageMemoryTransition.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
@@ -972,15 +984,13 @@ namespace FastCG
         VkSubmitInfo submitInfo;
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext = nullptr;
-#if defined FASTCG_ANDROID
-        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
+        if (IsHeadless())
         {
             submitInfo.waitSemaphoreCount = 0;
             submitInfo.pWaitSemaphores = nullptr;
             submitInfo.pWaitDstStageMask = nullptr;
         }
         else
-#endif
         {
             submitInfo.waitSemaphoreCount = 1;
             submitInfo.pWaitSemaphores = &mAcquireSwapChainImageSemaphores[mCurrentFrame];
@@ -988,17 +998,23 @@ namespace FastCG
         }
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &mSubmitFinishedSemaphores[mCurrentFrame];
+        if (IsHeadless())
+        {
+            submitInfo.signalSemaphoreCount = 0;
+            submitInfo.pSignalSemaphores = nullptr;
+        }
+        else
+        {
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = &mSubmitFinishedSemaphores[mCurrentFrame];
+        }
         if (vkQueueSubmit(mGraphicsAndPresentQueue, 1, &submitInfo, mFrameFences[mCurrentFrame]) != VK_SUCCESS)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't submit commands");
         }
 
         bool outdatedSwapchain = false;
-#if defined FASTCG_ANDROID
-        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
-#endif
+        if (!IsHeadless())
         {
             VkPresentInfoKHR presentInfo;
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1050,9 +1066,7 @@ namespace FastCG
 
         GetImmediateGraphicsContext()->Begin();
 
-#if defined FASTCG_ANDROID
-        if (IsHeadless() || AndroidApplication::GetInstance()->IsPaused())
-#endif
+        if (!IsHeadless())
         {
             if (outdatedSwapchain)
             {
@@ -1795,11 +1809,9 @@ namespace FastCG
 
     void VulkanGraphicsSystem::OnWindowTerminated()
     {
-        mPreTransform = (VkSurfaceTransformFlagBitsKHR)0;
+        mSurfaceCapabilities = {};
         mPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
         mSwapChainSurfaceFormat = {};
-        mMaxSimultaneousFrames = 1;
-        mCurrentFrame = 0;
         DestroySwapChainAndClearImages();
         DestroySurface();
     }

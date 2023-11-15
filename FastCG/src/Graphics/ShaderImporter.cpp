@@ -109,7 +109,7 @@ namespace FastCG
             rShaderInfo.programFileNames[(ShaderTypeInt)shaderType] = rShaderFileName;
         }
 
-        FASTCG_LOG_VERBOSE(ShaderImporter, "Importing shaders (%s):", GetRenderingPathString(renderingPath));
+        FASTCG_LOG_DEBUG(ShaderImporter, "Importing shaders (%s):", GetRenderingPathString(renderingPath));
 
         Shader::Args shaderArgs{};
         for (const auto &rEntry : shaderInfos)
@@ -125,7 +125,7 @@ namespace FastCG
                     continue;
                 }
 
-                FASTCG_LOG_VERBOSE(ShaderImporter, "- %s (%s)", shaderArgs.name.c_str(), shaderArgs.text ? "text" : "binary");
+                FASTCG_LOG_DEBUG(ShaderImporter, "- %s (%s)", shaderArgs.name.c_str(), shaderArgs.text ? "text" : "binary");
 
                 if (shaderArgs.text)
                 {
