@@ -9,14 +9,6 @@ if(NOT FASTCG_PLATFORM IN_LIST FASTCG_PLATFORMS)
 endif()
 message(STATUS "FastCG platform: ${FASTCG_PLATFORM}")
 
-if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-    set(FASTCG_IGNORE_RETURN_PREFIX cmd /C)
-    set(FASTCG_IGNORE_RETURN_SUFFIX || exit 0)
-else()
-    set(FASTCG_IGNORE_RETURN_PREFIX sh -c)
-    set(FASTCG_IGNORE_RETURN_SUFFIX || true)
-endif()
-
 # Setup graphics system
 
 set(FASTCG_GRAPHICS_SYSTEM "OpenGL" CACHE STRING "FastCG graphics system")

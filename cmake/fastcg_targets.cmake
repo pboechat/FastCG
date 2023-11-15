@@ -247,7 +247,7 @@ function(_fastcg_add_apk_targets)
     add_custom_target(
         ${ARGV0}_DEPLOY_APK
         COMMAND ${FASTCG_ADB} shell am force-stop com.fastcg.${ARGV0}
-        COMMAND ${FASTCG_IGNORE_RETURN_PREFIX} ${FASTCG_ADB} uninstall com.fastcg.${ARGV0} ${FASTCG_IGNORE_RETURN_SUFFIX}
+        COMMAND ${CMAKE_SOURCE_DIR}/shell_wrapper "${FASTCG_ADB} uninstall com.fastcg.${ARGV0}"
         COMMAND ${FASTCG_ADB} install ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/${ARGV0}-$<LOWER_CASE:$<CONFIG>>.apk
         DEPENDS ${ARGV0}_BUILD_APK
     )
