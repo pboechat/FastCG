@@ -67,10 +67,10 @@ namespace
         if ((__error = eglGetError()) != EGL_SUCCESS)                                                                  \
         {                                                                                                              \
             char __eglErrorBuffer[4096];                                                                               \
-            FASTCG_WARN_PUSH                                                                                           \
-            FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                                                       \
+            FASTCG_COMPILER_WARN_PUSH                                                                                           \
+            FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                                       \
             sprintf(__eglErrorBuffer, fmt, ##__VA_ARGS__);                                                             \
-            FASTCG_WARN_POP                                                                                            \
+            FASTCG_COMPILER_WARN_POP                                                                                            \
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "%s (error: %s)", __eglErrorBuffer, eglGetErrorString(__error)); \
         }                                                                                                              \
     }

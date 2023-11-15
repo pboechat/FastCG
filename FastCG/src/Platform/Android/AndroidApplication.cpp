@@ -239,10 +239,10 @@ namespace FastCG
 
         // FIXME: that call shouldn't be necessary anymore
         // https://github.com/android/ndk/issues/381
-        FASTCG_WARN_PUSH
-        FASTCG_WARN_IGNORE_DEPRECATED_DECLARATIONS
+        FASTCG_COMPILER_WARN_PUSH
+        FASTCG_COMPILER_WARN_IGNORE_DEPRECATED_DECLARATIONS
         app_dummy();
-        FASTCG_WARN_POP
+        FASTCG_COMPILER_WARN_POP
 
         mAndroidApp = androidApp;
 

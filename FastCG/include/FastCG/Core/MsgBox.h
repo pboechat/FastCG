@@ -18,10 +18,10 @@ namespace FastCG
 #define FASTCG_MSG_BOX(title, fmt, ...)                                                 \
     {                                                                                   \
         char __msgBoxBuffer[4096];                                                      \
-        FASTCG_WARN_PUSH                                                                \
-        FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                            \
+        FASTCG_COMPILER_WARN_PUSH                                                                \
+        FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                            \
         snprintf(__msgBoxBuffer, FASTCG_ARRAYSIZE(__msgBoxBuffer), fmt, ##__VA_ARGS__); \
-        FASTCG_WARN_POP                                                                 \
+        FASTCG_COMPILER_WARN_POP                                                                 \
         MessageBoxA(NULL, __msgBoxBuffer, title, MB_ICONWARNING);                       \
     }
 #elif defined FASTCG_LINUX

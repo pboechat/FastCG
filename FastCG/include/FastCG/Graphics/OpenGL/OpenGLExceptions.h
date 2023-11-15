@@ -60,10 +60,10 @@ inline const char *glGetErrorString(GLenum error)
 		if ((__error = glGetError()) != GL_NO_ERROR)                                                                           \
 		{                                                                                                                      \
 			char __openGLErrorBuffer[4096];                                                                                    \
-			FASTCG_WARN_PUSH                                                                                                   \
-			FASTCG_WARN_IGNORE_FORMAT_TRUNCATION                                                                               \
+			FASTCG_COMPILER_WARN_PUSH                                                                                                   \
+			FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                                               \
 			snprintf(__openGLErrorBuffer, FASTCG_ARRAYSIZE(__openGLErrorBuffer), fmt, ##__VA_ARGS__);                          \
-			FASTCG_WARN_POP                                                                                                    \
+			FASTCG_COMPILER_WARN_POP                                                                                                    \
 			FASTCG_THROW_EXCEPTION(FastCG::OpenGLException, "%s (error: %s)", __openGLErrorBuffer, glGetErrorString(__error)); \
 		}                                                                                                                      \
 	}
