@@ -745,9 +745,9 @@ namespace FastCG
     {
         // TODO: make this less brittle and possibly dynamic
         const VkDescriptorPoolSize DESCRIPTOR_POOL_SIZES[] = {
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1024},
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1024}};
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4096},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 4096}};
 
         VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
         descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
