@@ -1,7 +1,7 @@
 #ifndef FASTCG_DEBUG_MENU_SYSTEM_H
 #define FASTCG_DEBUG_MENU_SYSTEM_H
 
-#ifdef _DEBUG
+#if _DEBUG
 
 #include <FastCG/Core/System.h>
 

@@ -5,6 +5,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 #include <FastCG/Core/StringUtils.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/CollectionUtils.h>
 
 #include <vector>
@@ -36,6 +37,7 @@ namespace
 
     void GetShaderResourceLocations(const std::string &rIdentifier, GLuint programId, std::unordered_map<std::string, FastCG::OpenGLResourceInfo> &rResourceInfos)
     {
+        FASTCG_UNUSED(rIdentifier);
         for (GLenum iface : {GL_UNIFORM_BLOCK, GL_SHADER_STORAGE_BLOCK, GL_UNIFORM})
         {
             GLint activeResourcesCount = 0;
@@ -195,7 +197,7 @@ namespace FastCG
 
             mShadersIds[i] = shaderId;
 
-#ifdef _DEBUG
+#if _DEBUG
             std::string shaderLabel = GetName() + " (" + GetOpenGLShaderTypeString(glShaderType) + ") (GL_SHADER)";
             glObjectLabel(GL_SHADER, shaderId, (GLsizei)shaderLabel.size(), shaderLabel.c_str());
 #endif
@@ -227,7 +229,7 @@ namespace FastCG
             glDetachShader(mProgramId, shaderId);
         }
 
-#ifdef _DEBUG
+#if _DEBUG
         glValidateProgram(mProgramId);
         {
             std::string infoLog;
@@ -241,7 +243,7 @@ namespace FastCG
         }
 #endif
 
-#ifdef _DEBUG
+#if _DEBUG
         std::string programLabel = GetName() + " (GL_PROGRAM)";
         glObjectLabel(GL_PROGRAM, mProgramId, (GLsizei)programLabel.size(), programLabel.c_str());
 #endif

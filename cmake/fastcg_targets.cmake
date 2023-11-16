@@ -97,7 +97,7 @@ function(_fastcg_add_glsl_shader_target)
     endif()
 endfunction()
 
-function(_fastcg_copy_assets)
+function(_fastcg_add_copy_assets_target)
     get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
 
     set(SRC_ASSETS_DIR "${SOURCE_DIR}/assets")
@@ -126,38 +126,57 @@ function(_fastcg_copy_assets)
     endif()
 endfunction()
 
-function(_fastcg_prepare_assets)
+function(_fastcg_add_asset_targets)
     _fastcg_add_glsl_shader_target(${ARGV})
-    _fastcg_copy_assets(${ARGV})
+    _fastcg_add_copy_assets_target(${ARGV})
 endfunction()
 
-function(_fastcg_add_definitions)
-    add_definitions(-DFASTCG_PROJECT_NAME="${ARGV0}")
-    add_definitions(-DFASTCG_PLATFORM="${FASTCG_PLATFORM}")
+function(_fastcg_target_compile_definitions)
+    target_compile_definitions(${ARGV0} PUBLIC FASTCG_PLATFORM="${FASTCG_PLATFORM}")
     if(FASTCG_PLATFORM STREQUAL "Windows")
-        add_definitions(-DFASTCG_WINDOWS)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_WINDOWS)
     elseif(FASTCG_PLATFORM STREQUAL "Linux")
-        add_definitions(-DFASTCG_LINUX -DFASTCG_POSIX)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_LINUX FASTCG_POSIX)
     elseif(FASTCG_PLATFORM STREQUAL "Android")
-        add_definitions(-DFASTCG_ANDROID -DFASTCG_POSIX)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_ANDROID FASTCG_POSIX)
     endif()
-    add_definitions(-DFASTCG_GRAPHICS_SYSTEM="${FASTCG_GRAPHICS_SYSTEM}")
+    target_compile_definitions(${ARGV0} PUBLIC FASTCG_GRAPHICS_SYSTEM="${FASTCG_GRAPHICS_SYSTEM}")
     if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
-        add_definitions(-DFASTCG_OPENGL)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_OPENGL)
     elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
         # FIXME: use [0, 1] depth!
-        add_definitions(-DFASTCG_VULKAN) # -DGLM_FORCE_DEPTH_ZERO_TO_ONE)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_VULKAN) # GLM_FORCE_DEPTH_ZERO_TO_ONE)
     endif()
     if(FASTCG_DISABLE_GPU_TIMING)
-        add_definitions(-DFASTCG_DISABLE_GPU_TIMING)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_DISABLE_GPU_TIMING)
     endif()
     if(FASTCG_DISABLE_GPU_VALIDATION)
-        add_definitions(-DFASTCG_DISABLE_GPU_VALIDATION)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_DISABLE_GPU_VALIDATION)
     endif()
     if(FASTCG_ENABLE_VERBOSE_LOGGING)
-    add_definitions(-DFASTCG_LOG_SEVERITY=4)
+        target_compile_definitions(${ARGV0} PUBLIC FASTCG_LOG_SEVERITY=4)
     endif()
     target_compile_definitions(${ARGV0} PUBLIC $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
+endfunction()
+
+function(_fastcg_target_compile_options)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        target_compile_options(
+            ${ARGV0} 
+            PUBLIC 
+            /W3     # FIXME: cannot use /Wall!
+            /wd4505 # FIXME: same as no-unused-function below
+            /wd4201 # nameless struct/union is pretty standard
+        )
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(
+            ${ARGV0} 
+            PUBLIC 
+            -Wall 
+            -Wno-missing-braces  # https://stackoverflow.com/questions/13905200/is-it-wise-to-ignore-gcc-clangs-wmissing-braces-warning
+            -Wno-unused-function # FIXME: maybe fix stb?
+        )
+    endif()
 endfunction()
 
 function(_fastcg_set_target_properties)
@@ -183,7 +202,7 @@ endfunction()
 function(_fastcg_add_library)
     add_library(${ARGN})
     _fastcg_set_target_properties(${ARGV0})
-    _fastcg_prepare_assets(${ARGV0})
+    _fastcg_add_asset_targets(${ARGV0})
 endfunction()
 
 function(_fastcg_add_apk_targets)
@@ -275,10 +294,12 @@ function(fastcg_add_executable)
     else()
         add_executable(${ARGN})
     endif()
-    _fastcg_add_definitions(${ARGV0})
+    target_compile_definitions(${ARGV0} PUBLIC FASTCG_EXECUTABLE_NAME="${ARGV0}")
+    _fastcg_target_compile_definitions(${ARGV0})
+    _fastcg_target_compile_options(${ARGV0})
     _fastcg_set_target_properties(${ARGV0})
     target_link_libraries(${ARGV0} ${FastCG_LIBRARIES})
-    _fastcg_prepare_assets(${ARGV0})
+    _fastcg_add_asset_targets(${ARGV0})
 endfunction()
 
 function(fastcg_add_dependency_library)
@@ -287,7 +308,8 @@ endfunction()
 
 function(fastcg_add_library)
     _fastcg_add_library(${ARGN})
-    _fastcg_add_definitions(${ARGV0})
+    _fastcg_target_compile_definitions(${ARGV0})
+    _fastcg_target_compile_options(${ARGV0})
 endfunction()
 
 # Custom commands

@@ -99,6 +99,7 @@ namespace FastCG
             };
 
             uint32_t frame;
+            Type type;
             union
             {
                 const VulkanBuffer *pBuffer;
@@ -106,7 +107,6 @@ namespace FastCG
                 const VulkanTexture *pTexture;
                 VkFramebuffer frameBuffer;
             };
-            Type type;
 
             DeferredDestroyRequest(uint32_t frame, const VulkanBuffer *pBuffer) : frame(frame), type(Type::BUFFER), pBuffer(pBuffer) {}
             DeferredDestroyRequest(uint32_t frame, const VulkanShader *pShader) : frame(frame), type(Type::SHADER), pShader(pShader) {}

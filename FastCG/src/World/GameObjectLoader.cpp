@@ -46,7 +46,7 @@ namespace
     }
 
     template <typename GenericObjectT>
-    std::unique_ptr<FastCG::Material> LoadMaterial(const GenericObjectT &rGenericObj, const std::string &rBasePath, const std::unordered_map<std::string, FastCG::Texture *> &rTextures)
+    std::unique_ptr<FastCG::Material> LoadMaterial(const GenericObjectT &rGenericObj, const std::unordered_map<std::string, FastCG::Texture *> &rTextures)
     {
         FastCG::MaterialArgs args{};
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
@@ -87,7 +87,7 @@ namespace
         {
             pMaterial->SetTexture(it->first, it->second);
         }
-        return std::move(pMaterial);
+        return pMaterial;
     }
 
     template <typename GenericObjectT>
@@ -503,6 +503,8 @@ namespace FastCG
 {
     GameObject *GameObjectLoader::Load(const std::string &rFilePath, GameObjectoaderOptionMaskType options)
     {
+        FASTCG_UNUSED(options); // TODO: add options
+
         size_t size;
         auto data = FileReader::ReadText(rFilePath, size);
         if (size == 0)
@@ -553,7 +555,7 @@ namespace FastCG
                     assert(refObj.HasMember("id") && refObj["id"].IsString());
                     std::string id = refObj["id"].GetString();
                     assert(refObj.HasMember("value") && refObj["value"].IsObject());
-                    materials.emplace(id, LoadMaterial(refObj["value"].GetObj(), basePath, textures));
+                    materials.emplace(id, LoadMaterial(refObj["value"].GetObj(), textures));
                 }
             }
 

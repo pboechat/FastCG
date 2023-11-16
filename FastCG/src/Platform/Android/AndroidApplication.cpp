@@ -186,6 +186,7 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
     case AINPUT_EVENT_TYPE_MOTION:
     {
         size_t pointerCount = AMotionEvent_getPointerCount(event);
+        FASTCG_UNUSED(pointerCount);
         // TODO: support multiple pointers
         assert(pointerCount > 0);
 

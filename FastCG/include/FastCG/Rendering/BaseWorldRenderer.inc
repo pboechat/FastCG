@@ -3,6 +3,7 @@
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Core/Random.h>
 #include <FastCG/Core/Math.h>
+#include <FastCG/Core/Macros.h>
 
 #include <imgui.h>
 
@@ -55,7 +56,7 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Initialize()
     {
-#ifdef _DEBUG
+#if _DEBUG
         DebugMenuSystem::GetInstance()->AddItem("World Renderer", std::bind(&BaseWorldRenderer::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
 
@@ -345,7 +346,7 @@ namespace FastCG
         mpTonemapShader = nullptr;
     }
 
-#ifdef _DEBUG
+#if _DEBUG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::DebugMenuItemCallback(int &result)
     {
@@ -625,6 +626,9 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext)
     {
+        FASTCG_UNUSED(pPointLight);
+        FASTCG_UNUSED(nearClip);
+
         // TODO: implement PCSS for point lights
 
         mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;

@@ -71,7 +71,7 @@ namespace FastCG
 	BaseApplication *BaseApplication::smpInstance = nullptr;
 
 	FASTCG_IMPLEMENT_SYSTEM(AssetSystem, AssetSystemArgs);
-#ifdef _DEBUG
+#if _DEBUG
 	FASTCG_IMPLEMENT_SYSTEM(DebugMenuSystem, DebugMenuSystemArgs);
 #endif
 	FASTCG_IMPLEMENT_SYSTEM(GraphicsSystem, GraphicsSystemArgs);
@@ -81,10 +81,10 @@ namespace FastCG
 	FASTCG_IMPLEMENT_SYSTEM(WorldSystem, WorldSystemArgs);
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
+																			mFrameRate(settings.frameRate),
 																			mWindowTitle(settings.windowTitle),
 																			mScreenWidth(settings.screenWidth),
 																			mScreenHeight(settings.screenHeight),
-																			mFrameRate(settings.frameRate),
 																			mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate)
 	{
 		if (smpInstance != nullptr)
@@ -152,7 +152,7 @@ namespace FastCG
 			FASTCG_LOG_DEBUG(BaseApplication, "Creating systems");
 
 			AssetSystem::Create({mSettings.assets.bundles});
-#ifdef _DEBUG
+#if _DEBUG
 			DebugMenuSystem::Create({});
 #endif
 			GraphicsSystem::Create({mScreenWidth,
@@ -211,7 +211,7 @@ namespace FastCG
 			ImGuiSystem::Destroy();
 			InputSystem::Destroy();
 			GraphicsSystem::Destroy();
-#ifdef _DEBUG
+#if _DEBUG
 			DebugMenuSystem::Destroy();
 #endif
 			AssetSystem::Destroy();
@@ -219,11 +219,6 @@ namespace FastCG
 
 		FASTCG_LOG_DEBUG(BaseApplication, "Post-finalizing application");
 		OnPostFinalize();
-	}
-
-	bool BaseApplication::ParseCommandLineArguments(int argc, char **argv)
-	{
-		return true;
 	}
 
 	void BaseApplication::RunMainLoopIteration(double osTime)
@@ -255,7 +250,7 @@ namespace FastCG
 								mLastWaitTime,
 								mLastGpuElapsedTime,
 								mRenderingStatistics);
-#ifdef _DEBUG
+#if _DEBUG
 		DebugMenuSystem::GetInstance()->DrawMenu();
 #endif
 

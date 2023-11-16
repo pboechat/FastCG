@@ -6,6 +6,7 @@
 #include <FastCG/Platform/File.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Base64.h>
 
 #ifdef FASTCG_LINUX
@@ -30,18 +31,21 @@ namespace
     template <typename GenericObjectT, typename T>
     auto CreateValue(GenericObjectT &rGenericObj, T value)
     {
+        FASTCG_UNUSED(rGenericObj);
         return rapidjson::Value(value);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
     auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rValue)
     {
+        FASTCG_UNUSED(rGenericObj);
         return rapidjson::Value(rValue.c_str(), rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
     auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const glm::vec2 &rValue)
     {
+        FASTCG_UNUSED(rGenericObj);
         rapidjson::Value array(rapidjson::kArrayType);
         for (int i = 0; i < 2; ++i)
         {
@@ -53,6 +57,7 @@ namespace
     template <typename AllocatorT, typename GenericObjectT>
     auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const glm::vec3 &rValue)
     {
+        FASTCG_UNUSED(rGenericObj);
         rapidjson::Value array(rapidjson::kArrayType);
         for (int i = 0; i < 3; ++i)
         {
@@ -64,6 +69,7 @@ namespace
     template <typename AllocatorT, typename GenericObjectT>
     auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const glm::vec4 &rValue)
     {
+        FASTCG_UNUSED(rGenericObj);
         rapidjson::Value array(rapidjson::kArrayType);
         for (int i = 0; i < 4; ++i)
         {
@@ -75,6 +81,7 @@ namespace
     template <typename AllocatorT, typename GenericObjectT>
     auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const glm::ivec4 &rValue)
     {
+        FASTCG_UNUSED(rGenericObj);
         rapidjson::Value array(rapidjson::kArrayType);
         for (int i = 0; i < 4; ++i)
         {
@@ -86,6 +93,7 @@ namespace
     template <typename AllocatorT, typename GenericObjectT>
     auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const glm::quat &rValue)
     {
+        FASTCG_UNUSED(rGenericObj);
         rapidjson::Value array(rapidjson::kArrayType);
         array.PushBack(rValue.w, rAlloc);
         array.PushBack(rValue.x, rAlloc);

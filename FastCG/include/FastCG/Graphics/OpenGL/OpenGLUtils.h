@@ -5,6 +5,7 @@
 
 #include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Exception.h>
 
 #ifdef CASE_RETURN_STRING
@@ -428,6 +429,7 @@ namespace FastCG
 
     inline GLenum GetOpenGLDataType(TextureFormat format, const BitsPerChannel &bitsPerChannel)
     {
+        FASTCG_UNUSED(bitsPerChannel);
         if (IsDepthFormat(format))
         {
             if (HasStencil(format))

@@ -18,7 +18,7 @@ namespace FastCG
         glBindBuffer(target, mBufferId);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't bind buffer (buffer: %s)", rArgs.name.c_str());
 
-#ifdef _DEBUG
+#if _DEBUG
         {
             auto bufferLabel = mName + " (GL_BUFFER)";
             glObjectLabel(GL_BUFFER, mBufferId, (GLsizei)bufferLabel.size(), bufferLabel.c_str());

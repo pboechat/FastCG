@@ -19,7 +19,7 @@ namespace FastCG
 
         glBindTexture(target, mTextureId);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture (texture: %s)", rArgs.name.c_str());
-#ifdef _DEBUG
+#if _DEBUG
         {
             std::string textureLabel = GetName() + " (GL_TEXTURE)";
             glObjectLabel(GL_TEXTURE, mTextureId, (GLsizei)textureLabel.size(), textureLabel.c_str());

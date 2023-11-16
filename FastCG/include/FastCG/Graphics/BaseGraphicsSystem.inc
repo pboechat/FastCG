@@ -11,7 +11,7 @@
 
 namespace
 {
-#ifdef _DEBUG
+#if _DEBUG
     template <class TextureT>
     void DisplayTexture(const TextureT *pTexture, uint32_t textureWidth)
     {
@@ -97,7 +97,7 @@ namespace FastCG
     {
         FASTCG_LOG_DEBUG(BaseGraphicsSystem, "\tInitializing graphics system");
 
-#ifdef _DEBUG
+#if _DEBUG
         DebugMenuSystem::GetInstance()->AddCallback("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuCallback, this, std::placeholders::_1));
         DebugMenuSystem::GetInstance()->AddItem("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
@@ -266,7 +266,7 @@ namespace FastCG
         }
     }
 
-#ifdef _DEBUG
+#if _DEBUG
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
     void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DebugMenuCallback(int result)
     {

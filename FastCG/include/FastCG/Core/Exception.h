@@ -76,15 +76,15 @@ namespace FastCG
 		}
 	};
 
-#ifdef _DEBUG
+#if _DEBUG
 
 #define FASTCG_THROW_EXCEPTION(exceptionType, fmt, ...)                                       \
 	{                                                                                         \
 		char __exceptionBuffer[4106];                                                         \
-		FASTCG_COMPILER_WARN_PUSH                                                                      \
-		FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                  \
+		FASTCG_COMPILER_WARN_PUSH                                                             \
+		FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                         \
 		snprintf(__exceptionBuffer, FASTCG_ARRAYSIZE(__exceptionBuffer), fmt, ##__VA_ARGS__); \
-		FASTCG_COMPILER_WARN_POP                                                                       \
+		FASTCG_COMPILER_WARN_POP                                                              \
 		exceptionType __exception(__exceptionBuffer);                                         \
 		__exception.SetFunction(__FUNCTION__);                                                \
 		__exception.SetFile(__FILE__);                                                        \

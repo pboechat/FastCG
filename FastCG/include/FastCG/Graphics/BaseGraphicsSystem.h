@@ -71,7 +71,7 @@ namespace FastCG
         {
             return mTextures;
         }
-#ifdef _DEBUG
+#if _DEBUG
         inline const Texture *GetSelectedTexture() const
         {
             return mpSelectedTexture;
@@ -113,7 +113,7 @@ namespace FastCG
         virtual void OnInitialize() {}
         virtual void OnPreFinalize() {}
         virtual void OnPostFinalize() {}
-#ifdef _DEBUG
+#if _DEBUG
         inline void DebugMenuCallback(int result);
         inline void DebugMenuItemCallback(int &result);
 #endif
@@ -130,7 +130,7 @@ namespace FastCG
         std::vector<Shader *> mShaders;
         std::vector<Texture *> mTextures;
         std::unordered_map<TextureType, const Texture *, IdentityHasher<TextureType>> mMissingTextures;
-#ifdef _DEBUG
+#if _DEBUG
         const Texture *mpSelectedTexture{nullptr};
         bool mShowTextureBrowser{false};
 #endif

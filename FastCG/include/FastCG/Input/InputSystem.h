@@ -4,6 +4,7 @@
 #include <FastCG/Input/MouseButton.h>
 #include <FastCG/Input/Key.h>
 #include <FastCG/Core/System.h>
+#include <FastCG/Core/Macros.h>
 
 #include <glm/glm.hpp>
 
@@ -135,7 +136,7 @@ namespace FastCG
 		InputBuffer mFrontBuffer;
 		InputBuffer mBackBuffer;
 
-		InputSystem(const InputSystemArgs &rArgs) {}
+		InputSystem(const InputSystemArgs &rArgs) { FASTCG_UNUSED(rArgs); }
 
 		void SetKey(Key keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);

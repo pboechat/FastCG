@@ -1,4 +1,4 @@
-#ifdef _DEBUG
+#if _DEBUG
 
 #include <FastCG/Debug/DebugMenuSystem.h>
 
@@ -33,4 +33,3 @@ namespace FastCG
 }
 
 #endif
-

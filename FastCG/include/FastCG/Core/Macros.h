@@ -66,8 +66,9 @@
                                                          (call, ##__VA_ARGS__))
 
 #define FASTCG_ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
+#define FASTCG_UNUSED(x) (void)(x)
 
-#ifdef _DEBUG
+#if _DEBUG
 #if defined _MSC_VER
 #define FASTCG_BREAK_TO_DEBUGGER() __debugbreak()
 #elif defined __GNUC__ || defined __clang__

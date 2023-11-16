@@ -274,7 +274,8 @@ namespace FastCG
         VkApplicationInfo applicationInfo;
         applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         applicationInfo.pNext = nullptr;
-        applicationInfo.pApplicationName = FASTCG_PROJECT_NAME;
+        // TODO: provide a mechanism for users to specify their app names
+        applicationInfo.pApplicationName = "FastCG";
         // TODO: provide a mechanism for users to specify their app versions
         applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         applicationInfo.pEngineName = "FastCG";
@@ -1698,7 +1699,7 @@ namespace FastCG
         return {setLayoutHash, descriptorSet};
     }
 
-#ifdef _DEBUG
+#if _DEBUG
     void VulkanGraphicsSystem::PushDebugMarker(VkCommandBuffer commandBuffer, const char *pName)
     {
         if (!Contains(mInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))

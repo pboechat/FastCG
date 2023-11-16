@@ -34,7 +34,7 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 	{
 		mDirections.clear();
 		Random::SeedWithTime();
-		for (auto *pPointLight : pointLights)
+		for (size_t i = 0; i < pointLights.size(); ++i)
 		{
 			mDirections.emplace_back(glm::normalize(glm::vec3(Random::NextFloat() - 0.5f, 0, Random::NextFloat() - 0.5f)));
 		}

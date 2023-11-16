@@ -673,6 +673,9 @@ namespace FastCG
 		{
 			for (size_t i = lastUsedCopyCommandIdx, ic = 0; lastUsedCopyCommandIdx < end; ++lastUsedCopyCommandIdx, ++ic)
 			{
+				FASTCG_UNUSED(i);
+				FASTCG_UNUSED(ic);
+
 				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tCopy [%zu/%zu]", ic, end - i - 1);
 
 				const auto &rCopyCommand = mCopyCommands[lastUsedCopyCommandIdx];
@@ -1057,9 +1060,11 @@ namespace FastCG
 											&renderPassBeginInfo,
 											&subpassBeginInfo);
 
-			VkPipeline currentPipeline{VK_NULL_HANDLE};
 			for (size_t j = lastUsedPipelineCommandIdx, jc = 0; lastUsedPipelineCommandIdx < rRenderPassCommand.lastPipelineCommandIdx; ++lastUsedPipelineCommandIdx, ++jc)
 			{
+				FASTCG_UNUSED(j);
+				FASTCG_UNUSED(jc);
+
 				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rRenderPassCommand.lastPipelineCommandIdx - j);
 
 				auto &rPipelineCommand = mPipelineCommands[lastUsedPipelineCommandIdx];
@@ -1075,6 +1080,9 @@ namespace FastCG
 
 				for (size_t k = lastUsedDrawCommandIdx, kc = 0; lastUsedDrawCommandIdx < rPipelineCommand.lastDrawCommandIdx; ++lastUsedDrawCommandIdx, ++kc)
 				{
+					FASTCG_UNUSED(k);
+					FASTCG_UNUSED(kc);
+
 					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - k);
 
 					const auto &rDrawCommand = mDrawCommands[lastUsedDrawCommandIdx];

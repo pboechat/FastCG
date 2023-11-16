@@ -60,17 +60,17 @@ namespace
 #undef CASE_RETURN_STRING
     }
 
-#ifdef _DEBUG
+#if _DEBUG
 #define FASTCG_CHECK_EGL_ERROR(fmt, ...)                                                                               \
     {                                                                                                                  \
         EGLint __error;                                                                                                \
         if ((__error = eglGetError()) != EGL_SUCCESS)                                                                  \
         {                                                                                                              \
             char __eglErrorBuffer[4096];                                                                               \
-            FASTCG_COMPILER_WARN_PUSH                                                                                           \
-            FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                                       \
+            FASTCG_COMPILER_WARN_PUSH                                                                                  \
+            FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                              \
             sprintf(__eglErrorBuffer, fmt, ##__VA_ARGS__);                                                             \
-            FASTCG_COMPILER_WARN_POP                                                                                            \
+            FASTCG_COMPILER_WARN_POP                                                                                   \
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "%s (error: %s)", __eglErrorBuffer, eglGetErrorString(__error)); \
         }                                                                                                              \
     }
@@ -87,13 +87,20 @@ namespace
 
     void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam)
     {
-        std::cout << "[OPENGL]"
-                  << " - " << FastCG::GetOpenGLDebugOutputMessageSeverity(severity)
-                  << " - " << FastCG::GetOpenGLDebugOutputMessageSourceString(source)
-                  << " - " << FastCG::GetOpenGLDebugOutputMessageTypeString(type)
-                  << " - " << id
-                  << " - " << message
-                  << std::endl;
+        FASTCG_UNUSED(source);
+        FASTCG_UNUSED(type);
+        FASTCG_UNUSED(id);
+        FASTCG_UNUSED(severity);
+        FASTCG_UNUSED(length);
+        FASTCG_UNUSED(message);
+        FASTCG_UNUSED(userParam);
+        FASTCG_LOG_DEBUG(OpenGLGraphicsSystem,
+                         "%s - %s - %s - %u - %s",
+                         FastCG::GetOpenGLDebugOutputMessageSeverity(severity),
+                         FastCG::GetOpenGLDebugOutputMessageSourceString(source),
+                         FastCG::GetOpenGLDebugOutputMessageTypeString(type),
+                         id,
+                         message);
     }
 }
 
@@ -115,7 +122,7 @@ namespace FastCG
 
         CreateOpenGLContext();
 
-#ifdef _DEBUG
+#if _DEBUG
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(OpenGLDebugCallback, nullptr);
         glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
@@ -206,7 +213,7 @@ namespace FastCG
         GLuint fboId;
         glGenFramebuffers(1, &fboId);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboId);
-#ifdef _DEBUG
+#if _DEBUG
         {
             auto framebufferLabel = std::string("FBO ") + std::to_string(mFboIds.size()) + " (GL_FRAMEBUFFER)";
             glObjectLabel(GL_FRAMEBUFFER, fboId, (GLsizei)framebufferLabel.size(), framebufferLabel.c_str());
@@ -271,7 +278,7 @@ namespace FastCG
         GLuint vaoId;
         glGenVertexArrays(1, &vaoId);
         glBindVertexArray(vaoId);
-#ifdef _DEBUG
+#if _DEBUG
         {
             auto vertexArrayLabel = std::string("VAO ") + std::to_string(mVaoIds.size()) + " (GL_VERTEX_ARRAY)";
             glObjectLabel(GL_VERTEX_ARRAY, vaoId, (GLsizei)vertexArrayLabel.size(), vertexArrayLabel.c_str());
@@ -369,15 +376,20 @@ namespace FastCG
     {
 #if defined FASTCG_WINDOWS
         const int attribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-            WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-#ifdef _DEBUG
-                                       | WGL_CONTEXT_DEBUG_BIT_ARB
+            WGL_CONTEXT_MAJOR_VERSION_ARB,
+            4,
+            WGL_CONTEXT_MINOR_VERSION_ARB,
+            3,
+            WGL_CONTEXT_PROFILE_MASK_ARB,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB,
+            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+#if _DEBUG
+                | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
             ,
-            0};
+            0
+        };
 
         auto oldHGLRC = mHGLRC;
 
@@ -400,15 +412,20 @@ namespace FastCG
         assert(pDisplay != nullptr);
 
         const int attribs[] = {
-            GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
-            GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-            GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-#ifdef _DEBUG
-                                       | GLX_CONTEXT_DEBUG_BIT_ARB
+            GLX_CONTEXT_MAJOR_VERSION_ARB,
+            4,
+            GLX_CONTEXT_MINOR_VERSION_ARB,
+            3,
+            GLX_CONTEXT_PROFILE_MASK_ARB,
+            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            GLX_CONTEXT_FLAGS_ARB,
+            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+#if _DEBUG
+                | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
             ,
-            0};
+            0
+        };
 
         int dummy;
         if (!glXQueryExtension(pDisplay, &dummy, &dummy))

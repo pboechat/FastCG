@@ -4,6 +4,7 @@
 #include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/Rendering/Mesh.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Core/Macros.h>
 
 #include <imgui.h>
 
@@ -21,14 +22,13 @@ namespace FastCG
     class ImGuiRenderer
     {
     public:
-        ImGuiRenderer(const ImGuiRendererArgs &rArgs) : mArgs(rArgs) {}
+        ImGuiRenderer(const ImGuiRendererArgs &rArgs) { FASTCG_UNUSED(rArgs); }
 
         void Initialize();
         void Render(const ImDrawData *pImDrawData, GraphicsContext *pGraphicsContext);
         void Finalize();
 
     private:
-        const ImGuiRendererArgs mArgs;
         const Shader *mpImGuiShader{nullptr};
         const Buffer *mpImGuiConstantsBuffer{nullptr};
         std::unique_ptr<Mesh> mpImGuiMesh{nullptr};

@@ -21,7 +21,6 @@ protected:
 
 private:
 	LightsAnimator *mpLightsAnimator{nullptr};
-	uint8_t mPressedKeyMask{0};
 };
 
 #endif

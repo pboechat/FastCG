@@ -110,14 +110,33 @@ namespace FastCG
 		uint32_t mFrameRate;
 		bool mRunning{false};
 
-		virtual bool ParseCommandLineArguments(int argc, char **argv);
+		virtual bool ParseCommandLineArguments(int argc, char **argv)
+		{
+			FASTCG_UNUSED(argc);
+			FASTCG_UNUSED(argv);
+			return true;
+		}
 		virtual void OnResize() {}
 		virtual void OnStart() {}
 		virtual void OnEnd() {}
-		virtual void OnMouseButton(MouseButton button, MouseButtonState state) {}
-		virtual void OnMouseMove(uint32_t x, uint32_t y) {}
-		virtual void OnKeyPress(Key key) {}
-		virtual void OnKeyRelease(Key key) {}
+		virtual void OnMouseButton(MouseButton button, MouseButtonState state)
+		{
+			FASTCG_UNUSED(button);
+			FASTCG_UNUSED(state);
+		}
+		virtual void OnMouseMove(uint32_t x, uint32_t y)
+		{
+			FASTCG_UNUSED(x);
+			FASTCG_UNUSED(y);
+		}
+		virtual void OnKeyPress(Key key)
+		{
+			FASTCG_UNUSED(key);
+		}
+		virtual void OnKeyRelease(Key key)
+		{
+			FASTCG_UNUSED(key);
+		}
 		virtual void OnPrintUsage() {}
 		virtual void RunMainLoop() = 0;
 		void RunMainLoopIteration(double osTime);

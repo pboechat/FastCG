@@ -23,7 +23,6 @@ namespace
         uint32_t componentCount = 0;
         bool isSigned = true;
         bool isFloatingPoint = false;
-        uint32_t componentSize = rType.width / 8;
 
         switch (rType.basetype)
         {

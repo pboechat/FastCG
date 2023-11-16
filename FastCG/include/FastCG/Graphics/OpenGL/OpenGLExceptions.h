@@ -53,17 +53,17 @@ inline const char *glGetErrorString(GLenum error)
 #endif
 }
 
-#ifdef _DEBUG
+#if _DEBUG
 #define FASTCG_CHECK_OPENGL_ERROR(fmt, ...)                                                                                    \
 	{                                                                                                                          \
 		GLenum __error;                                                                                                        \
 		if ((__error = glGetError()) != GL_NO_ERROR)                                                                           \
 		{                                                                                                                      \
 			char __openGLErrorBuffer[4096];                                                                                    \
-			FASTCG_COMPILER_WARN_PUSH                                                                                                   \
-			FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                                               \
+			FASTCG_COMPILER_WARN_PUSH                                                                                          \
+			FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                                      \
 			snprintf(__openGLErrorBuffer, FASTCG_ARRAYSIZE(__openGLErrorBuffer), fmt, ##__VA_ARGS__);                          \
-			FASTCG_COMPILER_WARN_POP                                                                                                    \
+			FASTCG_COMPILER_WARN_POP                                                                                           \
 			FASTCG_THROW_EXCEPTION(FastCG::OpenGLException, "%s (error: %s)", __openGLErrorBuffer, glGetErrorString(__error)); \
 		}                                                                                                                      \
 	}

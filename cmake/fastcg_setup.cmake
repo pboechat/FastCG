@@ -72,10 +72,10 @@ if(FASTCG_PLATFORM STREQUAL "Android")
     message(STATUS "Found adb: ${FASTCG_ADB}")
 endif()
 
-# Setup compiler options
+# Setup global compiler options
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
     add_compile_options(/WX)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")

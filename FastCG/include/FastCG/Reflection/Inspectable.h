@@ -321,7 +321,7 @@ namespace FastCG
                               const InspectablePropertyTypeT &rMin,
                               const InspectablePropertyTypeT &rMax) : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
                                                                       mMin(rMin),
-                                                                      mMax(rMin),
+                                                                      mMax(rMax),
                                                                       mGetter(rGetter),
                                                                       mSetter(rSetter)
         {
@@ -682,6 +682,7 @@ namespace FastCG
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
+            FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetter, rSetter, rMin, rMax));
         }
@@ -696,6 +697,7 @@ namespace FastCG
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
+            FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectablePropertyCR<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetterCR, rSetterCR, rMin, rMax));
         }
@@ -708,6 +710,7 @@ namespace FastCG
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
+            FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectablePropertyCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetterCRP, rSetterCRP));
         }
@@ -721,6 +724,7 @@ namespace FastCG
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
+            FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
             mInspectableProperties.emplace_back(new InspectableEnumProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetter, rSetter, rItems));
         }

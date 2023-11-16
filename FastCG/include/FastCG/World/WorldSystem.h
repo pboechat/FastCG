@@ -90,7 +90,7 @@ namespace FastCG
         void SetMainCamera(Camera *pCamera);
         void RegisterCamera(Camera *pCamera);
         void UnregisterCamera(Camera *pCamera);
-#ifdef _DEBUG
+#if _DEBUG
         inline const Material *GetSelectedMaterial() const
         {
             return mpSelectedMaterial;
@@ -108,7 +108,7 @@ namespace FastCG
         Camera *mpMainCamera{nullptr};
         std::vector<GameObject *> mGameObjects;
         std::vector<Component *> mComponents;
-#ifdef _DEBUG
+#if _DEBUG
         GameObject *mpSelectedGameObject{nullptr};
         bool mShowSceneHierarchy{false};
         bool mShowObjectInspector{false};
@@ -129,7 +129,7 @@ namespace FastCG
         void RegisterComponent(Component *pComponent);
         void UnregisterComponent(Component *pComponent);
         void Update(float time, float deltaTime);
-#ifdef _DEBUG
+#if _DEBUG
         void DebugMenuCallback(int result);
         void DebugMenuItemCallback(int &result);
 #endif

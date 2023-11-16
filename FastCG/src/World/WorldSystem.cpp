@@ -40,7 +40,7 @@
 
 namespace
 {
-#ifdef _DEBUG
+#if _DEBUG
     void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, std::unordered_set<const FastCG::GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
@@ -123,12 +123,6 @@ namespace
 
     template <>
     struct ImGuiDragFnSelector<float>
-    {
-        static constexpr auto value = &ImGui::DragFloat;
-    };
-
-    template <>
-    struct ImGuiDragFnSelector<double>
     {
         static constexpr auto value = &ImGui::DragFloat;
     };
@@ -620,13 +614,13 @@ namespace FastCG
     {
         FASTCG_LOG_DEBUG(RenderingSystem, "\tInitializing world system");
 
-#ifdef _DEBUG
+#if _DEBUG
         DebugMenuSystem::GetInstance()->AddCallback("World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
         DebugMenuSystem::GetInstance()->AddItem("World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
     }
 
-#ifdef _DEBUG
+#if _DEBUG
     void WorldSystem::DebugMenuCallback(int result)
     {
         if (mShowSceneHierarchy)
@@ -663,7 +657,7 @@ namespace FastCG
         auto it = std::find(mGameObjects.begin(), mGameObjects.end(), pGameObject);
         assert(it != mGameObjects.end());
         mGameObjects.erase(it);
-#ifdef _DEBUG
+#if _DEBUG
         if (mpSelectedGameObject == pGameObject)
         {
             mpSelectedGameObject = nullptr;

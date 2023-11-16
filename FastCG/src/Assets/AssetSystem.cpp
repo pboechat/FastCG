@@ -1,6 +1,7 @@
 #if defined FASTCG_ANDROID
 #include <FastCG/Platform/Android/AndroidApplication.h>
 #endif
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Log.h>
 #include <FastCG/Assets/AssetSystem.h>
 
@@ -23,6 +24,7 @@ namespace FastCG
         FASTCG_LOG_DEBUG(AssetSystem, "Bundle roots:");
         for (const auto &rBundleRoot : mBundleRoots)
         {
+            FASTCG_UNUSED(rBundleRoot);
             FASTCG_LOG_DEBUG(AssetSystem, "- %s", rBundleRoot.c_str());
         }
     }

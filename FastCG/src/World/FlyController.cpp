@@ -4,6 +4,7 @@
 #include <FastCG/Input/Key.h>
 #include <FastCG/Input/InputSystem.h>
 #include <FastCG/Core/Math.h>
+#include <FastCG/Core/Macros.h>
 
 namespace FastCG
 {
@@ -11,6 +12,8 @@ namespace FastCG
 
 	void FlyController::OnUpdate(float time, float deltaTime)
 	{
+		FASTCG_UNUSED(time);
+
 		auto *pTransform = GetGameObject()->GetTransform();
 
 		auto &rotation = pTransform->GetWorldRotation();

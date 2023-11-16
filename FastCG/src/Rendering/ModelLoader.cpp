@@ -11,6 +11,7 @@
 #include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Core/Math.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Colors.h>
 #include <FastCG/Assets/AssetSystem.h>
 
@@ -36,6 +37,9 @@ namespace FastCG
 							char **pBuffer,
 							size_t *pLength)
 	{
+		FASTCG_UNUSED(isMtl);
+		FASTCG_UNUSED(pObjFilename);
+
 		auto *pLoadContext = (LoadContext *)pContext;
 		auto data = FileReader::ReadText(File::Join({pLoadContext->basePath, pFilename}), *pLength);
 		*pBuffer = data.get();
@@ -209,6 +213,8 @@ namespace FastCG
 									   const std::shared_ptr<Material> &pDefaultMaterial,
 									   ModelLoaderOptionMaskType options)
 	{
+		FASTCG_UNUSED(pShapes);
+
 		auto *pModelGameObject = GameObject::Instantiate(rModelName);
 		auto *pModelTransform = pModelGameObject->GetTransform();
 		for (size_t shapeIdx = 0; shapeIdx < numShapes; shapeIdx++)
@@ -224,7 +230,6 @@ namespace FastCG
 			}
 
 			// doesn't support multi materials at the moment
-			auto &shape = pShapes[shapeIdx];
 			auto materialIdx = attributes.material_ids[shapeIdx];
 			std::shared_ptr<Material> pMaterial;
 			if (materialIdx > 0)

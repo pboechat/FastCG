@@ -216,7 +216,7 @@ namespace FastCG
 		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext);
 		inline void UpdateSSAOConstants(bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const;
 		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext);
-#ifdef _DEBUG
+#if _DEBUG
 		inline void DebugMenuItemCallback(int &result);
 #endif
 	};

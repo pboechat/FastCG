@@ -5,6 +5,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Exception.h>
 
 #include <vector>
@@ -42,14 +43,15 @@ namespace FastCG
 
     void OpenGLGraphicsContext::PushDebugMarker(const char *pName)
     {
-#ifdef _DEBUG
+        FASTCG_UNUSED(pName);
+#if _DEBUG
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, pName);
 #endif
     }
 
     void OpenGLGraphicsContext::PopDebugMarker()
     {
-#ifdef _DEBUG
+#if _DEBUG
         glPopDebugGroup();
 #endif
     }
@@ -196,6 +198,7 @@ namespace FastCG
 
     void OpenGLGraphicsContext::Copy(const OpenGLTexture *pTexture, size_t dataSize, const void *pData)
     {
+        FASTCG_UNUSED(dataSize);
         assert(pTexture != nullptr);
         auto target = GetOpenGLTarget(pTexture->GetType());
         glBindTexture(target, *pTexture);
@@ -408,6 +411,7 @@ namespace FastCG
 
     void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
     {
+        FASTCG_UNUSED(firstInstance);
         assert(firstInstance == 0);
         SetupDraw();
         glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset);
