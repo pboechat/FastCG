@@ -194,7 +194,7 @@ namespace
 
 }
 
-// defined in the application's Config.h
+// defined in the application's Config.cpp
 extern const uint8_t APPLICATION_MAJOR_VERSION;
 extern const uint8_t APPLICATION_MINOR_VERSION;
 extern const uint8_t APPLICATION_PATCH_VERSION;
