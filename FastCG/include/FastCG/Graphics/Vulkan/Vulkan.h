@@ -34,6 +34,8 @@
 
 #if defined VK_VERSION_1_3
 #define VK_API_VERSION VK_API_VERSION_1_3;
+#elif defined VK_VERSION_1_2
+#define VK_API_VERSION VK_API_VERSION_1_2;
 #elif defined VK_VERSION_1_1
 #define VK_API_VERSION VK_API_VERSION_1_1;
 #else
