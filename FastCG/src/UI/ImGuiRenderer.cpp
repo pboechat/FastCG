@@ -15,8 +15,17 @@ namespace FastCG
     {
         int width, height;
         uint8_t *pPixels;
-        auto &io = ImGui::GetIO();
-        io.Fonts->GetTexDataAsRGBA32(&pPixels, &width, &height);
+        auto &rIo = ImGui::GetIO();
+        rIo.Fonts->GetTexDataAsRGBA32(&pPixels, &width, &height);
+
+#if defined FASTCG_ANDROID
+        // applying a hard-coded scale factor to ImGUI on Android!
+        // TODO: make this less brittle and possibly dynamic
+        const float SCALE_FACTOR = 3;
+        rIo.FontGlobalScale = SCALE_FACTOR;
+        auto &rStyle = ImGui::GetStyle();
+        rStyle.ScaleAllSizes(SCALE_FACTOR);
+#endif
 
         auto *pImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture({"ImGui",
                                                                             (uint32_t)width,
@@ -30,7 +39,7 @@ namespace FastCG
                                                                             TextureWrapMode::CLAMP,
                                                                             false,
                                                                             pPixels});
-        io.Fonts->SetTexID((void *)pImGuiTexture);
+        rIo.Fonts->SetTexID((void *)pImGuiTexture);
 
         mpImGuiShader = GraphicsSystem::GetInstance()->FindShader("ImGui");
 

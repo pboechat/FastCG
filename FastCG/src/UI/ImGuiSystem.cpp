@@ -193,18 +193,18 @@ namespace FastCG
 
     void ImGuiSystem::BeginFrame(double deltaTime, KeyChange keyChanges[KEY_COUNT])
     {
-        auto &io = ImGui::GetIO();
+        auto &rIo = ImGui::GetIO();
 
-        io.DisplaySize.x = (float)mArgs.rScreenWidth;
-        io.DisplaySize.y = (float)mArgs.rScreenHeight;
+        rIo.DisplaySize.x = (float)mArgs.rScreenWidth;
+        rIo.DisplaySize.y = (float)mArgs.rScreenHeight;
 
-        io.DeltaTime = (float)deltaTime + 0.0000001f; // avoid an ImGui assert in the very unlikely event that deltaTime is zero!
+        rIo.DeltaTime = (float)deltaTime + 0.0000001f; // avoid an ImGui assert in the very unlikely event that deltaTime is zero!
 
         auto mousePos = InputSystem::GetMousePosition();
-        io.AddMousePosEvent((float)mousePos.x, (float)mousePos.y);
-        io.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
-        io.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
-        io.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
+        rIo.AddMousePosEvent((float)mousePos.x, (float)mousePos.y);
+        rIo.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
+        rIo.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
+        rIo.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
 
         for (KeyInt i = 0; i < KEY_COUNT; ++i)
         {
@@ -213,9 +213,9 @@ namespace FastCG
                 auto key = (Key)i;
                 auto imguiKey = GetImGuiKey(key);
                 bool down = ((KeyChangeInt)keyChanges[i] - 1);
-                io.AddKeyEvent(imguiKey, down);
+                rIo.AddKeyEvent(imguiKey, down);
                 auto nativeKey = Application::GetInstance()->GetNativeKey(key);
-                io.SetKeyEventNativeData(imguiKey, (int)nativeKey, -1, -1);
+                rIo.SetKeyEventNativeData(imguiKey, (int)nativeKey, -1, -1);
             }
         }
 

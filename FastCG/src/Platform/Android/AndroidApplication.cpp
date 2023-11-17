@@ -242,15 +242,18 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
         {
         case AMOTION_EVENT_ACTION_DOWN:
         case AMOTION_EVENT_ACTION_UP:
-            FastCG::AndroidApplication::GetInstance()->MouseButtonCallback(FastCG::MouseButton::RIGHT_BUTTON,
-                                                                           action == AMOTION_EVENT_ACTION_DOWN ? FastCG::MouseButtonState::PRESSED : FastCG::MouseButtonState::RELEASED);
+        {
+            auto state = action == AMOTION_EVENT_ACTION_DOWN ? FastCG::MouseButtonState::PRESSED : FastCG::MouseButtonState::RELEASED;
+            // press both buttons at the same time
+            FastCG::AndroidApplication::GetInstance()->MouseButtonCallback(FastCG::MouseButton::LEFT_BUTTON, state);
+            FastCG::AndroidApplication::GetInstance()->MouseButtonCallback(FastCG::MouseButton::RIGHT_BUTTON, state);
+        }
         case AMOTION_EVENT_ACTION_MOVE:
         {
             // pointer motion tracking stops when action up occurs,
             // so we also update the pointer position whenever there's a pointer up/down event
 
             float x0 = AMotionEvent_getX(event, 0), y0 = AMotionEvent_getY(event, 0);
-
             if (x0 > 0 && y0 > 0) // ignore out-of-window motions
             {
                 FastCG::AndroidApplication::GetInstance()->MouseMoveCallback((uint32_t)x0, (uint32_t)y0);
