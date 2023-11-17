@@ -107,6 +107,58 @@ namespace
         return it->second;
     }
 
+#ifdef CASE_RETURN_STRING
+#undef CASE_RETURN_STRING
+#endif
+
+#define CASE_RETURN_STRING(str) \
+    case str:                   \
+        return #str
+
+    const char *GetAInputEventTypeString(int32_t eventType)
+    {
+        switch (eventType)
+        {
+            CASE_RETURN_STRING(AINPUT_EVENT_TYPE_MOTION);
+            CASE_RETURN_STRING(AINPUT_EVENT_TYPE_KEY);
+            CASE_RETURN_STRING(AINPUT_EVENT_TYPE_FOCUS);
+        default:
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Android: Unhandled AInputEventType %d", eventType);
+            return nullptr;
+        }
+    }
+
+    const char *GetAMotionEventActionString(int32_t action)
+    {
+        switch (action)
+        {
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_DOWN);
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_UP);
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_MOVE);
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_CANCEL);
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_OUTSIDE);
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_POINTER_DOWN);
+            CASE_RETURN_STRING(AMOTION_EVENT_ACTION_POINTER_UP);
+        default:
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Android: Unhandled AMotionEventAction %d", action);
+            return nullptr;
+        }
+    }
+
+    const char *GetAKeyEventActionString(int32_t action)
+    {
+        switch (action)
+        {
+            CASE_RETURN_STRING(AKEY_EVENT_ACTION_DOWN);
+            CASE_RETURN_STRING(AKEY_EVENT_ACTION_UP);
+            CASE_RETURN_STRING(AKEY_EVENT_ACTION_MULTIPLE);
+        default:
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Android: Unhandled AKeyEventAction %d", action);
+            return nullptr;
+        }
+    }
+
+#undef CASE_RETURN_STRING
 }
 
 void onAppCmd(android_app *app, int32_t cmd)
@@ -185,14 +237,6 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
     {
     case AINPUT_EVENT_TYPE_MOTION:
     {
-        size_t pointerCount = AMotionEvent_getPointerCount(event);
-        FASTCG_UNUSED(pointerCount);
-        // TODO: support multiple pointers
-        assert(pointerCount > 0);
-
-        float x = AMotionEvent_getX(event, 0);
-        float y = AMotionEvent_getY(event, 0);
-        assert(x > 0 && y > 0);
         int32_t action = AMotionEvent_getAction(event);
         switch (action)
         {
@@ -200,10 +244,19 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
         case AMOTION_EVENT_ACTION_UP:
             FastCG::AndroidApplication::GetInstance()->MouseButtonCallback(FastCG::MouseButton::RIGHT_BUTTON,
                                                                            action == AMOTION_EVENT_ACTION_DOWN ? FastCG::MouseButtonState::PRESSED : FastCG::MouseButtonState::RELEASED);
-            break;
         case AMOTION_EVENT_ACTION_MOVE:
-            FastCG::AndroidApplication::GetInstance()->MouseMoveCallback((uint32_t)x, (uint32_t)y);
-            break;
+        {
+            // pointer motion tracking stops when action up occurs,
+            // so we also update the pointer position whenever there's a pointer up/down event
+
+            float x0 = AMotionEvent_getX(event, 0), y0 = AMotionEvent_getY(event, 0);
+
+            if (x0 > 0 && y0 > 0) // ignore out-of-window motions
+            {
+                FastCG::AndroidApplication::GetInstance()->MouseMoveCallback((uint32_t)x0, (uint32_t)y0);
+            }
+        }
+        break;
         case AMOTION_EVENT_ACTION_CANCEL:
             // not implemented
             break;
@@ -215,6 +268,7 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
             // TODO: support multiple pointers
             break;
         }
+
         return 1;
     }
     case AINPUT_EVENT_TYPE_KEY:
