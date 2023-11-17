@@ -194,6 +194,12 @@ namespace
 
 }
 
+// defined in the application's Config.h
+extern const uint8_t APPLICATION_MAJOR_VERSION;
+extern const uint8_t APPLICATION_MINOR_VERSION;
+extern const uint8_t APPLICATION_PATCH_VERSION;
+extern const char *const APPLICATION_NAME;
+
 namespace FastCG
 {
 #define FASTCG_IMPL_VK_EXT_FN(fn) PFN_##fn fn = nullptr
@@ -274,10 +280,8 @@ namespace FastCG
         VkApplicationInfo applicationInfo;
         applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         applicationInfo.pNext = nullptr;
-        // TODO: provide a mechanism for users to specify their app names
-        applicationInfo.pApplicationName = "FastCG";
-        // TODO: provide a mechanism for users to specify their app versions
-        applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        applicationInfo.pApplicationName = APPLICATION_NAME;
+        applicationInfo.applicationVersion = VK_MAKE_VERSION(APPLICATION_MAJOR_VERSION, APPLICATION_MINOR_VERSION, APPLICATION_PATCH_VERSION);
         applicationInfo.pEngineName = "FastCG";
         applicationInfo.engineVersion = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
         applicationInfo.apiVersion = VK_API_VERSION;

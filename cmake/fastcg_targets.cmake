@@ -288,6 +288,57 @@ function(_fastcg_add_android_executable)
     _fastcg_add_apk_targets(${ARGV0})
 endfunction()
 
+function(_fastcg_add_generated_sources_targets)
+    set(SRC_GENERATED_SOURCES_DIR "${CMAKE_SOURCE_DIR}/resources/generated_sources")
+    set(DST_GENERATED_SOURCES_DIR "${CMAKE_BINARY_DIR}/generated_sources/${ARGV0}")
+
+    set(SRC_CONFIG_HEADER ${SRC_GENERATED_SOURCES_DIR}/config/Config.h)
+    set(SRC_CONFIG_SOURCE ${SRC_GENERATED_SOURCES_DIR}/config/Config.cpp.template)
+    set(DST_CONFIG_HEADER ${DST_GENERATED_SOURCES_DIR}/config/Config.h)
+    set(DST_CONFIG_SOURCE ${DST_GENERATED_SOURCES_DIR}/config/Config.cpp)
+
+    if(NOT DEFINED ${ARGV0}_MAJOR_VERSION)
+        set(MAJOR_VERSION 1)
+    else()
+        set(MAJOR_VERSION ${ARGV0}_MAJOR_VERSION)
+    endif()
+    if(NOT DEFINED ${ARGV0}_MINOR_VERSION)
+        set(MINOR_VERSION 0)
+    else()
+        set(MINOR_VERSION ${ARGV0}_MINOR_VERSION)
+    endif()
+    if(NOT DEFINED ${ARGV0}_PATCH_VERSION)
+        set(PATCH_VERSION 0)
+    else()
+        set(PATCH_VERSION ${ARGV0}_PATCH_VERSION)
+    endif()
+
+    set(${ARGV0}_MAJOR_VERSION ${MAJOR_VERSION} CACHE STRING "${ARGV0} major version")
+    set(${ARGV0}_MINOR_VERSION ${MINOR_VERSION} CACHE STRING "${ARGV0} minor version")
+    set(${ARGV0}_PATCH_VERSION ${PATCH_VERSION} CACHE STRING "${ARGV0} patch version")
+
+    add_custom_command(
+        OUTPUT ${DST_CONFIG_HEADER}
+        COMMAND ${CMAKE_COMMAND} -E copy ${SRC_CONFIG_HEADER} ${DST_CONFIG_HEADER}
+        DEPENDS ${SRC_CONFIG_HEADER}
+    )
+    add_custom_command(
+        OUTPUT ${DST_CONFIG_SOURCE}
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_template_engine.cmake "${SRC_CONFIG_SOURCE}" "${DST_CONFIG_SOURCE}" "project_name=${ARGV0};major_version=${${ARGV0}_MAJOR_VERSION};minor_version=${${ARGV0}_MINOR_VERSION};patch_version=${${ARGV0}_PATCH_VERSION}"
+        DEPENDS ${SRC_CONFIG_SOURCE}
+    )
+
+    list(APPEND DST_GENERATED_SOURCES ${DST_CONFIG_SOURCE} ${DST_CONFIG_HEADER})
+
+    add_custom_target(
+        ${ARGV0}_GENERATE_SOURCES
+        DEPENDS ${DST_GENERATED_SOURCES}
+    )
+    target_sources(${ARGV0} PRIVATE ${DST_GENERATED_SOURCES})
+    target_include_directories(${ARGV0} PRIVATE ${DST_GENERATED_SOURCES_DIR})
+    add_dependencies(${ARGV0} ${ARGV0}_GENERATE_SOURCES)
+endfunction()
+
 function(fastcg_add_executable)
     if(FASTCG_PLATFORM STREQUAL "Android")
         _fastcg_add_android_executable(${ARGN})
@@ -300,6 +351,7 @@ function(fastcg_add_executable)
     _fastcg_set_target_properties(${ARGV0})
     target_link_libraries(${ARGV0} ${FastCG_LIBRARIES})
     _fastcg_add_asset_targets(${ARGV0})
+    _fastcg_add_generated_sources_targets(${ARGV0})
 endfunction()
 
 function(fastcg_add_dependency_library)

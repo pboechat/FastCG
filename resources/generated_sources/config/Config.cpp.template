@@ -1,0 +1,6 @@
+#include <config/Config.h>
+
+const uint8_t APPLICATION_MAJOR_VERSION = ${major_version};
+const uint8_t APPLICATION_MINOR_VERSION = ${minor_version};
+const uint8_t APPLICATION_PATCH_VERSION = ${patch_version};
+const char *const APPLICATION_NAME = "${project_name}";
