@@ -72,9 +72,9 @@
 #if defined _MSC_VER
 #define FASTCG_BREAK_TO_DEBUGGER() __debugbreak()
 #elif defined __GNUC__ || defined __clang__
-#define FASTCG_BREAK_TO_DEBUGGER() // __builtin_trap()
+#define FASTCG_BREAK_TO_DEBUGGER() __builtin_trap()
 #else
-#error "FASTCG_BREAK_TO_DEBUGGER() is not implemented on the current compiler"
+#error "FASTCG_BREAK_TO_DEBUGGER() macro is not implemented on the current compiler"
 #endif
 #else
 #define FASTCG_BREAK_TO_DEBUGGER()
