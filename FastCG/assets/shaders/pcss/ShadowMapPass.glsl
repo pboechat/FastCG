@@ -8,7 +8,7 @@ struct ShadowMapPassInstanceData
 	mat4 modelViewProjection;
 };
 
-layout(BINDING_0_0) uniform ShadowMapPassConstants
+layout(std140, BINDING_0_0) uniform ShadowMapPassConstants
 {
 	ShadowMapPassInstanceData uInstanceData[MAX_INSTANCES];
 };

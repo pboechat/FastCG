@@ -3,10 +3,10 @@
 
 #include "FastCG.glsl"
 
-#define FOG_MODE_NONE 0
-#define FOG_MODE_LINEAR 1
-#define FOG_MODE_EXP 2
-#define FOG_MODE_EXP2 3
+#define FOG_MODE_NONE 0u
+#define FOG_MODE_LINEAR 1u
+#define FOG_MODE_EXP 2u
+#define FOG_MODE_EXP2 3u
 
 struct FogData
 {
@@ -17,7 +17,7 @@ struct FogData
 	float end;
 };
 
-layout(BINDING_0_2) uniform FogConstants
+layout(std140, BINDING_0_2) uniform FogConstants
 {
 	FogData uFogData;
 };

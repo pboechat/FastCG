@@ -11,7 +11,7 @@ struct InstanceData
 	mat4 modelViewProjection;
 };
 
-layout(BINDING_0_1) uniform InstanceConstants
+layout(std140, BINDING_0_1) uniform InstanceConstants
 {
     InstanceData uInstanceData[MAX_INSTANCES];
 };

@@ -16,7 +16,7 @@ struct PCSSData
 	int pcfSamples;
 };
 
-layout(BINDING_0_3) uniform PCSSConstants 
+layout(std140, BINDING_0_3) uniform PCSSConstants 
 {
     PCSSData uPCSSData;
 };

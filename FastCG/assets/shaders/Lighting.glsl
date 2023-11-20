@@ -5,7 +5,7 @@
 #include "pcss/PCSS.glsl"
 #include "ssao/SSAO.glsl"
 
-layout(BINDING_0_4) uniform LightingConstants 
+layout(std140, BINDING_0_4) uniform LightingConstants 
 {
 	vec4 uLight0Position;
 	vec4 uLight0ViewPosition;

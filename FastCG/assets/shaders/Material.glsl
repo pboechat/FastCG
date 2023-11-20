@@ -3,7 +3,7 @@
 
 #include "FastCG.glsl"
 
-layout(BINDING_1_0) uniform MaterialConstants
+layout(std140, BINDING_1_0) uniform MaterialConstants
 {
 	vec4 uDiffuseColor;
     vec4 uSpecularColor;
