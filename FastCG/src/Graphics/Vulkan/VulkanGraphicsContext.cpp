@@ -559,25 +559,41 @@ namespace FastCG
 				continue;
 			}
 
-			auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [pRenderTarget](const auto &rClearRequest)
-								   { return rClearRequest.pTexture == pRenderTarget; });
-			if (it != mClearRequests.end())
-			{
-				mClearRequests.erase(it);
-			}
-
 			renderTargetCount++;
 		}
 
-		if (actualRenderPassDescription.pDepthStencilBuffer != nullptr)
+		if (mPrevRenderPass != VK_NULL_HANDLE && mPrevRenderPass != renderPass)
 		{
-			auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [&actualRenderPassDescription](const auto &rClearRequest)
-								   { return rClearRequest.pTexture == actualRenderPassDescription.pDepthStencilBuffer; });
-			if (it != mClearRequests.end())
+			// erase clear requests only if switching renderpasses for reasons other
+			// than indirect attachments clears. this avoids the unnecessary creation/starting
+			// of renderpasses due to those clears.
+			for (const auto *pRenderTarget : actualRenderPassDescription.renderTargets)
 			{
-				mClearRequests.erase(it);
+				if (pRenderTarget == nullptr)
+				{
+					continue;
+				}
+
+				auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [pRenderTarget](const auto &rClearRequest)
+									   { return rClearRequest.pTexture == pRenderTarget; });
+				if (it != mClearRequests.end())
+				{
+					mClearRequests.erase(it);
+				}
+			}
+
+			if (actualRenderPassDescription.pDepthStencilBuffer != nullptr)
+			{
+				auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [&actualRenderPassDescription](const auto &rClearRequest)
+									   { return rClearRequest.pTexture == actualRenderPassDescription.pDepthStencilBuffer; });
+				if (it != mClearRequests.end())
+				{
+					mClearRequests.erase(it);
+				}
 			}
 		}
+
+		mPrevRenderPass = renderPass;
 
 		auto pipeline = VulkanGraphicsSystem::GetInstance()->GetOrCreatePipeline(mPipelineDescription, renderPass, renderTargetCount, mVertexBuffers).second;
 		assert(pipeline.pipeline != VK_NULL_HANDLE);
@@ -1202,6 +1218,7 @@ namespace FastCG
 		mDrawCommands.resize(0);
 		mCopyCommands.resize(0);
 		mClearRequests.resize(0);
+		mPrevRenderPass = VK_NULL_HANDLE;
 #if _DEBUG
 		mMarkerCommands.resize(0);
 #endif

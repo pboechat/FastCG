@@ -190,6 +190,7 @@ namespace FastCG
         std::vector<PipelineCommand> mPipelineCommands;
         std::vector<CopyCommand> mCopyCommands;
         std::vector<DrawCommand> mDrawCommands;
+        VkRenderPass mPrevRenderPass{VK_NULL_HANDLE};
         std::vector<VulkanClearRequest> mClearRequests;
         bool mEnded{true};
 #if _DEBUG
