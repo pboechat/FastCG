@@ -18,7 +18,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) 
 	{
-		//deleteAssetsInInternalStorage();
+		deleteAssetsInInternalStorage();
         copyAssetsToInternalStorage("");
 		
 		super.onCreate(savedInstanceState);
