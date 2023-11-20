@@ -151,16 +151,16 @@ namespace FastCG
         pGraphicsContext->BindResource(rCurrentDepthStencilBuffer, "uDepth");
     }
 
-    const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
+    const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext)
     {
         BindGBuffer(pGraphicsContext);
-        return BaseWorldRenderer::UpdateLightingConstants(pPointLight, rInverseView, nearClip, isSSAOEnabled, pGraphicsContext);
+        return BaseWorldRenderer::UpdateLightingConstants(pPointLight, rInverseView, pGraphicsContext);
     }
 
-    const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
+    const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext)
     {
         BindGBuffer(pGraphicsContext);
-        return BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rViewDirection, nearClip, isSSAOEnabled, pGraphicsContext);
+        return BaseWorldRenderer::UpdateLightingConstants(pDirectionalLight, rViewDirection, pGraphicsContext);
     }
 
     void DeferredWorldRenderer::Resize()
@@ -290,6 +290,8 @@ namespace FastCG
             }
             pGraphicsContext->PopDebugMarker();
 
+            const auto *pFogConstantsBuffer = UpdateFogConstants(WorldSystem::GetInstance()->GetFog(), pGraphicsContext);
+
             pGraphicsContext->PushDebugMarker("Point Light Passes");
             {
                 const auto &rPointLights = WorldSystem::GetInstance()->GetPointLights();
@@ -346,12 +348,18 @@ namespace FastCG
                             pGraphicsContext->BindShader(mpPointLightPassShader);
 
                             pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+                            pGraphicsContext->BindResource(pFogConstantsBuffer, FOG_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                            UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
 
                             const auto *pInstanceConstantsBuffer = UpdateInstanceConstants(model, view, projection, pGraphicsContext);
                             pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pPointLight, inverseView, nearClip, isSSAOEnabled, pGraphicsContext);
+                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pPointLight, inverseView, pGraphicsContext);
                             pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                            const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pPointLight, nearClip, pGraphicsContext);
+                            pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                             pGraphicsContext->SetVertexBuffers(mpSphereMesh->GetVertexBuffers(), mpSphereMesh->GetVertexBufferCount());
                             pGraphicsContext->SetIndexBuffer(mpSphereMesh->GetIndexBuffer());
@@ -382,6 +390,9 @@ namespace FastCG
                 pGraphicsContext->BindShader(mpDirectionalLightPassShader);
 
                 pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+                pGraphicsContext->BindResource(pFogConstantsBuffer, FOG_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
 
                 auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
                 const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
@@ -390,8 +401,10 @@ namespace FastCG
                     const auto *pDirectionalLight = rDirectionalLights[i];
                     pGraphicsContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                     {
-                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), nearClip, isSSAOEnabled, pGraphicsContext);
+                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), pGraphicsContext);
                         pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+                        const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
+                        pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                         pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                         pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());

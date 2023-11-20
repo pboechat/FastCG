@@ -5,6 +5,7 @@
 #include <FastCG/World/Behaviour.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/PointLight.h>
+#include <FastCG/Rendering/Fog.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Rendering/Camera.h>
 #include <FastCG/Reflection/Inspectable.h>
@@ -21,13 +22,25 @@
 #include <cassert>
 #include <algorithm>
 
-#define FASTCG_TRACK_COMPONENT(className, component)                       \
+#define FASTCG_TRACK_COMPONENT(className, component)         \
+    if (component->GetType().IsDerived(className::TYPE))     \
+    {                                                        \
+        mp##className = static_cast<className *>(component); \
+    }
+
+#define FASTCG_UNTRACK_COMPONENT(className, component)   \
+    if (component->GetType().IsDerived(className::TYPE)) \
+    {                                                    \
+        mp##className = nullptr;                         \
+    }
+
+#define FASTCG_TRACK_COMPONENT_COLLECTION(className, component)            \
     if (component->GetType().IsDerived(className::TYPE))                   \
     {                                                                      \
         m##className##s.emplace_back(static_cast<className *>(component)); \
     }
 
-#define FASTCG_UNTRACK_COMPONENT(className, component)                                                   \
+#define FASTCG_UNTRACK_COMPONENT_COLLECTION(className, component)                                        \
     if (component->GetType().IsDerived(className::TYPE))                                                 \
     {                                                                                                    \
         auto it = std::find(m##className##s.begin(), m##className##s.end(), component);                  \
@@ -669,9 +682,10 @@ namespace FastCG
     {
         assert(pComponent != nullptr);
 
-        FASTCG_TRACK_COMPONENT(DirectionalLight, pComponent);
-        FASTCG_TRACK_COMPONENT(PointLight, pComponent);
-        FASTCG_TRACK_COMPONENT(Behaviour, pComponent);
+        FASTCG_TRACK_COMPONENT_COLLECTION(DirectionalLight, pComponent);
+        FASTCG_TRACK_COMPONENT_COLLECTION(PointLight, pComponent);
+        FASTCG_TRACK_COMPONENT(Fog, pComponent);
+        FASTCG_TRACK_COMPONENT_COLLECTION(Behaviour, pComponent);
 
         mComponents.emplace_back(pComponent);
     }
@@ -706,10 +720,11 @@ namespace FastCG
     {
         assert(pComponent != nullptr);
 
-        FASTCG_UNTRACK_COMPONENT(DirectionalLight, pComponent);
-        FASTCG_UNTRACK_COMPONENT(PointLight, pComponent);
-        FASTCG_UNTRACK_COMPONENT(Behaviour, pComponent);
-        FASTCG_UNTRACK_COMPONENT(Component, pComponent);
+        FASTCG_UNTRACK_COMPONENT_COLLECTION(DirectionalLight, pComponent);
+        FASTCG_UNTRACK_COMPONENT_COLLECTION(PointLight, pComponent);
+        FASTCG_UNTRACK_COMPONENT(Fog, pComponent);
+        FASTCG_UNTRACK_COMPONENT_COLLECTION(Behaviour, pComponent);
+        FASTCG_UNTRACK_COMPONENT_COLLECTION(Component, pComponent);
     }
 
     void WorldSystem::SetMainCamera(Camera *pCamera)

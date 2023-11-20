@@ -4,9 +4,10 @@
 #include "Material.glsl"
 
 layout(location = 0) in vec3 vLightDirection;
-layout(location = 1) in vec3 vViewerDirection;
-layout(location = 2) in vec3 vPosition;
-layout(location = 3) in vec2 vUV;
+layout(location = 1) in float vViewDistance;
+layout(location = 2) in vec3 vViewerDirection;
+layout(location = 3) in vec3 vWorldPosition;
+layout(location = 4) in vec2 vUV;
 
 layout(location = 0) out vec4 oColor;
 
@@ -14,5 +15,5 @@ void main()
 {
 	vec4 diffuse = uDiffuseColor * texture(uColorMap, (vUV * uColorMapTiling));
 	vec3 normal = UnpackNormalFromColor(texture(uBumpMap, (vUV * uBumpMapTiling))).xyz;
-	oColor = Lighting(diffuse, uSpecularColor, uShininess, vLightDirection, vViewerDirection, vPosition, normal, GetScreenCoordinates());
+	oColor = Lighting(diffuse, uSpecularColor, uShininess, vLightDirection, vViewDistance, vViewerDirection, vWorldPosition, normal, GetScreenCoordinates());
 }

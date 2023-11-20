@@ -33,7 +33,8 @@ void main()
 	}
 
 	vec3 lightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz);
-	vec3 viewerDirection = tangentSpaceMatrix * normalize(-viewPosition);
+	float viewDistance = length(viewPosition);
+	vec3 viewerDirection = tangentSpaceMatrix * (-viewPosition / viewDistance);
 
-	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewerDirection, worldPosition, normal, vUV);
+	oColor = Lighting(diffuseColor, specularColor, shininess, lightDirection, viewDistance, viewerDirection, worldPosition, normal, vUV);
 }

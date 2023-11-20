@@ -136,6 +136,7 @@ namespace FastCG
                 pGraphicsContext->PushDebugMarker("Material Passes");
                 {
                     const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
+                    const auto *pFogConstantsBuffer = UpdateFogConstants(WorldSystem::GetInstance()->GetFog(), pGraphicsContext);
 
                     for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
                     {
@@ -148,6 +149,9 @@ namespace FastCG
                             BindMaterial(pMaterial, pGraphicsContext);
 
                             pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+                            pGraphicsContext->BindResource(pFogConstantsBuffer, FOG_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                            UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
 
                             for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                             {
@@ -219,8 +223,10 @@ namespace FastCG
 
                                             auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
 
-                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, nearClip, isSSAOEnabled, pGraphicsContext);
+                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, pGraphicsContext);
                                             pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+                                            const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
+                                            pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                             if (instanceCount == 1)
                                             {
@@ -261,8 +267,10 @@ namespace FastCG
                                                 break;
                                             }
 
-                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], inverseView, nearClip, isSSAOEnabled, pGraphicsContext);
+                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], inverseView, pGraphicsContext);
                                             pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+                                            const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(rPointLights[i], nearClip, pGraphicsContext);
+                                            pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                             if (instanceCount == 1)
                                             {

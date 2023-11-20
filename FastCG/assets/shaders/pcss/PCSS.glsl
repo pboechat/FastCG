@@ -16,6 +16,11 @@ struct PCSSData
 	int pcfSamples;
 };
 
+layout(BINDING_0_3) uniform PCSSConstants 
+{
+    PCSSData uPCSSData;
+};
+
 void FindBlocker(PCSSData pcssData, sampler2D shadowMap, vec3 shadowMapCoords, out float avgBlockerDistance, out int numBlockers)
 {
 	numBlockers = 0;

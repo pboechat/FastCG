@@ -16,6 +16,8 @@ namespace FastCG
     static constexpr uint32_t COLOR_SHADER_INPUT_INDEX = 4;
     static constexpr const char *const SCENE_CONSTANTS_SHADER_RESOURCE_NAME = "SceneConstants";
     static constexpr const char *const INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME = "InstanceConstants";
+    static constexpr const char *const FOG_CONSTANTS_SHADER_RESOURCE_NAME = "FogConstants";
+    static constexpr const char *const PCSS_CONSTANTS_SHADER_RESOURCE_NAME = "PCSSConstants";
     static constexpr const char *const LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME = "LightingConstants";
     static constexpr const char *const MATERIAL_CONSTANTS_SHADER_RESOURCE_NAME = "MaterialConstants";
     static constexpr const char *const SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_NAME = "ShadowMapPassConstants";
@@ -26,6 +28,20 @@ namespace FastCG
         glm::mat4 viewProjection;
         float bias{0.0025f};
         float padding[3];
+    };
+
+    struct FogData
+    {
+        glm::vec4 color;
+        uint32_t mode;
+        float density;
+        float start;
+        float end;
+    };
+
+    struct FogConstants
+    {
+        FogData fogData;
     };
 
     struct PCSSData
@@ -43,6 +59,11 @@ namespace FastCG
         float nearClip;
         int blockerSearchSamples{16};
         int pcfSamples{16};
+    };
+
+    struct PCSSConstants
+    {
+        PCSSData pcssData;
     };
 
     constexpr uint32_t MAX_NUM_INSTANCES = 256;
@@ -83,7 +104,6 @@ namespace FastCG
             float light0LinearAttenuation;
             float light0QuadraticAttenuation;
             glm::vec4 ambientColor;
-            PCSSData pcssData;
         };
 
     }

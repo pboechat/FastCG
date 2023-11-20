@@ -9,8 +9,9 @@ layout(location = 2) in vec2 iUV;
 layout(location = 3) in vec4 iTangent;
 
 layout(location = 0) out vec3 vLightDirection;
-layout(location = 1) out vec3 vPosition;
-layout(location = 2) out vec2 vUV;
+layout(location = 1) out float vViewDistance;
+layout(location = 2) out vec3 vWorldPosition;
+layout(location = 3) out vec2 vUV;
 
 void main()
 {
@@ -22,8 +23,9 @@ void main()
 
 	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1);
 	vec3 viewPosition = vec3(uView * worldPosition);
+	vViewDistance = length(viewPosition);
 	vLightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
-	vPosition = worldPosition.xyz;
+	vWorldPosition = worldPosition.xyz;
 	vUV = iUV;
 
 	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);

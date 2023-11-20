@@ -9,6 +9,7 @@
 #include <FastCG/Rendering/Material.h>
 #include <FastCG/Rendering/Light.h>
 #include <FastCG/Rendering/IWorldRenderer.h>
+#include <FastCG/Rendering/Fog.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
 
@@ -44,42 +45,42 @@ namespace FastCG
 
 		inline float GetShadowMapBias() const override
 		{
-			return mLightingConstants.pcssData.shadowMapData.bias;
+			return mPCSSConstants.pcssData.shadowMapData.bias;
 		}
 
 		inline void SetShadowMapBias(float shadowMapBias) override
 		{
-			mLightingConstants.pcssData.shadowMapData.bias = shadowMapBias;
+			mPCSSConstants.pcssData.shadowMapData.bias = shadowMapBias;
 		}
 
 		inline float GetPCSSUvScale() const override
 		{
-			return mLightingConstants.pcssData.uvScale;
+			return mPCSSConstants.pcssData.uvScale;
 		}
 
 		inline void SetPCSSUvScale(float uvScale) override
 		{
-			mLightingConstants.pcssData.uvScale = uvScale;
+			mPCSSConstants.pcssData.uvScale = uvScale;
 		}
 
 		inline uint32_t GetPCSSBlockerSearchSamples() const override
 		{
-			return (uint32_t)mLightingConstants.pcssData.blockerSearchSamples;
+			return (uint32_t)mPCSSConstants.pcssData.blockerSearchSamples;
 		}
 
 		inline void SetPCSSBlockerSearchSamples(uint32_t pcssBlockerSearchSamples) override
 		{
-			mLightingConstants.pcssData.blockerSearchSamples = pcssBlockerSearchSamples;
+			mPCSSConstants.pcssData.blockerSearchSamples = pcssBlockerSearchSamples;
 		}
 
 		inline uint32_t GetPCSSPCFSamples() const override
 		{
-			return (uint32_t)mLightingConstants.pcssData.pcfSamples;
+			return (uint32_t)mPCSSConstants.pcssData.pcfSamples;
 		}
 
 		inline void SetPCSSPCFSamples(uint32_t pcssPCFSamples) override
 		{
-			mLightingConstants.pcssData.pcfSamples = pcssPCFSamples;
+			mPCSSConstants.pcssData.pcfSamples = pcssPCFSamples;
 		}
 
 		inline float GetSSAORadius() const override
@@ -118,8 +119,12 @@ namespace FastCG
 		inline void BindMaterial(const Material *pMaterial, GraphicsContext *pGraphicsContext);
 		inline const Buffer *UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
 		inline std::pair<uint32_t, const Buffer *> UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
-		inline virtual const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext);
-		inline virtual const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext);
+		inline virtual const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext);
+		inline virtual const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext);
+		inline const Buffer *UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext);
+		inline const Buffer *UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext);
+		inline void UpdateSSAOConstants(bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const;
+		inline const Buffer *UpdateFogConstants(const Fog *pFog, GraphicsContext *pGraphicsContext);
 		inline virtual const Buffer *UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
 
 	private:
@@ -180,10 +185,16 @@ namespace FastCG
 		size_t mLastInstanceConstantsBufferIdx{0};
 		std::vector<const Buffer *> mLightingConstantsBuffers;
 		size_t mLastLightingConstantsBufferIdx{0};
+		std::vector<const Buffer *> mPCSSConstantsBuffers;
+		size_t mLastPCSSConstantsBufferIdx{0};
+		std::vector<const Buffer *> mFogConstantsBuffers;
+		size_t mLastFogConstantsBufferIdx{0};
 		std::vector<const Buffer *> mSceneConstantsBuffers;
 		size_t mLastSceneConstantsBufferIdx{0};
 		InstanceConstants mInstanceConstants{};
 		LightingConstants mLightingConstants{};
+		PCSSConstants mPCSSConstants{};
+		FogConstants mFogConstants{};
 		SceneConstants mSceneConstants{};
 		const Shader *mpShadowMapPassShader{nullptr};
 		std::vector<const Buffer *> mShadowMapPassConstantsBuffers;
@@ -204,6 +215,8 @@ namespace FastCG
 		inline const Buffer *GetShadowMapPassConstantsBuffer();
 		inline const Buffer *GetInstanceConstantsBuffer();
 		inline const Buffer *GetLightingConstantsBuffer();
+		inline const Buffer *GetPCSSConstantsBuffer();
+		inline const Buffer *GetFogConstantsBuffer();
 		inline const Buffer *GetSceneConstantsBuffer();
 		inline void SetGraphicsContextState(const GraphicsContextState &rGraphicsContextState, GraphicsContext *pGraphicsContext) const;
 		inline void CreateSSAORenderTargets();
@@ -212,9 +225,6 @@ namespace FastCG
 		inline const ShadowMap &GetOrCreateShadowMap(const Light *pLight);
 		inline bool GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const;
 		inline std::pair<uint32_t, const Buffer *> UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
-		inline void UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext);
-		inline void UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext);
-		inline void UpdateSSAOConstants(bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const;
 		inline void UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext);
 #if _DEBUG
 		inline void DebugMenuItemCallback(int &result);

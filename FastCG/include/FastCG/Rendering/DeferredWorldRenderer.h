@@ -24,8 +24,8 @@ namespace FastCG
         void CreateGBuffers();
         void DestroyGBuffers();
         void BindGBuffer(GraphicsContext *pGraphicsContext) const;
-        const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext) override;
-        const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext) override;
+        const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext) override;
+        const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext) override;
 
     private:
         std::vector<std::array<const Texture *, 6>> mGBuffers;

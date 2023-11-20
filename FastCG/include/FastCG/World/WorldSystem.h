@@ -8,7 +8,21 @@
 #include <string>
 #include <algorithm>
 
-#define FASTCG_SUPPORT_COMPONENT_TRACKING(className)                 \
+#define FASTCG_COMPONENT_TRACKING(className)       \
+public:                                            \
+    inline const className *Get##className() const \
+    {                                              \
+        return mp##className;                      \
+    }                                              \
+    inline className *Get##className()             \
+    {                                              \
+        return mp##className;                      \
+    }                                              \
+                                                   \
+private:                                           \
+    className *mp##className{nullptr};
+
+#define FASTCG_COMPONENT_COLLECTION_TRACKING(className)              \
 public:                                                              \
     inline const std::vector<className *> &Get##className##s() const \
     {                                                                \
@@ -24,6 +38,7 @@ namespace FastCG
     class Renderable;
     class PointLight;
     class Material;
+    class Fog;
     class DirectionalLight;
     class Component;
     class Camera;
@@ -38,10 +53,11 @@ namespace FastCG
     class WorldSystem
     {
         FASTCG_DECLARE_SYSTEM(WorldSystem, WorldSystemArgs);
-        FASTCG_SUPPORT_COMPONENT_TRACKING(DirectionalLight);
-        FASTCG_SUPPORT_COMPONENT_TRACKING(PointLight);
-        FASTCG_SUPPORT_COMPONENT_TRACKING(Camera);
-        FASTCG_SUPPORT_COMPONENT_TRACKING(Behaviour);
+        FASTCG_COMPONENT_COLLECTION_TRACKING(DirectionalLight);
+        FASTCG_COMPONENT_COLLECTION_TRACKING(PointLight);
+        FASTCG_COMPONENT_TRACKING(Fog);
+        FASTCG_COMPONENT_COLLECTION_TRACKING(Camera);
+        FASTCG_COMPONENT_COLLECTION_TRACKING(Behaviour);
 
     public:
         inline const Camera *GetMainCamera() const

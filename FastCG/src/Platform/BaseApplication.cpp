@@ -6,6 +6,7 @@
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/Fog.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Platform/Thread.h>
 #include <FastCG/Platform/Timer.h>
@@ -96,6 +97,7 @@ namespace FastCG
 
 		ComponentRegistry::RegisterComponent<Camera>();
 		ComponentRegistry::RegisterComponent<DirectionalLight>();
+		ComponentRegistry::RegisterComponent<Fog>();
 		ComponentRegistry::RegisterComponent<FlyController>();
 		ComponentRegistry::RegisterComponent<PointLight>();
 		ComponentRegistry::RegisterComponent<Renderable>();

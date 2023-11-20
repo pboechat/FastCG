@@ -192,6 +192,30 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetPCSSConstantsBuffer()
+    {
+        while (mPCSSConstantsBuffers.size() <= mLastPCSSConstantsBufferIdx)
+        {
+            mPCSSConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"PCSS Constants (" + std::to_string(mPCSSConstantsBuffers.size()) + ")",
+                                                                                            BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
+                                                                                            sizeof(PCSSConstants)}));
+        }
+        return mPCSSConstantsBuffers[mLastPCSSConstantsBufferIdx++];
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetFogConstantsBuffer()
+    {
+        while (mFogConstantsBuffers.size() <= mLastFogConstantsBufferIdx)
+        {
+            mFogConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"Fog Constants (" + std::to_string(mFogConstantsBuffers.size()) + ")",
+                                                                                           BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
+                                                                                           sizeof(FogConstants)}));
+        }
+        return mFogConstantsBuffers[mLastFogConstantsBufferIdx++];
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetSceneConstantsBuffer()
     {
         while (mSceneConstantsBuffers.size() <= mLastSceneConstantsBufferIdx)
@@ -352,10 +376,10 @@ namespace FastCG
     {
         if (ImGui::BeginMenu("PCSS"))
         {
-            ImGui::SliderFloat("UV Scale", &mLightingConstants.pcssData.uvScale, 0, 0.2f);
-            ImGui::SliderFloat("Shadow Map Bias", &mLightingConstants.pcssData.shadowMapData.bias, 0, 0.1f);
-            ImGui::SliderInt("Blocker Search Samples", &mLightingConstants.pcssData.blockerSearchSamples, 1, 64);
-            ImGui::SliderInt("PCF Samples", &mLightingConstants.pcssData.pcfSamples, 1, 64);
+            ImGui::SliderFloat("UV Scale", &mPCSSConstants.pcssData.uvScale, 0, 0.2f);
+            ImGui::SliderFloat("Shadow Map Bias", &mPCSSConstants.pcssData.shadowMapData.bias, 0, 0.1f);
+            ImGui::SliderInt("Blocker Search Samples", &mPCSSConstants.pcssData.blockerSearchSamples, 1, 64);
+            ImGui::SliderInt("PCF Samples", &mPCSSConstants.pcssData.pcfSamples, 1, 64);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("SSAO"))
@@ -624,37 +648,79 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext)
+    {
+        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
+        mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
+        mLightingConstants.light0ViewPosition = rInverseView * mLightingConstants.light0Position;
+        mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();
+        mLightingConstants.light0SpecularColor = pPointLight->GetSpecularColor();
+        mLightingConstants.light0Intensity = pPointLight->GetIntensity();
+        mLightingConstants.light0ConstantAttenuation = pPointLight->GetConstantAttenuation();
+        mLightingConstants.light0LinearAttenuation = pPointLight->GetLinearAttenuation();
+        mLightingConstants.light0QuadraticAttenuation = pPointLight->GetQuadraticAttenuation();
+        mLightingConstants.ambientColor = mArgs.rAmbientLight;
+
+        const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
+        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
+        return pLightingConstantsBuffer;
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext)
+    {
+        mLightingConstants.light0Position = glm::vec4(rViewDirection, -1);
+        mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
+        mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
+        mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
+        mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();
+        mLightingConstants.ambientColor = mArgs.rAmbientLight;
+
+        const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
+        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
+        return pLightingConstantsBuffer;
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext)
     {
         FASTCG_UNUSED(pPointLight);
         FASTCG_UNUSED(nearClip);
 
         // TODO: implement PCSS for point lights
 
-        mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
-        mLightingConstants.pcssData.nearClip = 0;
+        mPCSSConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
+        mPCSSConstants.pcssData.nearClip = 0;
 
         pGraphicsContext->BindResource(mpEmptyShadowMap, "uShadowMap");
+
+        const auto *pPCSSConstantsBuffer = GetPCSSConstantsBuffer();
+        pGraphicsContext->Copy(pPCSSConstantsBuffer, sizeof(PCSSConstants), &mPCSSConstants);
+        return pPCSSConstantsBuffer;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext)
     {
         ShadowMap shadowMap;
         if (GetShadowMap(pDirectionalLight, shadowMap))
         {
-            mLightingConstants.pcssData.shadowMapData.viewProjection = shadowMap.GetProjection() * shadowMap.GetView();
-            mLightingConstants.pcssData.nearClip = nearClip;
+            mPCSSConstants.pcssData.shadowMapData.viewProjection = shadowMap.GetProjection() * shadowMap.GetView();
+            mPCSSConstants.pcssData.nearClip = nearClip;
 
             pGraphicsContext->BindResource(shadowMap.GetTexture(), "uShadowMap");
         }
         else
         {
-            mLightingConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
-            mLightingConstants.pcssData.nearClip = 0;
+            mPCSSConstants.pcssData.shadowMapData.viewProjection = INVALID_SHADOW_MAP_PROJECTION;
+            mPCSSConstants.pcssData.nearClip = 0;
 
             pGraphicsContext->BindResource(mpEmptyShadowMap, "uShadowMap");
         }
+
+        const auto *pPCSSConstantsBuffer = GetPCSSConstantsBuffer();
+        pGraphicsContext->Copy(pPCSSConstantsBuffer, sizeof(PCSSConstants), &mPCSSConstants);
+        return pPCSSConstantsBuffer;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -678,43 +744,20 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateFogConstants(const Fog *pFog, GraphicsContext *pGraphicsContext)
     {
-        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
-        mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
-        mLightingConstants.light0ViewPosition = rInverseView * mLightingConstants.light0Position;
-        mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();
-        mLightingConstants.light0SpecularColor = pPointLight->GetSpecularColor();
-        mLightingConstants.light0Intensity = pPointLight->GetIntensity();
-        mLightingConstants.light0ConstantAttenuation = pPointLight->GetConstantAttenuation();
-        mLightingConstants.light0LinearAttenuation = pPointLight->GetLinearAttenuation();
-        mLightingConstants.light0QuadraticAttenuation = pPointLight->GetQuadraticAttenuation();
-        mLightingConstants.ambientColor = mArgs.rAmbientLight;
+        if (pFog == nullptr)
+        {
+            mFogConstants.fogData = FogData{{}, (uint32_t)FogMode::NONE, 0, 0, 0};
+        }
+        else
+        {
+            mFogConstants.fogData = FogData{pFog->GetColor(), (uint32_t)pFog->GetMode(), pFog->GetDensity(), pFog->GetStart(), pFog->GetEnd()};
+        }
 
-        UpdatePCSSConstants(pPointLight, nearClip, pGraphicsContext);
-        UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
-
-        const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
-        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
-        return pLightingConstantsBuffer;
-    }
-
-    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, float nearClip, bool isSSAOEnabled, GraphicsContext *pGraphicsContext)
-    {
-        mLightingConstants.light0Position = glm::vec4(rViewDirection, -1);
-        mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
-        mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
-        mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
-        mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();
-        mLightingConstants.ambientColor = mArgs.rAmbientLight;
-
-        UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
-        UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
-
-        const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
-        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
-        return pLightingConstantsBuffer;
+        const auto *pFogConstantsBuffer = GetFogConstantsBuffer();
+        pGraphicsContext->Copy(pFogConstantsBuffer, sizeof(FogConstants), &mFogConstants);
+        return pFogConstantsBuffer;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -725,7 +768,7 @@ namespace FastCG
         mSceneConstants.projection = rProjection;
         mSceneConstants.inverseProjection = glm::inverse(rProjection);
         mSceneConstants.screenSize = glm::vec2{mArgs.rScreenWidth, mArgs.rScreenHeight};
-        mSceneConstants.pointSize = 1.0f; // TODO: Provide a mechanism for users to control point size
+        mSceneConstants.pointSize = 1.0f; // TODO: provide a mechanism for users to control point size
 
         const auto *pSceneConstantsBuffer = GetSceneConstantsBuffer();
         pGraphicsContext->Copy(pSceneConstantsBuffer, sizeof(SceneConstants), &mSceneConstants);
