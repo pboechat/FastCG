@@ -150,6 +150,8 @@ namespace FastCG
         mpBackbuffer = CreateTexture({"Backbuffer",
                                       1,
                                       1,
+                                      1,
+                                      1,
                                       TextureType::TEXTURE_2D,
                                       TextureUsageFlagBit::RENDER_TARGET,
                                       TextureFormat::RGBA,
@@ -160,6 +162,8 @@ namespace FastCG
 
         uint8_t data[] = {251, 72, 196, 255}; // pink color
         mMissingTextures.emplace(TextureType::TEXTURE_2D, CreateTexture({"Missing 2D Texture",
+                                                                         1,
+                                                                         1,
                                                                          1,
                                                                          1,
                                                                          TextureType::TEXTURE_2D,

@@ -64,6 +64,8 @@ namespace FastCG
 		auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture({File::GetFileNameWithoutExtension(rFilePath),
 																	   (uint32_t)width,
 																	   (uint32_t)height,
+																	   1,
+																	   1,
 																	   TextureType::TEXTURE_2D,
 																	   TextureUsageFlagBit::SAMPLED,
 																	   format,

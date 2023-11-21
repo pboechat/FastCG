@@ -44,10 +44,10 @@ namespace FastCG
         imageCreateInfo.flags = 0;
         imageCreateInfo.imageType = GetVkImageType(GetType());
         imageCreateInfo.format = GetVulkanFormat();
-        imageCreateInfo.extent = {GetWidth(), GetHeight(), 1}; // 3D texture not supported yet
-        imageCreateInfo.mipLevels = 1;                         // mipped texture not supported yet
-        imageCreateInfo.arrayLayers = 1;                       // array texture not supported yet
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;       // multisampled texture not supported yet
+        imageCreateInfo.extent = {GetWidth(), GetHeight(), GetDepth()};
+        imageCreateInfo.mipLevels = GetMipCount();
+        imageCreateInfo.arrayLayers = GetSlices();
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT; // multisampled texture not supported yet
 
         const auto *pFormatProperties = VulkanGraphicsSystem::GetInstance()->GetFormatProperties(imageCreateInfo.format);
         assert(pFormatProperties != nullptr);

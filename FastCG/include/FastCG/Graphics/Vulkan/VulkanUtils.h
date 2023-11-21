@@ -323,8 +323,14 @@ namespace FastCG
     {
         switch (type)
         {
+        case TextureType::TEXTURE_1D:
+            return VK_IMAGE_TYPE_1D;
         case TextureType::TEXTURE_2D:
+        case TextureType::TEXTURE_CUBE_MAP:
+        case TextureType::TEXTURE_2D_ARRAY:
             return VK_IMAGE_TYPE_2D;
+        case TextureType::TEXTURE_3D:
+            return VK_IMAGE_TYPE_3D;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled texture type %d", (int)type);
             return (VkImageType)0;

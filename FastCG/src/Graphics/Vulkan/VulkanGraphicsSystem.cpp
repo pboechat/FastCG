@@ -664,14 +664,15 @@ namespace FastCG
         VulkanTexture::Args args{"",
                                  mArgs.rScreenWidth,
                                  mArgs.rScreenHeight,
+                                 1,
+                                 1,
                                  TextureType::TEXTURE_2D,
                                  TextureUsageFlagBit::PRESENT,
                                  format,
                                  bitsPerChannel,
                                  dataType,
                                  TextureFilter::LINEAR_FILTER,
-                                 TextureWrapMode::CLAMP,
-                                 false};
+                                 TextureWrapMode::CLAMP};
         for (size_t i = 0; i < swapChainImages.size(); ++i)
         {
             const auto &rSwapChainImage = swapChainImages[i];

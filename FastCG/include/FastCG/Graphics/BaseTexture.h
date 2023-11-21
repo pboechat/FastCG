@@ -7,6 +7,14 @@
 #include <memory>
 #include <cstring>
 #include <cstdint>
+#include <algorithm>
+
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
 
 namespace FastCG
 {
@@ -18,6 +26,8 @@ namespace FastCG
 			std::string name;
 			uint32_t width;
 			uint32_t height;
+			uint32_t depthOrSlices; // depth if 3D and slices if array
+			uint8_t mipCount;
 			TextureType type;
 			TextureUsageFlags usage;
 			TextureFormat format;
@@ -30,6 +40,8 @@ namespace FastCG
 			Args(const std::string &rName = "",
 				 uint32_t width = 1,
 				 uint32_t height = 1,
+				 uint32_t depthOrSlices = 1,
+				 uint8_t mipCount = 1,
 				 TextureType type = TextureType::TEXTURE_2D,
 				 TextureUsageFlags usage = TextureUsageFlagBit::SAMPLED,
 				 TextureFormat format = TextureFormat::RGBA,
@@ -41,6 +53,8 @@ namespace FastCG
 				: name(rName),
 				  width(width),
 				  height(height),
+				  depthOrSlices(depthOrSlices),
+				  mipCount(mipCount),
 				  type(type),
 				  usage(usage),
 				  format(format),
@@ -66,6 +80,31 @@ namespace FastCG
 		inline uint32_t GetWidth() const
 		{
 			return mWidth;
+		}
+
+		inline uint32_t GetHeight(uint8_t mip) const
+		{
+			return std::max((uint32_t)1, (uint32_t)mHeight >> mip);
+		}
+
+		inline uint32_t GetWidth(uint8_t mip) const
+		{
+			return std::max((uint32_t)1, (uint32_t)mWidth >> mip);
+		}
+
+		inline uint32_t GetDepth() const
+		{
+			return mType == TextureType::TEXTURE_3D ? mDepthOrSlices : 1;
+		}
+
+		inline uint32_t GetSlices() const
+		{
+			return mType == TextureType::TEXTURE_2D_ARRAY ? mDepthOrSlices : 1;
+		}
+
+		inline uint8_t GetMipCount() const
+		{
+			return mType == TextureType::TEXTURE_1D || mType == TextureType::TEXTURE_2D ? mMipCount : 1;
 		}
 
 		inline TextureType GetType() const
@@ -103,9 +142,27 @@ namespace FastCG
 			return mWrapMode;
 		}
 
+		inline size_t GetBaseMipDataSize() const
+		{
+			auto bytesPerPixel = (size_t)(mBitsPerChannel.r + mBitsPerChannel.g + mBitsPerChannel.b + mBitsPerChannel.a) >> 3;
+			return (size_t)GetWidth() * (size_t)GetHeight() * bytesPerPixel;
+		}
+
+		inline size_t GetMipDataSize(uint8_t mip) const
+		{
+			auto bytesPerPixel = (size_t)(mBitsPerChannel.r + mBitsPerChannel.g + mBitsPerChannel.b + mBitsPerChannel.a) >> 3;
+			return (size_t)GetWidth(mip) * (size_t)GetHeight(mip) * bytesPerPixel;
+		}
+
+		inline size_t GetSliceDataSize() const
+		{
+			return GetBaseMipDataSize();
+		}
+
 		inline size_t GetDataSize() const
 		{
-			return (size_t)(mWidth * mHeight * ((mBitsPerChannel.r + mBitsPerChannel.g + mBitsPerChannel.b + mBitsPerChannel.a) >> 3));
+			return GetSliceDataSize() * (mType == TextureType::TEXTURE_3D || mType == TextureType::TEXTURE_2D_ARRAY ? mDepthOrSlices : mType == TextureType::TEXTURE_CUBE_MAP ? 6
+																																											  : mMipCount);
 		}
 
 		inline const uint8_t *GetData() const
@@ -117,6 +174,8 @@ namespace FastCG
 		const std::string mName;
 		uint32_t mWidth;
 		uint32_t mHeight;
+		uint32_t mDepthOrSlices; // depth if 3D and slices if array
+		uint8_t mMipCount;
 		TextureType mType;
 		TextureUsageFlags mUsage;
 		BitsPerChannel mBitsPerChannel;
@@ -129,6 +188,8 @@ namespace FastCG
 		BaseTexture(const Args &rArgs) : mName(rArgs.name),
 										 mWidth(rArgs.width),
 										 mHeight(rArgs.height),
+										 mDepthOrSlices(rArgs.depthOrSlices),
+										 mMipCount(rArgs.mipCount),
 										 mType(rArgs.type),
 										 mUsage(rArgs.usage),
 										 mBitsPerChannel(rArgs.bitsPerChannel),
@@ -137,6 +198,9 @@ namespace FastCG
 										 mFilter(rArgs.filter),
 										 mWrapMode(rArgs.wrapMode)
 		{
+			assert(mHeight == 1 || mType != TextureType::TEXTURE_1D);
+			assert(mDepthOrSlices == 1 || mType == TextureType::TEXTURE_3D || mType == TextureType::TEXTURE_2D_ARRAY);
+			assert(mMipCount == 1 || mType == TextureType::TEXTURE_1D || mType == TextureType::TEXTURE_2D); // TODO: support mips for other texture types
 			if (rArgs.pData != nullptr)
 			{
 				auto dataSize = GetDataSize();

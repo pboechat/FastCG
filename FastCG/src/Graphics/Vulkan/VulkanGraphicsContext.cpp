@@ -741,24 +741,65 @@ namespace FastCG
 											VK_PIPELINE_STAGE_TRANSFER_BIT,
 											VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
 
-					// TODO: support array and mipped textures
-					VkBufferImageCopy copyRegion;
-					copyRegion.bufferOffset = 0;
-					copyRegion.bufferRowLength = 0;
-					copyRegion.bufferImageHeight = 0;
-					copyRegion.imageSubresource.aspectMask = pDstTexture->GetAspectFlags();
-					copyRegion.imageSubresource.mipLevel = 0;
-					copyRegion.imageSubresource.baseArrayLayer = 0;
-					copyRegion.imageSubresource.layerCount = 1;
-					copyRegion.imageOffset = {0, 0, 0};
-					copyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1};
-
+					std::vector<VkBufferImageCopy> bufferCopyRegions;
+					if (pDstTexture->GetMipCount() > 1)
+					{
+						size_t dataOffset = 0;
+						bufferCopyRegions.resize(pDstTexture->GetMipCount());
+						for (uint8_t mip = 0; mip < pDstTexture->GetMipCount(); ++mip)
+						{
+							auto &rBufferCopyRegion = bufferCopyRegions[mip];
+							rBufferCopyRegion.bufferOffset = (VkDeviceSize)dataOffset;
+							rBufferCopyRegion.bufferRowLength = 0;
+							rBufferCopyRegion.bufferImageHeight = 0;
+							rBufferCopyRegion.imageSubresource.aspectMask = pDstTexture->GetAspectFlags();
+							rBufferCopyRegion.imageSubresource.mipLevel = (uint32_t)mip;
+							rBufferCopyRegion.imageSubresource.baseArrayLayer = 0;
+							rBufferCopyRegion.imageSubresource.layerCount = 1;
+							rBufferCopyRegion.imageOffset = {0, 0, 0};
+							rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1};
+							dataOffset += pDstTexture->GetMipDataSize(mip);
+						}
+					}
+					else if (pDstTexture->GetSlices() > 1)
+					{
+						size_t dataOffset = 0;
+						bufferCopyRegions.resize(pDstTexture->GetSlices());
+						for (uint32_t slice = 0; slice < pDstTexture->GetSlices(); ++slice)
+						{
+							auto &rBufferCopyRegion = bufferCopyRegions[slice];
+							rBufferCopyRegion.bufferOffset = (VkDeviceSize)dataOffset;
+							rBufferCopyRegion.bufferRowLength = 0;
+							rBufferCopyRegion.bufferImageHeight = 0;
+							rBufferCopyRegion.imageSubresource.aspectMask = pDstTexture->GetAspectFlags();
+							rBufferCopyRegion.imageSubresource.mipLevel = 0;
+							rBufferCopyRegion.imageSubresource.baseArrayLayer = slice;
+							rBufferCopyRegion.imageSubresource.layerCount = 1;
+							rBufferCopyRegion.imageOffset = {0, 0, 0};
+							rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1};
+							dataOffset += pDstTexture->GetSliceDataSize();
+						}
+					}
+					else
+					{
+						bufferCopyRegions.emplace_back(VkBufferImageCopy{});
+						auto &rBufferCopyRegion = bufferCopyRegions.back();
+						rBufferCopyRegion.bufferOffset = 0;
+						rBufferCopyRegion.bufferRowLength = 0;
+						rBufferCopyRegion.bufferImageHeight = 0;
+						rBufferCopyRegion.imageSubresource.aspectMask = pDstTexture->GetAspectFlags();
+						rBufferCopyRegion.imageSubresource.mipLevel = 0;
+						rBufferCopyRegion.imageSubresource.baseArrayLayer = 0;
+						rBufferCopyRegion.imageSubresource.layerCount = 1;
+						rBufferCopyRegion.imageOffset = {0, 0, 0};
+						rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), pDstTexture->GetDepth()};
+					}
 					vkCmdCopyBufferToImage(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
 										   rCopyCommand.args.srcBufferData.pBuffer->GetFrameData(rCopyCommand.args.srcBufferData.frameIndex).buffer,
 										   pDstTexture->GetImage(),
 										   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-										   1,
-										   &copyRegion);
+										   (uint32_t)bufferCopyRegions.size(),
+										   &bufferCopyRegions[0]);
 				}
 				break;
 				case CopyCommandType::IMAGE_TO_IMAGE:
@@ -789,29 +830,75 @@ namespace FastCG
 											VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 											VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-					// TODO: support array, mipped and 3D textures
-					VkImageCopy imageCopyRegion;
-					imageCopyRegion.srcSubresource.aspectMask = pSrcTexture->GetAspectFlags();
-					imageCopyRegion.srcSubresource.baseArrayLayer = 0;
-					imageCopyRegion.srcSubresource.layerCount = 1;
-					imageCopyRegion.srcSubresource.mipLevel = 0;
-					imageCopyRegion.srcOffset = {0, 0, 0};
-					imageCopyRegion.dstSubresource.aspectMask = pDstTexture->GetAspectFlags();
-					imageCopyRegion.dstSubresource.baseArrayLayer = 0;
-					imageCopyRegion.dstSubresource.layerCount = 1;
-					imageCopyRegion.dstSubresource.mipLevel = 0;
-					imageCopyRegion.dstOffset = {0, 0, 0};
-					imageCopyRegion.extent.width = pSrcTexture->GetWidth();
-					imageCopyRegion.extent.height = pSrcTexture->GetHeight();
-					imageCopyRegion.extent.depth = 1;
+					std::vector<VkImageCopy> imageCopyRegions;
+					if (pSrcTexture->GetMipCount() > 1)
+					{
+						imageCopyRegions.resize(pSrcTexture->GetSlices());
+						for (uint8_t mip = 0; mip < pDstTexture->GetSlices(); ++mip)
+						{
+							auto &rImageCopyRegion = imageCopyRegions[mip];
+							rImageCopyRegion.srcSubresource.aspectMask = pSrcTexture->GetAspectFlags();
+							rImageCopyRegion.srcSubresource.baseArrayLayer = (uint32_t)mip;
+							rImageCopyRegion.srcSubresource.layerCount = 1;
+							rImageCopyRegion.srcSubresource.mipLevel = 0;
+							rImageCopyRegion.srcOffset = {0, 0, 0};
+							rImageCopyRegion.dstSubresource.aspectMask = pDstTexture->GetAspectFlags();
+							rImageCopyRegion.dstSubresource.baseArrayLayer = 0;
+							rImageCopyRegion.dstSubresource.layerCount = 1;
+							rImageCopyRegion.dstSubresource.mipLevel = (uint32_t)mip;
+							rImageCopyRegion.dstOffset = {0, 0, 0};
+							rImageCopyRegion.extent.width = pSrcTexture->GetWidth();
+							rImageCopyRegion.extent.height = pSrcTexture->GetHeight();
+							rImageCopyRegion.extent.depth = 1;
+						}
+					}
+					else if (pSrcTexture->GetSlices() > 1)
+					{
+						imageCopyRegions.resize(pSrcTexture->GetSlices());
+						for (uint32_t slice = 0; slice < pDstTexture->GetSlices(); ++slice)
+						{
+							auto &rImageCopyRegion = imageCopyRegions[slice];
+							rImageCopyRegion.srcSubresource.aspectMask = pSrcTexture->GetAspectFlags();
+							rImageCopyRegion.srcSubresource.baseArrayLayer = slice;
+							rImageCopyRegion.srcSubresource.layerCount = 1;
+							rImageCopyRegion.srcSubresource.mipLevel = 0;
+							rImageCopyRegion.srcOffset = {0, 0, 0};
+							rImageCopyRegion.dstSubresource.aspectMask = pDstTexture->GetAspectFlags();
+							rImageCopyRegion.dstSubresource.baseArrayLayer = slice;
+							rImageCopyRegion.dstSubresource.layerCount = 1;
+							rImageCopyRegion.dstSubresource.mipLevel = 0;
+							rImageCopyRegion.dstOffset = {0, 0, 0};
+							rImageCopyRegion.extent.width = pSrcTexture->GetWidth();
+							rImageCopyRegion.extent.height = pSrcTexture->GetHeight();
+							rImageCopyRegion.extent.depth = 1;
+						}
+					}
+					else
+					{
+						imageCopyRegions.emplace_back(VkImageCopy{});
+						auto &rImageCopyRegion = imageCopyRegions.back();
+						rImageCopyRegion.srcSubresource.aspectMask = pSrcTexture->GetAspectFlags();
+						rImageCopyRegion.srcSubresource.baseArrayLayer = 0;
+						rImageCopyRegion.srcSubresource.layerCount = 1;
+						rImageCopyRegion.srcSubresource.mipLevel = 0;
+						rImageCopyRegion.srcOffset = {0, 0, 0};
+						rImageCopyRegion.dstSubresource.aspectMask = pDstTexture->GetAspectFlags();
+						rImageCopyRegion.dstSubresource.baseArrayLayer = 0;
+						rImageCopyRegion.dstSubresource.layerCount = 1;
+						rImageCopyRegion.dstSubresource.mipLevel = 0;
+						rImageCopyRegion.dstOffset = {0, 0, 0};
+						rImageCopyRegion.extent.width = pSrcTexture->GetWidth();
+						rImageCopyRegion.extent.height = pSrcTexture->GetHeight();
+						rImageCopyRegion.extent.depth = pSrcTexture->GetDepth();
+					}
 
 					vkCmdCopyImage(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
 								   pSrcTexture->GetImage(),
 								   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 								   pDstTexture->GetImage(),
 								   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-								   1,
-								   &imageCopyRegion);
+								   (uint32_t)imageCopyRegions.size(),
+								   &imageCopyRegions[0]);
 				}
 				break;
 				case CopyCommandType::BLIT:

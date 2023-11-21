@@ -217,8 +217,16 @@ namespace FastCG
     {
         switch (type)
         {
+        case TextureType::TEXTURE_1D:
+            return GL_TEXTURE_1D;
         case TextureType::TEXTURE_2D:
             return GL_TEXTURE_2D;
+        case TextureType::TEXTURE_3D:
+            return GL_TEXTURE_3D;
+        case TextureType::TEXTURE_CUBE_MAP:
+            return GL_TEXTURE_CUBE_MAP;
+        case TextureType::TEXTURE_2D_ARRAY:
+            return GL_TEXTURE_2D_ARRAY;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture type %d", (int)type);
             return 0;

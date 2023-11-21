@@ -30,6 +30,8 @@ namespace FastCG
         auto *pImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture({"ImGui",
                                                                             (uint32_t)width,
                                                                             (uint32_t)height,
+                                                                            1,
+                                                                            1,
                                                                             TextureType::TEXTURE_2D,
                                                                             TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                             TextureFormat::RGBA,
