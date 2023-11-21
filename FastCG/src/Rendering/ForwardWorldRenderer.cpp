@@ -39,8 +39,7 @@ namespace FastCG
                                                                                {8, 8, 8, 8},
                                                                                TextureDataType::FLOAT,
                                                                                TextureFilter::LINEAR_FILTER,
-                                                                               TextureWrapMode::CLAMP,
-                                                                               false});
+                                                                               TextureWrapMode::CLAMP});
         }
 
         mDepthStencilBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
@@ -55,8 +54,7 @@ namespace FastCG
                                                                                      {24, 8},
                                                                                      TextureDataType::UNSIGNED_INT,
                                                                                      TextureFilter::POINT_FILTER,
-                                                                                     TextureWrapMode::CLAMP,
-                                                                                     false});
+                                                                                     TextureWrapMode::CLAMP});
         }
     }
 

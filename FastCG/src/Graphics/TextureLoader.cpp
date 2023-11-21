@@ -71,7 +71,6 @@ namespace FastCG
 																	   TextureDataType::FLOAT,
 																	   samplerSettings.filter,
 																	   samplerSettings.wrapMode,
-																	   true,
 																	   pPixels});
 		if (transformedPixels == nullptr)
 		{

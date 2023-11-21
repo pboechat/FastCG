@@ -37,7 +37,6 @@ namespace FastCG
                                                                             TextureDataType::FLOAT,
                                                                             TextureFilter::LINEAR_FILTER,
                                                                             TextureWrapMode::CLAMP,
-                                                                            false,
                                                                             pPixels});
         rIo.Fonts->SetTexID((void *)pImGuiTexture);
 

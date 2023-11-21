@@ -349,7 +349,6 @@ namespace
         AddValueMember(rAlloc, rTextureObj, "dataType", FastCG::GetTextureDataTypeString(pTexture->GetDataType()));
         AddValueMember(rAlloc, rTextureObj, "filter", FastCG::GetTextureFilterString(pTexture->GetFilter()));
         AddValueMember(rAlloc, rTextureObj, "wrapMode", FastCG::GetTextureWrapModeString(pTexture->GetWrapMode()));
-        AddValueMember(rAlloc, rTextureObj, "generateMipmap", pTexture->HasGeneratedMipmap());
         if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)
         {
             auto data = FastCG::EncodeBase64(pTexture->GetData(), pTexture->GetDataSize());

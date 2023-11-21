@@ -48,8 +48,7 @@ namespace FastCG
                                                                         {8, 8, 8, 8},
                                                                         TextureDataType::FLOAT,
                                                                         TextureFilter::LINEAR_FILTER,
-                                                                        TextureWrapMode::CLAMP,
-                                                                        false});
+                                                                        TextureWrapMode::CLAMP});
             rGBuffer[1] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
                                                                         mArgs.rScreenWidth,
                                                                         mArgs.rScreenHeight,
@@ -59,8 +58,7 @@ namespace FastCG
                                                                         {8, 8, 8, 8},
                                                                         TextureDataType::FLOAT,
                                                                         TextureFilter::LINEAR_FILTER,
-                                                                        TextureWrapMode::CLAMP,
-                                                                        false});
+                                                                        TextureWrapMode::CLAMP});
             rGBuffer[2] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
                                                                         mArgs.rScreenWidth,
                                                                         mArgs.rScreenHeight,
@@ -70,8 +68,7 @@ namespace FastCG
                                                                         {8, 8, 8, 8},
                                                                         TextureDataType::FLOAT,
                                                                         TextureFilter::LINEAR_FILTER,
-                                                                        TextureWrapMode::CLAMP,
-                                                                        false});
+                                                                        TextureWrapMode::CLAMP});
             rGBuffer[3] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
                                                                         mArgs.rScreenWidth,
                                                                         mArgs.rScreenHeight,
@@ -81,8 +78,7 @@ namespace FastCG
                                                                         {8, 8, 8, 8},
                                                                         TextureDataType::FLOAT,
                                                                         TextureFilter::LINEAR_FILTER,
-                                                                        TextureWrapMode::CLAMP,
-                                                                        false});
+                                                                        TextureWrapMode::CLAMP});
             rGBuffer[4] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
                                                                         mArgs.rScreenWidth,
                                                                         mArgs.rScreenHeight,
@@ -92,8 +88,7 @@ namespace FastCG
                                                                         {8, 8, 8, 8},
                                                                         TextureDataType::FLOAT,
                                                                         TextureFilter::LINEAR_FILTER,
-                                                                        TextureWrapMode::CLAMP,
-                                                                        false});
+                                                                        TextureWrapMode::CLAMP});
             rGBuffer[5] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Final",
                                                                         mArgs.rScreenWidth,
                                                                         mArgs.rScreenHeight,
@@ -103,8 +98,7 @@ namespace FastCG
                                                                         {8, 8, 8, 8},
                                                                         TextureDataType::FLOAT,
                                                                         TextureFilter::LINEAR_FILTER,
-                                                                        TextureWrapMode::CLAMP,
-                                                                        false});
+                                                                        TextureWrapMode::CLAMP});
         }
 
         mDepthStencilBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());

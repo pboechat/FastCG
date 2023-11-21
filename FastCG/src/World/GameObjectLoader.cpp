@@ -224,11 +224,6 @@ namespace
         GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
         assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
         GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
-        if (rGenericObj.HasMember("generateMipmap"))
-        {
-            assert(rGenericObj["generateMipmap"].IsBool());
-            args.generateMipmap = rGenericObj["generateMipmap"].GetBool();
-        }
         FastCG::Texture *pTexture;
         if (rGenericObj.HasMember("dataPath"))
         {

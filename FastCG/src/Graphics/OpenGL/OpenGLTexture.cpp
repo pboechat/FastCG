@@ -37,10 +37,10 @@ namespace FastCG
         glTexImage2D(target, 0, internalFormat, (GLsizei)mWidth, (GLsizei)mHeight, 0, format, GetOpenGLDataType(mFormat, mBitsPerChannel), rArgs.pData);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't create texture image (texture: %s)", rArgs.name.c_str());
 
-        if (rArgs.generateMipmap)
+        if (rArgs.generateMips)
         {
             glGenerateMipmap(target);
-            FASTCG_CHECK_OPENGL_ERROR("Couldn't generate mipmaps (texture: %s)", rArgs.name.c_str());
+            FASTCG_CHECK_OPENGL_ERROR("Couldn't generate mips (texture: %s)", rArgs.name.c_str());
         }
     }
 

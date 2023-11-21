@@ -29,7 +29,6 @@ namespace FastCG
                  TextureDataType dataType = TextureDataType::UNSIGNED_CHAR,
                  TextureFilter filter = TextureFilter::LINEAR_FILTER,
                  TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
-                 bool generateMipmap = true,
                  const uint8_t *pData = nullptr,
                  VkImage image = VK_NULL_HANDLE) : BaseTexture::Args(rName,
                                                                      width,
@@ -41,7 +40,6 @@ namespace FastCG
                                                                      dataType,
                                                                      filter,
                                                                      wrapMode,
-                                                                     generateMipmap,
                                                                      pData),
                                                    image(image)
             {

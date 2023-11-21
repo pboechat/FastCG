@@ -36,7 +36,6 @@ namespace
                                                                      FastCG::TextureDataType::FLOAT,
                                                                      FastCG::TextureFilter::POINT_FILTER,
                                                                      FastCG::TextureWrapMode::CLAMP,
-                                                                     false,
                                                                      pData});
     }
 
@@ -106,7 +105,6 @@ namespace FastCG
                                                                            TextureDataType::FLOAT,
                                                                            TextureFilter::POINT_FILTER,
                                                                            TextureWrapMode::CLAMP,
-                                                                           false,
                                                                            &pData[0]});
         }
 
@@ -122,7 +120,6 @@ namespace FastCG
                                                                                TextureDataType::FLOAT,
                                                                                TextureFilter::POINT_FILTER,
                                                                                TextureWrapMode::CLAMP,
-                                                                               false,
                                                                                data});
         }
 
@@ -273,8 +270,7 @@ namespace FastCG
                                                                               {8, 8, 8, 8},
                                                                               TextureDataType::FLOAT,
                                                                               TextureFilter::LINEAR_FILTER,
-                                                                              TextureWrapMode::CLAMP,
-                                                                              false});
+                                                                              TextureWrapMode::CLAMP});
         mSSAORenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
                                                                               mArgs.rScreenWidth,
                                                                               mArgs.rScreenHeight,
@@ -284,8 +280,7 @@ namespace FastCG
                                                                               {8, 8, 8, 8},
                                                                               TextureDataType::FLOAT,
                                                                               TextureFilter::LINEAR_FILTER,
-                                                                              TextureWrapMode::CLAMP,
-                                                                              false});
+                                                                              TextureWrapMode::CLAMP});
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
