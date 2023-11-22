@@ -1,0 +1,22 @@
+newmtl mat0
+Ns 100.0
+Ka 1.0 1.0 1.0
+Kd 1 1 1
+Ks 1 1 1
+Ke 0 0 0
+Ni 1.0
+d 1
+illum 1
+map_Kd ../textures/stanford_dragon_d.jpg
+map_bump ../textures/stanford_dragon_n.png
+
+newmtl mat1
+Ns 250
+Ka 1.0 1.0 1.0
+Kd 0.78431 0.78431 0.78431
+Ks 0.0 0.0 0.0
+Ke 0.0 0.0 0.0
+Ni 1.0
+d 1.0
+illum 1
+

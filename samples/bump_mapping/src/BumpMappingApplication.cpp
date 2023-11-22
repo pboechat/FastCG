@@ -24,28 +24,41 @@ namespace
 {
 	void CreateLights(Transform *pParent)
 	{
+		const float SCALE = 2;
+
 		auto *pLightsGameObject = GameObject::Instantiate("Lights");
 		pLightsGameObject->GetTransform()->SetParent(pParent);
 
 		auto *pLightGameObject = GameObject::Instantiate("Light 1");
 		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
-		pLightGameObject->GetTransform()->SetPosition(glm::vec3(2, 2, 0));
+		pLightGameObject->GetTransform()->SetPosition(glm::vec3(SCALE, SCALE, SCALE));
 		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
 
 		auto *pLight = PointLight::Instantiate(pLightGameObject);
-		pLight->SetDiffuseColor(Colors::WHITE);
+		pLight->SetDiffuseColor(Colors::RED);
 		pLight->SetSpecularColor(Colors::WHITE);
 		pLight->SetIntensity(1);
 		pLight->SetQuadraticAttenuation(0.25f);
 
 		pLightGameObject = GameObject::Instantiate("Light 2");
 		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
-		pLightGameObject->GetTransform()->SetPosition(glm::vec3(-2, 2, 0));
+		pLightGameObject->GetTransform()->SetPosition(glm::vec3(-SCALE, SCALE, SCALE));
 		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
 
 		pLight = PointLight::Instantiate(pLightGameObject);
-		pLight->SetDiffuseColor(Colors::RED);
-		pLight->SetSpecularColor(Colors::RED);
+		pLight->SetDiffuseColor(Colors::GREEN);
+		pLight->SetSpecularColor(Colors::WHITE);
+		pLight->SetIntensity(1);
+		pLight->SetQuadraticAttenuation(0.25f);
+
+		pLightGameObject = GameObject::Instantiate("Light 3");
+		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
+		pLightGameObject->GetTransform()->SetPosition(glm::vec3(0, SCALE, -SCALE));
+		pLightGameObject->GetTransform()->SetParent(pLightsGameObject->GetTransform());
+
+		pLight = PointLight::Instantiate(pLightGameObject);
+		pLight->SetDiffuseColor(Colors::BLUE);
+		pLight->SetSpecularColor(Colors::WHITE);
 		pLight->SetIntensity(1);
 		pLight->SetQuadraticAttenuation(0.25f);
 	}
@@ -77,10 +90,10 @@ namespace
 		auto pMissingMaterial = std::make_shared<Material>(MaterialArgs{"Missing Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 		pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
-		auto *pModelGameObject = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/doomsday.obj"), pMissingMaterial);
+		auto *pModelGameObject = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/stanford_dragon.obj"), pMissingMaterial);
 		if (pModelGameObject == nullptr)
 		{
-			FASTCG_THROW_EXCEPTION(Exception, "Couldn't find doomsday model");
+			FASTCG_THROW_EXCEPTION(Exception, "Couldn't find model");
 		}
 
 		const auto &bounds = pModelGameObject->GetBounds();
@@ -93,7 +106,7 @@ namespace
 
 		pTransform->SetScale(glm::vec3(scale, scale, scale));
 		auto center = bounds.getCenter();
-		pTransform->SetPosition(glm::vec3(-center.x * scale, 0, -center.z * scale));
+		pTransform->SetPosition(glm::vec3(-center.x * scale, 0.5, -center.z * scale));
 
 		pTransform->SetParent(pParent);
 	}
