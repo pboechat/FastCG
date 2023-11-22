@@ -15,12 +15,13 @@ void main()
 	vec4 specularColor = texture(uSpecularMap, screenCoords);
 	float shininess = UnpackFromNormalizedValue(specularColor.w);
 	specularColor = vec4(specularColor.xyz, 1.0);
-	vec4 tangent = UnpackNormalFromColor(texture(uTangentMap, screenCoords));
+	vec4 tangent = texture(uTangentMap, screenCoords);
+	tangent = vec4(UnpackNormalFromColor(tangent.xyz), tangent.z * 2.0 - 1.0);
 	vec4 extraData = texture(uExtraData, screenCoords);
 
 	mat3 tangentSpaceMatrix;
 	// FIXME: divergence control
-	if (HasBump(tangent, extraData))
+	if (HasBump(extraData))
 	{
 		vec3 binormal = normalize(cross(normal, tangent.xyz) * tangent.w);
 		tangentSpaceMatrix = transpose(mat3(tangent.xyz, binormal, normal));

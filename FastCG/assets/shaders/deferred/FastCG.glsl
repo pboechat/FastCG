@@ -30,7 +30,7 @@ vec3 GetViewPositionFromScreenPositionAndDepth(mat4 inverseProjection, vec2 scre
     return viewPos.xyz / viewPos.w;
 }
 
-bool HasBump(vec4 tangent, vec4 extraData)
+bool HasBump(vec4 extraData)
 {
 	return extraData.x != 0.0 && extraData.y != 0.0 && extraData.z != 0.0;
 }

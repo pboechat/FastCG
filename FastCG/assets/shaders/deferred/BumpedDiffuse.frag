@@ -14,6 +14,6 @@ void main()
 {
 	oDiffuse = uDiffuseColor * texture(uColorMap, vUV * uColorMapTiling);
 	oNormal = vec4(PackNormalToColor(vNormal), 0.0);
-	oTangent = PackNormalToColor(vTangent);
+	oTangent = vec4(PackNormalToColor(vTangent.xyz), vTangent.w * 0.5 + 1.0);
 	oExtraData = vec4(texture(uBumpMap, vUV * uBumpMapTiling).xyz, 0.0);
 }
