@@ -142,7 +142,6 @@ namespace FastCG
 
 			auto diffuseColor = glm::vec4{rMaterial.diffuse[0], rMaterial.diffuse[1], rMaterial.diffuse[2], 1.0};
 			auto specularColor = glm::vec4{rMaterial.specular[0], rMaterial.specular[1], rMaterial.specular[2], 1.0};
-			auto emissiveColor = glm::vec4{rMaterial.emission[0], rMaterial.emission[1], rMaterial.emission[2], 1.0};
 			auto shininess = rMaterial.shininess;
 
 			Texture *pColorMapTexture = nullptr;

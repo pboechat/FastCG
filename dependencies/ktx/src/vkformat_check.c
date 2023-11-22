@@ -163,7 +163,9 @@ bool isValidFormat(VkFormat format)
         case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT:
         case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
 #endif
+#ifdef VK_NV_optical_flow
     case VK_FORMAT_R16G16_S10_5_NV:
+#endif
 #ifdef VK_KHR_maintenance5
     case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
     case VK_FORMAT_A8_UNORM_KHR:

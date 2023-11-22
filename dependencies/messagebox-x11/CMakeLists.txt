@@ -12,4 +12,4 @@ source_group("src" FILES ${SOURCES})
 
 fastcg_add_dependency_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${X11_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${X11_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${X11_LIBRARIES} ${X11_Xrender_LIB})

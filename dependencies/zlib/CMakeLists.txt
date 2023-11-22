@@ -10,3 +10,6 @@ source_group("src" FILES ${SOURCES})
 
 fastcg_add_dependency_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
+if(FASTCG_PLATFORM STREQUAL "Linux")
+target_link_libraries(${PROJECT_NAME} pthread)
+endif()

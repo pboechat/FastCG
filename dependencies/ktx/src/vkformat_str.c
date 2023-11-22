@@ -575,8 +575,10 @@ vkFormatString(VkFormat format)
       case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         return "VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT";
 #endif
+#ifdef VK_NV_optical_flow
   case VK_FORMAT_R16G16_S10_5_NV:
     return "VK_FORMAT_R16G16_S10_5_NV";
+#endif
 #ifdef VK_KHR_maintenance5
   case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
     return "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR";
@@ -1184,8 +1186,10 @@ stringToVkFormat(const char *str)
   if (ktx_strcasecmp(str, "ASTC_6x6x6_SFLOAT_BLOCK_EXT") == 0)
     return VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT;
 #endif
+#ifdef VK_NV_optical_flow
   if (ktx_strcasecmp(str, "R16G16_S10_5_NV") == 0)
     return VK_FORMAT_R16G16_S10_5_NV;
+#endif
 #ifdef VK_KHR_maintenance5
   if (ktx_strcasecmp(str, "A1B5G5R5_UNORM_PACK16_KHR") == 0)
     return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;

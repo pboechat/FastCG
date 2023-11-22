@@ -69,10 +69,12 @@ function(_fastcg_add_glsl_shader_target)
         else()
             set(TMP_GLSL_SOURCE "${TMP_SHADERS_DIR}/${REL_GLSL_SOURCE}")
             set(DST_GLSL_SOURCE ${DST_BINARY_SOURCE})
+            get_filename_component(DST_GLSL_SOURCE_DIR ${DST_GLSL_SOURCE} DIRECTORY)
             add_custom_command(
                 OUTPUT ${DST_GLSL_SOURCE}
                 COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_TEXT_SOURCE} # clean up text source in the destination directory (just in case)
                 COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in a tmp directory
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${DST_GLSL_SOURCE_DIR}
                 # FIXME: can't compile non-debug shaders with -g0 otherwise runtime reflection doesn't work
                 COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,>  # generate binary source in the destination directory
                 DEPENDS ${GLSL_SOURCE} ${TMP_GLSL_HEADERS}
@@ -322,9 +324,10 @@ function(_fastcg_add_generated_sources_targets)
         COMMAND ${CMAKE_COMMAND} -E copy ${SRC_CONFIG_HEADER} ${DST_CONFIG_HEADER}
         DEPENDS ${SRC_CONFIG_HEADER}
     )
+    set(PARAMS "project_name=${ARGV0};major_version=${${ARGV0}_MAJOR_VERSION};minor_version=${${ARGV0}_MINOR_VERSION};patch_version=${${ARGV0}_PATCH_VERSION}")
     add_custom_command(
         OUTPUT ${DST_CONFIG_SOURCE}
-        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_template_engine.cmake "${SRC_CONFIG_SOURCE}" "${DST_CONFIG_SOURCE}" "project_name=${ARGV0};major_version=${${ARGV0}_MAJOR_VERSION};minor_version=${${ARGV0}_MINOR_VERSION};patch_version=${${ARGV0}_PATCH_VERSION}"
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_template_engine.cmake "${SRC_CONFIG_SOURCE}" "${DST_CONFIG_SOURCE}" ${PARAMS}
         DEPENDS ${SRC_CONFIG_SOURCE}
     )
 
