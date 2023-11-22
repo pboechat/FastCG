@@ -127,8 +127,7 @@ namespace FastCG
                                                                                 {24, 8},
                                                                                 TextureDataType::UNSIGNED_INT,
                                                                                 TextureFilter::POINT_FILTER,
-                                                                                TextureWrapMode::CLAMP,
-                                                                                false});
+                                                                                TextureWrapMode::CLAMP});
         }
     }
 
