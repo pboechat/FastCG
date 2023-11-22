@@ -48,7 +48,7 @@ namespace FastCG
                                                                         TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                         TextureFormat::RGBA,
                                                                         {8, 8, 8, 8},
-                                                                        TextureDataType::FLOAT,
+                                                                        TextureDataType::UNSIGNED_CHAR,
                                                                         TextureFilter::LINEAR_FILTER,
                                                                         TextureWrapMode::CLAMP});
             rGBuffer[1] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Normal",
@@ -60,7 +60,7 @@ namespace FastCG
                                                                         TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                         TextureFormat::RGBA,
                                                                         {8, 8, 8, 8},
-                                                                        TextureDataType::FLOAT,
+                                                                        TextureDataType::UNSIGNED_CHAR,
                                                                         TextureFilter::LINEAR_FILTER,
                                                                         TextureWrapMode::CLAMP});
             rGBuffer[2] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Specular",
@@ -72,7 +72,7 @@ namespace FastCG
                                                                         TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                         TextureFormat::RGBA,
                                                                         {8, 8, 8, 8},
-                                                                        TextureDataType::FLOAT,
+                                                                        TextureDataType::UNSIGNED_CHAR,
                                                                         TextureFilter::LINEAR_FILTER,
                                                                         TextureWrapMode::CLAMP});
             rGBuffer[3] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Tangent",
@@ -84,7 +84,7 @@ namespace FastCG
                                                                         TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                         TextureFormat::RGBA,
                                                                         {8, 8, 8, 8},
-                                                                        TextureDataType::FLOAT,
+                                                                        TextureDataType::UNSIGNED_CHAR,
                                                                         TextureFilter::LINEAR_FILTER,
                                                                         TextureWrapMode::CLAMP});
             rGBuffer[4] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Extra Data",
@@ -96,7 +96,7 @@ namespace FastCG
                                                                         TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                         TextureFormat::RGBA,
                                                                         {8, 8, 8, 8},
-                                                                        TextureDataType::FLOAT,
+                                                                        TextureDataType::UNSIGNED_CHAR,
                                                                         TextureFilter::LINEAR_FILTER,
                                                                         TextureWrapMode::CLAMP});
             rGBuffer[5] = GraphicsSystem::GetInstance()->CreateTexture({"G-Buffer Final",
@@ -108,7 +108,7 @@ namespace FastCG
                                                                         TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                         TextureFormat::RGBA,
                                                                         {8, 8, 8, 8},
-                                                                        TextureDataType::FLOAT,
+                                                                        TextureDataType::UNSIGNED_CHAR,
                                                                         TextureFilter::LINEAR_FILTER,
                                                                         TextureWrapMode::CLAMP});
         }

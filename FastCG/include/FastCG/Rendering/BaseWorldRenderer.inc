@@ -35,7 +35,7 @@ namespace
                                                                      FastCG::TextureUsageFlagBit::SAMPLED | FastCG::TextureUsageFlagBit::RENDER_TARGET,
                                                                      FastCG::TextureFormat::DEPTH_STENCIL,
                                                                      {24, 8},
-                                                                     FastCG::TextureDataType::FLOAT,
+                                                                     FastCG::TextureDataType::UNSIGNED_INT,
                                                                      FastCG::TextureFilter::POINT_FILTER,
                                                                      FastCG::TextureWrapMode::CLAMP,
                                                                      pData});
@@ -106,7 +106,7 @@ namespace FastCG
                                                                            TextureUsageFlagBit::SAMPLED,
                                                                            TextureFormat::RGBA,
                                                                            {8, 8, 8, 8},
-                                                                           TextureDataType::FLOAT,
+                                                                           TextureDataType::UNSIGNED_CHAR,
                                                                            TextureFilter::POINT_FILTER,
                                                                            TextureWrapMode::CLAMP,
                                                                            &pData[0]});
@@ -123,7 +123,7 @@ namespace FastCG
                                                                                TextureUsageFlagBit::SAMPLED,
                                                                                TextureFormat::R,
                                                                                {8},
-                                                                               TextureDataType::FLOAT,
+                                                                               TextureDataType::UNSIGNED_CHAR,
                                                                                TextureFilter::POINT_FILTER,
                                                                                TextureWrapMode::CLAMP,
                                                                                data});
@@ -276,7 +276,7 @@ namespace FastCG
                                                                               TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                               TextureFormat::RGBA,
                                                                               {8, 8, 8, 8},
-                                                                              TextureDataType::FLOAT,
+                                                                              TextureDataType::UNSIGNED_CHAR,
                                                                               TextureFilter::LINEAR_FILTER,
                                                                               TextureWrapMode::CLAMP});
         mSSAORenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
@@ -288,7 +288,7 @@ namespace FastCG
                                                                               TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                               TextureFormat::RGBA,
                                                                               {8, 8, 8, 8},
-                                                                              TextureDataType::FLOAT,
+                                                                              TextureDataType::UNSIGNED_CHAR,
                                                                               TextureFilter::LINEAR_FILTER,
                                                                               TextureWrapMode::CLAMP});
     }
@@ -595,10 +595,7 @@ namespace FastCG
             std::string name;
             const Texture *pTexture;
             pMaterial->GetTextureAt(i, name, pTexture);
-            if (pTexture != nullptr)
-            {
-                pGraphicsContext->BindResource(pTexture, name.c_str());
-            }
+            pGraphicsContext->BindResource(pTexture, name.c_str());
         }
     }
 

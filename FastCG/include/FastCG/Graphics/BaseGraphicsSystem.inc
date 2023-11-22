@@ -156,7 +156,7 @@ namespace FastCG
                                       TextureUsageFlagBit::RENDER_TARGET,
                                       TextureFormat::RGBA,
                                       {8, 8, 8, 8},
-                                      TextureDataType::FLOAT,
+                                      TextureDataType::UNSIGNED_CHAR,
                                       TextureFilter::POINT_FILTER,
                                       TextureWrapMode::CLAMP});
 
@@ -170,7 +170,7 @@ namespace FastCG
                                                                          TextureUsageFlagBit::SAMPLED,
                                                                          TextureFormat::RGBA,
                                                                          {8, 8, 8, 8},
-                                                                         TextureDataType::FLOAT,
+                                                                         TextureDataType::UNSIGNED_CHAR,
                                                                          TextureFilter::LINEAR_FILTER,
                                                                          TextureWrapMode::CLAMP,
                                                                          data}));

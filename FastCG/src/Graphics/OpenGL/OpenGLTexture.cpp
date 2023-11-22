@@ -35,7 +35,7 @@ namespace FastCG
             glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE);
         }
 
-        auto dataType = GetOpenGLDataType(mFormat, mBitsPerChannel);
+        auto dataType = GetOpenGLDataType(mDataType, mBitsPerChannel);
         switch (mType)
         {
         case TextureType::TEXTURE_1D:

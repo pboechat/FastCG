@@ -266,35 +266,36 @@ namespace FastCG
         switch (format)
         {
         case TextureFormat::R:
-            if (bitsPerChannel.r == 8)
+            if (bitsPerChannel.r == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_R8;
             }
-            else if (bitsPerChannel.r == 16 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_R16F;
-            }
 #if defined GL_R16
-            else if (bitsPerChannel.r == 16)
+            else if (bitsPerChannel.r == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
             {
                 return GL_R16;
             }
 #endif
+            else if (bitsPerChannel.r == 16 && dataType == TextureDataType::FLOAT)
+            {
+                return GL_R16F;
+            }
             else if (bitsPerChannel.r == 32 && dataType == TextureDataType::FLOAT)
             {
                 return GL_R32F;
             }
-            else
+            else if (bitsPerChannel.r == 32 && dataType == TextureDataType::UNSIGNED_INT)
             {
-                return GL_RED;
+                return GL_R32UI;
             }
+            break;
         case TextureFormat::RG:
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8)
+            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_RG8;
             }
 #if defined GL_RG16
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16)
+            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
             {
                 return GL_RG16;
             }
@@ -303,85 +304,89 @@ namespace FastCG
             {
                 return GL_RG16F;
             }
-            else
+            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && dataType == TextureDataType::FLOAT)
             {
-                return GL_RG;
+                return GL_RG32F;
             }
-        case TextureFormat::RGB:
+            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && dataType == TextureDataType::UNSIGNED_INT)
+            {
+                return GL_RG32UI;
+            }
+            break;
         case TextureFormat::BGR:
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8)
+            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
+            {
+                return GL_BGR;
+            }
+            break;
+        case TextureFormat::RGB:
+            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_RGB8;
-            }
-            else if (bitsPerChannel.r == 10 && bitsPerChannel.g == 10 && bitsPerChannel.b == 10 && bitsPerChannel.a == 2)
-            {
-                return GL_RGB10_A2;
             }
             else if (bitsPerChannel.r == 11 && bitsPerChannel.g == 11 && bitsPerChannel.b == 10 && dataType == TextureDataType::FLOAT)
             {
                 return GL_R11F_G11F_B10F;
             }
-#if defined GL_RGB12
-            else if (bitsPerChannel.r == 12 && bitsPerChannel.g == 12 && bitsPerChannel.b == 12)
-            {
-                return GL_RGB12;
-            }
-#endif
             else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && dataType == TextureDataType::FLOAT)
             {
                 return GL_RGB16F;
             }
 #if defined GL_RGB16
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16)
+            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
             {
                 return GL_RGB16;
             }
 #endif
-            else
+            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && dataType == TextureDataType::FLOAT)
             {
-                return GL_RGB;
+                return GL_RGB32F;
             }
-        case TextureFormat::RGBA:
+            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && dataType == TextureDataType::UNSIGNED_INT)
+            {
+                return GL_RGB32UI;
+            }
+            break;
         case TextureFormat::BGRA:
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8)
+            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
+            {
+                return GL_BGRA;
+            }
+            break;
+        case TextureFormat::RGBA:
+            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_RGBA8;
             }
-            else if (bitsPerChannel.r == 10 && bitsPerChannel.g == 10 && bitsPerChannel.b == 10 && bitsPerChannel.a == 2)
+            else if (bitsPerChannel.r == 10 && bitsPerChannel.g == 10 && bitsPerChannel.b == 10 && bitsPerChannel.a == 2 && dataType == TextureDataType::UNSIGNED_INT)
             {
                 return GL_RGB10_A2;
             }
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && bitsPerChannel.a == 16)
+            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && bitsPerChannel.a == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
             {
                 return GL_RGBA16F;
             }
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && bitsPerChannel.a == 32)
+            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && bitsPerChannel.a == 32 && dataType == TextureDataType::FLOAT)
             {
                 return GL_RGBA32F;
             }
-            else
+            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && bitsPerChannel.a == 32 && dataType == TextureDataType::UNSIGNED_INT)
             {
-                return GL_RGBA;
+                return GL_RGBA32UI;
             }
+            break;
         case TextureFormat::DEPTH_STENCIL:
-            if (bitsPerChannel.r == 24 && bitsPerChannel.g == 8)
+            if (bitsPerChannel.r == 24 && bitsPerChannel.g == 8 && dataType == TextureDataType::UNSIGNED_INT)
             {
                 return GL_DEPTH24_STENCIL8;
             }
-            else
-            {
-                return GL_DEPTH_STENCIL;
-            }
+            break;
         case TextureFormat::DEPTH:
-            if (bitsPerChannel.r == 16)
+            if (bitsPerChannel.r == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
             {
                 return GL_DEPTH_COMPONENT16;
             }
-            else if (bitsPerChannel.r == 16)
-            {
-                return GL_DEPTH_COMPONENT16;
-            }
-            else if (bitsPerChannel.r == 24)
+            else if (bitsPerChannel.r == 24 && dataType == TextureDataType::UNSIGNED_INT)
             {
                 return GL_DEPTH_COMPONENT24;
             }
@@ -389,20 +394,10 @@ namespace FastCG
             {
                 return GL_DEPTH_COMPONENT32F;
             }
-#if defined GL_DEPTH_COMPONENT32
-            else if (bitsPerChannel.r == 32)
-            {
-                return GL_DEPTH_COMPONENT32;
-            }
-#endif
-            else
-            {
-                return GL_DEPTH_COMPONENT;
-            }
-        default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);
-            return 0;
+            break;
         }
+        FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);
+        return 0;
     }
 
     inline GLenum GetOpenGLFormat(TextureFormat format)
@@ -435,24 +430,28 @@ namespace FastCG
         }
     }
 
-    inline GLenum GetOpenGLDataType(TextureFormat format, const BitsPerChannel &bitsPerChannel)
+    inline GLenum GetOpenGLDataType(TextureDataType dataType, const BitsPerChannel &rBitsPerChannel)
     {
-        FASTCG_UNUSED(bitsPerChannel);
-        if (IsDepthFormat(format))
+        switch (dataType)
         {
-            if (HasStencil(format))
+        case TextureDataType::UNSIGNED_CHAR:
+            return GL_UNSIGNED_BYTE;
+        case TextureDataType::UNSIGNED_SHORT:
+            return GL_UNSIGNED_SHORT;
+        case TextureDataType::UNSIGNED_INT:
+            if (rBitsPerChannel.r == 24 && rBitsPerChannel.g == 8)
             {
-                assert(bitsPerChannel.r == 24 && bitsPerChannel.g == 8);
                 return GL_UNSIGNED_INT_24_8;
             }
             else
             {
                 return GL_UNSIGNED_INT;
             }
-        }
-        else
-        {
-            return GL_UNSIGNED_BYTE;
+        case TextureDataType::FLOAT:
+            return GL_FLOAT;
+        default:
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture data type %d", (int)dataType);
+            return 0;
         }
     }
 

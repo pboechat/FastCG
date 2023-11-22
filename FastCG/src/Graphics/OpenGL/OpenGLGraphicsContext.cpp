@@ -202,7 +202,7 @@ namespace FastCG
         assert(pTexture != nullptr);
         auto target = GetOpenGLTarget(pTexture->GetType());
         glBindTexture(target, *pTexture);
-        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetFormat(), pTexture->GetBitsPerChannel()), (const GLvoid *)pData);
+        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetDataType(), pTexture->GetBitsPerChannel()), (const GLvoid *)pData);
     }
 
     void OpenGLGraphicsContext::BindShader(const OpenGLShader *pShader)

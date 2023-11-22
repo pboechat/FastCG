@@ -39,7 +39,7 @@ namespace FastCG
                                                                                TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
                                                                                TextureFormat::RGBA,
                                                                                {8, 8, 8, 8},
-                                                                               TextureDataType::FLOAT,
+                                                                               TextureDataType::UNSIGNED_CHAR,
                                                                                TextureFilter::LINEAR_FILTER,
                                                                                TextureWrapMode::CLAMP});
         }
