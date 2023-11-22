@@ -248,7 +248,12 @@ namespace FastCG
             return;
         }
         glActiveTexture(GL_TEXTURE0 + rResourceInfo.binding);
-        glBindTexture(GL_TEXTURE_2D, *pTexture);
+        if (pTexture == nullptr)
+        {
+            // TODO: check the texture type from shader reflection
+            pTexture = OpenGLGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D);
+        }
+        glBindTexture(GetOpenGLTarget(pTexture->GetType()), *pTexture);
         glUniform1i(rResourceInfo.location, rResourceInfo.binding);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture to resource (texture: %s, location: %d, binding: %d)", pTexture->GetName().c_str(), rResourceInfo.location, rResourceInfo.binding);
     }

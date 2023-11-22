@@ -320,7 +320,6 @@ namespace FastCG
 
 	void VulkanGraphicsContext::BindResource(const VulkanTexture *pTexture, const char *pName)
 	{
-		assert(pTexture != nullptr);
 		assert(pName != nullptr);
 		assert(mPipelineDescription.pShader != nullptr);
 		auto location = mPipelineDescription.pShader->GetResourceLocation(pName);
@@ -1023,12 +1022,12 @@ namespace FastCG
 							{
 								auto &rDescriptorImageInfo = descriptorImageInfos[lastDescriptorImageInfoIdx++];
 								assert(lastDescriptorImageInfoIdx < MAX_RESOURCES);
-								const VulkanTexture *pTexture;
+								const VulkanTexture *pTexture = nullptr;
 								if (pBinding != nullptr)
 								{
 									pTexture = pBinding->pTexture;
 								}
-								else
+								if (pTexture == nullptr)
 								{
 									// TODO: support other texture types!
 									pTexture = VulkanGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D);
