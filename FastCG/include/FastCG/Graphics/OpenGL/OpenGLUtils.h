@@ -217,8 +217,10 @@ namespace FastCG
     {
         switch (type)
         {
+#if defined GL_TEXTURE_1D
         case TextureType::TEXTURE_1D:
             return GL_TEXTURE_1D;
+#endif
         case TextureType::TEXTURE_2D:
             return GL_TEXTURE_2D;
         case TextureType::TEXTURE_3D:
@@ -314,10 +316,12 @@ namespace FastCG
             }
             break;
         case TextureFormat::BGR:
+#if defined GL_BRG
             if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_BGR;
             }
+#endif
             break;
         case TextureFormat::RGB:
             if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
@@ -348,10 +352,12 @@ namespace FastCG
             }
             break;
         case TextureFormat::BGRA:
+#if defined GL_BGRA
             if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_BGRA;
             }
+#endif
             break;
         case TextureFormat::RGBA:
             if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
@@ -394,6 +400,8 @@ namespace FastCG
             {
                 return GL_DEPTH_COMPONENT32F;
             }
+            break;
+        default:
             break;
         }
         FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);

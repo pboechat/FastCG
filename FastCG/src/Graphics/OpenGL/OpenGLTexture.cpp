@@ -38,6 +38,7 @@ namespace FastCG
         auto dataType = GetOpenGLDataType(mDataType, mBitsPerChannel);
         switch (mType)
         {
+#if defined GL_TEXTURE_1D
         case TextureType::TEXTURE_1D:
         {
             size_t dataOffset = 0;
@@ -47,6 +48,7 @@ namespace FastCG
             }
         }
         break;
+#endif
         case TextureType::TEXTURE_2D:
         {
             size_t dataOffset = 0;
@@ -74,6 +76,9 @@ namespace FastCG
             glTexImage3D(target, 0, internalFormat, (GLsizei)GetWidth(), (GLsizei)GetHeight(), (GLsizei)GetSlices(), 0, format, dataType, rArgs.pData);
         }
         break;
+        default:
+            FASTCG_CHECK_OPENGL_ERROR("Don't know how to create texture image (texture: %s)", rArgs.name.c_str());
+            break;
         }
         FASTCG_CHECK_OPENGL_ERROR("Couldn't create texture image (texture: %s)", rArgs.name.c_str());
 
