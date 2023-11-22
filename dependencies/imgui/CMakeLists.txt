@@ -17,15 +17,8 @@ list(APPEND SOURCES
 	"${PROJECT_SOURCE_DIR}/src/imgui.cpp"
 )
 
-set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include 
-	CACHE INTERNAL "${PROJECT_NAME}: includes" FORCE)
-	
-set(${PROJECT_NAME}_LIBRARIES ${PROJECT_NAME}
-	CACHE INTERNAL "${PROJECT_NAME}: libraries" FORCE)
-
-include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
-
 source_group("include" FILES ${HEADERS})
 source_group("src" FILES ${SOURCES})
 
 fastcg_add_dependency_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include )
