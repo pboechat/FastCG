@@ -138,23 +138,23 @@ namespace FastCG
 		auto basePath = File::GetBasePath(rFilePath);
 		for (size_t materialIdx = 0; materialIdx < numMaterials; materialIdx++)
 		{
-			auto &material = pMaterials[materialIdx];
+			auto &rMaterial = pMaterials[materialIdx];
 
-			auto diffuseColor = glm::vec4{material.diffuse[0], material.diffuse[1], material.diffuse[2], 1.0};
-			auto specularColor = glm::vec4{material.specular[0], material.specular[1], material.specular[2], 1.0};
-			auto emissiveColor = glm::vec4{material.emission[0], material.emission[1], material.emission[2], 1.0};
-			auto shininess = material.shininess;
+			auto diffuseColor = glm::vec4{rMaterial.diffuse[0], rMaterial.diffuse[1], rMaterial.diffuse[2], 1.0};
+			auto specularColor = glm::vec4{rMaterial.specular[0], rMaterial.specular[1], rMaterial.specular[2], 1.0};
+			auto emissiveColor = glm::vec4{rMaterial.emission[0], rMaterial.emission[1], rMaterial.emission[2], 1.0};
+			auto shininess = rMaterial.shininess;
 
 			Texture *pColorMapTexture = nullptr;
-			if (material.diffuse_texname != nullptr)
+			if (rMaterial.diffuse_texname != nullptr)
 			{
-				pColorMapTexture = TextureLoader::Load(File::Join({basePath, material.diffuse_texname}));
+				pColorMapTexture = TextureLoader::Load(File::Join({basePath, rMaterial.diffuse_texname}));
 			}
 
 			Texture *pBumpMapTexture = nullptr;
-			if (material.bump_texname != nullptr)
+			if (rMaterial.bump_texname != nullptr)
 			{
-				pBumpMapTexture = TextureLoader::Load(File::Join({basePath, material.bump_texname}));
+				pBumpMapTexture = TextureLoader::Load(File::Join({basePath, rMaterial.bump_texname}));
 			}
 
 			std::shared_ptr<MaterialDefinition> pMaterialDefinition;
@@ -186,7 +186,8 @@ namespace FastCG
 				pMaterialDefinition = MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor");
 			}
 
-			auto pMaterial = std::make_shared<Material>(MaterialArgs{name + " (" + std::to_string(materialIdx) + ")", pMaterialDefinition});
+			auto pMaterial = std::make_shared<Material>(MaterialArgs{rMaterial.name, pMaterialDefinition});
+
 			pMaterial->SetConstant("uDiffuseColor", diffuseColor);
 			pMaterial->SetConstant("uSpecularColor", specularColor);
 			pMaterial->SetConstant("uShininess", shininess);
@@ -230,9 +231,10 @@ namespace FastCG
 			}
 
 			// doesn't support multi materials at the moment
+			// FIXME: this is not the shape material!
 			auto materialIdx = attributes.material_ids[shapeIdx];
 			std::shared_ptr<Material> pMaterial;
-			if (materialIdx > 0)
+			if (materialIdx >= 0)
 			{
 				auto it = rMaterialCatalog.find((uint32_t)materialIdx);
 				assert(it != rMaterialCatalog.end());
