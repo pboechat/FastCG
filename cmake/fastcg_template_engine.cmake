@@ -5,12 +5,11 @@ cmake_minimum_required(VERSION 3.10)
 
 set(template_file ${CMAKE_ARGV3})
 set(output_file ${CMAKE_ARGV4})
-
 foreach(idx RANGE 5 ${CMAKE_ARGC})
     list(APPEND params "${CMAKE_ARGV${idx}}")
 endforeach()
 
-if(template_file STREQUAL "" OR output_file STREQUAL "" OR params)
+if(template_file STREQUAL "" OR output_file STREQUAL "" OR NOT params)
     message(FATAL_ERROR "You must provide template_file, output_file and params")
 endif()
 
