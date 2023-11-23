@@ -244,7 +244,7 @@ namespace FastCG
         case TextureFilter::LINEAR_FILTER:
             return GL_LINEAR;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled filter %d", (int)filter);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture filter %d", (int)filter);
             return 0;
         }
     }
@@ -258,7 +258,7 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return GL_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled wrapping mode %d", (int)wrapMode);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture wrapping mode %d", (int)wrapMode);
             return 0;
         }
     }
@@ -316,7 +316,7 @@ namespace FastCG
             }
             break;
         case TextureFormat::BGR:
-#if defined GL_BRG
+#if defined GL_BGR
             if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
             {
                 return GL_BGR;
@@ -420,7 +420,7 @@ namespace FastCG
             return GL_RGB;
         case TextureFormat::RGBA:
             return GL_RGBA;
-#if defined GL_BRG
+#if defined GL_BGR
         case TextureFormat::BGR:
             return GL_BGR;
 #endif
@@ -440,6 +440,7 @@ namespace FastCG
 
     inline GLenum GetOpenGLDataType(TextureDataType dataType, const BitsPerChannel &rBitsPerChannel)
     {
+        // TODO: specialize other data types (if needed)
         switch (dataType)
         {
         case TextureDataType::UNSIGNED_CHAR:
@@ -512,6 +513,8 @@ namespace FastCG
     }
 
 }
+
+#undef CASE_RETURN_STRING
 
 #endif
 
