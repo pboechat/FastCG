@@ -123,7 +123,7 @@ namespace FastCG
                                                                                 1,
                                                                                 TextureType::TEXTURE_2D,
                                                                                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                                TextureFormat::DEPTH_STENCIL,
+                                                                                TextureFormat::DEPTH,
                                                                                 {24, 8},
                                                                                 TextureDataType::UNSIGNED_INT,
                                                                                 TextureFilter::POINT_FILTER,

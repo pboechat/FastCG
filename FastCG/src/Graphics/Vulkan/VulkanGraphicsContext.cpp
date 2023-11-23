@@ -743,6 +743,7 @@ namespace FastCG
 					std::vector<VkBufferImageCopy> bufferCopyRegions;
 					if (pDstTexture->GetMipCount() > 1)
 					{
+						// 1D/2D potentially mipped textures
 						size_t dataOffset = 0;
 						bufferCopyRegions.resize(pDstTexture->GetMipCount());
 						for (uint8_t mip = 0; mip < pDstTexture->GetMipCount(); ++mip)
@@ -754,14 +755,15 @@ namespace FastCG
 							rBufferCopyRegion.imageSubresource.aspectMask = pDstTexture->GetAspectFlags();
 							rBufferCopyRegion.imageSubresource.mipLevel = (uint32_t)mip;
 							rBufferCopyRegion.imageSubresource.baseArrayLayer = 0;
-							rBufferCopyRegion.imageSubresource.layerCount = 1;
+							rBufferCopyRegion.imageSubresource.layerCount = 1; // TODO: support array mips
 							rBufferCopyRegion.imageOffset = {0, 0, 0};
-							rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1};
+							rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(mip), pDstTexture->GetHeight(mip), 1}; // TODO: support 3D mips
 							dataOffset += pDstTexture->GetMipDataSize(mip);
 						}
 					}
 					else if (pDstTexture->GetSlices() > 1)
 					{
+						// 2D array/cubemap textures
 						size_t dataOffset = 0;
 						bufferCopyRegions.resize(pDstTexture->GetSlices());
 						for (uint32_t slice = 0; slice < pDstTexture->GetSlices(); ++slice)
@@ -775,19 +777,20 @@ namespace FastCG
 							rBufferCopyRegion.imageSubresource.baseArrayLayer = slice;
 							rBufferCopyRegion.imageSubresource.layerCount = 1;
 							rBufferCopyRegion.imageOffset = {0, 0, 0};
-							rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1};
+							rBufferCopyRegion.imageExtent = {pDstTexture->GetWidth(), pDstTexture->GetHeight(), 1}; // TODO: support 3D arrays
 							dataOffset += pDstTexture->GetSliceDataSize();
 						}
 					}
 					else
 					{
+						// 3D textures
 						bufferCopyRegions.emplace_back(VkBufferImageCopy{});
 						auto &rBufferCopyRegion = bufferCopyRegions.back();
 						rBufferCopyRegion.bufferOffset = 0;
 						rBufferCopyRegion.bufferRowLength = 0;
 						rBufferCopyRegion.bufferImageHeight = 0;
 						rBufferCopyRegion.imageSubresource.aspectMask = pDstTexture->GetAspectFlags();
-						rBufferCopyRegion.imageSubresource.mipLevel = 0;
+						rBufferCopyRegion.imageSubresource.mipLevel = 0; // TODO: support 3D mips
 						rBufferCopyRegion.imageSubresource.baseArrayLayer = 0;
 						rBufferCopyRegion.imageSubresource.layerCount = 1;
 						rBufferCopyRegion.imageOffset = {0, 0, 0};
@@ -931,16 +934,16 @@ namespace FastCG
 					VkImageBlit imageBlit{};
 					imageBlit.srcSubresource.aspectMask = pSrcTexture->GetAspectFlags();
 					imageBlit.srcSubresource.baseArrayLayer = 0;
-					imageBlit.srcSubresource.layerCount = 1;
-					imageBlit.srcSubresource.mipLevel = 0;
+					imageBlit.srcSubresource.layerCount = 1; // TODO: support array textures
+					imageBlit.srcSubresource.mipLevel = 0;	 // TODO: support mipped textures
 					imageBlit.srcOffsets[0] = {0, 0, 0};
-					imageBlit.srcOffsets[1] = {(int32_t)pSrcTexture->GetWidth(), (int32_t)pSrcTexture->GetHeight(), 1};
+					imageBlit.srcOffsets[1] = {(int32_t)pSrcTexture->GetWidth(), (int32_t)pSrcTexture->GetHeight(), 1}; // TODO: support 3D textures
 					imageBlit.dstSubresource.aspectMask = pDstTexture->GetAspectFlags();
 					imageBlit.dstSubresource.baseArrayLayer = 0;
-					imageBlit.dstSubresource.layerCount = 1;
-					imageBlit.dstSubresource.mipLevel = 0;
+					imageBlit.dstSubresource.layerCount = 1; // TODO: support array textures
+					imageBlit.dstSubresource.mipLevel = 0;	 // TODO: support mipped textures
 					imageBlit.dstOffsets[0] = {0, 0, 0};
-					imageBlit.dstOffsets[1] = {(int32_t)pDstTexture->GetWidth(), (int32_t)pDstTexture->GetHeight(), 1};
+					imageBlit.dstOffsets[1] = {(int32_t)pDstTexture->GetWidth(), (int32_t)pDstTexture->GetHeight(), 1}; // TODO: support 3D textures
 
 					vkCmdBlitImage(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
 								   pSrcTexture->GetImage(),
@@ -1405,9 +1408,9 @@ namespace FastCG
 		imageMemoryBarrier.image = pTexture->GetImage();
 		imageMemoryBarrier.subresourceRange.aspectMask = pTexture->GetAspectFlags();
 		imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-		imageMemoryBarrier.subresourceRange.levelCount = 1;
+		imageMemoryBarrier.subresourceRange.levelCount = (uint32_t)pTexture->GetMipCount();
 		imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
-		imageMemoryBarrier.subresourceRange.layerCount = 1;
+		imageMemoryBarrier.subresourceRange.layerCount = pTexture->GetSlices();
 
 		vkCmdPipelineBarrier(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
 							 srcStageMask,

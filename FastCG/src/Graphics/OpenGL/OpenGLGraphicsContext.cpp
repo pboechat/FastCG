@@ -202,7 +202,7 @@ namespace FastCG
         assert(pTexture != nullptr);
         auto target = GetOpenGLTarget(pTexture->GetType());
         glBindTexture(target, *pTexture);
-        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetDataType(), pTexture->GetBitsPerChannel()), (const GLvoid *)pData);
+        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pTexture->GetWidth(), (GLsizei)pTexture->GetHeight(), GetOpenGLFormat(pTexture->GetFormat()), GetOpenGLDataType(pTexture->GetFormat(), pTexture->GetDataType(), pTexture->GetBitsPerChannel()), (const GLvoid *)pData);
     }
 
     void OpenGLGraphicsContext::BindShader(const OpenGLShader *pShader)
@@ -297,6 +297,10 @@ namespace FastCG
         {
             mask = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
         }
+        else if (pSrc->GetFormat() == TextureFormat::DEPTH)
+        {
+            mask = GL_DEPTH_BUFFER_BIT;
+        }
         else
         {
             mask = GL_COLOR_BUFFER_BIT;
@@ -357,7 +361,7 @@ namespace FastCG
         std::vector<GLenum> attachments;
         attachments.reserve(renderTargetCount);
         std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [&attachments, i = 0](const auto *pTexture) mutable
-                      { if (pTexture->GetFormat() != TextureFormat::DEPTH_STENCIL) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
+                      { if (pTexture->GetFormat() != TextureFormat::DEPTH_STENCIL && pTexture->GetFormat() != TextureFormat::DEPTH) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
         assert(attachments.size() <= (size_t)OpenGLGraphicsSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
         {

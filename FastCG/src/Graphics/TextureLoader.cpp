@@ -37,6 +37,7 @@
 #define KTXT_VK_FORMAT_D16_UNORM 124
 #define KTXT_VK_FORMAT_X8_D24_UNORM_PACK32 125
 #define KTXT_VK_FORMAT_D32_SFLOAT 126
+#define KTXT_VK_FORMAT_D24_UNORM_S8_UINT 129
 
 namespace
 {
@@ -78,8 +79,9 @@ namespace
 			CASE(VK_FORMAT_A2R10G10B10_UNORM_PACK32, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{10, 10, 10, 2}), FastCG::TextureDataType::UNSIGNED_INT)
 			CASE(VK_FORMAT_R8G8B8A8_UNORM, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{8, 8, 8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
 			CASE(VK_FORMAT_B8G8R8A8_UNORM, FastCG::TextureFormat::BGRA, (FastCG::BitsPerChannel{8, 8, 8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_X8_D24_UNORM_PACK32, FastCG::TextureFormat::DEPTH_STENCIL, (FastCG::BitsPerChannel{24, 8}), FastCG::TextureDataType::FLOAT)
+			CASE(VK_FORMAT_D24_UNORM_S8_UINT, FastCG::TextureFormat::DEPTH_STENCIL, (FastCG::BitsPerChannel{24, 8}), FastCG::TextureDataType::FLOAT)
 			CASE(VK_FORMAT_D16_UNORM, FastCG::TextureFormat::DEPTH, (FastCG::BitsPerChannel{16}), FastCG::TextureDataType::UNSIGNED_SHORT)
+			CASE(VK_FORMAT_X8_D24_UNORM_PACK32, FastCG::TextureFormat::DEPTH, (FastCG::BitsPerChannel{24, 8}), FastCG::TextureDataType::UNSIGNED_INT)
 			CASE(VK_FORMAT_D32_SFLOAT, FastCG::TextureFormat::DEPTH, (FastCG::BitsPerChannel{32}), FastCG::TextureDataType::FLOAT)
 		}
 
@@ -126,7 +128,7 @@ namespace
 		auto width = (uint32_t)pKtxTexture->baseWidth;
 		auto height = (uint32_t)pKtxTexture->baseHeight;
 		auto depth = (uint32_t)pKtxTexture->baseDepth;
-		auto slices = (uint32_t)pKtxTexture->numLayers; // array
+		auto layers = (uint32_t)pKtxTexture->numLayers; // array
 		auto mipCount = (uint32_t)pKtxTexture->numLevels;
 		auto bytesPerPixel = (size_t)(bitsPerChannel.r + bitsPerChannel.g + bitsPerChannel.b + bitsPerChannel.a) >> 3;
 
@@ -136,7 +138,7 @@ namespace
 		std::unique_ptr<uint8_t[]> pixels;
 		if ((pKtxTexture->numDimensions == 1 || pKtxTexture->numDimensions == 2) && !pKtxTexture->isArray && !pKtxTexture->isCubemap)
 		{
-			assert(slices == 1);
+			assert(layers == 1);
 			type = pKtxTexture->numDimensions == 1 ? FastCG::TextureType::TEXTURE_1D : FastCG::TextureType::TEXTURE_2D;
 			// force slices to 1
 			// TODO: support 3D/array/cubemap mips
@@ -160,8 +162,6 @@ namespace
 			}
 			pixels = std::make_unique<uint8_t[]>(totalSize);
 			auto *pPixels = &pixels[0];
-			// copy only the first slice of each mip
-			// TODO: support 3D/array/cubemap mips
 			for (uint32_t mip = 0; mip < mipCount; ++mip)
 			{
 				ktx_size_t mipOffset;
@@ -194,18 +194,18 @@ namespace
 				// TODO: support cubemap mips
 				mipCount = 1;
 				assert(depth == 1);
-				assert(slices == 6); // FIXME: invariant checking
-				depthOrSlices = slices = 6;
+				assert(pKtxTexture->numFaces == 6); // FIXME: invariant checking
+				depthOrSlices = layers = 6;
 
-				auto sliceSize = width * height * slices * bytesPerPixel;
-				pixels = std::make_unique<uint8_t[]>(sliceSize * slices);
+				auto sliceSize = width * height * bytesPerPixel;
+				pixels = std::make_unique<uint8_t[]>(sliceSize * layers);
 				auto *pPixels = &pixels[0];
-				for (uint32_t slice = 0; slice < slices; ++slice)
+				for (uint32_t slice = 0; slice < layers; ++slice)
 				{
 					ktx_size_t sliceOffset;
 					ktxTexture_GetImageOffset(pKtxTexture, 0, 0, (ktx_uint32_t)slice, &sliceOffset);
 					memcpy(pPixels, pKtxTexture->pData + sliceOffset, sliceSize);
-					pPixels += sliceOffset;
+					pPixels += sliceSize;
 				}
 			}
 			else
@@ -214,17 +214,17 @@ namespace
 				assert(pKtxTexture->numDimensions == 2);
 				type = FastCG::TextureType::TEXTURE_2D_ARRAY;
 				// force mipCount to 1
-				// TODO: support mips for 3D textures
+				// TODO: support 3D mips
 				mipCount = 1;
 				// force depth to 1
-				// TODO: support 3D array textures
+				// TODO: support 3D arrays
 				depth = 1;
-				depthOrSlices = slices;
+				depthOrSlices = layers;
 
-				auto sliceSize = width * height * slices * bytesPerPixel;
-				pixels = std::make_unique<uint8_t[]>(sliceSize * slices);
+				auto sliceSize = width * height * bytesPerPixel;
+				pixels = std::make_unique<uint8_t[]>(sliceSize * layers);
 				auto *pPixels = &pixels[0];
-				for (uint32_t slice = 0; slice < slices; ++slice)
+				for (uint32_t slice = 0; slice < layers; ++slice)
 				{
 					ktx_size_t sliceOffset;
 					ktxTexture_GetImageOffset(pKtxTexture, 0, slice, 0, &sliceOffset);

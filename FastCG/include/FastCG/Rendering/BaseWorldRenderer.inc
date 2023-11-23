@@ -33,7 +33,7 @@ namespace
                                                                      1,
                                                                      FastCG::TextureType::TEXTURE_2D,
                                                                      FastCG::TextureUsageFlagBit::SAMPLED | FastCG::TextureUsageFlagBit::RENDER_TARGET,
-                                                                     FastCG::TextureFormat::DEPTH_STENCIL,
+                                                                     FastCG::TextureFormat::DEPTH,
                                                                      {24, 8},
                                                                      FastCG::TextureDataType::UNSIGNED_INT,
                                                                      FastCG::TextureFilter::POINT_FILTER,
@@ -62,13 +62,7 @@ namespace FastCG
 #endif
 
         {
-            // TODO: solve this in a more elegant way
-#if FASTCG_OPENGL
-            uint8_t data[] = {255, 255, 255, 255};
-#else
-            float dataFloat = 1.f;
-            uint8_t *data = reinterpret_cast<uint8_t *>(&dataFloat);
-#endif
+            const uint8_t data[] = {255, 255, 255, 255};
             mpEmptyShadowMap = CreateShadowMapTexture("Empty Shadow Map", 1, 1, data);
         }
 

@@ -124,40 +124,31 @@ namespace FastCG
 
     void VulkanTexture::CreateDefaultImageView()
     {
-        switch (GetType())
+        VkImageViewCreateInfo imageViewCreateInfo;
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.pNext = nullptr;
+        imageViewCreateInfo.flags = 0;
+        imageViewCreateInfo.image = mImage;
+        imageViewCreateInfo.viewType = GetVkImageViewType(GetType());
+        imageViewCreateInfo.format = GetVulkanFormat();
+        imageViewCreateInfo.components = VkComponentMapping{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
+        if (IsDepthFormat(GetFormat()))
         {
-        case TextureType::TEXTURE_2D:
-            VkImageViewCreateInfo imageViewCreateInfo;
-            imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            imageViewCreateInfo.pNext = nullptr;
-            imageViewCreateInfo.flags = 0;
-            imageViewCreateInfo.image = mImage;
-            imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            imageViewCreateInfo.format = GetVulkanFormat();
-            imageViewCreateInfo.components = VkComponentMapping{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
-            if (IsDepthFormat(GetFormat()))
-            {
-                // TODO: support stencil
-                imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-            }
-            else
-            {
-                imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            }
-            imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-            imageViewCreateInfo.subresourceRange.levelCount = 1; // mipped texture not supported yet
-            imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-            imageViewCreateInfo.subresourceRange.layerCount = 1; // array texture not supported yet
-            FASTCG_CHECK_VK_RESULT(vkCreateImageView(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                                                     &imageViewCreateInfo,
-                                                     VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
-                                                     &mDefaultImageView));
-            break;
-        default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Can't create image view for texture type %s (texture: %s)", GetTextureTypeString(GetType()), mName.c_str());
-            break;
+            // TODO: support stencil
+            imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         }
-
+        else
+        {
+            imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = GetMipCount();
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = GetSlices();
+        FASTCG_CHECK_VK_RESULT(vkCreateImageView(VulkanGraphicsSystem::GetInstance()->GetDevice(),
+                                                 &imageViewCreateInfo,
+                                                 VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
+                                                 &mDefaultImageView));
 #if _DEBUG
         VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImageView)").c_str(), VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)mDefaultImageView);
 #endif

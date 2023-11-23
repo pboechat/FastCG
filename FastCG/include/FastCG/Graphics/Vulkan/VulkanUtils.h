@@ -337,6 +337,26 @@ namespace FastCG
         }
     }
 
+    inline VkImageViewType GetVkImageViewType(TextureType type)
+    {
+        switch (type)
+        {
+        case TextureType::TEXTURE_1D:
+            return VK_IMAGE_VIEW_TYPE_1D;
+        case TextureType::TEXTURE_2D:
+            return VK_IMAGE_VIEW_TYPE_2D;
+        case TextureType::TEXTURE_CUBE_MAP:
+            return VK_IMAGE_VIEW_TYPE_CUBE;
+        case TextureType::TEXTURE_2D_ARRAY:
+            return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+        case TextureType::TEXTURE_3D:
+            return VK_IMAGE_VIEW_TYPE_3D;
+        default:
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled texture type %d", (int)type);
+            return (VkImageViewType)0;
+        }
+    }
+
     void DecomposeVkFormat(VkFormat vkFormat, TextureFormat &format, BitsPerChannel &bitsPerChannel, TextureDataType &dataType);
 
     inline VkImageUsageFlags GetVkImageUsageFlags(TextureUsageFlags usage, TextureFormat format)
@@ -374,7 +394,7 @@ namespace FastCG
         case TextureFormat::BGRA:
             return VK_IMAGE_ASPECT_COLOR_BIT;
         case TextureFormat::DEPTH_STENCIL:
-            if (dataType == TextureDataType::FLOAT)
+            if (dataType == TextureDataType::UNSIGNED_INT)
             {
                 return VK_IMAGE_ASPECT_DEPTH_BIT;
             }
@@ -714,7 +734,7 @@ namespace FastCG
         {VK_FORMAT_B8G8R8A8_UNORM, TextureFormat::BGRA, BitsPerChannel{8, 8, 8, 8}, TextureDataType::UNSIGNED_CHAR},
         {VK_FORMAT_D24_UNORM_S8_UINT, TextureFormat::DEPTH_STENCIL, BitsPerChannel{24, 8}, TextureDataType::UNSIGNED_INT},
         {VK_FORMAT_D32_SFLOAT, TextureFormat::DEPTH, BitsPerChannel{32}, TextureDataType::FLOAT},
-        {VK_FORMAT_X8_D24_UNORM_PACK32, TextureFormat::DEPTH, BitsPerChannel{24}, TextureDataType::UNSIGNED_INT},
+        {VK_FORMAT_X8_D24_UNORM_PACK32, TextureFormat::DEPTH, BitsPerChannel{24, 8}, TextureDataType::UNSIGNED_INT},
         {VK_FORMAT_D16_UNORM, TextureFormat::DEPTH, BitsPerChannel{16}, TextureDataType::UNSIGNED_SHORT},
     };
 

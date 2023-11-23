@@ -35,7 +35,7 @@ namespace FastCG
             glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE);
         }
 
-        auto dataType = GetOpenGLDataType(mDataType, mBitsPerChannel);
+        auto dataType = GetOpenGLDataType(mFormat, mDataType, mBitsPerChannel);
         switch (mType)
         {
 #if defined GL_TEXTURE_1D
@@ -60,11 +60,13 @@ namespace FastCG
         break;
         case TextureType::TEXTURE_3D:
         {
+            // TODO: support 3D mips
             glTexImage3D(target, 0, internalFormat, (GLsizei)GetWidth(), (GLsizei)GetHeight(), (GLsizei)GetDepth(), 0, format, dataType, rArgs.pData);
         }
         break;
         case TextureType::TEXTURE_CUBE_MAP:
         {
+            // TODO: support cubemap mips
             for (size_t slice = 0, dataOffset = 0; slice < GetSlices(); ++slice, dataOffset += GetSliceDataSize())
             {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum)slice, 0, internalFormat, GetWidth(), GetHeight(), 0, format, dataType, rArgs.pData + dataOffset);
@@ -73,9 +75,11 @@ namespace FastCG
         break;
         case TextureType::TEXTURE_2D_ARRAY:
         {
+            // TODO: support array mips
             glTexImage3D(target, 0, internalFormat, (GLsizei)GetWidth(), (GLsizei)GetHeight(), (GLsizei)GetSlices(), 0, format, dataType, rArgs.pData);
         }
         break;
+        // TODO: support other array dimensions
         default:
             FASTCG_CHECK_OPENGL_ERROR("Don't know how to create texture image (texture: %s)", rArgs.name.c_str());
             break;

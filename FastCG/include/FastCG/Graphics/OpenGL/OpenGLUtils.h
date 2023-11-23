@@ -392,7 +392,7 @@ namespace FastCG
             {
                 return GL_DEPTH_COMPONENT16;
             }
-            else if (bitsPerChannel.r == 24 && dataType == TextureDataType::UNSIGNED_INT)
+            else if (bitsPerChannel.r == 24 && bitsPerChannel.g == 8 && dataType == TextureDataType::UNSIGNED_INT)
             {
                 return GL_DEPTH_COMPONENT24;
             }
@@ -438,7 +438,7 @@ namespace FastCG
         }
     }
 
-    inline GLenum GetOpenGLDataType(TextureDataType dataType, const BitsPerChannel &rBitsPerChannel)
+    inline GLenum GetOpenGLDataType(TextureFormat format, TextureDataType dataType, const BitsPerChannel &rBitsPerChannel)
     {
         // TODO: specialize other data types (if needed)
         switch (dataType)
@@ -448,7 +448,7 @@ namespace FastCG
         case TextureDataType::UNSIGNED_SHORT:
             return GL_UNSIGNED_SHORT;
         case TextureDataType::UNSIGNED_INT:
-            if (rBitsPerChannel.r == 24 && rBitsPerChannel.g == 8)
+            if (format == TextureFormat::DEPTH_STENCIL && rBitsPerChannel.r == 24 && rBitsPerChannel.g == 8) // D24S8
             {
                 return GL_UNSIGNED_INT_24_8;
             }
