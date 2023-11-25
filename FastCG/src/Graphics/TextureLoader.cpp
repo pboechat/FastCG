@@ -11,83 +11,122 @@
 #include <cstdint>
 
 // FIXME:
-#define KTXT_VK_FORMAT_R8_UNORM 9
-#define KTXT_VK_FORMAT_R8G8_UNORM 16
-#define KTXT_VK_FORMAT_R8G8B8_UNORM 23
-#define KTXT_VK_FORMAT_B8G8R8_UNORM 30
-#define KTXT_VK_FORMAT_R8G8B8A8_UNORM 37
-#define KTXT_VK_FORMAT_B8G8R8A8_UNORM 44
-#define KTXT_VK_FORMAT_A2R10G10B10_UNORM_PACK32 58
-#define KTXT_VK_FORMAT_R16_UNORM 70
-#define KTXT_VK_FORMAT_R16_UINT 74
-#define KTXT_VK_FORMAT_R16G16_UINT 81
-#define KTXT_VK_FORMAT_R16G16_SFLOAT 83
-#define KTXT_VK_FORMAT_R16G16B16_UNORM 84
-#define KTXT_VK_FORMAT_R16G16B16A16_UNORM 91
-#define KTXT_VK_FORMAT_R32_UINT 98
-#define KTXT_VK_FORMAT_R32_SFLOAT 100
-#define KTXT_VK_FORMAT_R32G32_UINT 101
-#define KTXT_VK_FORMAT_R32G32_SFLOAT 103
-#define KTXT_VK_FORMAT_R32G32B32_UINT 104
-#define KTXT_VK_FORMAT_R32G32B32_SFLOAT 106
-#define KTXT_VK_FORMAT_R32G32B32A32_UINT 107
-#define KTXT_VK_FORMAT_R32G32B32A32_SFLOAT 109
-#define KTXT_VK_FORMAT_B10G11R11_UFLOAT_PACK32 122
-#define KTXT_VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 123
-#define KTXT_VK_FORMAT_D16_UNORM 124
-#define KTXT_VK_FORMAT_X8_D24_UNORM_PACK32 125
-#define KTXT_VK_FORMAT_D32_SFLOAT 126
-#define KTXT_VK_FORMAT_D24_UNORM_S8_UINT 129
+
+#define KTX2_VK_FORMAT_R32_SFLOAT 100
+#define KTX2_VK_FORMAT_R16_SFLOAT 76
+#define KTX2_VK_FORMAT_R16_UNORM 70
+#define KTX2_VK_FORMAT_R8_UNORM 9
+#define KTX2_VK_FORMAT_R32G32_SFLOAT 103
+#define KTX2_VK_FORMAT_R16G16_SFLOAT 83
+#define KTX2_VK_FORMAT_R16G16_UNORM 77
+#define KTX2_VK_FORMAT_R8G8_UNORM 16
+#define KTX2_VK_FORMAT_R32G32B32_SFLOAT 106
+#define KTX2_VK_FORMAT_R16G16B16_UNORM 84
+#define KTX2_VK_FORMAT_R16G16B16_SFLOAT 90
+#define KTX2_VK_FORMAT_R8G8B8_UNORM 147
+#define KTX2_VK_FORMAT_B8G8R8_UNORM 30
+#define KTX2_VK_FORMAT_B10G11R11_UFLOAT_PACK32 122
+#define KTX2_VK_FORMAT_R32G32B32A32_SFLOAT 109
+#define KTX2_VK_FORMAT_R16G16B16A16_UNORM 91
+#define KTX2_VK_FORMAT_A2R10G10B10_UNORM_PACK32 58
+#define KTX2_VK_FORMAT_R8G8B8A8_UNORM 37
+#define KTX2_VK_FORMAT_B8G8R8A8_UNORM 44
+#define KTX2_VK_FORMAT_D24_UNORM_S8_UINT 129
+#define KTX2_VK_FORMAT_D32_SFLOAT 126
+#define KTX2_VK_FORMAT_X8_D24_UNORM_PACK32 125
+#define KTX2_VK_FORMAT_D16_UNORM 128
+#define KTX2_VK_FORMAT_BC1_RGB_UNORM_BLOCK 131
+#define KTX2_VK_FORMAT_BC1_RGBA_UNORM_BLOCK 133
+#define KTX2_VK_FORMAT_BC2_UNORM_BLOCK 135
+#define KTX2_VK_FORMAT_BC3_UNORM_BLOCK 137
+#define KTX2_VK_FORMAT_BC4_UNORM_BLOCK 139
+#define KTX2_VK_FORMAT_BC4_SNORM_BLOCK 140
+#define KTX2_VK_FORMAT_BC5_UNORM_BLOCK 141
+#define KTX2_VK_FORMAT_BC5_SNORM_BLOCK 142
+#define KTX2_VK_FORMAT_BC6H_UFLOAT_BLOCK 143
+#define KTX2_VK_FORMAT_BC6H_SFLOAT_BLOCK 144
+#define KTX2_VK_FORMAT_BC7_UNORM_BLOCK 145
+#define KTX2_VK_FORMAT_ASTC_4x4_UNORM_BLOCK 157
+#define KTX2_VK_FORMAT_ASTC_5x4_UNORM_BLOCK 159
+#define KTX2_VK_FORMAT_ASTC_5x5_UNORM_BLOCK 161
+#define KTX2_VK_FORMAT_ASTC_6x5_UNORM_BLOCK 163
+#define KTX2_VK_FORMAT_ASTC_6x6_UNORM_BLOCK 165
+#define KTX2_VK_FORMAT_ASTC_8x5_UNORM_BLOCK 167
+#define KTX2_VK_FORMAT_ASTC_8x6_UNORM_BLOCK 169
+#define KTX2_VK_FORMAT_ASTC_8x8_UNORM_BLOCK 171
+#define KTX2_VK_FORMAT_ASTC_10x5_UNORM_BLOCK 173
+#define KTX2_VK_FORMAT_ASTC_10x6_UNORM_BLOCK 175
+#define KTX2_VK_FORMAT_ASTC_10x8_UNORM_BLOCK 177
+#define KTX2_VK_FORMAT_ASTC_10x10_UNORM_BLOCK 179
+#define KTX2_VK_FORMAT_ASTC_12x10_UNORM_BLOCK 181
+#define KTX2_VK_FORMAT_ASTC_12x12_UNORM_BLOCK 183
 
 namespace
 {
-	bool GetTextureFormatDataTypeAndBitsPerChannelFromKtxTexture2(ktxTexture2 *pKtxTexture2, FastCG::TextureFormat &rFormat, FastCG::TextureDataType &rDataType, FastCG::BitsPerChannel &rBitsPerChannel)
+	FastCG::TextureFormat GetTextureFormat(ktxTexture2 *pKtxTexture2)
 	{
-#ifdef CASE
-#undef CASE
+#ifdef CASE_RETURN
+#undef CASE_RETURN
 #endif
-#define CASE(vkFormat, format, bitsPerChannel, dataType) \
-	case KTXT_##vkFormat:                                \
-	{                                                    \
-		rFormat = format;                                \
-		rDataType = dataType;                            \
-		rBitsPerChannel = bitsPerChannel;                \
-		return true;                                     \
-	}
+#define CASE_RETURN(format)       \
+	case KTX2_VK_FORMAT_##format: \
+		return FastCG::TextureFormat::format
 
 		switch (pKtxTexture2->vkFormat)
 		{
-			CASE(VK_FORMAT_R32_SFLOAT, FastCG::TextureFormat::R, FastCG::BitsPerChannel{32}, FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_R32_UINT, FastCG::TextureFormat::R, FastCG::BitsPerChannel{32}, FastCG::TextureDataType::UNSIGNED_INT)
-			CASE(VK_FORMAT_R16_UNORM, FastCG::TextureFormat::R, FastCG::BitsPerChannel{16}, FastCG::TextureDataType::UNSIGNED_SHORT)
-			CASE(VK_FORMAT_R16_UINT, FastCG::TextureFormat::R, FastCG::BitsPerChannel{16}, FastCG::TextureDataType::UNSIGNED_SHORT)
-			CASE(VK_FORMAT_R8_UNORM, FastCG::TextureFormat::R, FastCG::BitsPerChannel{8}, FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_R32G32_SFLOAT, FastCG::TextureFormat::RG, (FastCG::BitsPerChannel{32, 32}), FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_R32G32_UINT, FastCG::TextureFormat::RG, (FastCG::BitsPerChannel{32, 32}), FastCG::TextureDataType::UNSIGNED_INT)
-			CASE(VK_FORMAT_R16G16_SFLOAT, FastCG::TextureFormat::RG, (FastCG::BitsPerChannel{16, 16}), FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_R16G16_UINT, FastCG::TextureFormat::RG, (FastCG::BitsPerChannel{16, 16}), FastCG::TextureDataType::UNSIGNED_SHORT)
-			CASE(VK_FORMAT_R8G8_UNORM, FastCG::TextureFormat::RG, (FastCG::BitsPerChannel{8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_R32G32B32_SFLOAT, FastCG::TextureFormat::RGB, (FastCG::BitsPerChannel{32, 32, 32}), FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_R32G32B32_UINT, FastCG::TextureFormat::RGB, (FastCG::BitsPerChannel{32, 32, 32}), FastCG::TextureDataType::UNSIGNED_INT)
-			CASE(VK_FORMAT_R16G16B16_UNORM, FastCG::TextureFormat::RGB, (FastCG::BitsPerChannel{16, 16, 16}), FastCG::TextureDataType::UNSIGNED_SHORT)
-			CASE(VK_FORMAT_R8G8B8_UNORM, FastCG::TextureFormat::RGB, (FastCG::BitsPerChannel{8, 8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_B8G8R8_UNORM, FastCG::TextureFormat::BGR, (FastCG::BitsPerChannel{8, 8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_B10G11R11_UFLOAT_PACK32, FastCG::TextureFormat::RGB, (FastCG::BitsPerChannel{11, 11, 10}), FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_R32G32B32A32_SFLOAT, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{32, 32, 32, 32}), FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_R32G32B32A32_UINT, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{32, 32, 32, 32}), FastCG::TextureDataType::UNSIGNED_INT)
-			CASE(VK_FORMAT_R16G16B16A16_UNORM, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{16, 16, 16, 16}), FastCG::TextureDataType::UNSIGNED_SHORT)
-			CASE(VK_FORMAT_A2R10G10B10_UNORM_PACK32, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{10, 10, 10, 2}), FastCG::TextureDataType::UNSIGNED_INT)
-			CASE(VK_FORMAT_R8G8B8A8_UNORM, FastCG::TextureFormat::RGBA, (FastCG::BitsPerChannel{8, 8, 8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_B8G8R8A8_UNORM, FastCG::TextureFormat::BGRA, (FastCG::BitsPerChannel{8, 8, 8, 8}), FastCG::TextureDataType::UNSIGNED_CHAR)
-			CASE(VK_FORMAT_D24_UNORM_S8_UINT, FastCG::TextureFormat::DEPTH_STENCIL, (FastCG::BitsPerChannel{24, 8}), FastCG::TextureDataType::FLOAT)
-			CASE(VK_FORMAT_D16_UNORM, FastCG::TextureFormat::DEPTH, (FastCG::BitsPerChannel{16}), FastCG::TextureDataType::UNSIGNED_SHORT)
-			CASE(VK_FORMAT_X8_D24_UNORM_PACK32, FastCG::TextureFormat::DEPTH, (FastCG::BitsPerChannel{24, 8}), FastCG::TextureDataType::UNSIGNED_INT)
-			CASE(VK_FORMAT_D32_SFLOAT, FastCG::TextureFormat::DEPTH, (FastCG::BitsPerChannel{32}), FastCG::TextureDataType::FLOAT)
+			CASE_RETURN(R32_SFLOAT);
+			CASE_RETURN(R16_SFLOAT);
+			CASE_RETURN(R16_UNORM);
+			CASE_RETURN(R8_UNORM);
+			CASE_RETURN(R32G32_SFLOAT);
+			CASE_RETURN(R16G16_SFLOAT);
+			CASE_RETURN(R16G16_UNORM);
+			CASE_RETURN(R8G8_UNORM);
+			CASE_RETURN(R32G32B32_SFLOAT);
+			CASE_RETURN(R16G16B16_UNORM);
+			CASE_RETURN(R16G16B16_SFLOAT);
+			CASE_RETURN(R8G8B8_UNORM);
+			CASE_RETURN(B8G8R8_UNORM);
+			CASE_RETURN(B10G11R11_UFLOAT_PACK32);
+			CASE_RETURN(R32G32B32A32_SFLOAT);
+			CASE_RETURN(R16G16B16A16_UNORM);
+			CASE_RETURN(A2R10G10B10_UNORM_PACK32);
+			CASE_RETURN(R8G8B8A8_UNORM);
+			CASE_RETURN(B8G8R8A8_UNORM);
+			CASE_RETURN(D24_UNORM_S8_UINT);
+			CASE_RETURN(D32_SFLOAT);
+			CASE_RETURN(X8_D24_UNORM_PACK32);
+			CASE_RETURN(D16_UNORM);
+			CASE_RETURN(BC1_RGB_UNORM_BLOCK);
+			CASE_RETURN(BC1_RGBA_UNORM_BLOCK);
+			CASE_RETURN(BC2_UNORM_BLOCK);
+			CASE_RETURN(BC3_UNORM_BLOCK);
+			CASE_RETURN(BC4_UNORM_BLOCK);
+			CASE_RETURN(BC4_SNORM_BLOCK);
+			CASE_RETURN(BC5_UNORM_BLOCK);
+			CASE_RETURN(BC5_SNORM_BLOCK);
+			CASE_RETURN(BC6H_UFLOAT_BLOCK);
+			CASE_RETURN(BC6H_SFLOAT_BLOCK);
+			CASE_RETURN(BC7_UNORM_BLOCK);
+			CASE_RETURN(ASTC_4x4_UNORM_BLOCK);
+			CASE_RETURN(ASTC_5x4_UNORM_BLOCK);
+			CASE_RETURN(ASTC_5x5_UNORM_BLOCK);
+			CASE_RETURN(ASTC_6x5_UNORM_BLOCK);
+			CASE_RETURN(ASTC_6x6_UNORM_BLOCK);
+			CASE_RETURN(ASTC_8x5_UNORM_BLOCK);
+			CASE_RETURN(ASTC_8x6_UNORM_BLOCK);
+			CASE_RETURN(ASTC_8x8_UNORM_BLOCK);
+			CASE_RETURN(ASTC_10x5_UNORM_BLOCK);
+			CASE_RETURN(ASTC_10x6_UNORM_BLOCK);
+			CASE_RETURN(ASTC_10x8_UNORM_BLOCK);
+			CASE_RETURN(ASTC_10x10_UNORM_BLOCK);
+			CASE_RETURN(ASTC_12x10_UNORM_BLOCK);
+			CASE_RETURN(ASTC_12x12_UNORM_BLOCK);
 		}
+		FASTCG_THROW_EXCEPTION(FastCG::Exception, "Can't get texture format (vkFormat: %d)", (int)pKtxTexture2->vkFormat);
+		return (FastCG::TextureFormat)0;
 
-		return false;
-
-#undef CASE
+#undef CASE_RETURN
 	}
 
 	FastCG::Texture *LoadKtxTexture(const std::string &rFilePath, FastCG::TextureSamplerSettings samplerSettings)
@@ -100,13 +139,6 @@ namespace
 			return nullptr;
 		}
 
-		if (pKtxTexture->isCompressed)
-		{
-			ktxTexture_Destroy(pKtxTexture);
-			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Only uncompressed KTX formats are supported at the moment (texture: %s)", rFilePath.c_str()); // TODO:
-			return nullptr;
-		}
-
 		if (pKtxTexture->classId != ktxTexture2_c)
 		{
 			ktxTexture_Destroy(pKtxTexture);
@@ -115,22 +147,12 @@ namespace
 		}
 		auto *pKtxTexture2 = reinterpret_cast<ktxTexture2 *>(pKtxTexture);
 
-		FastCG::TextureFormat format;
-		FastCG::TextureDataType dataType;
-		FastCG::BitsPerChannel bitsPerChannel;
-		if (!GetTextureFormatDataTypeAndBitsPerChannelFromKtxTexture2(pKtxTexture2, format, dataType, bitsPerChannel))
-		{
-			ktxTexture_Destroy(pKtxTexture);
-			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Unhandled KTX2 vulkan format (texture: %s, format: %d)", rFilePath.c_str(), (int)pKtxTexture2->vkFormat);
-			return nullptr;
-		}
-
+		auto format = GetTextureFormat(pKtxTexture2);
 		auto width = (uint32_t)pKtxTexture->baseWidth;
 		auto height = (uint32_t)pKtxTexture->baseHeight;
 		auto depth = (uint32_t)pKtxTexture->baseDepth;
 		auto layers = (uint32_t)pKtxTexture->numLayers; // array
 		auto mipCount = (uint32_t)pKtxTexture->numLevels;
-		auto bytesPerPixel = (size_t)(bitsPerChannel.r + bitsPerChannel.g + bitsPerChannel.b + bitsPerChannel.a) >> 3;
 
 		FastCG::TextureType type;
 		uint32_t depthOrSlices;
@@ -154,9 +176,9 @@ namespace
 			std::vector<MipStats> mipStats(mipCount);
 			for (uint32_t mip = 0; mip < mipCount; ++mip)
 			{
-				uint32_t mipWidth = width >> mip;
-				uint32_t mipHeight = height >> mip;
-				size_t mipSize = mipWidth * mipHeight * bytesPerPixel;
+				auto mipWidth = width >> mip;
+				auto mipHeight = height >> mip;
+				auto mipSize = GetTextureDataSize(format, mipWidth, mipHeight, 1);
 				mipStats[mip] = {mipWidth, mipHeight, mipSize};
 				totalSize += mipSize;
 			}
@@ -181,7 +203,7 @@ namespace
 				// TODO: support 3D arrays
 				depthOrSlices = depth;
 
-				size_t totalSize = width * height * depth * bytesPerPixel;
+				size_t totalSize = GetTextureDataSize(format, width, height, depth);
 				pixels = std::make_unique<uint8_t[]>(totalSize);
 				ktx_size_t offset;
 				ktxTexture_GetImageOffset(pKtxTexture, 0, 0, 0, &offset);
@@ -197,7 +219,7 @@ namespace
 				assert(pKtxTexture->numFaces == 6); // FIXME: invariant checking
 				depthOrSlices = layers = 6;
 
-				auto sliceSize = width * height * bytesPerPixel;
+				auto sliceSize = GetTextureDataSize(format, width, height, 1);
 				pixels = std::make_unique<uint8_t[]>(sliceSize * layers);
 				auto *pPixels = &pixels[0];
 				for (uint32_t slice = 0; slice < layers; ++slice)
@@ -221,7 +243,7 @@ namespace
 				depth = 1;
 				depthOrSlices = layers;
 
-				auto sliceSize = width * height * bytesPerPixel;
+				auto sliceSize = GetTextureDataSize(format, width, height, 1);
 				pixels = std::make_unique<uint8_t[]>(sliceSize * layers);
 				auto *pPixels = &pixels[0];
 				for (uint32_t slice = 0; slice < layers; ++slice)
@@ -244,8 +266,6 @@ namespace
 																	 type,
 																	 FastCG::TextureUsageFlagBit::SAMPLED,
 																	 format,
-																	 bitsPerChannel,
-																	 dataType,
 																	 samplerSettings.filter,
 																	 samplerSettings.wrapMode,
 																	 &pixels[0]});
@@ -262,16 +282,13 @@ namespace
 
 		std::unique_ptr<uint8_t[]> transformedPixels;
 		FastCG::TextureFormat format;
-		FastCG::BitsPerChannel bitsPerChannel;
 		switch (componentCount)
 		{
 		case 1:
-			format = FastCG::TextureFormat::R;
-			bitsPerChannel = {8};
+			format = FastCG::TextureFormat::R8_UNORM;
 			break;
 		case 2:
-			format = FastCG::TextureFormat::RG;
-			bitsPerChannel = {8, 8};
+			format = FastCG::TextureFormat::R8G8_UNORM;
 			break;
 		case 3:
 		{
@@ -294,8 +311,7 @@ namespace
 			componentCount = 4;
 		}
 		case 4:
-			format = FastCG::TextureFormat::RGBA;
-			bitsPerChannel = {8, 8, 8, 8};
+			format = FastCG::TextureFormat::R8G8B8A8_UNORM;
 			break;
 		default:
 			FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get format and bits per channel (texture: %s, componentCount: %d)", rFilePath.c_str(), componentCount);
@@ -310,8 +326,6 @@ namespace
 																			   FastCG::TextureType::TEXTURE_2D,
 																			   FastCG::TextureUsageFlagBit::SAMPLED,
 																			   format,
-																			   bitsPerChannel,
-																			   FastCG::TextureDataType::UNSIGNED_CHAR,
 																			   samplerSettings.filter,
 																			   samplerSettings.wrapMode,
 																			   pPixels});

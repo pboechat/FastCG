@@ -60,7 +60,7 @@ namespace FastCG
             CASE_RETURN_STRING(VK_ERROR_FRAGMENTATION);
 #endif
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled VkResult %d", (int)vkResult);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk result string (vkResult: %d)", (int)vkResult);
             return nullptr;
         }
     }
@@ -74,7 +74,7 @@ namespace FastCG
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT);
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled message severity %d", (int)messageSeverity);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk debug utils message severity flag bits string (messageSeverity: %d)", (int)messageSeverity);
             return nullptr;
         }
     }
@@ -87,7 +87,7 @@ namespace FastCG
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled message type %d", (int)messageType);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk debug utils message type flag bits string (messageType: %d)", (int)messageType);
             return nullptr;
         }
     }
@@ -282,7 +282,7 @@ namespace FastCG
             CASE_RETURN_STRING(VK_FORMAT_ASTC_12x12_UNORM_BLOCK);
             CASE_RETURN_STRING(VK_FORMAT_ASTC_12x12_SRGB_BLOCK);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled format %d", (int)format);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format string (format: %d)", (int)format);
             return nullptr;
         }
     }
@@ -314,7 +314,7 @@ namespace FastCG
             CASE_RETURN_STRING(VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
 #endif
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled image layout %d", (int)layout);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image layout string (layout: %d)", (int)layout);
             return nullptr;
         }
     }
@@ -332,7 +332,7 @@ namespace FastCG
         case TextureType::TEXTURE_3D:
             return VK_IMAGE_TYPE_3D;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled texture type %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image type (textureType: %s)", GetTextureTypeString(type));
             return (VkImageType)0;
         }
     }
@@ -352,12 +352,10 @@ namespace FastCG
         case TextureType::TEXTURE_3D:
             return VK_IMAGE_VIEW_TYPE_3D;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled texture type %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image type (textureType: %s)", GetTextureTypeString(type));
             return (VkImageViewType)0;
         }
     }
-
-    void DecomposeVkFormat(VkFormat vkFormat, TextureFormat &format, BitsPerChannel &bitsPerChannel, TextureDataType &dataType);
 
     inline VkImageUsageFlags GetVkImageUsageFlags(TextureUsageFlags usage, TextureFormat format)
     {
@@ -382,32 +380,25 @@ namespace FastCG
         return usageFlags;
     }
 
-    inline VkImageAspectFlags GetVkImageAspectFlags(TextureFormat format, TextureDataType dataType)
+    inline VkImageAspectFlags GetVkImageAspectFlags(TextureFormat format)
     {
-        switch (format)
+        if (IsColorFormat(format))
         {
-        case TextureFormat::R:
-        case TextureFormat::RG:
-        case TextureFormat::RGB:
-        case TextureFormat::RGBA:
-        case TextureFormat::BGR:
-        case TextureFormat::BGRA:
             return VK_IMAGE_ASPECT_COLOR_BIT;
-        case TextureFormat::DEPTH_STENCIL:
-            if (dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return VK_IMAGE_ASPECT_DEPTH_BIT;
-            }
-            else
+        }
+        else if (IsDepthFormat(format))
+        {
+            if (HasStencil(format))
             {
                 return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
             }
-        case TextureFormat::DEPTH:
-            return VK_IMAGE_ASPECT_DEPTH_BIT;
-        default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled texture format %d", (int)format);
-            return (VkImageAspectFlags)0;
+            else
+            {
+                return VK_IMAGE_ASPECT_DEPTH_BIT;
+            }
         }
+        FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image aspect flag (textureFormat: %s)", GetTextureFormatString(format));
+        return (VkImageAspectFlags)0;
     }
 
     inline VkImageLayout GetVkRestingLayout(TextureUsageFlags usage, TextureFormat format)
@@ -559,7 +550,7 @@ namespace FastCG
         case ShaderType::VERTEX:
             return VK_SHADER_STAGE_VERTEX_BIT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled shader type %d", (int)shaderType);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stage flag bit (shaderType: %s)", GetShaderTypeString(shaderType));
             return (VkShaderStageFlagBits)0;
         }
     }
@@ -577,7 +568,7 @@ namespace FastCG
         case Face::FRONT_AND_BACK:
             return VK_CULL_MODE_FRONT_BIT | VK_CULL_MODE_BACK_BIT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled cull mode %d", (int)cullMode);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk cull mode flags (cullMode: %s)", GetFaceString(cullMode));
             return (VkCullModeFlags)0;
         }
     }
@@ -603,7 +594,7 @@ namespace FastCG
         case CompareOp::NOT_EQUAL:
             return VK_COMPARE_OP_NOT_EQUAL;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled compare op %d", (int)compareOp);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk compare op (compareOp: %s)", GetCompareOpString(compareOp));
             return (VkCompareOp)0;
         }
     }
@@ -629,7 +620,7 @@ namespace FastCG
         case StencilOp::ZERO:
             return VK_STENCIL_OP_ZERO;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled stencil op %d", (int)stencilOp);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk stencil op (stencilOp %s)", GetStencilOpString(stencilOp));
             return (VkStencilOp)0;
         }
     }
@@ -643,7 +634,7 @@ namespace FastCG
         case BlendFunc::ADD:
             return VK_BLEND_OP_ADD;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled blend func %d", (int)blendFunc);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend op (blendFunc: %s)", GetBlendFuncString(blendFunc));
             return (VkBlendOp)0;
         }
     }
@@ -669,7 +660,7 @@ namespace FastCG
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled blend factor %d", (int)blendFactor);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend factor (blendFactor: %s)", GetBlendFactorString(blendFactor));
             return (VkBlendFactor)0;
         }
     }
@@ -683,7 +674,7 @@ namespace FastCG
         case TextureFilter::LINEAR_FILTER:
             return VK_FILTER_LINEAR;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled filter %d", (int)filter);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk filter (filter: %s)", GetTextureFilterString(filter));
             return (VkFilter)0;
         }
     }
@@ -697,71 +688,90 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return VK_SAMPLER_ADDRESS_MODE_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled wrap mode %d", (int)wrapMode);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk address mode (wrapMode: %s)", GetTextureWrapModeString(wrapMode));
             return (VkSamplerAddressMode)0;
         }
     }
 
+#ifdef CONVERSION_TABLE_ENTRY
+#undef CONVERSION_TABLE_ENTRY
+#endif
+#define CONVERSION_TABLE_ENTRY(format)            \
+    {                                             \
+        TextureFormat::format, VK_FORMAT_##format \
+    }
+
     constexpr struct
     {
-        VkFormat vkFormat;
         TextureFormat format;
-        BitsPerChannel bitsPerChannel;
-        TextureDataType dataType;
+        VkFormat vkFormat;
     } FORMAT_CONVERSION_TABLE[] = {
-        {VK_FORMAT_R32_SFLOAT, TextureFormat::R, BitsPerChannel{32}, TextureDataType::FLOAT},
-        {VK_FORMAT_R32_UINT, TextureFormat::R, BitsPerChannel{32}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_R16_SFLOAT, TextureFormat::R, BitsPerChannel{16}, TextureDataType::FLOAT},
-        {VK_FORMAT_R16_UINT, TextureFormat::R, BitsPerChannel{16}, TextureDataType::UNSIGNED_SHORT},
-        {VK_FORMAT_R8_UNORM, TextureFormat::R, BitsPerChannel{8}, TextureDataType::UNSIGNED_CHAR},
-        {VK_FORMAT_R32G32_SFLOAT, TextureFormat::RG, BitsPerChannel{32, 32}, TextureDataType::FLOAT},
-        {VK_FORMAT_R32G32_UINT, TextureFormat::RG, BitsPerChannel{32, 32}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_R16G16_SFLOAT, TextureFormat::RG, BitsPerChannel{16, 16}, TextureDataType::FLOAT},
-        {VK_FORMAT_R16G16_UINT, TextureFormat::RG, BitsPerChannel{16, 16}, TextureDataType::UNSIGNED_SHORT},
-        {VK_FORMAT_R8G8_UNORM, TextureFormat::RG, BitsPerChannel{8, 8}, TextureDataType::UNSIGNED_CHAR},
-        {VK_FORMAT_R32G32B32_SFLOAT, TextureFormat::RGB, BitsPerChannel{32, 32, 32}, TextureDataType::FLOAT},
-        {VK_FORMAT_R32G32B32_UINT, TextureFormat::RGB, BitsPerChannel{32, 32, 32}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_R16G16B16_UNORM, TextureFormat::RGB, BitsPerChannel{16, 16, 16}, TextureDataType::UNSIGNED_SHORT},
-        {VK_FORMAT_R16G16B16_SFLOAT, TextureFormat::RGB, BitsPerChannel{16, 16, 16}, TextureDataType::FLOAT},
-        {VK_FORMAT_R8G8B8_UNORM, TextureFormat::RGB, BitsPerChannel{8, 8, 8}, TextureDataType::UNSIGNED_CHAR},
-        {VK_FORMAT_B8G8R8_UNORM, TextureFormat::BGR, BitsPerChannel{8, 8, 8}, TextureDataType::UNSIGNED_CHAR},
-        {VK_FORMAT_B10G11R11_UFLOAT_PACK32, TextureFormat::RGB, BitsPerChannel{11, 11, 10}, TextureDataType::FLOAT},
-        {VK_FORMAT_R32G32B32A32_SFLOAT, TextureFormat::RGBA, BitsPerChannel{32, 32, 32, 32}, TextureDataType::FLOAT},
-        {VK_FORMAT_R32G32B32A32_UINT, TextureFormat::RGBA, BitsPerChannel{32, 32, 32, 32}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_R16G16B16A16_UNORM, TextureFormat::RGBA, BitsPerChannel{16, 16, 16, 16}, TextureDataType::UNSIGNED_SHORT},
-        {VK_FORMAT_A2R10G10B10_UNORM_PACK32, TextureFormat::RGBA, BitsPerChannel{10, 10, 10, 2}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_R8G8B8A8_UNORM, TextureFormat::RGBA, BitsPerChannel{8, 8, 8, 8}, TextureDataType::UNSIGNED_CHAR},
-        {VK_FORMAT_B8G8R8A8_UNORM, TextureFormat::BGRA, BitsPerChannel{8, 8, 8, 8}, TextureDataType::UNSIGNED_CHAR},
-        {VK_FORMAT_D24_UNORM_S8_UINT, TextureFormat::DEPTH_STENCIL, BitsPerChannel{24, 8}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_D32_SFLOAT, TextureFormat::DEPTH, BitsPerChannel{32}, TextureDataType::FLOAT},
-        {VK_FORMAT_X8_D24_UNORM_PACK32, TextureFormat::DEPTH, BitsPerChannel{24, 8}, TextureDataType::UNSIGNED_INT},
-        {VK_FORMAT_D16_UNORM, TextureFormat::DEPTH, BitsPerChannel{16}, TextureDataType::UNSIGNED_SHORT},
-    };
+        CONVERSION_TABLE_ENTRY(R32_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R16_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R16_UNORM),
+        CONVERSION_TABLE_ENTRY(R8_UNORM),
+        CONVERSION_TABLE_ENTRY(R32G32_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R16G16_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R16G16_UNORM),
+        CONVERSION_TABLE_ENTRY(R8G8_UNORM),
+        CONVERSION_TABLE_ENTRY(R32G32B32_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R16G16B16_UNORM),
+        CONVERSION_TABLE_ENTRY(R16G16B16_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R8G8B8_UNORM),
+        CONVERSION_TABLE_ENTRY(B8G8R8_UNORM),
+        CONVERSION_TABLE_ENTRY(B10G11R11_UFLOAT_PACK32),
+        CONVERSION_TABLE_ENTRY(R32G32B32A32_SFLOAT),
+        CONVERSION_TABLE_ENTRY(R16G16B16A16_UNORM),
+        CONVERSION_TABLE_ENTRY(A2R10G10B10_UNORM_PACK32),
+        CONVERSION_TABLE_ENTRY(R8G8B8A8_UNORM),
+        CONVERSION_TABLE_ENTRY(B8G8R8A8_UNORM),
+        CONVERSION_TABLE_ENTRY(D24_UNORM_S8_UINT),
+        CONVERSION_TABLE_ENTRY(D32_SFLOAT),
+        CONVERSION_TABLE_ENTRY(X8_D24_UNORM_PACK32),
+        CONVERSION_TABLE_ENTRY(D16_UNORM),
+        CONVERSION_TABLE_ENTRY(BC1_RGB_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC1_RGBA_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC2_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC3_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC4_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC4_SNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC5_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC5_SNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC6H_UFLOAT_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC6H_SFLOAT_BLOCK),
+        CONVERSION_TABLE_ENTRY(BC7_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_4x4_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_5x4_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_5x5_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_6x5_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_6x6_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_8x5_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_8x6_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_8x8_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_10x5_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_10x6_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_10x8_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_10x10_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_12x10_UNORM_BLOCK),
+        CONVERSION_TABLE_ENTRY(ASTC_12x12_UNORM_BLOCK)};
 
-    inline VkFormat GetVkFormat(TextureFormat format, const BitsPerChannel &bitsPerChannel, TextureDataType dataType)
+#undef CONVERSION_TABLE_ENTRY
+
+    inline VkFormat GetVkFormat(TextureFormat format)
     {
         const auto *pTableStart = &FORMAT_CONVERSION_TABLE[0];
         const auto *pTableEnd = FORMAT_CONVERSION_TABLE + FASTCG_ARRAYSIZE(FORMAT_CONVERSION_TABLE);
         auto it = std::find_if(pTableStart, pTableEnd, [&](const auto &rTableEntry)
-                               { return rTableEntry.format == format &&
-                                        (rTableEntry.bitsPerChannel.r == bitsPerChannel.r &&
-                                         rTableEntry.bitsPerChannel.g == bitsPerChannel.g &&
-                                         rTableEntry.bitsPerChannel.b == bitsPerChannel.b &&
-                                         rTableEntry.bitsPerChannel.a == bitsPerChannel.a) &&
-                                        rTableEntry.dataType == dataType; });
+                               { return rTableEntry.format == format; });
         if (it == pTableEnd)
         {
-            FASTCG_THROW_EXCEPTION(Exception,
-                                   "Vulkan: Unhandled format conversion (format: %s, rgba: %d/%d/%d/%d, dataType: %s)",
-                                   GetTextureFormatString(format),
-                                   bitsPerChannel.r, bitsPerChannel.g, bitsPerChannel.b, bitsPerChannel.a,
-                                   GetTextureDataTypeString(dataType));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (format: %s)", GetTextureFormatString(format));
             return (VkFormat)0;
         }
         return it->vkFormat;
     }
 
-    inline void DecomposeVkFormat(VkFormat vkFormat, TextureFormat &format, BitsPerChannel &bitsPerChannel, TextureDataType &dataType)
+    inline TextureFormat GetTextureFormat(VkFormat vkFormat)
     {
         const auto *pTableStart = &FORMAT_CONVERSION_TABLE[0];
         const auto *pTableEnd = FORMAT_CONVERSION_TABLE + FASTCG_ARRAYSIZE(FORMAT_CONVERSION_TABLE);
@@ -769,12 +779,10 @@ namespace FastCG
                                { return rTableEntry.vkFormat == vkFormat; });
         if (it == pTableEnd)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled format conversion");
-            return;
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a texture format (vkFormat: %s)", GetVkFormatString(vkFormat));
+            return (TextureFormat)0;
         }
-        format = it->format;
-        bitsPerChannel = it->bitsPerChannel;
-        dataType = it->dataType;
+        return it->format;
     }
 
     inline VkFormat GetVkFormat(VertexDataType dataType, uint32_t components)
@@ -816,14 +824,14 @@ namespace FastCG
                 return VK_FORMAT_R8G8B8A8_UNORM;
             }
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled data type %d / components %d", (int)dataType, components);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (dataType: %s, components: %d)", GetVertexDataTypeString(dataType), components);
             return (VkFormat)0;
         }
     }
 
-    inline uint32_t GetVkStride(VkFormat format)
+    inline uint32_t GetVkStride(VkFormat vkFormat)
     {
-        switch (format)
+        switch (vkFormat)
         {
         case VK_FORMAT_R32_SFLOAT:
             return 4;
@@ -834,11 +842,10 @@ namespace FastCG
         case VK_FORMAT_R32G32B32A32_SFLOAT:
             return 16;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled VkFormat %d", (int)format);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stride (vkFormat: %s)", GetVkFormatString(vkFormat));
             return 0;
         }
     }
-
 }
 
 #endif

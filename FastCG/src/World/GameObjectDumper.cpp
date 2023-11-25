@@ -344,9 +344,6 @@ namespace
         AddValueMember(rAlloc, rTextureObj, "type", FastCG::GetTextureTypeString(pTexture->GetType()));
         AddValueMember(rAlloc, rTextureObj, "usage", pTexture->GetUsage());
         AddValueMember(rAlloc, rTextureObj, "format", FastCG::GetTextureFormatString(pTexture->GetFormat()));
-        auto &rBpp = pTexture->GetBitsPerChannel();
-        AddValueMember(rAlloc, rTextureObj, "bitsPerChannel", glm::ivec4{rBpp.r, rBpp.g, rBpp.b, rBpp.a});
-        AddValueMember(rAlloc, rTextureObj, "dataType", FastCG::GetTextureDataTypeString(pTexture->GetDataType()));
         AddValueMember(rAlloc, rTextureObj, "filter", FastCG::GetTextureFilterString(pTexture->GetFilter()));
         AddValueMember(rAlloc, rTextureObj, "wrapMode", FastCG::GetTextureWrapModeString(pTexture->GetWrapMode()));
         if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)

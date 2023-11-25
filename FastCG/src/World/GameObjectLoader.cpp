@@ -214,12 +214,6 @@ namespace
         args.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
         assert(rGenericObj.HasMember("format") && rGenericObj["format"].IsString());
         GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
-        assert(rGenericObj.HasMember("bitsPerChannel") && rGenericObj["bitsPerChannel"].IsArray());
-        auto bitsPerChannelArray = rGenericObj["bitsPerChannel"].GetArray();
-        assert(bitsPerChannelArray.Size() == 4);
-        args.bitsPerChannel = FastCG::BitsPerChannel{(uint8_t)bitsPerChannelArray[0].GetUint(), (uint8_t)bitsPerChannelArray[1].GetUint(), (uint8_t)bitsPerChannelArray[2].GetUint(), (uint8_t)bitsPerChannelArray[3].GetUint()};
-        assert(rGenericObj.HasMember("dataType") && rGenericObj["dataType"].IsString());
-        GetValue(rGenericObj["dataType"], args.dataType, FastCG::TextureDataType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureDataType_STRINGS));
         assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
         GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
         assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());

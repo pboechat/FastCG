@@ -37,9 +37,7 @@ namespace FastCG
                                                                                1,
                                                                                TextureType::TEXTURE_2D,
                                                                                TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                               TextureFormat::RGBA,
-                                                                               {8, 8, 8, 8},
-                                                                               TextureDataType::UNSIGNED_CHAR,
+                                                                               TextureFormat::R8G8B8A8_UNORM,
                                                                                TextureFilter::LINEAR_FILTER,
                                                                                TextureWrapMode::CLAMP});
         }
@@ -54,9 +52,7 @@ namespace FastCG
                                                                                      1,
                                                                                      TextureType::TEXTURE_2D,
                                                                                      TextureUsageFlagBit::RENDER_TARGET,
-                                                                                     TextureFormat::DEPTH,
-                                                                                     {24, 8},
-                                                                                     TextureDataType::UNSIGNED_INT,
+                                                                                     TextureFormat::X8_D24_UNORM_PACK32,
                                                                                      TextureFilter::POINT_FILTER,
                                                                                      TextureWrapMode::CLAMP});
         }

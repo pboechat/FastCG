@@ -33,9 +33,7 @@ namespace
                                                                      1,
                                                                      FastCG::TextureType::TEXTURE_2D,
                                                                      FastCG::TextureUsageFlagBit::SAMPLED | FastCG::TextureUsageFlagBit::RENDER_TARGET,
-                                                                     FastCG::TextureFormat::DEPTH,
-                                                                     {24, 8},
-                                                                     FastCG::TextureDataType::UNSIGNED_INT,
+                                                                     FastCG::TextureFormat::X8_D24_UNORM_PACK32,
                                                                      FastCG::TextureFilter::POINT_FILTER,
                                                                      FastCG::TextureWrapMode::CLAMP,
                                                                      pData});
@@ -98,9 +96,7 @@ namespace FastCG
                                                                            1,
                                                                            TextureType::TEXTURE_2D,
                                                                            TextureUsageFlagBit::SAMPLED,
-                                                                           TextureFormat::RGBA,
-                                                                           {8, 8, 8, 8},
-                                                                           TextureDataType::UNSIGNED_CHAR,
+                                                                           TextureFormat::R8G8B8A8_UNORM,
                                                                            TextureFilter::POINT_FILTER,
                                                                            TextureWrapMode::CLAMP,
                                                                            &pData[0]});
@@ -115,9 +111,7 @@ namespace FastCG
                                                                                1,
                                                                                TextureType::TEXTURE_2D,
                                                                                TextureUsageFlagBit::SAMPLED,
-                                                                               TextureFormat::R,
-                                                                               {8},
-                                                                               TextureDataType::UNSIGNED_CHAR,
+                                                                               TextureFormat::R8_UNORM,
                                                                                TextureFilter::POINT_FILTER,
                                                                                TextureWrapMode::CLAMP,
                                                                                data});
@@ -268,9 +262,7 @@ namespace FastCG
                                                                               1,
                                                                               TextureType::TEXTURE_2D,
                                                                               TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                              TextureFormat::RGBA,
-                                                                              {8, 8, 8, 8},
-                                                                              TextureDataType::UNSIGNED_CHAR,
+                                                                              TextureFormat::R8G8B8A8_UNORM,
                                                                               TextureFilter::LINEAR_FILTER,
                                                                               TextureWrapMode::CLAMP});
         mSSAORenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
@@ -280,9 +272,7 @@ namespace FastCG
                                                                               1,
                                                                               TextureType::TEXTURE_2D,
                                                                               TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                              TextureFormat::RGBA,
-                                                                              {8, 8, 8, 8},
-                                                                              TextureDataType::UNSIGNED_CHAR,
+                                                                              TextureFormat::R8G8B8A8_UNORM,
                                                                               TextureFilter::LINEAR_FILTER,
                                                                               TextureWrapMode::CLAMP});
     }

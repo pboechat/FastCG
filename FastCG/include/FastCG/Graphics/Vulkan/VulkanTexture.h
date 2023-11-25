@@ -26,9 +26,7 @@ namespace FastCG
                  uint8_t mipCount = 1,
                  TextureType type = TextureType::TEXTURE_2D,
                  TextureUsageFlags usage = TextureUsageFlagBit::SAMPLED,
-                 TextureFormat format = TextureFormat::RGBA,
-                 BitsPerChannel bitsPerChannel = {8, 8, 8, 8},
-                 TextureDataType dataType = TextureDataType::UNSIGNED_CHAR,
+                 TextureFormat format = TextureFormat::R8G8B8A8_UNORM,
                  TextureFilter filter = TextureFilter::LINEAR_FILTER,
                  TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
                  const uint8_t *pData = nullptr,
@@ -40,8 +38,6 @@ namespace FastCG
                                                                      type,
                                                                      usage,
                                                                      format,
-                                                                     bitsPerChannel,
-                                                                     dataType,
                                                                      filter,
                                                                      wrapMode,
                                                                      pData),
@@ -91,11 +87,11 @@ namespace FastCG
         }
         inline VkFormat GetVulkanFormat() const
         {
-            return GetVkFormat(GetFormat(), GetBitsPerChannel(), GetDataType());
+            return GetVkFormat(GetFormat());
         }
         inline VkImageAspectFlags GetAspectFlags() const
         {
-            return GetVkImageAspectFlags(GetFormat(), GetDataType());
+            return GetVkImageAspectFlags(GetFormat());
         }
         inline VkImageLayout GetRestingLayout() const
         {

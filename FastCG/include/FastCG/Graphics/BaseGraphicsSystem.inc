@@ -41,9 +41,6 @@ namespace
                     ImGui::Text("Dimensions: %ux%u", pTexture->GetWidth(), pTexture->GetHeight());
                     ImGui::Text("Type: %s", GetTextureTypeString(pTexture->GetType()));
                     ImGui::Text("Format: %s", GetTextureFormatString(pTexture->GetFormat()));
-                    const auto &rBpc = pTexture->GetBitsPerChannel();
-                    ImGui::Text("R: %d G: %d B: %d A: %d", rBpc.r, rBpc.g, rBpc.b, rBpc.a);
-                    ImGui::Text("Data Type: %s", GetTextureDataTypeString(pTexture->GetDataType()));
                     ImGui::Text("Filter: %s", GetTextureFilterString(pTexture->GetFilter()));
                     ImGui::Text("Wrap Mode: %s", GetTextureWrapModeString(pTexture->GetWrapMode()));
 
@@ -154,9 +151,7 @@ namespace FastCG
                                       1,
                                       TextureType::TEXTURE_2D,
                                       TextureUsageFlagBit::RENDER_TARGET,
-                                      TextureFormat::RGBA,
-                                      {8, 8, 8, 8},
-                                      TextureDataType::UNSIGNED_CHAR,
+                                      TextureFormat::R8G8B8A8_UNORM,
                                       TextureFilter::POINT_FILTER,
                                       TextureWrapMode::CLAMP});
 
@@ -168,9 +163,7 @@ namespace FastCG
                                                                          1,
                                                                          TextureType::TEXTURE_2D,
                                                                          TextureUsageFlagBit::SAMPLED,
-                                                                         TextureFormat::RGBA,
-                                                                         {8, 8, 8, 8},
-                                                                         TextureDataType::UNSIGNED_CHAR,
+                                                                         TextureFormat::R8G8B8A8_UNORM,
                                                                          TextureFilter::LINEAR_FILTER,
                                                                          TextureWrapMode::CLAMP,
                                                                          data}));

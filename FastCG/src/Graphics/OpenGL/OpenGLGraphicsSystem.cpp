@@ -225,13 +225,13 @@ namespace FastCG
         if (pDepthStencilBuffer != nullptr)
         {
             GLenum attachment;
-            if (pDepthStencilBuffer->GetFormat() == TextureFormat::DEPTH)
+            if (HasStencil(pDepthStencilBuffer->GetFormat()))
             {
-                attachment = GL_DEPTH_ATTACHMENT;
+                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
             }
             else
             {
-                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+                attachment = GL_DEPTH_ATTACHMENT;
             }
             glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()), *pDepthStencilBuffer, 0);
         }

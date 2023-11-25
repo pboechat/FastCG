@@ -8,6 +8,13 @@
 #include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Exception.h>
 
+#ifdef CASE_RETURN
+#undef CASE_RETURN
+#endif
+#define CASE_RETURN(x, y) \
+    case x:               \
+        return y
+
 #ifdef CASE_RETURN_STRING
 #undef CASE_RETURN_STRING
 #endif
@@ -38,7 +45,7 @@ namespace FastCG
         }
         else
         {
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled buffer usage %d", (int)usage);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL target (usage: %d)", (int)usage);
             return (GLenum)0;
         }
     }
@@ -64,7 +71,7 @@ namespace FastCG
         case VertexDataType::UNSIGNED_BYTE:
             return GL_UNSIGNED_BYTE;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled vertex data type %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL type (type: %s)", GetVertexDataTypeString(type));
             return (GLenum)0;
         }
     }
@@ -90,7 +97,7 @@ namespace FastCG
         case StencilOp::DECREMENT_AND_WRAP:
             return GL_DECR_WRAP;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled stencil func %d", (int)stencilFunc);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL stencil func (stencilFunc: %s)", GetStencilOpString(stencilFunc));
             return (GLenum)0;
         }
     }
@@ -106,7 +113,7 @@ namespace FastCG
         case Face::FRONT_AND_BACK:
             return GL_FRONT_AND_BACK;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled face %d", (int)face);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL face (face: %s)", GetFaceString(face));
             return (GLenum)0;
         }
     }
@@ -132,7 +139,7 @@ namespace FastCG
         case CompareOp::ALWAYS:
             return GL_ALWAYS;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled compare op %d", (int)compareOp);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL compare op (compareOp: %s)", GetCompareOpString(compareOp));
             return (GLenum)0;
         }
     }
@@ -144,7 +151,7 @@ namespace FastCG
         case BlendFunc::ADD:
             return GL_FUNC_ADD;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled blend func %d", (int)blendFunc);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL blend func (blendFunc: %s)", GetBlendFuncString(blendFunc));
             return (GLenum)0;
         }
     }
@@ -170,7 +177,7 @@ namespace FastCG
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return GL_ONE_MINUS_SRC_ALPHA;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled blend factor %d", (int)blendFactor);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL blend factor (blendFactor: %s)", GetBlendFactorString(blendFactor));
             return (GLenum)0;
         }
     }
@@ -182,7 +189,7 @@ namespace FastCG
         case PrimitiveType::TRIANGLES:
             return GL_TRIANGLES;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled primitive type %d", (int)primitiveType);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL primitive type (primitiveType: %s)", GetPrimitiveTypeString(primitiveType));
             return (GLenum)0;
         }
     }
@@ -194,7 +201,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_VERTEX_SHADER);
             CASE_RETURN_STRING(GL_FRAGMENT_SHADER);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled shader type %d", (int)shaderType);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL shader type string (shaderType: %d)", (int)shaderType);
             return nullptr;
         }
     }
@@ -208,7 +215,7 @@ namespace FastCG
         case ShaderType::FRAGMENT:
             return GL_FRAGMENT_SHADER;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled shader type %d", (int)shaderType);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL shader type (shaderType: %s)", GetShaderTypeString(shaderType));
             return 0;
         }
     }
@@ -230,7 +237,7 @@ namespace FastCG
         case TextureType::TEXTURE_2D_ARRAY:
             return GL_TEXTURE_2D_ARRAY;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture type %d", (int)type);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL target (type: %s)", GetTextureTypeString(type));
             return 0;
         }
     }
@@ -244,7 +251,7 @@ namespace FastCG
         case TextureFilter::LINEAR_FILTER:
             return GL_LINEAR;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture filter %d", (int)filter);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL filter (filter: %s)", GetTextureFilterString(filter));
             return 0;
         }
     }
@@ -258,208 +265,173 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return GL_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture wrapping mode %d", (int)wrapMode);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL wrap mode (wrapMode: %s)", GetTextureWrapModeString(wrapMode));
             return 0;
         }
     }
 
-    inline GLint GetOpenGLInternalFormat(TextureFormat format, const BitsPerChannel &bitsPerChannel, TextureDataType dataType)
+    inline GLint GetOpenGLInternalFormat(TextureFormat format)
     {
         switch (format)
         {
-        case TextureFormat::R:
-            if (bitsPerChannel.r == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
-            {
-                return GL_R8;
-            }
-#if defined GL_R16
-            else if (bitsPerChannel.r == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
-            {
-                return GL_R16;
-            }
+            CASE_RETURN(TextureFormat::R32_SFLOAT, GL_R32F);
+            CASE_RETURN(TextureFormat::R16_SFLOAT, GL_R16F);
+#ifdef GL_R16
+            CASE_RETURN(TextureFormat::R16_UNORM, GL_R16);
 #endif
-            else if (bitsPerChannel.r == 16 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_R16F;
-            }
-            else if (bitsPerChannel.r == 32 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_R32F;
-            }
-            else if (bitsPerChannel.r == 32 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_R32UI;
-            }
-            break;
-        case TextureFormat::RG:
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
-            {
-                return GL_RG8;
-            }
-#if defined GL_RG16
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
-            {
-                return GL_RG16;
-            }
+            CASE_RETURN(TextureFormat::R8_UNORM, GL_R8);
+            CASE_RETURN(TextureFormat::R32G32_SFLOAT, GL_RG32F);
+            CASE_RETURN(TextureFormat::R16G16_SFLOAT, GL_RG16F);
+#ifdef GL_RG16
+            CASE_RETURN(TextureFormat::R16G16_UNORM, GL_RG16);
 #endif
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_RG16F;
-            }
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_RG32F;
-            }
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_RG32UI;
-            }
-            break;
-        case TextureFormat::BGR:
-#if defined GL_BGR
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
-            {
-                return GL_BGR;
-            }
+            CASE_RETURN(TextureFormat::R8G8_UNORM, GL_RG8);
+            CASE_RETURN(TextureFormat::R32G32B32_SFLOAT, GL_RGB32F);
+#ifdef GL_RGB16
+            CASE_RETURN(TextureFormat::R16G16B16_UNORM, GL_RGB16);
 #endif
-            break;
-        case TextureFormat::RGB:
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
-            {
-                return GL_RGB8;
-            }
-            else if (bitsPerChannel.r == 11 && bitsPerChannel.g == 11 && bitsPerChannel.b == 10 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_R11F_G11F_B10F;
-            }
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_RGB16F;
-            }
-#if defined GL_RGB16
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
-            {
-                return GL_RGB16;
-            }
+            CASE_RETURN(TextureFormat::R16G16B16_SFLOAT, GL_RGB16F);
+            CASE_RETURN(TextureFormat::R8G8B8_UNORM, GL_RGB8);
+#ifdef GL_BGR
+            CASE_RETURN(TextureFormat::B8G8R8_UNORM, GL_BGR);
 #endif
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_RGB32F;
-            }
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_RGB32UI;
-            }
-            break;
-        case TextureFormat::BGRA:
-#if defined GL_BGRA
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
-            {
-                return GL_BGRA;
-            }
+            CASE_RETURN(TextureFormat::B10G11R11_UFLOAT_PACK32, GL_R11F_G11F_B10F);
+            CASE_RETURN(TextureFormat::R32G32B32A32_SFLOAT, GL_RGBA32F);
+#ifdef GL_RGBA16
+            CASE_RETURN(TextureFormat::R16G16B16A16_UNORM, GL_RGBA16);
 #endif
-            break;
-        case TextureFormat::RGBA:
-            if (bitsPerChannel.r == 8 && bitsPerChannel.g == 8 && bitsPerChannel.b == 8 && bitsPerChannel.a == 8 && dataType == TextureDataType::UNSIGNED_CHAR)
-            {
-                return GL_RGBA8;
-            }
-            else if (bitsPerChannel.r == 10 && bitsPerChannel.g == 10 && bitsPerChannel.b == 10 && bitsPerChannel.a == 2 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_RGB10_A2;
-            }
-            else if (bitsPerChannel.r == 16 && bitsPerChannel.g == 16 && bitsPerChannel.b == 16 && bitsPerChannel.a == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
-            {
-                return GL_RGBA16F;
-            }
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && bitsPerChannel.a == 32 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_RGBA32F;
-            }
-            else if (bitsPerChannel.r == 32 && bitsPerChannel.g == 32 && bitsPerChannel.b == 32 && bitsPerChannel.a == 32 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_RGBA32UI;
-            }
-            break;
-        case TextureFormat::DEPTH_STENCIL:
-            if (bitsPerChannel.r == 24 && bitsPerChannel.g == 8 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_DEPTH24_STENCIL8;
-            }
-            break;
-        case TextureFormat::DEPTH:
-            if (bitsPerChannel.r == 16 && dataType == TextureDataType::UNSIGNED_SHORT)
-            {
-                return GL_DEPTH_COMPONENT16;
-            }
-            else if (bitsPerChannel.r == 24 && bitsPerChannel.g == 8 && dataType == TextureDataType::UNSIGNED_INT)
-            {
-                return GL_DEPTH_COMPONENT24;
-            }
-            else if (bitsPerChannel.r == 32 && dataType == TextureDataType::FLOAT)
-            {
-                return GL_DEPTH_COMPONENT32F;
-            }
-            break;
+            CASE_RETURN(TextureFormat::A2R10G10B10_UNORM_PACK32, GL_RGB10_A2);
+            CASE_RETURN(TextureFormat::R8G8B8A8_UNORM, GL_RGBA8);
+#ifdef GL_BGRA
+            CASE_RETURN(TextureFormat::B8G8R8A8_UNORM, GL_BGRA);
+#endif
+            CASE_RETURN(TextureFormat::D24_UNORM_S8_UINT, GL_DEPTH24_STENCIL8);
+            CASE_RETURN(TextureFormat::D32_SFLOAT, GL_DEPTH_COMPONENT32F);
+            CASE_RETURN(TextureFormat::X8_D24_UNORM_PACK32, GL_DEPTH_COMPONENT24);
+            CASE_RETURN(TextureFormat::D16_UNORM, GL_DEPTH_COMPONENT16);
+#ifdef GL_COMPRESSED_RGB_S3TC_DXT1_EXT
+            CASE_RETURN(TextureFormat::BC1_RGB_UNORM_BLOCK, GL_COMPRESSED_RGB_S3TC_DXT1_EXT);
+#endif
+#ifdef GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+            CASE_RETURN(TextureFormat::BC1_RGBA_UNORM_BLOCK, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT);
+#endif
+#ifdef GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+            CASE_RETURN(TextureFormat::BC2_UNORM_BLOCK, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT);
+#endif
+#ifdef GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+            CASE_RETURN(TextureFormat::BC3_UNORM_BLOCK, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT);
+#endif
+#ifdef GL_COMPRESSED_RED_RGTC1
+            CASE_RETURN(TextureFormat::BC4_UNORM_BLOCK, GL_COMPRESSED_RED_RGTC1);
+#endif
+#ifdef GL_COMPRESSED_SIGNED_RED_RGTC1
+            CASE_RETURN(TextureFormat::BC4_SNORM_BLOCK, GL_COMPRESSED_SIGNED_RED_RGTC1);
+#endif
+#ifdef GL_COMPRESSED_RG_RGTC2
+            CASE_RETURN(TextureFormat::BC5_UNORM_BLOCK, GL_COMPRESSED_RG_RGTC2);
+#endif
+#ifdef GL_COMPRESSED_SIGNED_RG_RGTC2
+            CASE_RETURN(TextureFormat::BC5_SNORM_BLOCK, GL_COMPRESSED_SIGNED_RG_RGTC2);
+#endif
+#ifdef GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB
+            CASE_RETURN(TextureFormat::BC6H_UFLOAT_BLOCK, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB);
+#endif
+#ifdef GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB
+            CASE_RETURN(TextureFormat::BC6H_SFLOAT_BLOCK, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB);
+#endif
+#ifdef GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
+            CASE_RETURN(TextureFormat::BC7_UNORM_BLOCK, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB);
+#endif
+            CASE_RETURN(TextureFormat::ASTC_4x4_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_4x4_KHR);
+            CASE_RETURN(TextureFormat::ASTC_5x4_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_5x4_KHR);
+            CASE_RETURN(TextureFormat::ASTC_5x5_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_5x5_KHR);
+            CASE_RETURN(TextureFormat::ASTC_6x5_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_6x5_KHR);
+            CASE_RETURN(TextureFormat::ASTC_6x6_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_6x6_KHR);
+            CASE_RETURN(TextureFormat::ASTC_8x5_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_8x5_KHR);
+            CASE_RETURN(TextureFormat::ASTC_8x6_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_8x6_KHR);
+            CASE_RETURN(TextureFormat::ASTC_8x8_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_8x8_KHR);
+            CASE_RETURN(TextureFormat::ASTC_10x5_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_10x5_KHR);
+            CASE_RETURN(TextureFormat::ASTC_10x6_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_10x6_KHR);
+            CASE_RETURN(TextureFormat::ASTC_10x8_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_10x8_KHR);
+            CASE_RETURN(TextureFormat::ASTC_10x10_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_10x10_KHR);
+            CASE_RETURN(TextureFormat::ASTC_12x10_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_12x10_KHR);
+            CASE_RETURN(TextureFormat::ASTC_12x12_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_12x12_KHR);
         default:
-            break;
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL internal format (format: %s)", GetTextureFormatString(format));
+            return 0;
         }
-        FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);
-        return 0;
     }
 
     inline GLenum GetOpenGLFormat(TextureFormat format)
     {
         switch (format)
         {
-        case TextureFormat::R:
-            return GL_RED;
-        case TextureFormat::RG:
-            return GL_RG;
-        case TextureFormat::RGB:
-            return GL_RGB;
-        case TextureFormat::RGBA:
-            return GL_RGBA;
-#if defined GL_BGR
-        case TextureFormat::BGR:
-            return GL_BGR;
+            CASE_RETURN(TextureFormat::R32_SFLOAT, GL_RED);
+            CASE_RETURN(TextureFormat::R16_SFLOAT, GL_RED);
+            CASE_RETURN(TextureFormat::R16_UNORM, GL_RED);
+            CASE_RETURN(TextureFormat::R8_UNORM, GL_RED);
+            CASE_RETURN(TextureFormat::R32G32_SFLOAT, GL_RG);
+            CASE_RETURN(TextureFormat::R16G16_SFLOAT, GL_RG);
+            CASE_RETURN(TextureFormat::R16G16_UNORM, GL_RG);
+            CASE_RETURN(TextureFormat::R8G8_UNORM, GL_RG);
+            CASE_RETURN(TextureFormat::R32G32B32_SFLOAT, GL_RGB);
+            CASE_RETURN(TextureFormat::R16G16B16_UNORM, GL_RGB);
+            CASE_RETURN(TextureFormat::R16G16B16_SFLOAT, GL_RGB);
+            CASE_RETURN(TextureFormat::R8G8B8_UNORM, GL_RGB);
+#ifdef GL_BGR
+            CASE_RETURN(TextureFormat::B8G8R8_UNORM, GL_BGR);
 #endif
-#if defined GL_BGRA
-        case TextureFormat::BGRA:
-            return GL_BGRA;
+            CASE_RETURN(TextureFormat::B10G11R11_UFLOAT_PACK32, GL_RGB);
+            CASE_RETURN(TextureFormat::R32G32B32A32_SFLOAT, GL_RGBA);
+            CASE_RETURN(TextureFormat::R16G16B16A16_UNORM, GL_RGBA);
+            CASE_RETURN(TextureFormat::A2R10G10B10_UNORM_PACK32, GL_RGBA);
+            CASE_RETURN(TextureFormat::R8G8B8A8_UNORM, GL_RGBA);
+#ifdef GL_BGRA
+            CASE_RETURN(TextureFormat::B8G8R8A8_UNORM, GL_BGRA);
 #endif
-        case TextureFormat::DEPTH_STENCIL:
-            return GL_DEPTH_STENCIL;
-        case TextureFormat::DEPTH:
-            return GL_DEPTH_COMPONENT;
+            CASE_RETURN(TextureFormat::D24_UNORM_S8_UINT, GL_DEPTH_STENCIL);
+            CASE_RETURN(TextureFormat::D32_SFLOAT, GL_DEPTH_COMPONENT);
+            CASE_RETURN(TextureFormat::X8_D24_UNORM_PACK32, GL_DEPTH_COMPONENT);
+            CASE_RETURN(TextureFormat::D16_UNORM, GL_DEPTH_COMPONENT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture format %d", (int)format);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL format (format: %s)", GetTextureFormatString(format));
             return 0;
         }
     }
 
-    inline GLenum GetOpenGLDataType(TextureFormat format, TextureDataType dataType, const BitsPerChannel &rBitsPerChannel)
+    inline GLenum GetOpenGLDataType(TextureFormat format)
     {
-        // TODO: specialize other data types (if needed)
-        switch (dataType)
+        switch (format)
         {
-        case TextureDataType::UNSIGNED_CHAR:
-            return GL_UNSIGNED_BYTE;
-        case TextureDataType::UNSIGNED_SHORT:
-            return GL_UNSIGNED_SHORT;
-        case TextureDataType::UNSIGNED_INT:
-            if (format == TextureFormat::DEPTH_STENCIL && rBitsPerChannel.r == 24 && rBitsPerChannel.g == 8) // D24S8
-            {
-                return GL_UNSIGNED_INT_24_8;
-            }
-            else
-            {
-                return GL_UNSIGNED_INT;
-            }
-        case TextureDataType::FLOAT:
-            return GL_FLOAT;
+            CASE_RETURN(TextureFormat::R32_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R16_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R16_UNORM, GL_UNSIGNED_SHORT);
+            CASE_RETURN(TextureFormat::R8_UNORM, GL_UNSIGNED_BYTE);
+            CASE_RETURN(TextureFormat::R32G32_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R16G16_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R16G16_UNORM, GL_UNSIGNED_SHORT);
+            CASE_RETURN(TextureFormat::R8G8_UNORM, GL_UNSIGNED_BYTE);
+            CASE_RETURN(TextureFormat::R32G32B32_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R16G16B16_UNORM, GL_UNSIGNED_SHORT);
+            CASE_RETURN(TextureFormat::R16G16B16_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R8G8B8_UNORM, GL_UNSIGNED_BYTE);
+#ifdef GL_BGR
+            CASE_RETURN(TextureFormat::B8G8R8_UNORM, GL_UNSIGNED_BYTE);
+#endif
+            CASE_RETURN(TextureFormat::B10G11R11_UFLOAT_PACK32, GL_UNSIGNED_INT_10F_11F_11F_REV);
+            CASE_RETURN(TextureFormat::R32G32B32A32_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::R16G16B16A16_UNORM, GL_UNSIGNED_SHORT);
+            CASE_RETURN(TextureFormat::A2R10G10B10_UNORM_PACK32, GL_UNSIGNED_INT_2_10_10_10_REV);
+            CASE_RETURN(TextureFormat::R8G8B8A8_UNORM, GL_UNSIGNED_BYTE);
+#ifdef GL_BGRA
+            CASE_RETURN(TextureFormat::B8G8R8A8_UNORM, GL_UNSIGNED_BYTE);
+#endif
+            CASE_RETURN(TextureFormat::D24_UNORM_S8_UINT, GL_UNSIGNED_INT_24_8);
+            CASE_RETURN(TextureFormat::D32_SFLOAT, GL_FLOAT);
+            CASE_RETURN(TextureFormat::X8_D24_UNORM_PACK32, GL_UNSIGNED_INT);
+            CASE_RETURN(TextureFormat::D16_UNORM, GL_FLOAT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture data type %d", (int)dataType);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL data type (format: %s)", GetTextureFormatString(format));
             return 0;
         }
     }
@@ -474,7 +446,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_SOURCE_APPLICATION);
             CASE_RETURN_STRING(GL_DEBUG_SOURCE_OTHER);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGL: Unhandled debug output message source %d", (int)source);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message source string (source: %d)", (int)source);
             return nullptr;
         }
     }
@@ -493,7 +465,7 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_TYPE_PUSH_GROUP);
             CASE_RETURN_STRING(GL_DEBUG_TYPE_POP_GROUP);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGL: Unhandled debug output message type %d", (int)type);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message type string (type: %d)", (int)type);
             return nullptr;
         }
     }
@@ -507,13 +479,13 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_SEVERITY_LOW);
             CASE_RETURN_STRING(GL_DEBUG_SEVERITY_NOTIFICATION);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "OpenGL: Unhandled debug output message severity %d", (int)severity);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message severity (severity: %d)", (int)severity);
             return nullptr;
         }
     }
-
 }
 
+#undef CASE_RETURN
 #undef CASE_RETURN_STRING
 
 #endif

@@ -657,10 +657,6 @@ namespace FastCG
         swapChainImages.resize(swapChainCount);
         FASTCG_CHECK_VK_RESULT(vkGetSwapchainImagesKHR(mDevice, mSwapChain, &swapChainCount, &swapChainImages[0]));
 
-        TextureFormat format;
-        BitsPerChannel bitsPerChannel;
-        TextureDataType dataType;
-        DecomposeVkFormat(mSwapChainSurfaceFormat.format, format, bitsPerChannel, dataType);
         VulkanTexture::Args args{"",
                                  mArgs.rScreenWidth,
                                  mArgs.rScreenHeight,
@@ -668,9 +664,7 @@ namespace FastCG
                                  1,
                                  TextureType::TEXTURE_2D,
                                  TextureUsageFlagBit::PRESENT,
-                                 format,
-                                 bitsPerChannel,
-                                 dataType,
+                                 GetTextureFormat(mSwapChainSurfaceFormat.format),
                                  TextureFilter::LINEAR_FILTER,
                                  TextureWrapMode::CLAMP};
         for (size_t i = 0; i < swapChainImages.size(); ++i)

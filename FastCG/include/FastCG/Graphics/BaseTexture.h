@@ -32,8 +32,6 @@ namespace FastCG
 			TextureType type;
 			TextureUsageFlags usage;
 			TextureFormat format;
-			BitsPerChannel bitsPerChannel;
-			TextureDataType dataType;
 			TextureFilter filter;
 			TextureWrapMode wrapMode;
 			const uint8_t *pData;
@@ -45,9 +43,7 @@ namespace FastCG
 				 uint8_t mipCount = 1,
 				 TextureType type = TextureType::TEXTURE_2D,
 				 TextureUsageFlags usage = TextureUsageFlagBit::SAMPLED,
-				 TextureFormat format = TextureFormat::RGBA,
-				 BitsPerChannel bitsPerChannel = {8, 8, 8, 8},
-				 TextureDataType dataType = TextureDataType::UNSIGNED_CHAR,
+				 TextureFormat format = TextureFormat::R8G8B8A8_UNORM,
 				 TextureFilter filter = TextureFilter::LINEAR_FILTER,
 				 TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
 				 const uint8_t *pData = nullptr)
@@ -59,8 +55,6 @@ namespace FastCG
 				  type(type),
 				  usage(usage),
 				  format(format),
-				  bitsPerChannel(bitsPerChannel),
-				  dataType(dataType),
 				  filter(filter),
 				  wrapMode(wrapMode),
 				  pData(pData)
@@ -83,6 +77,11 @@ namespace FastCG
 			return mWidth;
 		}
 
+		inline uint32_t GetDepth() const
+		{
+			return mType == TextureType::TEXTURE_3D ? mDepthOrSlices : 1;
+		}
+
 		inline uint32_t GetHeight(uint8_t mip) const
 		{
 			return std::max((uint32_t)1, (uint32_t)mHeight >> mip);
@@ -93,9 +92,9 @@ namespace FastCG
 			return std::max((uint32_t)1, (uint32_t)mWidth >> mip);
 		}
 
-		inline uint32_t GetDepth() const
+		inline uint32_t GetDepth(uint8_t mip) const
 		{
-			return mType == TextureType::TEXTURE_3D ? mDepthOrSlices : 1;
+			return std::max((uint32_t)1, (uint32_t)GetDepth() >> mip);
 		}
 
 		inline uint32_t GetSlices() const
@@ -125,16 +124,6 @@ namespace FastCG
 			return mFormat;
 		}
 
-		inline const BitsPerChannel &GetBitsPerChannel() const
-		{
-			return mBitsPerChannel;
-		}
-
-		inline TextureDataType GetDataType() const
-		{
-			return mDataType;
-		}
-
 		inline TextureFilter GetFilter() const
 		{
 			return mFilter;
@@ -147,14 +136,12 @@ namespace FastCG
 
 		inline size_t GetBaseMipDataSize() const
 		{
-			auto bytesPerPixel = (size_t)(mBitsPerChannel.r + mBitsPerChannel.g + mBitsPerChannel.b + mBitsPerChannel.a) >> 3;
-			return (size_t)GetWidth() * (size_t)GetHeight() * bytesPerPixel;
+			return GetTextureDataSize(GetFormat(), GetWidth(), GetHeight(), GetDepth());
 		}
 
 		inline size_t GetMipDataSize(uint8_t mip) const
 		{
-			auto bytesPerPixel = (size_t)(mBitsPerChannel.r + mBitsPerChannel.g + mBitsPerChannel.b + mBitsPerChannel.a) >> 3;
-			return (size_t)GetWidth(mip) * (size_t)GetHeight(mip) * bytesPerPixel;
+			return GetTextureDataSize(GetFormat(), GetWidth(mip), GetHeight(mip), GetDepth(mip));
 		}
 
 		inline size_t GetSliceDataSize() const
@@ -182,7 +169,7 @@ namespace FastCG
 			case TextureType::TEXTURE_2D_ARRAY:
 				return GetSliceDataSize() * mDepthOrSlices;
 			default:
-				FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Unhandled texture type (type: %d)", (int)mType);
+				FASTCG_THROW_EXCEPTION(Exception, "Couldn't get data size (type: %s)", GetTextureTypeString(mType));
 				return 0;
 			}
 		}
@@ -200,9 +187,7 @@ namespace FastCG
 		uint8_t mMipCount;
 		TextureType mType;
 		TextureUsageFlags mUsage;
-		BitsPerChannel mBitsPerChannel;
 		TextureFormat mFormat;
-		TextureDataType mDataType;
 		TextureFilter mFilter;
 		TextureWrapMode mWrapMode;
 		std::unique_ptr<uint8_t[]> mpData;
@@ -214,9 +199,7 @@ namespace FastCG
 										 mMipCount(rArgs.mipCount),
 										 mType(rArgs.type),
 										 mUsage(rArgs.usage),
-										 mBitsPerChannel(rArgs.bitsPerChannel),
 										 mFormat(rArgs.format),
-										 mDataType(rArgs.dataType),
 										 mFilter(rArgs.filter),
 										 mWrapMode(rArgs.wrapMode)
 		{
