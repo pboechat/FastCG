@@ -77,7 +77,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA)
           return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
         if (B.offset == 1)
           return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
-#ifdef VK_KHR_maintenance5
+#if defined VK_KHR_maintenance5
         if (B.offset == 10)
           return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
 #endif
@@ -131,7 +131,7 @@ if (KHR_DFDVAL(dfd + 1, MODEL) == KHR_DF_MODEL_RGBSDA)
     {
       if (A.size > 8 && R.size == 0 && G.size == 0 && B.size == 0 && (r & i_NORMALIZED_FORMAT_BIT) && !(r & i_SIGNED_FORMAT_BIT))
       {
-#ifdef VK_KHR_maintenance5
+#if defined VK_KHR_maintenance5
         return VK_FORMAT_A8_UNORM_KHR;
 #endif
       }

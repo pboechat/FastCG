@@ -457,14 +457,15 @@ vkFormatString(VkFormat format)
     return "VK_FORMAT_G16_B16R16_2PLANE_422_UNORM";
   case VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM:
     return "VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM";
-  case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM:
+  case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT:
     return "VK_FORMAT_G8_B8R8_2PLANE_444_UNORM";
-  case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16:
-    return "VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16";
-  case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16:
-    return "VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16";
-  case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM:
-    return "VK_FORMAT_G16_B16R16_2PLANE_444_UNORM";
+  case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT:
+    return "VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT";
+  case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT:
+    return "VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT";
+  case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT:
+    return "VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT";
+#if defined VK_API_VERSION_1_3
   case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
     return "VK_FORMAT_A4R4G4B4_UNORM_PACK16";
   case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
@@ -497,6 +498,7 @@ vkFormatString(VkFormat format)
     return "VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK";
   case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
     return "VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK";
+  #endif
   case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG:
     return "VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG";
   case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG:
@@ -575,11 +577,11 @@ vkFormatString(VkFormat format)
       case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
         return "VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT";
 #endif
-#ifdef VK_NV_optical_flow
+#if defined VK_NV_optical_flow
   case VK_FORMAT_R16G16_S10_5_NV:
     return "VK_FORMAT_R16G16_S10_5_NV";
 #endif
-#ifdef VK_KHR_maintenance5
+#if defined VK_KHR_maintenance5
   case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
     return "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR";
   case VK_FORMAT_A8_UNORM_KHR:
@@ -1069,14 +1071,15 @@ stringToVkFormat(const char *str)
   if (ktx_strcasecmp(str, "G16_B16_R16_3PLANE_444_UNORM") == 0)
     return VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;
   if (ktx_strcasecmp(str, "G8_B8R8_2PLANE_444_UNORM") == 0)
-    return VK_FORMAT_G8_B8R8_2PLANE_444_UNORM;
-  if (ktx_strcasecmp(str, "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16") == 0)
-    return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16;
-  if (ktx_strcasecmp(str, "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16") == 0)
-    return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16;
-  if (ktx_strcasecmp(str, "G16_B16R16_2PLANE_444_UNORM") == 0)
-    return VK_FORMAT_G16_B16R16_2PLANE_444_UNORM;
-  if (ktx_strcasecmp(str, "A4R4G4B4_UNORM_PACK16") == 0)
+    return VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT;
+  if (ktx_strcasecmp(str, "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT") == 0)
+    return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT;
+  if (ktx_strcasecmp(str, "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT") == 0)
+    return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT;
+  if (ktx_strcasecmp(str, "G16_B16R16_2PLANE_444_UNORM_EXT") == 0)
+    return VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT;
+  if (ktx_strcasecmp(str, "A4R4G4B4_UNORM_PACK16_EXT") == 0)
+  #if defined VK_API_VERSION_1_3
     return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
   if (ktx_strcasecmp(str, "A4B4G4R4_UNORM_PACK16") == 0)
     return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
@@ -1109,6 +1112,7 @@ stringToVkFormat(const char *str)
   if (ktx_strcasecmp(str, "ASTC_12x12_SFLOAT_BLOCK") == 0)
     return VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;
   if (ktx_strcasecmp(str, "PVRTC1_2BPP_UNORM_BLOCK_IMG") == 0)
+#endif
     return VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;
   if (ktx_strcasecmp(str, "PVRTC1_4BPP_UNORM_BLOCK_IMG") == 0)
     return VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;
@@ -1186,16 +1190,17 @@ stringToVkFormat(const char *str)
   if (ktx_strcasecmp(str, "ASTC_6x6x6_SFLOAT_BLOCK_EXT") == 0)
     return VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT;
 #endif
-#ifdef VK_NV_optical_flow
+#if defined VK_NV_optical_flow
   if (ktx_strcasecmp(str, "R16G16_S10_5_NV") == 0)
     return VK_FORMAT_R16G16_S10_5_NV;
 #endif
-#ifdef VK_KHR_maintenance5
+#if defined VK_KHR_maintenance5
   if (ktx_strcasecmp(str, "A1B5G5R5_UNORM_PACK16_KHR") == 0)
     return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
   if (ktx_strcasecmp(str, "A8_UNORM_KHR") == 0)
     return VK_FORMAT_A8_UNORM_KHR;
 #endif
+#if defined VK_API_VERSION_1_3
   if (ktx_strcasecmp(str, "ASTC_4x4_SFLOAT_BLOCK_EXT") == 0)
     return VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
   if (ktx_strcasecmp(str, "ASTC_5x4_SFLOAT_BLOCK_EXT") == 0)
@@ -1224,6 +1229,7 @@ stringToVkFormat(const char *str)
     return VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK;
   if (ktx_strcasecmp(str, "ASTC_12x12_SFLOAT_BLOCK_EXT") == 0)
     return VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;
+  #endif
   if (ktx_strcasecmp(str, "G8B8G8R8_422_UNORM_KHR") == 0)
     return VK_FORMAT_G8B8G8R8_422_UNORM;
   if (ktx_strcasecmp(str, "B8G8R8G8_422_UNORM_KHR") == 0)
@@ -1293,16 +1299,16 @@ stringToVkFormat(const char *str)
   if (ktx_strcasecmp(str, "G16_B16_R16_3PLANE_444_UNORM_KHR") == 0)
     return VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;
   if (ktx_strcasecmp(str, "G8_B8R8_2PLANE_444_UNORM_EXT") == 0)
-    return VK_FORMAT_G8_B8R8_2PLANE_444_UNORM;
+    return VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT;
   if (ktx_strcasecmp(str, "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT") == 0)
-    return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16;
+    return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT;
   if (ktx_strcasecmp(str, "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT") == 0)
-    return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16;
+    return VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT;
   if (ktx_strcasecmp(str, "G16_B16R16_2PLANE_444_UNORM_EXT") == 0)
-    return VK_FORMAT_G16_B16R16_2PLANE_444_UNORM;
+    return VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT;
   if (ktx_strcasecmp(str, "A4R4G4B4_UNORM_PACK16_EXT") == 0)
-    return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
+    return VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT;
   if (ktx_strcasecmp(str, "A4B4G4R4_UNORM_PACK16_EXT") == 0)
-    return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+    return VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT;
   return VK_FORMAT_UNDEFINED;
 }

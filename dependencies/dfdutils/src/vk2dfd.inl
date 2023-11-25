@@ -603,6 +603,7 @@ case VK_FORMAT_B16G16R16G16_422_UNORM:
     int position_ys[] = {128, 128, 128, 128};
     return createDFD422(0, 4, bits, paddings, channels, position_xs, position_ys, s_UNORM);
 }
+#if defined VK_API_VERSION_1_3
 case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 {
     int channels[] = {2, 1, 0, 3};
@@ -643,6 +644,7 @@ case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:
 return createDFDCompressed(c_ASTC, 12, 10, 1, s_SFLOAT);
 case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
 return createDFDCompressed(c_ASTC, 12, 12, 1, s_SFLOAT);
+#endif
 case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG:
 return createDFDCompressed(c_PVRTC, 8, 4, 1, s_UNORM);
 case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG:
@@ -691,7 +693,7 @@ case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6,
 case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 6, 6, s_SRGB);
 case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT: return createDFDCompressed(c_ASTC, 6, 6, 6, s_SFLOAT);
 #endif
-#ifdef VK_KHR_maintenance5
+#if defined VK_KHR_maintenance5
 case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
 {
     int channels[] = {0, 1, 2, 3};
