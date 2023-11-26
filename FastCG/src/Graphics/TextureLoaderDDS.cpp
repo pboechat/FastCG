@@ -390,7 +390,6 @@ namespace FastCG
         ptrdiff_t dataOffset = sizeof(uint32_t) + sizeof(DDS_HEADER) + (bDXT10Header ? sizeof(DDS_HEADER_DXT10) : 0);
 
         auto *pData = ddsData.get() + dataOffset;
-        auto dataSize = ddsDataSize - dataOffset;
 
         auto width = header->width;
         auto height = header->height;
