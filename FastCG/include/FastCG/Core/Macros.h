@@ -195,6 +195,14 @@
 #endif
 
 #if defined _MSC_VER
+#define FASTCG_PACKED_PREFIX _Pragma("pack(push, 1)");
+#define FASTCG_PACKED_SUFFIX ; _Pragma("pack(pop)")
+#elif defined __GNUC__
+#define FASTCG_PACKED_PREFIX
+#define FASTCG_PACKED_SUFFIX __attribute__((packed))
+#endif
+
+#if defined _MSC_VER
 #define FASTCG_COMPILER_WARN_PUSH _Pragma("warning(push)")
 #define FASTCG_COMPILER_WARN_IGNORE_CRT_SECURITY_COMPLAINTS _Pragma("warning(disable:4996)")
 #define FASTCG_COMPILER_WARN_IGNORE_DEPRECATED_DECLARATIONS

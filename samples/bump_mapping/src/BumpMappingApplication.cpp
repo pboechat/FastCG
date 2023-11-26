@@ -70,8 +70,8 @@ namespace
 
 		auto pGroundMesh = StandardGeometries::CreateXZPlane("Ground", 5, 5);
 
-		auto *pGroundColorMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_d.png"), {TextureFilter::LINEAR_FILTER, TextureWrapMode::REPEAT});
-		auto *pGroupBumpMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_n.png"), {TextureFilter::LINEAR_FILTER, TextureWrapMode::REPEAT});
+		auto *pGroundColorMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_d.png"), {TextureUsageFlagBit::SAMPLED, TextureFilter::LINEAR_FILTER, TextureWrapMode::REPEAT});
+		auto *pGroupBumpMap = TextureLoader::Load(AssetSystem::GetInstance()->Resolve("textures/ground_n.png"), {TextureUsageFlagBit::SAMPLED, TextureFilter::LINEAR_FILTER, TextureWrapMode::REPEAT});
 
 		auto pGroundMaterial = std::make_unique<Material>(MaterialArgs{"Ground", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueBumpedSpecular")});
 		pGroundMaterial->SetTexture("uColorMap", pGroundColorMap);

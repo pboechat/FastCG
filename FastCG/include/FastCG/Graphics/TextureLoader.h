@@ -7,16 +7,20 @@
 
 namespace FastCG
 {
-	struct TextureSamplerSettings
+	struct TextureLoadSettings
 	{
+		TextureUsageFlags usage{TextureUsageFlagBit::SAMPLED};
 		TextureFilter filter{TextureFilter::LINEAR_FILTER};
 		TextureWrapMode wrapMode{TextureWrapMode::CLAMP};
 	};
 
-	class TextureLoader
+	class TextureLoader final
 	{
 	public:
-		static Texture *Load(const std::string &rFilePath, TextureSamplerSettings samplerSettings = {});
+		static Texture *LoadKTX(const std::string &rFilePath, TextureLoadSettings settings = {});
+		static Texture *LoadDDS(const std::string &rFilePath, TextureLoadSettings settings = {});
+		static Texture *LoadPlain(const std::string &rFilePath, TextureLoadSettings settings = {});
+		static Texture *Load(const std::string &rFilePath, TextureLoadSettings settings = {});
 
 	private:
 		TextureLoader() = delete;
