@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	class Directory
+	class Directory final
 	{
 	public:
 		inline static bool Exists(const std::string &rDirectoryPath);

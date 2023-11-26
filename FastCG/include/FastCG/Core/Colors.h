@@ -5,7 +5,7 @@
 
 namespace FastCG
 {
-	class Colors
+	class Colors final
 	{
 	public:
 		static const glm::vec4 NONE;

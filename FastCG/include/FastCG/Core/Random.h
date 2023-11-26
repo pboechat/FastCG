@@ -5,7 +5,7 @@
 
 namespace FastCG
 {
-	class Random
+	class Random final
 	{
 	public:
 		inline static float NextFloat();

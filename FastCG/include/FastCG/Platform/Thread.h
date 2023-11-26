@@ -9,7 +9,7 @@
 
 namespace FastCG
 {
-	class Thread
+	class Thread final
 	{
 	public:
 		static void Sleep(double seconds)

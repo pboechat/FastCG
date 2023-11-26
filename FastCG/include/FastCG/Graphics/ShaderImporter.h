@@ -5,7 +5,7 @@
 
 namespace FastCG
 {
-    class ShaderImporter
+    class ShaderImporter final
     {
     public:
         static void Import();

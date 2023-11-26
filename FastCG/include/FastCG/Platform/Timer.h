@@ -12,7 +12,7 @@
 namespace FastCG
 {
 #if defined FASTCG_WINDOWS
-	class Timer
+	class Timer final
 	{
 	public:
 		static inline double GetTime()
@@ -70,7 +70,7 @@ namespace FastCG
 		}
 	};
 #elif defined FASTCG_POSIX
-	class Timer
+	class Timer final
 	{
 	public:
 		static inline double GetTime()

@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	class StringUtils
+	class StringUtils final
 	{
 	public:
 		inline static void Split(const std::string &rString, const std::string &rDelimiter, std::vector<std::string> &rTokens);

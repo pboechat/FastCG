@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	class FileWriter
+	class FileWriter final
 	{
 	public:
 		inline static void WriteText(const std::string &rFileName, const char *pData, size_t dataSize);

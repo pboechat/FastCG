@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	class File
+	class File final
 	{
 	public:
 		inline static std::string GetBasePath(const std::string &rFilePath);

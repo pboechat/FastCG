@@ -3,7 +3,7 @@
 
 namespace FastCG
 {
-	class CollectionUtils
+	class CollectionUtils final
 	{
 	public:
 		template <class CollectionT>

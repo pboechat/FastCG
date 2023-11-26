@@ -9,7 +9,7 @@
 namespace FastCG
 {
 	template <typename T>
-	class Math
+	class Math final
 	{
 	public:
 		static const float DEGREES_TO_RADIANS;

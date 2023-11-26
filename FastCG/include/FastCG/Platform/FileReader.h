@@ -6,7 +6,7 @@
 
 namespace FastCG
 {
-	class FileReader
+	class FileReader final
 	{
 	public:
 		inline static std::unique_ptr<char[]> ReadText(const std::string &rFileName, size_t &rFileSize);
