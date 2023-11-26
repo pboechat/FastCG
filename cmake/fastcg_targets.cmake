@@ -6,7 +6,7 @@ function(_fastcg_remove)
     endforeach()
 endfunction()
 
-function(_fastcg_add_glsl_shader_target)
+function(_fastcg_add_compile_shaders_target)
     get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
 
     set(SRC_SHADERS_DIR "${SOURCE_DIR}/assets/shaders")
@@ -85,17 +85,47 @@ function(_fastcg_add_glsl_shader_target)
 
     if(DST_GLSL_SOURCES)
         add_custom_target(
-            ${ARGV0}_GLSL_SHADERS
+            ${ARGV0}_COMPILE_SHADERS
             DEPENDS ${DST_GLSL_SOURCES}
         )
         if(NOT FASTCG_USE_TEXT_SHADERS)
             # clean up text headers in the destination directory (just in case)
             add_custom_command(
-                TARGET ${ARGV0}_GLSL_SHADERS PRE_BUILD
+                TARGET ${ARGV0}_COMPILE_SHADERS PRE_BUILD
                 COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_GLSL_HEADERS}
             )
         endif()
-        add_dependencies(${ARGV0} ${ARGV0}_GLSL_SHADERS)
+        add_dependencies(${ARGV0} ${ARGV0}_COMPILE_SHADERS)
+    endif()
+endfunction()
+
+function(_fastcg_add_cook_assets_target)
+    get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
+
+    set(SRC_ASSETS_DIR "${SOURCE_DIR}/assets")
+    set(DST_ASSETS_DIR "${FASTCG_DEPLOY}/assets/${ARGV0}")
+
+    file(GLOB_RECURSE RECIPES "${SRC_ASSETS_DIR}/*.recipe")
+    foreach(RECIPE IN LISTS RECIPES)
+        file(RELATIVE_PATH REL_RECIPE_PATH ${SRC_ASSETS_DIR} ${RECIPE})
+        string(REGEX REPLACE "(.*)\\.recipe$" "\\1" REL_COOKED_ASSET_PATH "${REL_RECIPE_PATH}")
+        set(COOKED_ASSET "${DST_ASSETS_DIR}/${REL_COOKED_ASSET_PATH}")
+        get_filename_component(COOKED_ASSET_DIR ${COOKED_ASSET} DIRECTORY)
+        add_custom_command(
+            OUTPUT ${COOKED_ASSET}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${COOKED_ASSET_DIR}
+            COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_asset_cooker.cmake "${SOURCE_DIR}" "${RECIPE}" "${COOKED_ASSET}"
+            DEPENDS ${RECIPE}
+        )
+        list(APPEND COOKED_ASSETS ${COOKED_ASSET})
+    endforeach()
+
+    if(COOKED_ASSETS)
+        add_custom_target(
+            ${ARGV0}_COOK_ASSETS
+            DEPENDS ${COOKED_ASSETS}
+        )
+        add_dependencies(${ARGV0} ${ARGV0}_COOK_ASSETS)
     endif()
 endfunction()
 
@@ -108,7 +138,10 @@ function(_fastcg_add_copy_assets_target)
     file(GLOB_RECURSE SRC_ASSET_FILES "${SRC_ASSETS_DIR}/*.*")
     foreach(SRC_ASSET_FILE IN LISTS SRC_ASSET_FILES)
         file(RELATIVE_PATH REL_ASSET_FILE ${SRC_ASSETS_DIR} ${SRC_ASSET_FILE})
-        if(REL_ASSET_FILE MATCHES "shaders")
+        if(REL_ASSET_FILE MATCHES "\\.vert$" OR REL_ASSET_FILE MATCHES "\\.frag$" OR REL_ASSET_FILE MATCHES "\\.glsl$")
+            continue()
+        endif()
+        if(REL_ASSET_FILE MATCHES "\\.recipe$")
             continue()
         endif()
         set(DST_ASSET_FILE "${DST_ASSETS_DIR}/${REL_ASSET_FILE}")
@@ -129,7 +162,8 @@ function(_fastcg_add_copy_assets_target)
 endfunction()
 
 function(_fastcg_add_asset_targets)
-    _fastcg_add_glsl_shader_target(${ARGV})
+    _fastcg_add_compile_shaders_target(${ARGV})
+    _fastcg_add_cook_assets_target(${ARGV})
     _fastcg_add_copy_assets_target(${ARGV})
 endfunction()
 
