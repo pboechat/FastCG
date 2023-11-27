@@ -208,7 +208,7 @@ namespace FastCG
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 												rBufferFrameData.allocation,
 												&mappedData));
-			memcpy(mappedData, pData, dataSize);
+			std::memcpy(mappedData, pData, dataSize);
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 						   rBufferFrameData.allocation);
 
@@ -252,7 +252,7 @@ namespace FastCG
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 												pTexture->GetAllocation(),
 												&mappedData));
-			memcpy(mappedData, pData, dataSize);
+			std::memcpy(mappedData, pData, dataSize);
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 						   pTexture->GetAllocation());
 
@@ -426,7 +426,7 @@ namespace FastCG
 	{
 		assert(pBuffers != nullptr);
 		mVertexBuffers.resize(bufferCount);
-		memcpy(&mVertexBuffers[0], pBuffers, bufferCount * sizeof(const VulkanBuffer *));
+		std::memcpy(&mVertexBuffers[0], pBuffers, bufferCount * sizeof(const VulkanBuffer *));
 	}
 
 	void VulkanGraphicsContext::SetIndexBuffer(const VulkanBuffer *pBuffer)

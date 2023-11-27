@@ -211,7 +211,7 @@ namespace FastCG
 			{
 				auto dataSize = GetDataSize();
 				mpData = std::make_unique<uint8_t[]>(dataSize);
-				memcpy((void *)mpData.get(), rArgs.pData, dataSize);
+				std::memcpy((void *)mpData.get(), rArgs.pData, dataSize);
 			}
 		}
 		virtual ~BaseTexture() = default;

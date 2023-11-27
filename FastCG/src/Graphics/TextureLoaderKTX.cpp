@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <memory>
+#include <cstring>
 #include <cstdint>
 
 // copied from vulkan_core.h
@@ -163,7 +164,7 @@ namespace FastCG
 			{
 				ktx_size_t mipOffset;
 				ktxTexture_GetImageOffset(pKtxTexture, (ktx_uint32_t)mip, 0, 0, &mipOffset);
-				memcpy(pData, pKtxTexture->pData + mipOffset, mipStats[mip].size);
+				std::memcpy(pData, pKtxTexture->pData + mipOffset, mipStats[mip].size);
 				pData += mipStats[mip].size;
 			}
 		}
@@ -182,7 +183,7 @@ namespace FastCG
 				data = std::make_unique<uint8_t[]>(texelCount);
 				ktx_size_t offset;
 				ktxTexture_GetImageOffset(pKtxTexture, 0, 0, 0, &offset);
-				memcpy(&data[0], pKtxTexture->pData + offset, texelCount);
+				std::memcpy(&data[0], pKtxTexture->pData + offset, texelCount);
 			}
 			else if (pKtxTexture->isCubemap)
 			{
@@ -201,7 +202,7 @@ namespace FastCG
 				{
 					ktx_size_t sliceOffset;
 					ktxTexture_GetImageOffset(pKtxTexture, 0, 0, (ktx_uint32_t)slice, &sliceOffset);
-					memcpy(pData, pKtxTexture->pData + sliceOffset, sliceSize);
+					std::memcpy(pData, pKtxTexture->pData + sliceOffset, sliceSize);
 					pData += sliceSize;
 				}
 			}
@@ -225,7 +226,7 @@ namespace FastCG
 				{
 					ktx_size_t sliceOffset;
 					ktxTexture_GetImageOffset(pKtxTexture, 0, slice, 0, &sliceOffset);
-					memcpy(pData, pKtxTexture->pData + sliceOffset, sliceSize);
+					std::memcpy(pData, pKtxTexture->pData + sliceOffset, sliceSize);
 					pData += sliceSize;
 				}
 			}

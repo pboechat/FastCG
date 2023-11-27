@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cstring>
 #include <cstdint>
 
 namespace FastCG
@@ -104,9 +105,9 @@ namespace FastCG
                 for (int n = 0; n < pImDrawData->CmdListsCount; n++)
                 {
                     const auto *pCmdList = pImDrawData->CmdLists[n];
-                    memcpy(pVerticesDataEnd, pCmdList->VtxBuffer.Data, pCmdList->VtxBuffer.size_in_bytes());
+                    std::memcpy(pVerticesDataEnd, pCmdList->VtxBuffer.Data, pCmdList->VtxBuffer.size_in_bytes());
                     pVerticesDataEnd += pCmdList->VtxBuffer.size_in_bytes();
-                    memcpy(pIndicesDataEnd, pCmdList->IdxBuffer.Data, pCmdList->IdxBuffer.size_in_bytes());
+                    std::memcpy(pIndicesDataEnd, pCmdList->IdxBuffer.Data, pCmdList->IdxBuffer.size_in_bytes());
                     pIndicesDataEnd += pCmdList->IdxBuffer.size_in_bytes();
                 }
 

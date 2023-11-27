@@ -162,7 +162,7 @@ namespace FastCG
             shaderModuleCreateInfo.codeSize = rProgramData.dataSize;
             auto wordCount = shaderModuleCreateInfo.codeSize / sizeof(uint32_t);
             auto pCode = std::make_unique<uint32_t[]>(wordCount);
-            memcpy(pCode.get(), rProgramData.pData, shaderModuleCreateInfo.codeSize);
+            std::memcpy(pCode.get(), rProgramData.pData, shaderModuleCreateInfo.codeSize);
             shaderModuleCreateInfo.pCode = pCode.get();
             FASTCG_CHECK_VK_RESULT(vkCreateShaderModule(VulkanGraphicsSystem::GetInstance()->GetDevice(),
                                                         &shaderModuleCreateInfo,

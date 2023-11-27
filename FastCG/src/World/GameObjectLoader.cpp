@@ -127,7 +127,7 @@ namespace
                     assert(vertexBufferObj.HasMember("data") && vertexBufferObj["data"].IsString());
                     auto data = FastCG::DecodeBase64(vertexBufferObj["data"].GetString());
                     auto bufferData = std::make_unique<uint8_t[]>(data.size());
-                    memcpy((void *)bufferData.get(), (const void *)data.data(), data.size());
+                    std::memcpy((void *)bufferData.get(), (const void *)data.data(), data.size());
                     buffersData[bufferIdx] = std::move(bufferData);
                 }
                 rVertexAttributeDescriptor.pData = (const void *)buffersData[bufferIdx++].get();
@@ -168,7 +168,7 @@ namespace
             assert(dataSize % sizeof(uint32_t) == 0);
             args.indices.count = (uint32_t)(dataSize / sizeof(uint32_t));
             indexBufferData = std::make_unique<uint32_t[]>(dataSize);
-            memcpy((void *)indexBufferData.get(), (const void *)data.get(), dataSize);
+            std::memcpy((void *)indexBufferData.get(), (const void *)data.get(), dataSize);
         }
         else
         {
@@ -178,7 +178,7 @@ namespace
             auto data = FastCG::DecodeBase64(indexBufferObj["data"].GetString());
             assert(data.size() % sizeof(uint32_t) == 0);
             indexBufferData = std::make_unique<uint32_t[]>(args.indices.count);
-            memcpy((void *)indexBufferData.get(), (const void *)data.data(), data.size());
+            std::memcpy((void *)indexBufferData.get(), (const void *)data.data(), data.size());
         }
         args.indices.pData = (const uint32_t *)indexBufferData.get();
         if (rGenericObj.HasMember("bounds"))

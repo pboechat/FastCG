@@ -18,7 +18,7 @@ namespace FastCG
         {
             return false;
         }
-        memcpy((void *)array, &mpData[mCurrent], size);
+        std::memcpy((void *)array, &mpData[mCurrent], size);
         mCurrent += size;
         return true;
     }
@@ -30,7 +30,7 @@ namespace FastCG
         {
             return false;
         }
-        memcpy((void *)&object, &mpData[mCurrent], sizeof(T));
+        std::memcpy((void *)&object, &mpData[mCurrent], sizeof(T));
         mCurrent += sizeof(T);
         return true;
     }
@@ -41,7 +41,7 @@ namespace FastCG
         size_t size = length * sizeof(T);
         size_t current = mData.size();
         mData.resize(mData.size() + size);
-        memcpy(&mData[current], (void *)array, size);
+        std::memcpy(&mData[current], (void *)array, size);
     }
 
     template <typename T>
@@ -49,7 +49,7 @@ namespace FastCG
     {
         size_t current = mData.size();
         mData.resize(mData.size() + sizeof(T));
-        memcpy(&mData[current], (void *)&object, sizeof(T));
+        std::memcpy(&mData[current], (void *)&object, sizeof(T));
     }
 
     inline uint8_t *OutputBinaryStream::GetData()

@@ -81,7 +81,7 @@ namespace FastCG
                 mpData = std::make_unique<uint8_t[]>(mDataSize);
                 if (rArgs.pData != nullptr)
                 {
-                    memcpy((void *)mpData.get(), rArgs.pData, mDataSize);
+                    std::memcpy((void *)mpData.get(), rArgs.pData, mDataSize);
                 }
             }
         }

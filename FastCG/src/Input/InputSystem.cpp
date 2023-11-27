@@ -80,7 +80,7 @@ namespace FastCG
 
 	void InputSystem::InputBuffer::Copy(InputBuffer &rOther)
 	{
-		memcpy(mpKeys, rOther.mpKeys, sizeof(mpKeys));
+		std::memcpy(mpKeys, rOther.mpKeys, sizeof(mpKeys));
 		mLeftMouseButton = rOther.mLeftMouseButton;
 		mMiddleMouseButton = rOther.mMiddleMouseButton;
 		mRightMouseButton = rOther.mRightMouseButton;
