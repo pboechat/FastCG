@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cstdint>
 #include <cassert>
+#include <algorithm>
 
 #ifdef max
 #undef max
@@ -126,7 +127,7 @@ namespace FastCG
                                                        mSize(rOther.mSize)
         {
             mData = std::make_unique<uint8_t[]>(mSize);
-            memcpy((void *)&mData[0], rOther.GetData(), mSize);
+            std::memcpy((void *)&mData[0], rOther.GetData(), mSize);
         }
 
         inline const auto &GetMembers() const
@@ -182,7 +183,7 @@ namespace FastCG
         inline void SetData(const uint8_t *data, size_t offset, size_t size)
         {
             assert((offset + size) <= mSize);
-            memcpy(mData.get() + offset, data, size);
+            std::memcpy(mData.get() + offset, data, size);
         }
 
     private:
@@ -198,7 +199,7 @@ namespace FastCG
             for (const auto &rMember : mMembers)
             {
                 auto memberSize = rMember.GetSize();
-                mAlignment = glm::max(memberSize, mAlignment);
+                mAlignment = std::max(memberSize, mAlignment);
                 auto padding = mSize % memberSize;
                 auto offset = mSize + padding;
                 auto boundary = (offset + memberSize) % 16;
@@ -216,7 +217,7 @@ namespace FastCG
                 mData = std::make_unique<uint8_t[]>(mSize);
                 for (size_t i = 0; i < mMembers.size(); ++i)
                 {
-                    memcpy((void *)&mData[mOffsets[i]], mMembers[i].GetValue(), mMembers[i].GetSize());
+                    std::memcpy((void *)&mData[mOffsets[i]], mMembers[i].GetValue(), mMembers[i].GetSize());
                 }
             }
         }
@@ -243,7 +244,7 @@ namespace FastCG
             {
                 return false;
             }
-            memcpy((void *)&mData[offset], (const void *)&rValue, sizeof(T));
+            std::memcpy((void *)&mData[offset], (const void *)&rValue, sizeof(T));
             return true;
         }
 
@@ -255,7 +256,7 @@ namespace FastCG
             {
                 return false;
             }
-            memcpy((void *)&rValue, &mData[offset], sizeof(T));
+            std::memcpy((void *)&rValue, &mData[offset], sizeof(T));
             return true;
         }
     };
