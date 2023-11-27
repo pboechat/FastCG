@@ -194,7 +194,7 @@ namespace FastCG
 
         inline void Initialize()
         {
-            // FIXME: Using std140 layout rules
+            // using std140 layout rules
             for (const auto &rMember : mMembers)
             {
                 auto memberSize = rMember.GetSize();
