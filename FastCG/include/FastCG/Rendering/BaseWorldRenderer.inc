@@ -142,6 +142,8 @@ namespace FastCG
 
         mLastInstanceConstantsBufferIdx = 0;
         mLastLightingConstantsBufferIdx = 0;
+        mLastPCSSConstantsBufferIdx = 0;
+        mLastFogConstantsBufferIdx = 0;
         mLastSceneConstantsBufferIdx = 0;
         mLastShadowMapPassConstantsBufferIdx = 0;
     }
