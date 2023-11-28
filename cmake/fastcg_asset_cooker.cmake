@@ -16,6 +16,7 @@ function(_cook_ktx)
     if(NOT KTX_SOURCE)
         message(FATAL_ERROR "source required")
     endif()
+    string(REGEX REPLACE "," ";" KTX_SOURCES "${KTX_SOURCE}")
 
     get_property(KTX_FORMAT VARIABLE PROPERTY "format")
     if(NOT KTX_FORMAT)
@@ -42,7 +43,7 @@ function(_cook_ktx)
     endif()
 
     execute_process(
-        COMMAND ${KTX} create ${KTX_ARGS} "${KTX_SOURCE}" "${KTX_OUTPUT}"
+        COMMAND ${KTX} create ${KTX_ARGS} ${KTX_SOURCES} "${KTX_OUTPUT}"
         WORKING_DIRECTORY ${KTX_WRKDIR}
         RESULT_VARIABLE result
         ERROR_VARIABLE error
@@ -88,14 +89,16 @@ function(_cook_dds)
     get_property(DDS_CUBEMAP VARIABLE PROPERTY "cubemap")
 
     if(DDS_ARRAY)
+        string(REGEX REPLACE "," ";" DDS_SOURCES "${DDS_SOURCE}")
         execute_process(
-            COMMAND ${TEXASSEMBLE} array -f ${DDS_FORMAT} ${TEXASSEMBLE_ARGS} "${DDS_SOURCE}" -o "${DDS_OUTPUT}" -y
+            COMMAND ${TEXASSEMBLE} array -f ${DDS_FORMAT} ${TEXASSEMBLE_ARGS} ${DDS_SOURCES} -o "${DDS_OUTPUT}" -y
             WORKING_DIRECTORY ${DDS_WRKDIR}
             ERROR_VARIABLE error
         )
     elseif(DDS_CUBEMAP)
+        string(REGEX REPLACE "," ";" DDS_SOURCES "${DDS_SOURCE}")
         execute_process(
-            COMMAND ${TEXASSEMBLE} cubemap -f ${DDS_FORMAT} ${TEXASSEMBLE_ARGS} "${DDS_SOURCE}" -o "${DDS_OUTPUT}" -y
+            COMMAND ${TEXASSEMBLE} cubemap -f ${DDS_FORMAT} ${TEXASSEMBLE_ARGS} ${DDS_SOURCES} -o "${DDS_OUTPUT}" -y
             WORKING_DIRECTORY ${DDS_WRKDIR}
             ERROR_VARIABLE error
         )
@@ -124,9 +127,12 @@ file(READ ${recipe_file} recipe_content)
 string(REGEX REPLACE "\n" ";" lines "${recipe_content}")
 
 foreach(line IN LISTS lines)
-    string(REGEX MATCHALL "([^=]+)=([^=]+)" _ "${line}")
+    string(REGEX MATCHALL "([^=]+)=(.+)" _ "${line}")
     set(key ${CMAKE_MATCH_1})
     set(value ${CMAKE_MATCH_2})
+    if(NOT key OR NOT value)
+        continue()
+    endif()
     set(${key} ${value})
 endforeach()
 
