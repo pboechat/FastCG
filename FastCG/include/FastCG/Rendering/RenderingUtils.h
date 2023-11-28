@@ -1,8 +1,6 @@
 #ifndef FASTCG_RENDERING_UTILS_H
 #define FASTCG_RENDERING_UTILS_H
 
-#include <FastCG/Core/Enums.h>
-
 #include <limits>
 #include <cstdint>
 
@@ -28,6 +26,7 @@ namespace FastCG
     {
         return group == RenderGroup::OPAQUE_MATERIAL || group == RenderGroup::TRANSPARENT_MATERIAL;
     }
+
 }
 
 #endif
