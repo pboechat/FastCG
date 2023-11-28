@@ -15,7 +15,7 @@ Features:
 - Rendering Backend Support:
     - OpenGL 4.3 (core profile)
     - OpenGL ES 3.2
-    - Vulkan 1.1/1.3
+    - Vulkan 1.1/1.2/1.3
 - Material System:
     - Basic shaders including diffuse, specular, bump, and more.
 - Rendering Paths:
