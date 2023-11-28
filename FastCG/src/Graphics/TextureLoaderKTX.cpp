@@ -123,7 +123,7 @@ namespace FastCG
 		}
 		auto *pKtxTexture2 = reinterpret_cast<ktxTexture2 *>(pKtxTexture);
 
-		auto format = GetTextureFormat(pKtxTexture2);
+		auto format = ::GetTextureFormat(pKtxTexture2);
 		auto width = (uint32_t)pKtxTexture->baseWidth;
 		auto height = (uint32_t)pKtxTexture->baseHeight;
 		auto depth = (uint32_t)pKtxTexture->baseDepth;

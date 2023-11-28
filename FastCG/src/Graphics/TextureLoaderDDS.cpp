@@ -485,7 +485,7 @@ namespace FastCG
             }
         }
 
-        auto format = GetTextureFormat(ddsFormat);
+        auto format = ::GetTextureFormat(ddsFormat);
 
         // bound sizes (for security purposes, we don't trust DDS file metadata larger than the D3D 11.x hardware requirements)
         if (mipCount > DDS_REQ_MIP_LEVELS)
