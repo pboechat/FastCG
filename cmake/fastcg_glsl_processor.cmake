@@ -1,21 +1,22 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Usage: 
-# cmake -P fastcg_glsl_processor.cmake "path/to/input" "path/to/output" "glsl_glsl_version"
+# cmake -P fastcg_glsl_processor.cmake "platform" "path/to/input" "path/to/output" "glsl_glsl_version"
 
-set(input_file ${CMAKE_ARGV3} CACHE FILEPATH "Path to the input file")
-set(output_file ${CMAKE_ARGV4} CACHE FILEPATH "Path to the output file")
-set(glsl_version ${CMAKE_ARGV5} CACHE FILEPATH "GLSL version")
+set(platform ${CMAKE_ARGV3})
+set(input_file ${CMAKE_ARGV4})
+set(output_file ${CMAKE_ARGV5})
+set(glsl_version ${CMAKE_ARGV6})
 
-if(input_file STREQUAL "" OR output_file STREQUAL "" OR glsl_version STREQUAL "")
-    message(FATAL_ERROR "You must provide input_file, output_file and glsl_version")
+if(platform STREQUAL "" OR input_file STREQUAL "" OR output_file STREQUAL "" OR glsl_version STREQUAL "")
+    message(FATAL_ERROR "You must provide platform, input_file, output_file and glsl_version")
 endif()
 
 file(READ ${input_file} file_content)
 
 set(glsl_prefix "#version ${glsl_version}")
 set(glsl_prefix "${glsl_prefix}\n#extension GL_GOOGLE_include_directive : enable")
-if(input_file MATCHES "\\.frag$")
+if(platform STREQUAL "Android" AND input_file MATCHES "\\.frag$")
     set(glsl_prefix "${glsl_prefix}\nprecision mediump float;")
 endif()
 

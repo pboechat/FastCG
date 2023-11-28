@@ -63,7 +63,7 @@ function(_fastcg_add_compile_shaders_target)
             add_custom_command(
                 OUTPUT ${DST_GLSL_SOURCE}
                 COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_BINARY_SOURCE} # clean up binary source in the destination directory (just in case)
-                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${DST_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in the destination directory
+                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake ${FASTCG_PLATFORM} "${GLSL_SOURCE}" "${DST_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in the destination directory
                 DEPENDS ${GLSL_SOURCE} ${DST_GLSL_HEADERS}
             )
         else()
@@ -73,7 +73,7 @@ function(_fastcg_add_compile_shaders_target)
             add_custom_command(
                 OUTPUT ${DST_GLSL_SOURCE}
                 COMMAND ${CMAKE_COMMAND} -E rm -f ${DST_TEXT_SOURCE} # clean up text source in the destination directory (just in case)
-                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in a tmp directory
+                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/fastcg_glsl_processor.cmake ${FASTCG_PLATFORM} "${GLSL_SOURCE}" "${TMP_GLSL_SOURCE}" "${GLSL_VERSION}" # process text source and store it in a tmp directory
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${DST_GLSL_SOURCE_DIR}
                 # FIXME: can't compile non-debug shaders with -g0 otherwise runtime reflection doesn't work
                 COMMAND ${FASTCG_GLSLANGVALIDATOR} ${SHADER_COMPILER_ARGS} ${TMP_GLSL_SOURCE} -o ${DST_GLSL_SOURCE} $<IF:$<CONFIG:Debug>,-g,>  # generate binary source in the destination directory
