@@ -979,17 +979,22 @@ namespace FastCG
 
 			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tSetting up pipeline resources (%zu)", rRenderPassCommand.lastPipelineCommandIdx - lastUsedPipelineCommandIdx);
 
+			size_t savedLastUsedDrawCommandIdx = lastUsedDrawCommandIdx;
+			
 			for (size_t j = lastUsedPipelineCommandIdx, jc = 0; j < rRenderPassCommand.lastPipelineCommandIdx; ++j, ++jc)
 			{
 				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rRenderPassCommand.lastPipelineCommandIdx - lastUsedPipelineCommandIdx);
 
 				auto &rPipelineCommand = mPipelineCommands[j];
 
-				for (size_t k = lastUsedDrawCommandIdx, kc = 0; k < rPipelineCommand.lastDrawCommandIdx; ++k, ++kc)
+				for (size_t k = savedLastUsedDrawCommandIdx, kc = 0; savedLastUsedDrawCommandIdx < rPipelineCommand.lastDrawCommandIdx; ++savedLastUsedDrawCommandIdx, ++kc)
 				{
-					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - lastUsedDrawCommandIdx);
+					FASTCG_UNUSED(k);
+					FASTCG_UNUSED(kc);
 
-					auto &rDrawCommand = mDrawCommands[k];
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - k);
+
+					auto &rDrawCommand = mDrawCommands[savedLastUsedDrawCommandIdx];
 
 					rDrawCommand.descriptorSets.resize(rPipelineCommand.pipelineResourcesLayout.size());
 
