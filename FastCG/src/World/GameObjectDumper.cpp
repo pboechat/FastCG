@@ -21,6 +21,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/glm.hpp>
 
+#include <vector>
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -99,6 +100,18 @@ namespace
         array.PushBack(rValue.x, rAlloc);
         array.PushBack(rValue.y, rAlloc);
         array.PushBack(rValue.z, rAlloc);
+        return array;
+    }
+
+    template <typename AllocatorT, typename GenericObjectT, typename ElementT>
+    auto CreateValue(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const ElementT *pArray, size_t count)
+    {
+        FASTCG_UNUSED(rGenericObj);
+        rapidjson::Value array(rapidjson::kArrayType);
+        for (size_t i = 0; i < count; ++i)
+        {
+            array.PushBack(pArray[i], rAlloc);
+        }
         return array;
     }
 
@@ -184,6 +197,12 @@ namespace
     void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const glm::quat &rValue)
     {
         rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue), rAlloc);
+    }
+
+    template <typename AllocatorT, typename GenericObjectT, typename ElementT>
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const ElementT *pArray, size_t count)
+    {
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, pArray, count), rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT, typename GenericValueT>
@@ -272,18 +291,16 @@ namespace
                 const auto *pVertexBuffer = pVertexBuffers[i];
                 AddValueMember(rAlloc, vertexBufferObj, "name", pVertexBuffer->GetName());
                 AddValueMember(rAlloc, vertexBufferObj, "usage", pVertexBuffer->GetUsage());
-                if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)
+                if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::ENCODE_DATA) != 0)
                 {
-                    AddValueMember(rAlloc, vertexBufferObj, "dataSize", pVertexBuffer->GetDataSize());
                     auto data = FastCG::EncodeBase64(pVertexBuffer->GetData(), pVertexBuffer->GetDataSize());
-                    AddValueMember(rAlloc, vertexBufferObj, "data", data);
+                    AddValueMember(rAlloc, vertexBufferObj, "encodedData", data);
                 }
                 else
                 {
-                    auto fileName = GetId(pMesh) + ".vbuffer" + std::to_string(i);
-                    auto dataPath = FastCG::File::Join({rBasePath, fileName});
-                    FastCG::FileWriter::WriteBinary(dataPath, pVertexBuffer->GetData(), pVertexBuffer->GetDataSize());
-                    AddValueMember(rAlloc, vertexBufferObj, "dataPath", fileName);
+                    auto count = pVertexBuffer->GetDataSize() / sizeof(float);
+                    const auto *pArray = reinterpret_cast<const float *>(pVertexBuffer->GetData());
+                    AddValueMember(rAlloc, vertexBufferObj, "data", pArray, count);
                 }
                 auto &rBindingDescriptors = pVertexBuffer->GetVertexBindingDescriptors();
                 assert(!rBindingDescriptors.empty());
@@ -307,18 +324,16 @@ namespace
         rapidjson::Value indexBufferObj(rapidjson::kObjectType);
         auto *pIndexBuffer = pMesh->GetIndexBuffer();
         AddValueMember(rAlloc, indexBufferObj, "usage", pIndexBuffer->GetUsage());
-        if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)
+        if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::ENCODE_DATA) != 0)
         {
-            AddValueMember(rAlloc, indexBufferObj, "count", pIndexBuffer->GetDataSize());
             auto data = FastCG::EncodeBase64(pIndexBuffer->GetData(), pIndexBuffer->GetDataSize());
-            AddValueMember(rAlloc, indexBufferObj, "data", data);
+            AddValueMember(rAlloc, indexBufferObj, "encodedData", data);
         }
         else
         {
-            auto fileName = GetId(pMesh) + ".indices";
-            auto dataPath = FastCG::File::Join({rBasePath, fileName});
-            FastCG::FileWriter::WriteBinary(dataPath, pIndexBuffer->GetData(), pIndexBuffer->GetDataSize());
-            AddValueMember(rAlloc, indexBufferObj, "dataPath", fileName);
+            auto count = pIndexBuffer->GetDataSize() / sizeof(uint32_t);
+            const auto *pArray = reinterpret_cast<const uint32_t *>(pIndexBuffer->GetData());
+            AddValueMember(rAlloc, indexBufferObj, "data", pArray, count);
         }
         AddMember(rAlloc, rMeshObj, "indexBuffer", indexBufferObj);
         auto &rBounds = pMesh->GetBounds();
@@ -346,18 +361,9 @@ namespace
         AddValueMember(rAlloc, rTextureObj, "format", FastCG::GetTextureFormatString(pTexture->GetFormat()));
         AddValueMember(rAlloc, rTextureObj, "filter", FastCG::GetTextureFilterString(pTexture->GetFilter()));
         AddValueMember(rAlloc, rTextureObj, "wrapMode", FastCG::GetTextureWrapModeString(pTexture->GetWrapMode()));
-        if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::EMBED_RESOURCE_DATA) != 0)
-        {
-            auto data = FastCG::EncodeBase64(pTexture->GetData(), pTexture->GetDataSize());
-            AddValueMember(rAlloc, rTextureObj, "data", data);
-        }
-        else
-        {
-            auto fileName = GetId(pTexture) + ".texture";
-            auto dataPath = FastCG::File::Join({rBasePath, fileName});
-            FastCG::FileWriter::WriteBinary(dataPath, pTexture->GetData(), pTexture->GetDataSize());
-            AddValueMember(rAlloc, rTextureObj, "dataPath", fileName);
-        }
+        auto data = FastCG::EncodeBase64(pTexture->GetData(), pTexture->GetDataSize());
+        AddValueMember(rAlloc, rTextureObj, "data", data);
+        // TODO: dump to disk
     }
 
     template <typename AllocatorT, typename GenericObjectT>

@@ -11,6 +11,7 @@ if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL" AND NOT FASTCG_PLATFORM STREQUAL "An
 endif()
 add_subdirectory(glm)
 add_subdirectory(imgui)
+add_subdirectory(ImGuiFileDialog)
 add_subdirectory(ktx)
 if(FASTCG_PLATFORM STREQUAL "Linux")
     add_subdirectory(messagebox-x11)

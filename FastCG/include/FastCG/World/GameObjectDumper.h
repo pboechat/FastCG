@@ -12,7 +12,7 @@ namespace FastCG
     enum class GameObjectDumperOption : uint8_t
     {
         NONE = 0,
-        EMBED_RESOURCE_DATA = 1,
+        ENCODE_DATA = 1,
 
     };
 

@@ -1,5 +1,7 @@
 #include <FastCG/World/WorldSystem.h>
 #include <FastCG/World/Transform.h>
+#include <FastCG/World/GameObjectLoader.h>
+#include <FastCG/World/GameObjectDumper.h>
 #include <FastCG/World/GameObject.h>
 #include <FastCG/World/Component.h>
 #include <FastCG/World/Behaviour.h>
@@ -16,6 +18,7 @@
 #include <FastCG/Core/Log.h>
 
 #include <imgui.h>
+#include <ImGuiFileDialog.h>
 
 #include <unordered_set>
 #include <memory>
@@ -66,28 +69,53 @@ namespace
 
         ImGui::PushID(pGameObject);
         auto &rChildren = pGameObject->GetTransform()->GetChildren();
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick;
         if (pGameObject == rpSelectedGameObject)
         {
-            flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
+            flags |= ImGuiTreeNodeFlags_Selected;
         }
+
+        auto DisplayPopup = [&pGameObject]()
+        {
+            if (ImGui::BeginPopup("SceneHierarchy_ItemContextMenu"))
+            {
+                if (ImGui::MenuItem("Dump"))
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File", ".json", ".", 1, (void *)pGameObject);
+                }
+                ImGui::EndPopup();
+            }
+        };
         if (rChildren.empty())
         {
             ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
-            if (ImGui::IsItemClicked())
+
+            if (ImGui::IsItemClicked(1))
+            {
+                ImGui::OpenPopup("SceneHierarchy_ItemContextMenu");
+            }
+            if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
             {
                 rpSelectedGameObject = pGameObject;
             }
+            DisplayPopup();
         }
         else
         {
-            if (ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags))
-            {
-                if (ImGui::IsItemClicked())
-                {
-                    rpSelectedGameObject = pGameObject;
-                }
+            auto nodeOpen = ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags);
 
+            if (ImGui::IsItemClicked(1))
+            {
+                ImGui::OpenPopup("SceneHierarchy_ItemContextMenu");
+            }
+            if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+            {
+                rpSelectedGameObject = pGameObject;
+            }
+            DisplayPopup();
+
+            if (nodeOpen)
+            {
                 for (auto *pChild : rChildren)
                 {
                     DisplaySceneHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rVisitedGameObjects);
@@ -102,6 +130,7 @@ namespace
                 }
             }
         }
+
         ImGui::PopID();
     }
 
@@ -118,8 +147,45 @@ namespace
                 }
                 DisplaySceneHierarchy(pGameObject, rpSelectedGameObject, visitedGameObjects);
             }
+
+            ImGui::InvisibleButton("SceneHierarchy_Background", ImGui::GetContentRegionAvail());
+
+            if (ImGui::IsItemClicked(1))
+            {
+                ImGui::OpenPopup("SceneHierarchy_WindowContextMenu");
+            }
+
+            if (ImGui::BeginPopup("SceneHierarchy_WindowContextMenu"))
+            {
+                if (ImGui::MenuItem("Load"))
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File", ".json", ".");
+                }
+                ImGui::EndPopup();
+            }
         }
         ImGui::End();
+
+        if (ImGuiFileDialog::Instance()->Display("SceneHierarchy_LoadDialogKey"))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                auto filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                FastCG::GameObjectLoader::Load(filePath);
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("SceneHierarchy_DumpDialogKey"))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                auto *pGameObject = (FastCG::GameObject *)ImGuiFileDialog::Instance()->GetUserDatas();
+                auto filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                FastCG::GameObjectDumper::Dump(filePath, pGameObject);
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
     }
 
     template <typename T>
@@ -787,4 +853,5 @@ namespace FastCG
         assert(mBehaviours.empty());
         assert(mComponents.empty());
     }
+
 }
