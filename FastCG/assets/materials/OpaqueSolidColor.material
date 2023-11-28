@@ -1,6 +1,6 @@
 {
     "shader": "SolidColor",
-    "constantBuffer": [
+    "constants": [
         [
             "uDiffuseColor",
             [

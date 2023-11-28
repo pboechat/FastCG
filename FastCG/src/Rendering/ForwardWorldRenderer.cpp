@@ -52,7 +52,7 @@ namespace FastCG
                                                                                      1,
                                                                                      TextureType::TEXTURE_2D,
                                                                                      TextureUsageFlagBit::RENDER_TARGET,
-                                                                                     TextureFormat::X8_D24_UNORM_PACK32,
+                                                                                     TextureFormat::D24_UNORM_S8_UINT,
                                                                                      TextureFilter::POINT_FILTER,
                                                                                      TextureWrapMode::CLAMP});
         }
@@ -128,179 +128,198 @@ namespace FastCG
             }
             pGraphicsContext->PopDebugMarker();
 
-            auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
-            if (renderBatchIt != mArgs.rRenderBatches.cend())
+            const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
+
+            auto ProcessMaterialPasses = [&](const auto &rBegin, const auto &rEnd)
             {
-                pGraphicsContext->PushDebugMarker("Material Passes");
+                const auto *pFogConstantsBuffer = UpdateFogConstants(WorldSystem::GetInstance()->GetFog(), pGraphicsContext);
+
+                for (auto renderBatchIt = rBegin; renderBatchIt != rEnd; ++renderBatchIt)
                 {
-                    const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
-                    const auto *pFogConstantsBuffer = UpdateFogConstants(WorldSystem::GetInstance()->GetFog(), pGraphicsContext);
+                    assert(IsMaterialRenderGroup(renderBatchIt->group));
 
-                    for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
+                    const auto *pMaterial = renderBatchIt->pMaterial;
+
+                    pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                     {
-                        assert(renderBatchIt->type != RenderBatchType::SHADOW_CASTERS);
+                        BindMaterial(pMaterial, pGraphicsContext);
 
-                        const auto *pMaterial = renderBatchIt->pMaterial;
+                        pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+                        pGraphicsContext->BindResource(pFogConstantsBuffer, FOG_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                        pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
+                        UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
+
+                        for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                         {
-                            BindMaterial(pMaterial, pGraphicsContext);
+                            const auto *pMesh = it->first;
+                            const auto &rRenderables = it->second;
 
-                            pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
-                            pGraphicsContext->BindResource(pFogConstantsBuffer, FOG_CONSTANTS_SHADER_RESOURCE_NAME);
-
-                            UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
-
-                            for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
+                            uint32_t instanceCount;
+                            const Buffer *pInstanceConstantsBuffer;
                             {
-                                const auto *pMesh = it->first;
-                                const auto &rRenderables = it->second;
+                                auto result = UpdateInstanceConstants(rRenderables, view, projection, pGraphicsContext);
+                                instanceCount = result.first;
+                                pInstanceConstantsBuffer = result.second;
+                            }
 
-                                uint32_t instanceCount;
-                                const Buffer *pInstanceConstantsBuffer;
+                            if (instanceCount == 0)
+                            {
+                                continue;
+                            }
+
+                            pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                            pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
+                            pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
+
+                            const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
+                            const auto &rPointLights = WorldSystem::GetInstance()->GetPointLights();
+
+                            if (rDirectionalLights.size() == 0 && rPointLights.size() == 0)
+                            {
+                                if (instanceCount == 1)
                                 {
-                                    auto result = UpdateInstanceConstants(rRenderables, view, projection, pGraphicsContext);
-                                    instanceCount = result.first;
-                                    pInstanceConstantsBuffer = result.second;
-                                }
-
-                                if (instanceCount == 0)
-                                {
-                                    continue;
-                                }
-
-                                pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
-
-                                pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                                pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
-
-                                const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
-                                const auto &rPointLights = WorldSystem::GetInstance()->GetPointLights();
-
-                                if (rDirectionalLights.size() == 0 && rPointLights.size() == 0)
-                                {
-                                    if (instanceCount == 1)
-                                    {
-                                        pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
-                                    }
-                                    else
-                                    {
-                                        pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
-                                    }
-
-                                    mArgs.rRenderingStatistics.drawCalls++;
-                                    mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                                    pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
                                 }
                                 else
                                 {
-                                    enum class SubpassType : uint8_t
-                                    {
-                                        ST_NONE = 0,
-                                        ST_MAIN,
-                                        ST_SECONDARY
-                                    };
-
-                                    SubpassType lastSubpassType{SubpassType::ST_NONE};
-
-                                    auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
-
-                                    for (size_t i = 0; i < rDirectionalLights.size(); i++)
-                                    {
-                                        pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Directional Light Sub-Pass (" + std::to_string(i) + ")").c_str());
-                                        {
-                                            switch (lastSubpassType)
-                                            {
-                                            case SubpassType::ST_MAIN:
-                                                SetupMeshSecondarySubPasses(pGraphicsContext);
-                                                break;
-                                            default:
-                                                break;
-                                            }
-
-                                            const auto *pDirectionalLight = rDirectionalLights[i];
-
-                                            auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
-
-                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, pGraphicsContext);
-                                            pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
-                                            const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
-                                            pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
-
-                                            if (instanceCount == 1)
-                                            {
-                                                pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
-                                            }
-                                            else
-                                            {
-                                                pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
-                                            }
-
-                                            mArgs.rRenderingStatistics.drawCalls++;
-
-                                            switch (lastSubpassType)
-                                            {
-                                            case SubpassType::ST_NONE:
-                                                lastSubpassType = SubpassType::ST_MAIN;
-                                                break;
-                                            case SubpassType::ST_MAIN:
-                                                lastSubpassType = SubpassType::ST_SECONDARY;
-                                                break;
-                                            default:
-                                                break;
-                                            }
-                                        }
-                                        pGraphicsContext->PopDebugMarker();
-                                    }
-
-                                    for (size_t i = 0; i < rPointLights.size(); i++)
-                                    {
-                                        pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Point Light Sub-Pass (" + std::to_string(i) + ")").c_str());
-                                        {
-                                            switch (lastSubpassType)
-                                            {
-                                            case SubpassType::ST_MAIN:
-                                                SetupMeshSecondarySubPasses(pGraphicsContext);
-                                                break;
-                                            default:
-                                                break;
-                                            }
-
-                                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], inverseView, pGraphicsContext);
-                                            pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
-                                            const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(rPointLights[i], nearClip, pGraphicsContext);
-                                            pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
-
-                                            if (instanceCount == 1)
-                                            {
-                                                pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
-                                            }
-                                            else
-                                            {
-                                                pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
-                                            }
-
-                                            mArgs.rRenderingStatistics.drawCalls++;
-
-                                            switch (lastSubpassType)
-                                            {
-                                            case SubpassType::ST_NONE:
-                                                lastSubpassType = SubpassType::ST_MAIN;
-                                                break;
-                                            case SubpassType::ST_MAIN:
-                                                lastSubpassType = SubpassType::ST_SECONDARY;
-                                                break;
-                                            default:
-                                                break;
-                                            }
-                                        }
-                                        pGraphicsContext->PopDebugMarker();
-                                    }
-                                    mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                                    pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
                                 }
+
+                                mArgs.rRenderingStatistics.drawCalls++;
+                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                            }
+                            else
+                            {
+                                enum class SubpassType : uint8_t
+                                {
+                                    ST_NONE = 0,
+                                    ST_MAIN,
+                                    ST_SECONDARY
+                                };
+
+                                SubpassType lastSubpassType{SubpassType::ST_NONE};
+
+                                auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
+
+                                for (size_t i = 0; i < rDirectionalLights.size(); i++)
+                                {
+                                    pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Directional Light Sub-Pass (" + std::to_string(i) + ")").c_str());
+                                    {
+                                        switch (lastSubpassType)
+                                        {
+                                        case SubpassType::ST_MAIN:
+                                            SetupMeshSecondarySubPasses(pGraphicsContext);
+                                            break;
+                                        default:
+                                            break;
+                                        }
+
+                                        const auto *pDirectionalLight = rDirectionalLights[i];
+
+                                        auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
+
+                                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, pGraphicsContext);
+                                        pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+                                        const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
+                                        pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                                        if (instanceCount == 1)
+                                        {
+                                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                        }
+                                        else
+                                        {
+                                            pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                        }
+
+                                        mArgs.rRenderingStatistics.drawCalls++;
+
+                                        switch (lastSubpassType)
+                                        {
+                                        case SubpassType::ST_NONE:
+                                            lastSubpassType = SubpassType::ST_MAIN;
+                                            break;
+                                        case SubpassType::ST_MAIN:
+                                            lastSubpassType = SubpassType::ST_SECONDARY;
+                                            break;
+                                        default:
+                                            break;
+                                        }
+                                    }
+                                    pGraphicsContext->PopDebugMarker();
+                                }
+
+                                for (size_t i = 0; i < rPointLights.size(); i++)
+                                {
+                                    pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Point Light Sub-Pass (" + std::to_string(i) + ")").c_str());
+                                    {
+                                        switch (lastSubpassType)
+                                        {
+                                        case SubpassType::ST_MAIN:
+                                            SetupMeshSecondarySubPasses(pGraphicsContext);
+                                            break;
+                                        default:
+                                            break;
+                                        }
+
+                                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], inverseView, pGraphicsContext);
+                                        pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+                                        const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(rPointLights[i], nearClip, pGraphicsContext);
+                                        pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                                        if (instanceCount == 1)
+                                        {
+                                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                        }
+                                        else
+                                        {
+                                            pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                        }
+
+                                        mArgs.rRenderingStatistics.drawCalls++;
+
+                                        switch (lastSubpassType)
+                                        {
+                                        case SubpassType::ST_NONE:
+                                            lastSubpassType = SubpassType::ST_MAIN;
+                                            break;
+                                        case SubpassType::ST_MAIN:
+                                            lastSubpassType = SubpassType::ST_SECONDARY;
+                                            break;
+                                        default:
+                                            break;
+                                        }
+                                    }
+                                    pGraphicsContext->PopDebugMarker();
+                                }
+                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
                             }
                         }
-                        pGraphicsContext->PopDebugMarker();
                     }
+                    pGraphicsContext->PopDebugMarker();
+                }
+            };
+
+            auto opaqueRenderBatchBegin = mArgs.rRenderBatches.cbegin() + (RenderGroupInt)RenderGroup::OPAQUE_MATERIAL;
+            auto transparentRenderBatchBegin = std::find_if(opaqueRenderBatchBegin, mArgs.rRenderBatches.cend(), [](const auto &rRenderBatch)
+                                                            { return rRenderBatch.group == RenderGroup::TRANSPARENT_MATERIAL; });
+            if (opaqueRenderBatchBegin != transparentRenderBatchBegin)
+            {
+                pGraphicsContext->PushDebugMarker("Opaque Passes");
+                {
+                    ProcessMaterialPasses(opaqueRenderBatchBegin, transparentRenderBatchBegin);
+                }
+                pGraphicsContext->PopDebugMarker();
+            }
+
+            RenderSkybox(pCurrentRenderTarget, pCurrentDepthStencilBuffer, pSceneConstantsBuffer, view, projection, pGraphicsContext);
+
+            if (transparentRenderBatchBegin != mArgs.rRenderBatches.cend())
+            {
+                pGraphicsContext->PushDebugMarker("Transparent Passes");
+                {
+                    ProcessMaterialPasses(transparentRenderBatchBegin, mArgs.rRenderBatches.cend());
                 }
                 pGraphicsContext->PopDebugMarker();
             }

@@ -1,6 +1,7 @@
 #ifndef FASTCG_RENDER_BATCH_H
 #define FASTCG_RENDER_BATCH_H
 
+#include <FastCG/Rendering/RenderingUtils.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/Mesh.h>
 #include <FastCG/Rendering/Material.h>
@@ -12,17 +13,9 @@
 
 namespace FastCG
 {
-    enum class RenderBatchType : uint8_t
-    {
-        SHADOW_CASTERS = 0,
-        OPAQUE_MATERIAL,
-        TRANSPARENT_MATERIAL
-
-    };
-
     struct RenderBatch
     {
-        RenderBatchType type;
+        RenderGroup group;
         const Material *pMaterial{nullptr};
         std::unordered_map<const Mesh *, std::vector<const Renderable *>> renderablesPerMesh{};
     };

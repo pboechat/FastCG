@@ -115,6 +115,7 @@ namespace FastCG
 		virtual void OnRender(const Camera *pCamera, GraphicsContext *pGraphicsContext) = 0;
 		inline void GenerateShadowMaps(GraphicsContext *pGraphicsContext);
 		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext);
+		inline void RenderSkybox(const Texture *pRenderTarget, const Texture *pDepthScencilBuffer, const Buffer *pSceneConstantsBuffer, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext);
 		inline void BindMaterial(const Material *pMaterial, GraphicsContext *pGraphicsContext);
 		inline const Buffer *UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);

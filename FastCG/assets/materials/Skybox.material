@@ -1,0 +1,13 @@
+{
+    "shader": "Skybox",
+    "textures": [
+        [
+            "uSkybox",
+            null
+        ]
+    ],
+    "graphicsContextState": {
+        "depthTest": true,
+        "depthWrite": false
+    }
+}

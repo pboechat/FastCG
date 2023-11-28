@@ -1,0 +1,124 @@
+[
+    {
+        "resources": {
+            "materials": [
+                {
+                    "id": "0",
+                    "value": {
+                        "name": "Skybox",
+                        "materialDefinition": "Skybox",
+                        "textures": [
+                            {
+                                "name": "uSkybox",
+                                "id": "0"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "meshes": [
+                {
+                    "id": "0",
+                    "value": {
+                        "name": "Skybox",
+                        "vertexBuffers": [
+                            {
+                                "name": "Skybox Positions",
+                                "usage": 1,
+                                "data": [
+                                    -0.5, -0.5, -0.5,
+                                    0.5, -0.5, -0.5,
+                                    0.5,  0.5, -0.5,
+                                    -0.5,  0.5, -0.5,
+                                    -0.5, -0.5,  0.5,
+                                    0.5, -0.5,  0.5,
+                                    0.5,  0.5,  0.5,
+                                    -0.5,  0.5,  0.5
+                                ],
+                                "bindingDescriptors": [
+                                    {
+                                        "binding": 0,
+                                        "size": 3,
+                                        "type": "VertexDataType::FLOAT",
+                                        "normalized": false,
+                                        "stride": 0,
+                                        "offset": 0
+                                    }
+                                ]
+                            }
+                        ],
+                        "indexBuffer": {
+                            "usage": 1,
+                            "data": [
+                                6, 5, 4,
+                                4, 7, 6,
+                                3, 0, 1,
+                                1, 2, 3,
+                                7, 4, 0,
+                                0, 3, 7,
+                                2, 1, 5,
+                                5, 6, 2,
+                                6, 7, 3,
+                                3, 2, 6,
+                                5, 1, 0,
+                                0, 4, 5
+                            ]
+                        },
+                        "bounds": {
+                            "min": [
+                                -0.5,
+                                -0.5,
+                                -0.5
+                            ],
+                            "max": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        }
+                    }
+                }
+            ],
+            "textures": [
+                {
+                    "id": "0",
+                    "value": {
+                        "path": "../textures/skyboxes/sky_and_sea.ktx",
+                        "usage": 4,
+                        "filter": "TextureFilter::LINEAR_FILTER",
+                        "wrapMode": "TextureWrapMode::CLAMP"
+                    }
+                }
+            ]
+        },
+        "root": {
+            "name": "Skybox",
+            "transform": {
+                "scale": [
+                    100.0,
+                    100.0,
+                    100.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "components": [
+                {
+                    "name": "Renderable",
+                    "Material": "0",
+                    "Mesh": "0",
+                    "Skybox": true
+                }
+            ]
+        }
+    }
+]

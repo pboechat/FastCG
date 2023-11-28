@@ -2,10 +2,12 @@
 #include <FastCG/World/GameObjectLoader.h>
 #include <FastCG/World/ComponentRegistry.h>
 #include <FastCG/World/Component.h>
+#include <FastCG/Rendering/ModelLoader.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
 #include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Platform/FileReader.h>
 #include <FastCG/Platform/File.h>
+#include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/Macros.h>
@@ -114,21 +116,28 @@ namespace
                 rVertexAttributeDescriptor.name = vertexBufferObj["name"].GetString();
                 assert(vertexBufferObj.HasMember("usage") && vertexBufferObj["usage"].IsUint());
                 rVertexAttributeDescriptor.usage = (FastCG::BufferUsageFlags)vertexBufferObj["usage"].GetUint();
-                if (vertexBufferObj.HasMember("dataPath"))
+                if (vertexBufferObj.HasMember("encodedData"))
                 {
-                    assert(vertexBufferObj["dataPath"].IsString());
-                    auto filePath = FastCG::File::Join({rBasePath, vertexBufferObj["dataPath"].GetString()});
-                    buffersData[bufferIdx] = FastCG::FileReader::ReadBinary(filePath, rVertexAttributeDescriptor.dataSize);
+                    assert(vertexBufferObj["encodedData"].IsString());
+                    auto dataStr = FastCG::DecodeBase64(vertexBufferObj["encodedData"].GetString());
+                    rVertexAttributeDescriptor.dataSize = dataStr.size();
+                    auto bufferData = std::make_unique<uint8_t[]>(dataStr.size());
+                    std::memcpy((void *)bufferData.get(), (const void *)dataStr.data(), dataStr.size());
+                    buffersData[bufferIdx] = std::move(bufferData);
                 }
                 else
                 {
-                    assert(vertexBufferObj.HasMember("dataSize") && vertexBufferObj["dataSize"].IsUint64());
-                    rVertexAttributeDescriptor.dataSize = vertexBufferObj["dataSize"].GetUint64();
-                    assert(vertexBufferObj.HasMember("data") && vertexBufferObj["data"].IsString());
-                    auto data = FastCG::DecodeBase64(vertexBufferObj["data"].GetString());
-                    auto bufferData = std::make_unique<uint8_t[]>(data.size());
-                    std::memcpy((void *)bufferData.get(), (const void *)data.data(), data.size());
-                    buffersData[bufferIdx] = std::move(bufferData);
+                    assert(vertexBufferObj.HasMember("data") && vertexBufferObj["data"].IsArray());
+                    auto dataArray = vertexBufferObj["data"].GetArray();
+                    rVertexAttributeDescriptor.dataSize = dataArray.Size() * sizeof(float);
+                    auto pFloats = std::make_unique<float[]>(dataArray.Size());
+                    for (decltype(dataArray.Size()) j = 0; j < dataArray.Size(); ++j)
+                    {
+                        auto &rDataElement = dataArray[j];
+                        assert(rDataElement.IsFloat());
+                        pFloats[j] = rDataElement.GetFloat();
+                    }
+                    buffersData[bufferIdx] = std::unique_ptr<uint8_t[]>(reinterpret_cast<uint8_t *>(pFloats.release()));
                 }
                 rVertexAttributeDescriptor.pData = (const void *)buffersData[bufferIdx++].get();
                 assert(vertexBufferObj.HasMember("bindingDescriptors") && vertexBufferObj["bindingDescriptors"].IsArray());
@@ -159,26 +168,27 @@ namespace
         auto indexBufferObj = rGenericObj["indexBuffer"].GetObj();
         assert(indexBufferObj.HasMember("usage") && indexBufferObj["usage"].IsUint());
         args.indices.usage = (FastCG::BufferUsageFlags)indexBufferObj["usage"].GetUint();
-        if (indexBufferObj.HasMember("dataPath"))
+        if (indexBufferObj.HasMember("encodedData"))
         {
-            assert(indexBufferObj["dataPath"].IsString());
-            auto filePath = FastCG::File::Join({rBasePath, indexBufferObj["dataPath"].GetString()});
-            size_t dataSize;
-            auto data = FastCG::FileReader::ReadBinary(filePath, dataSize);
-            assert(dataSize % sizeof(uint32_t) == 0);
-            args.indices.count = (uint32_t)(dataSize / sizeof(uint32_t));
-            indexBufferData = std::make_unique<uint32_t[]>(dataSize);
-            std::memcpy((void *)indexBufferData.get(), (const void *)data.get(), dataSize);
+            assert(indexBufferObj.HasMember("encodedData") && indexBufferObj["encodedData"].IsString());
+            auto dataStr = FastCG::DecodeBase64(indexBufferObj["encodedData"].GetString());
+            assert(dataStr.size() % sizeof(uint32_t) == 0);
+            args.indices.count = (uint32_t)(dataStr.size() / sizeof(uint32_t));
+            indexBufferData = std::make_unique<uint32_t[]>(args.indices.count);
+            std::memcpy((void *)indexBufferData.get(), (const void *)dataStr.data(), dataStr.size());
         }
         else
         {
-            assert(indexBufferObj.HasMember("count") && indexBufferObj["count"].IsUint());
-            args.indices.count = indexBufferObj["count"].GetUint();
-            assert(indexBufferObj.HasMember("data") && indexBufferObj["data"].IsString());
-            auto data = FastCG::DecodeBase64(indexBufferObj["data"].GetString());
-            assert(data.size() % sizeof(uint32_t) == 0);
+            assert(indexBufferObj.HasMember("data") && indexBufferObj["data"].IsArray());
+            auto dataArray = indexBufferObj["data"].GetArray();
+            args.indices.count = (uint32_t)dataArray.Size();
             indexBufferData = std::make_unique<uint32_t[]>(args.indices.count);
-            std::memcpy((void *)indexBufferData.get(), (const void *)data.data(), data.size());
+            for (decltype(dataArray.Size()) j = 0; j < dataArray.Size(); ++j)
+            {
+                auto &rDataElement = dataArray[j];
+                assert(rDataElement.IsUint());
+                indexBufferData[j] = rDataElement.GetUint();
+            }
         }
         args.indices.pData = (const uint32_t *)indexBufferData.get();
         if (rGenericObj.HasMember("bounds"))
@@ -200,42 +210,45 @@ namespace
     template <typename GenericObjectT>
     FastCG::Texture *LoadTexture(const GenericObjectT &rGenericObj, const std::string &rBasePath)
     {
-        FastCG::Texture::Args args{};
-        assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
-        args.name = rGenericObj["name"].GetString();
-        assert(rGenericObj.HasMember("width") && rGenericObj["width"].IsUint());
-        args.width = rGenericObj["width"].GetUint();
-        assert(rGenericObj.HasMember("height") && rGenericObj["height"].IsUint());
-        args.height = rGenericObj["height"].GetUint();
-        assert(rGenericObj.HasMember("type") && rGenericObj["type"].IsString());
-        GetValue(rGenericObj["type"], args.type, FastCG::TextureType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureType_STRINGS));
-        // TODO: use strings instead of numbers
-        assert(rGenericObj.HasMember("usage") && rGenericObj["usage"].IsUint());
-        args.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
-        assert(rGenericObj.HasMember("format") && rGenericObj["format"].IsString());
-        GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
-        assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
-        GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
-        assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
-        GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
-        FastCG::Texture *pTexture;
-        if (rGenericObj.HasMember("dataPath"))
+        if (rGenericObj.HasMember("path"))
         {
-            assert(rGenericObj["dataPath"].IsString());
-            auto filePath = FastCG::File::Join({rBasePath, rGenericObj["dataPath"].GetString()});
-            size_t dataSize;
-            auto data = FastCG::FileReader::ReadBinary(filePath, dataSize);
-            args.pData = data.get();
-            pTexture = FastCG::GraphicsSystem::GetInstance()->CreateTexture(args);
+            assert(rGenericObj["path"].IsString());
+            FastCG::TextureLoadSettings loadSettings;
+            // TODO: use strings instead of numbers
+            assert(rGenericObj.HasMember("usage") && rGenericObj["usage"].IsUint());
+            loadSettings.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
+            assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
+            GetValue(rGenericObj["filter"], loadSettings.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
+            assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
+            GetValue(rGenericObj["wrapMode"], loadSettings.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
+            auto filePath = FastCG::File::Join({rBasePath, rGenericObj["path"].GetString()});
+            return FastCG::TextureLoader::Load(filePath, loadSettings);
         }
         else
         {
+            FastCG::Texture::Args args{};
+            assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
+            args.name = rGenericObj["name"].GetString();
+            assert(rGenericObj.HasMember("width") && rGenericObj["width"].IsUint());
+            args.width = rGenericObj["width"].GetUint();
+            assert(rGenericObj.HasMember("height") && rGenericObj["height"].IsUint());
+            args.height = rGenericObj["height"].GetUint();
+            assert(rGenericObj.HasMember("type") && rGenericObj["type"].IsString());
+            GetValue(rGenericObj["type"], args.type, FastCG::TextureType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureType_STRINGS));
+            // TODO: use strings instead of numbers
+            assert(rGenericObj.HasMember("usage") && rGenericObj["usage"].IsUint());
+            args.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
+            assert(rGenericObj.HasMember("format") && rGenericObj["format"].IsString());
+            GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
+            assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
+            GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
+            assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
+            GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
             assert(rGenericObj.HasMember("data") && rGenericObj["data"].IsString());
             auto data = FastCG::DecodeBase64(rGenericObj["data"].GetString());
             args.pData = reinterpret_cast<const uint8_t *>(data.data());
-            pTexture = FastCG::GraphicsSystem::GetInstance()->CreateTexture(args);
+            return FastCG::GraphicsSystem::GetInstance()->CreateTexture(args);
         }
-        return pTexture;
     }
 
     template <typename GenericObjectT>
@@ -395,6 +408,7 @@ namespace
             // ignore non-existing inspectable properties
             if (pInspectableProperty == nullptr)
             {
+                FASTCG_LOG_WARN(GameObjectLoader, "Ignoring non-existing inspectable property (property: %s)", propertyName.c_str());
                 continue;
             }
             LoadInspectableProperty(it->value, rBasePath, rMaterials, rMeshes, rTextures, pInspectableProperty);
@@ -468,6 +482,10 @@ namespace
                 {
                     auto *pComponent = pComponentRegistry->Instantiate(pGameObject);
                     LoadInspectable(componentObj, rBasePath, rMaterials, rMeshes, rTextures, pComponent);
+                }
+                else
+                {
+                    FASTCG_LOG_WARN(GameObjectLoader, "Ignoring non-existing component (component: %s)", componentName.c_str());
                 }
             }
         }

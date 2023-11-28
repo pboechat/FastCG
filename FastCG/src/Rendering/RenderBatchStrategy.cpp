@@ -1,14 +1,22 @@
 #include <FastCG/Rendering/RenderBatchStrategy.h>
 
-#include <algorithm>
-
 namespace
 {
+    FastCG::RenderGroupInt GetOrder(const FastCG::RenderBatch &rRenderBatch)
+    {
+        auto order = (FastCG::RenderGroupInt)rRenderBatch.group;
+        if (rRenderBatch.pMaterial != nullptr)
+        {
+            order += rRenderBatch.pMaterial->GetOrder();
+        }
+        return order;
+    }
+
     struct RenderBatchComparer
     {
         bool operator()(const FastCG::RenderBatch &rLhs, const FastCG::RenderBatch &rRhs) const
         {
-            return rLhs.type < rRhs.type;
+            return GetOrder(rLhs) < GetOrder(rRhs);
         }
     };
 
@@ -35,7 +43,14 @@ namespace FastCG
             return;
         }
 
-        AddToMaterialBasedRenderBatch(pRenderable);
+        if (pRenderable->IsSkybox())
+        {
+            AddToSkyboxRenderBatch(pRenderable);
+        }
+        else
+        {
+            AddToMaterialRenderBatch(pRenderable);
+        }
     }
 
     void RenderBatchStrategy::RemoveRenderable(const Renderable *pRenderable)
@@ -57,27 +72,52 @@ namespace FastCG
             return;
         }
 
-        RemoveFromMaterialBasedRenderBatch(pRenderable);
+        if (pRenderable->IsSkybox())
+        {
+            RemoveFromSkyboxRenderBatch(pRenderable);
+        }
+        else
+        {
+            RemoveFromMaterialRenderBatch(pRenderable);
+        }
     }
 
     void RenderBatchStrategy::AddToShadowCastersRenderBatch(const Renderable *pRenderable)
     {
-        AddToRenderBatch(*mRenderBatches.begin(), pRenderable);
+        AddToRenderBatch(*(mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SHADOW_CASTERS), pRenderable);
     }
 
     void RenderBatchStrategy::RemoveFromShadowCastersRenderBatch(const Renderable *pRenderable)
     {
-        RemoveFromRenderBatch(*mRenderBatches.begin(), pRenderable);
+        RemoveFromRenderBatch(*(mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SHADOW_CASTERS), pRenderable);
     }
 
-    void RenderBatchStrategy::AddToMaterialBasedRenderBatch(const Renderable *pRenderable)
+    void RenderBatchStrategy::AddToSkyboxRenderBatch(const Renderable *pRenderable)
+    {
+        auto skyboxRenderBatchIt = mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SKYBOX;
+        if (skyboxRenderBatchIt->pMaterial != nullptr)
+        {
+            skyboxRenderBatchIt->renderablesPerMesh.clear();
+        }
+        skyboxRenderBatchIt->pMaterial = pRenderable->GetMaterial().get();
+        skyboxRenderBatchIt->renderablesPerMesh.emplace(pRenderable->GetMesh().get(), std::vector<const Renderable *>{pRenderable});
+    }
+
+    void RenderBatchStrategy::RemoveFromSkyboxRenderBatch(const Renderable *pRenderable)
+    {
+        auto skyboxRenderBatchIt = mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SKYBOX;
+        skyboxRenderBatchIt->pMaterial = nullptr;
+        skyboxRenderBatchIt->renderablesPerMesh.clear();
+    }
+
+    void RenderBatchStrategy::AddToMaterialRenderBatch(const Renderable *pRenderable)
     {
         const auto *pMaterial = pRenderable->GetMaterial().get();
         auto it = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
                                { return rRenderBatch.pMaterial == pMaterial; });
         if (it == mRenderBatches.end())
         {
-            mRenderBatches.emplace_back(RenderBatch{pMaterial->GetGraphicsContextState().blend ? RenderBatchType::TRANSPARENT_MATERIAL : RenderBatchType::OPAQUE_MATERIAL, pMaterial});
+            mRenderBatches.emplace_back(RenderBatch{pMaterial->GetGraphicsContextState().blend ? RenderGroup::TRANSPARENT_MATERIAL : RenderGroup::OPAQUE_MATERIAL, pMaterial});
             it = std::prev(mRenderBatches.end());
             AddToRenderBatch(*it, pRenderable);
             std::sort(mRenderBatches.begin(), mRenderBatches.end(), RenderBatchComparer());
@@ -88,7 +128,7 @@ namespace FastCG
         }
     }
 
-    void RenderBatchStrategy::RemoveFromMaterialBasedRenderBatch(const Renderable *pRenderable)
+    void RenderBatchStrategy::RemoveFromMaterialRenderBatch(const Renderable *pRenderable)
     {
         const auto *pMaterial = pRenderable->GetMaterial().get();
         auto it = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
@@ -129,7 +169,7 @@ namespace FastCG
             auto renderBatchIt = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [&rRenderBatch](const auto &rOtherRenderBatch)
                                               { return &rRenderBatch == &rOtherRenderBatch; });
             assert(renderBatchIt != mRenderBatches.end());
-            if (renderBatchIt->type != RenderBatchType::SHADOW_CASTERS)
+            if (IsMaterialRenderGroup(renderBatchIt->group))
             {
                 mRenderBatches.erase(renderBatchIt);
             }

@@ -217,24 +217,26 @@ namespace FastCG
 
             const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
 
-            auto renderBatchIt = mArgs.rRenderBatches.cbegin() + 1;
-            if (renderBatchIt != mArgs.rRenderBatches.cend())
+            auto opaqueRenderBatchBegin = mArgs.rRenderBatches.cbegin() + (RenderGroupInt)RenderGroup::OPAQUE_MATERIAL;
+            auto transparentRenderBatchBegin = std::find_if(opaqueRenderBatchBegin, mArgs.rRenderBatches.cend(), [](const auto &rRenderBatch)
+                                                            { return rRenderBatch.group == RenderGroup::TRANSPARENT_MATERIAL; });
+            if (opaqueRenderBatchBegin != transparentRenderBatchBegin)
             {
                 pGraphicsContext->PushDebugMarker("Geometry Passes");
                 {
-                    for (; renderBatchIt != mArgs.rRenderBatches.cend(); ++renderBatchIt)
+                    for (; opaqueRenderBatchBegin != transparentRenderBatchBegin; ++opaqueRenderBatchBegin)
                     {
-                        const auto *pMaterial = renderBatchIt->pMaterial;
+                        const auto *pMaterial = opaqueRenderBatchBegin->pMaterial;
 
                         pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
                         {
-                            assert(renderBatchIt->type != RenderBatchType::SHADOW_CASTERS);
+                            assert(IsMaterialRenderGroup(opaqueRenderBatchBegin->group));
 
                             BindMaterial(pMaterial, pGraphicsContext);
 
                             pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
+                            for (auto it = opaqueRenderBatchBegin->renderablesPerMesh.cbegin(); it != opaqueRenderBatchBegin->renderablesPerMesh.cend(); ++it)
                             {
                                 const auto *pMesh = it->first;
                                 const auto &rRenderables = it->second;
@@ -408,6 +410,14 @@ namespace FastCG
                     }
                     pGraphicsContext->PopDebugMarker();
                 }
+            }
+            pGraphicsContext->PopDebugMarker();
+
+            RenderSkybox(rCurrentGBuffer[5], pCurrentDepthStencilBuffer, pSceneConstantsBuffer, view, projection, pGraphicsContext);
+
+            pGraphicsContext->PushDebugMarker("Transparent Passes");
+            {
+                // TODO: implement transparency in the deferred path
             }
             pGraphicsContext->PopDebugMarker();
 

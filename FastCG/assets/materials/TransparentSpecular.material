@@ -1,6 +1,6 @@
 {
     "shader": "Specular",
-    "constantBuffer": [
+    "constants": [
         [
             "uDiffuseColor",
             [

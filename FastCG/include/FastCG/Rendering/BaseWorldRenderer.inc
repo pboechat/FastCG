@@ -410,9 +410,9 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateShadowMaps(GraphicsContext *pGraphicsContext)
     {
-        auto &rShadowCastersRenderBatch = mArgs.rRenderBatches[0];
-        assert(rShadowCastersRenderBatch.type == RenderBatchType::SHADOW_CASTERS);
-        if (rShadowCastersRenderBatch.renderablesPerMesh.empty())
+        auto shadowCastersRenderBatchIt = mArgs.rRenderBatches.begin() + (RenderGroupInt)RenderGroup::SHADOW_CASTERS;
+        assert(shadowCastersRenderBatchIt->group == RenderGroup::SHADOW_CASTERS);
+        if (shadowCastersRenderBatchIt->renderablesPerMesh.empty())
         {
             return;
         }
@@ -438,7 +438,7 @@ namespace FastCG
 
                 const auto *pShadowMapTexture = rShadowMap.GetTexture();
 
-                for (auto it = rShadowCastersRenderBatch.renderablesPerMesh.cbegin(); it != rShadowCastersRenderBatch.renderablesPerMesh.cend(); ++it)
+                for (auto it = shadowCastersRenderBatchIt->renderablesPerMesh.cbegin(); it != shadowCastersRenderBatchIt->renderablesPerMesh.cend(); ++it)
                 {
                     const auto &pMesh = it->first;
                     const auto &rRenderables = it->second;
@@ -531,6 +531,43 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::RenderSkybox(const Texture *pRenderTarget, const Texture *pDepthScencilBuffer, const Buffer *pSceneConstantsBuffer, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
+    {
+        auto skyboxRenderBatchId = mArgs.rRenderBatches.cbegin() + (RenderGroupInt)RenderGroup::SKYBOX;
+        if (!skyboxRenderBatchId->renderablesPerMesh.empty())
+        {
+            assert(skyboxRenderBatchId->renderablesPerMesh.size() == 1);
+
+            pGraphicsContext->PushDebugMarker("Skybox Pass");
+            {
+                pGraphicsContext->SetRenderTargets(&pRenderTarget, 1, pDepthScencilBuffer);
+
+                assert(skyboxRenderBatchId->pMaterial != nullptr);
+                BindMaterial(skyboxRenderBatchId->pMaterial, pGraphicsContext);
+
+                pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                const auto it = skyboxRenderBatchId->renderablesPerMesh.cbegin();
+                const auto *pMesh = it->first;
+                auto result = UpdateInstanceConstants(it->second, rView, rProjection, pGraphicsContext);
+                assert(result.first == 1);
+                const auto *pInstanceConstantsBuffer = result.second;
+
+                pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
+
+                pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
+                pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
+
+                pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+
+                mArgs.rRenderingStatistics.drawCalls++;
+                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+            }
+            pGraphicsContext->PopDebugMarker();
+        }
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext)
     {
         pGraphicsContext->PushDebugMarker("Tonemapping");
@@ -566,14 +603,14 @@ namespace FastCG
         const auto *pConstantBuffer = pMaterial->GetConstantBuffer();
         if (pConstantBuffer != nullptr)
         {
-            pGraphicsContext->Copy(pMaterial->GetConstantBuffer(), pMaterial->GetConstantBufferSize(), pMaterial->GetConstantBufferData());
+            pGraphicsContext->Copy(pConstantBuffer, pMaterial->GetConstantBufferSize(), pMaterial->GetConstantBufferData());
         }
 
         pGraphicsContext->BindShader(pMaterial->GetShader());
 
         if (pConstantBuffer != nullptr)
         {
-            pGraphicsContext->BindResource(pMaterial->GetConstantBuffer(), MATERIAL_CONSTANTS_SHADER_RESOURCE_NAME);
+            pGraphicsContext->BindResource(pConstantBuffer, MATERIAL_CONSTANTS_SHADER_RESOURCE_NAME);
         }
 
         for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)

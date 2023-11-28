@@ -21,12 +21,14 @@ namespace FastCG
 		void RemoveRenderable(const Renderable *pRenderable);
 
 	private:
-		std::vector<RenderBatch> mRenderBatches{{RenderBatchType::SHADOW_CASTERS}};
+		std::vector<RenderBatch> mRenderBatches{{RenderGroup::SHADOW_CASTERS}, {RenderGroup::SKYBOX}, {RenderGroup::RESERVED}};
 
 		void AddToShadowCastersRenderBatch(const Renderable *pRenderable);
 		void RemoveFromShadowCastersRenderBatch(const Renderable *pRenderable);
-		void AddToMaterialBasedRenderBatch(const Renderable *pRenderable);
-		void RemoveFromMaterialBasedRenderBatch(const Renderable *pRenderable);
+		void AddToSkyboxRenderBatch(const Renderable *pRenderable);
+		void RemoveFromSkyboxRenderBatch(const Renderable *pRenderable);
+		void AddToMaterialRenderBatch(const Renderable *pRenderable);
+		void RemoveFromMaterialRenderBatch(const Renderable *pRenderable);
 		void AddToRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable);
 		bool RemoveFromRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable);
 	};

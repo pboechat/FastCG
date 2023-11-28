@@ -108,12 +108,12 @@ namespace FastCG
         auto *pShader = GraphicsSystem::GetInstance()->FindShader(document["shader"].GetString());
         assert(pShader != nullptr);
 
-        std::vector<ConstantBuffer::Member> constantBufferMembers;
-        if (document.HasMember("constantBuffer"))
+        std::vector<ConstantBuffer::Member> members;
+        if (document.HasMember("constants"))
         {
-            assert(document["constantBuffer"].IsArray());
-            auto membersArray = document["constantBuffer"].GetArray();
-            constantBufferMembers.reserve(membersArray.Size());
+            assert(document["constants"].IsArray());
+            auto membersArray = document["constants"].GetArray();
+            members.reserve(membersArray.Size());
             for (auto &rMemberEl : membersArray)
             {
                 assert(rMemberEl.IsArray());
@@ -122,7 +122,7 @@ namespace FastCG
                 assert(memberArray[0].IsString());
                 if (memberArray[1].IsNumber())
                 {
-                    constantBufferMembers.emplace_back(memberArray[0].GetString(), memberArray[1].GetFloat());
+                    members.emplace_back(memberArray[0].GetString(), memberArray[1].GetFloat());
                 }
                 else
                 {
@@ -130,12 +130,12 @@ namespace FastCG
                     auto valueArray = memberArray[1].GetArray();
                     if (valueArray.Size() == 2)
                     {
-                        constantBufferMembers.emplace_back(memberArray[0].GetString(), glm::vec2{valueArray[0].GetFloat(), valueArray[1].GetFloat()});
+                        members.emplace_back(memberArray[0].GetString(), glm::vec2{valueArray[0].GetFloat(), valueArray[1].GetFloat()});
                     }
                     else
                     {
                         assert(valueArray.Size() == 4);
-                        constantBufferMembers.emplace_back(memberArray[0].GetString(), glm::vec4{valueArray[0].GetFloat(), valueArray[1].GetFloat(), valueArray[2].GetFloat(), valueArray[3].GetFloat()});
+                        members.emplace_back(memberArray[0].GetString(), glm::vec4{valueArray[0].GetFloat(), valueArray[1].GetFloat(), valueArray[2].GetFloat(), valueArray[3].GetFloat()});
                     }
                 }
             }
@@ -209,7 +209,7 @@ namespace FastCG
             }
         }
 
-        return std::make_unique<MaterialDefinition>(MaterialDefinitionArgs{File::GetFileNameWithoutExtension(rFilePath), pShader, {constantBufferMembers}, textures, graphicsContextState});
+        return std::make_unique<MaterialDefinition>(MaterialDefinitionArgs{File::GetFileNameWithoutExtension(rFilePath), pShader, {members}, textures, graphicsContextState});
     }
 
     std::string MaterialDefinitionLoader::Dump(const std::unique_ptr<MaterialDefinition> &pMaterialDefinition)

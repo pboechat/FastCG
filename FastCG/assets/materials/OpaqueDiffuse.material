@@ -1,6 +1,6 @@
 {
     "shader": "Diffuse",
-    "constantBuffer": [
+    "constants": [
         [
             "uDiffuseColor",
             [

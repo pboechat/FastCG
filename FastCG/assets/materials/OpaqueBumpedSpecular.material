@@ -1,6 +1,6 @@
 {
     "shader": "BumpedSpecular",
-    "constantBuffer": [
+    "constants": [
         [
             "uDiffuseColor",
             [

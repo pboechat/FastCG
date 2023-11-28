@@ -1,6 +1,7 @@
 #ifndef FASTCG_BASE_MATERIAL_H
 #define FASTCG_BASE_MATERIAL_H
 
+#include <FastCG/Rendering/RenderingUtils.h>
 #include <FastCG/Rendering/MaterialDefinition.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
@@ -20,6 +21,7 @@ namespace FastCG
 	{
 		std::string name;
 		std::shared_ptr<MaterialDefinition> pMaterialDefinition;
+		RenderGroupInt order{0};
 	};
 
 	class Material final
@@ -31,6 +33,11 @@ namespace FastCG
 		inline const std::string &GetName() const
 		{
 			return mName;
+		}
+
+		inline RenderGroupInt GetOrder() const
+		{
+			return mOrder;
 		}
 
 		inline const std::shared_ptr<MaterialDefinition> &GetMaterialDefinition() const
@@ -45,17 +52,17 @@ namespace FastCG
 
 		inline const uint8_t *GetConstantBufferData() const
 		{
-			return mConstantBuffer.GetData();
+			return mConstants.GetData();
 		}
 
 		inline void SetConstantBufferData(const uint8_t *pData, size_t offset, size_t size)
 		{
-			mConstantBuffer.SetData(pData, offset, size);
+			mConstants.SetData(pData, offset, size);
 		}
 
 		inline uint32_t GetConstantBufferSize() const
 		{
-			return mConstantBuffer.GetSize();
+			return mConstants.GetSize();
 		}
 
 		inline const Buffer *GetConstantBuffer() const
@@ -65,43 +72,43 @@ namespace FastCG
 
 		inline size_t GetConstantCount() const
 		{
-			return mConstantBuffer.GetMembers().size();
+			return mConstants.GetMembers().size();
 		}
 
 		inline const auto &GetConstantAt(size_t i) const
 		{
-			assert(i < mConstantBuffer.GetMembers().size());
-			return mConstantBuffer.GetMembers()[i];
+			assert(i < mConstants.GetMembers().size());
+			return mConstants.GetMembers()[i];
 		}
 
 		inline bool GetConstant(const std::string &rName, float &rValue) const
 		{
-			return mConstantBuffer.GetMemberValue(rName, rValue);
+			return mConstants.GetMemberValue(rName, rValue);
 		}
 
 		inline bool GetConstant(const std::string &rName, glm::vec2 &rValue) const
 		{
-			return mConstantBuffer.GetMemberValue(rName, rValue);
+			return mConstants.GetMemberValue(rName, rValue);
 		}
 
 		inline bool GetConstant(const std::string &rName, glm::vec4 &rValue) const
 		{
-			return mConstantBuffer.GetMemberValue(rName, rValue);
+			return mConstants.GetMemberValue(rName, rValue);
 		}
 
 		inline bool SetConstant(const std::string &rName, float value)
 		{
-			return mConstantBuffer.SetMemberValue(rName, value);
+			return mConstants.SetMemberValue(rName, value);
 		}
 
 		inline bool SetConstant(const std::string &rName, const glm::vec2 &rValue)
 		{
-			return mConstantBuffer.SetMemberValue(rName, rValue);
+			return mConstants.SetMemberValue(rName, rValue);
 		}
 
 		inline bool SetConstant(const std::string &rName, const glm::vec4 &rValue)
 		{
-			return mConstantBuffer.SetMemberValue(rName, rValue);
+			return mConstants.SetMemberValue(rName, rValue);
 		}
 
 		inline size_t GetTextureCount() const
@@ -148,9 +155,10 @@ namespace FastCG
 
 	protected:
 		std::string mName;
+		const RenderGroupInt mOrder;
 		const std::shared_ptr<MaterialDefinition> mpMaterialDefinition;
+		ConstantBuffer mConstants;
 		const Buffer *mpConstantBuffer;
-		ConstantBuffer mConstantBuffer;
 		std::unordered_map<std::string, const Texture *> mTextures;
 	};
 
