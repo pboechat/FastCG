@@ -16,6 +16,8 @@ namespace
             return ImGuiKey_None;
         case FastCG::Key::BACKSPACE:
             return ImGuiKey_Backspace;
+        case FastCG::Key::DEL:
+            return ImGuiKey_Delete;
         case FastCG::Key::RETURN:
             return ImGuiKey_Enter;
         case FastCG::Key::ESCAPE:
@@ -106,12 +108,8 @@ namespace
             return ImGuiKey_LeftShift;
         case FastCG::Key::CONTROL:
             return ImGuiKey_LeftCtrl;
-        case FastCG::Key::OPEN_SQUARE_BRACKET:
-            return ImGuiKey_LeftBracket;
         case FastCG::Key::BACKSLASH:
             return ImGuiKey_Backslash;
-        case FastCG::Key::CLOSE_SQUARE_BRACKET:
-            return ImGuiKey_RightBracket;
         case FastCG::Key::LETTER_A:
             return ImGuiKey_A;
         case FastCG::Key::LETTER_B:
@@ -164,10 +162,6 @@ namespace
             return ImGuiKey_Y;
         case FastCG::Key::LETTER_Z:
             return ImGuiKey_Z;
-        case FastCG::Key::TILDE:
-            return ImGuiKey_None; // not mappable
-        case FastCG::Key::DEL:
-            return ImGuiKey_Delete;
         default:
             assert(false);
         }
@@ -188,6 +182,7 @@ namespace FastCG
         FASTCG_LOG_DEBUG(ImGuiSystem, "\tInitializing ImGui system");
 
         ImGui::CreateContext();
+
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     }
 
@@ -203,8 +198,8 @@ namespace FastCG
         auto mousePos = InputSystem::GetMousePosition();
         rIo.AddMousePosEvent((float)mousePos.x, (float)mousePos.y);
         rIo.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
-        rIo.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
-        rIo.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
+        rIo.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
+        rIo.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
 
         for (KeyInt i = 0; i < KEY_COUNT; ++i)
         {
@@ -214,8 +209,10 @@ namespace FastCG
                 auto imguiKey = GetImGuiKey(key);
                 bool down = ((KeyChangeInt)keyChanges[i] - 1);
                 rIo.AddKeyEvent(imguiKey, down);
-                auto nativeKey = Application::GetInstance()->GetNativeKey(key);
-                rIo.SetKeyEventNativeData(imguiKey, (int)nativeKey, -1, -1);
+                if (down && IsCharKey(key))
+                {
+                    rIo.AddInputCharacter((unsigned int)key);
+                }
             }
         }
 

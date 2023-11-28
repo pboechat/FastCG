@@ -65,9 +65,7 @@ namespace
         KEY(INSERT, XK_Insert),
         KEY(SHIFT, XK_Shift_L),
         KEY(CONTROL, XK_Control_L),
-        KEY(OPEN_SQUARE_BRACKET, XK_bracketleft),
         KEY(BACKSLASH, XK_backslash),
-        KEY(CLOSE_SQUARE_BRACKET, XK_bracketright),
         KEY(LETTER_A, XK_a),
         KEY(LETTER_B, XK_b),
         KEY(LETTER_C, XK_c),
@@ -94,7 +92,6 @@ namespace
         KEY(LETTER_X, XK_x),
         KEY(LETTER_Y, XK_y),
         KEY(LETTER_Z, XK_z),
-        KEY(TILDE, XK_itilde),
         KEY(DEL, XK_Delete),
     };
 

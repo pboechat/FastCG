@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <limits>
 #include <cstdint>
+#include <cassert>
 
 namespace FastCG
 {
@@ -11,28 +12,9 @@ namespace FastCG
 	{
 		UNKNOWN = 0,
 		BACKSPACE,
+		DEL,
 		RETURN,
 		ESCAPE,
-		SPACE,
-		ASTERISK,
-		PLUS,
-		COMMA,
-		MINUS,
-		DOT,
-		SLASH,
-		NUMBER_0,
-		NUMBER_1,
-		NUMBER_2,
-		NUMBER_3,
-		NUMBER_4,
-		NUMBER_5,
-		NUMBER_6,
-		NUMBER_7,
-		NUMBER_8,
-		NUMBER_9,
-		COLON,
-		SEMI_COLON,
-		EQUALS,
 		LEFT_ARROW,
 		UP_ARROW,
 		RIGHT_ARROW,
@@ -56,37 +38,55 @@ namespace FastCG
 		INSERT,
 		SHIFT,
 		CONTROL,
-		OPEN_SQUARE_BRACKET,
-		BACKSLASH,
-		CLOSE_SQUARE_BRACKET,
-		LETTER_A,
-		LETTER_B,
-		LETTER_C,
-		LETTER_D,
-		LETTER_E,
-		LETTER_F,
-		LETTER_G,
-		LETTER_H,
-		LETTER_I,
-		LETTER_J,
-		LETTER_K,
-		LETTER_L,
-		LETTER_M,
-		LETTER_N,
-		LETTER_O,
-		LETTER_P,
-		LETTER_Q,
-		LETTER_R,
-		LETTER_S,
-		LETTER_T,
-		LETTER_U,
-		LETTER_V,
-		LETTER_W,
-		LETTER_X,
-		LETTER_Y,
-		LETTER_Z,
-		TILDE,
-		DEL,
+		SPACE = 32,
+		ASTERISK = '*',
+		PLUS = '+',
+		COMMA = ',',
+		MINUS = '-',
+		DOT = '.',
+		SLASH = '/',
+		NUMBER_0 = '0',
+		NUMBER_1 = '1',
+		NUMBER_2 = '2',
+		NUMBER_3 = '3',
+		NUMBER_4 = '4',
+		NUMBER_5 = '5',
+		NUMBER_6 = '6',
+		NUMBER_7 = '7',
+		NUMBER_8 = '8',
+		NUMBER_9 = '9',
+		COLON = ':',
+		SEMI_COLON = ';',
+		EQUALS = '=',
+		BACKSLASH = '\\',
+		LETTER_A = 'a',
+		LETTER_B = 'b',
+		LETTER_C = 'c',
+		LETTER_D = 'd',
+		LETTER_E = 'e',
+		LETTER_F = 'f',
+		LETTER_G = 'g',
+		LETTER_H = 'h',
+		LETTER_I = 'i',
+		LETTER_J = 'j',
+		LETTER_K = 'k',
+		LETTER_L = 'l',
+		LETTER_M = 'm',
+		LETTER_N = 'n',
+		LETTER_O = 'o',
+		LETTER_P = 'p',
+		LETTER_Q = 'q',
+		LETTER_R = 'r',
+		LETTER_S = 's',
+		LETTER_T = 't',
+		LETTER_U = 'u',
+		LETTER_V = 'v',
+		LETTER_W = 'w',
+		LETTER_X = 'x',
+		LETTER_Y = 'y',
+		LETTER_Z = 'z',
+		FIRST_CHAR_KEY = SPACE,
+		LAST_CHAR_KEY = LETTER_Z
 	};
 
 	using KeyInt = std::underlying_type_t<Key>;
@@ -96,6 +96,11 @@ namespace FastCG
 #endif
 
 	constexpr auto KEY_COUNT = std::numeric_limits<KeyInt>::max();
+
+	inline bool IsCharKey(Key key)
+	{
+		return (KeyInt)key >= (KeyInt)Key::FIRST_CHAR_KEY && (KeyInt)key <= (KeyInt)Key::LAST_CHAR_KEY;
+	}
 
 }
 

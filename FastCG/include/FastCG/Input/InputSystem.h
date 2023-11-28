@@ -41,7 +41,14 @@ namespace FastCG
 			const auto *pFrontBufferKeys = GetInstance()->mFrontBuffer.GetKeys();
 			for (KeyInt i = 0; i < KEY_COUNT; ++i)
 			{
-				keyChanges[i] = (KeyChange)((pBackBufferKeys[i] ^ pFrontBufferKeys[i]) & (1 << (KeyChangeInt)pBackBufferKeys[i]));
+				if (pBackBufferKeys[i] != pFrontBufferKeys[i])
+				{
+					keyChanges[i] = pBackBufferKeys[i] ? KeyChange::PRESSED : KeyChange::RELEASED;
+				}
+				else
+				{
+					keyChanges[i] = KeyChange::NONE;
+				}
 			}
 		}
 		inline static bool GetKey(Key keyCode)
