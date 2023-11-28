@@ -319,6 +319,20 @@ namespace FastCG
         }
     }
 
+    inline VkImageCreateFlags GetVkImageCreateFlags(TextureType type)
+    {
+        VkImageCreateFlags createFlags = 0;
+        if (type == TextureType::TEXTURE_CUBE_MAP)
+        {
+            createFlags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+        }
+        if (type == TextureType::TEXTURE_2D_ARRAY)
+        {
+            createFlags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+        }
+        return createFlags;
+    }
+
     inline VkImageType GetVkImageType(TextureType type)
     {
         switch (type)

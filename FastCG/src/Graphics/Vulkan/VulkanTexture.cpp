@@ -41,7 +41,7 @@ namespace FastCG
         VkImageCreateInfo imageCreateInfo;
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageCreateInfo.pNext = nullptr;
-        imageCreateInfo.flags = 0;
+        imageCreateInfo.flags = GetVkImageCreateFlags(GetType());
         imageCreateInfo.imageType = GetVkImageType(GetType());
         imageCreateInfo.format = GetVulkanFormat();
         imageCreateInfo.extent = {GetWidth(), GetHeight(), GetDepth()};
