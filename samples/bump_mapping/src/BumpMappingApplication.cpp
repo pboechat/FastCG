@@ -106,7 +106,7 @@ namespace
 
 		pTransform->SetScale(glm::vec3(scale, scale, scale));
 		auto center = bounds.getCenter();
-		pTransform->SetPosition(glm::vec3(-center.x * scale, 0.5, -center.z * scale));
+		pTransform->SetPosition(glm::vec3(-center.x * scale, 0.333f, -center.z * scale));
 
 		pTransform->SetParent(pParent);
 	}
@@ -126,7 +126,7 @@ void BumpMappingApplication::OnStart()
 
 	auto *pMainCameraGameObject = GameObject::Instantiate("Main Camera");
 	auto *pTransform = pMainCameraGameObject->GetTransform();
-	pTransform->SetPosition(glm::vec3(0, 0.5f, 1));
+	pTransform->SetPosition(glm::vec3(0, 0.333f, 1));
 	pTransform->SetParent(pParent);
 
 	Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
