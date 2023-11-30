@@ -53,7 +53,7 @@ namespace FastCG
     public:
         inline static const ComponentRegister *GetComponentRegister(const std::string &rComponentName)
         {
-            auto &rComponentRegisters = GetComponentRegisters();
+            auto &rComponentRegisters = GetOrCreateComponentRegisters();
             auto it = std::find_if(rComponentRegisters.cbegin(), rComponentRegisters.cend(), [&rComponentName](const auto &rComponentRegister)
                                    { return rComponentRegister.GetType().GetName() == rComponentName; });
             if (it == rComponentRegisters.cend())
@@ -66,7 +66,7 @@ namespace FastCG
         template <typename ComponentT>
         inline static void RegisterComponent()
         {
-            auto &rComponentRegisters = GetComponentRegisters();
+            auto &rComponentRegisters = GetOrCreateComponentRegisters();
             for (auto &rComponentRegister : rComponentRegisters)
             {
                 if (rComponentRegister.RefersTo<ComponentT>())
@@ -77,14 +77,19 @@ namespace FastCG
             rComponentRegisters.emplace_back(ComponentT::TYPE, &ComponentT::GenericInstantiate);
         }
 
+        inline static const std::vector<ComponentRegister> &GetComponentRegisters()
+        {
+            return GetOrCreateComponentRegisters();
+        }
+
     private:
         ComponentRegistry() = delete;
         ~ComponentRegistry() = delete;
 
-        static std::vector<ComponentRegister> &GetComponentRegisters()
+        static std::vector<ComponentRegister> &GetOrCreateComponentRegisters()
         {
-            static std::vector<ComponentRegister> sComponentsInstantiators;
-            return sComponentsInstantiators;
+            static std::vector<ComponentRegister> sComponentsRegisters;
+            return sComponentsRegisters;
         }
     };
 

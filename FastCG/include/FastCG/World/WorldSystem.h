@@ -2,11 +2,11 @@
 #define FASTCG_WORLD_SYSTEM
 
 #include <FastCG/World/GameObject.h>
+#include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Core/System.h>
 
 #include <vector>
 #include <string>
-#include <algorithm>
 
 #define FASTCG_COMPONENT_TRACKING(className)       \
 public:                                            \
@@ -107,15 +107,15 @@ namespace FastCG
         void RegisterCamera(Camera *pCamera);
         void UnregisterCamera(Camera *pCamera);
 #if _DEBUG
-        inline const Material *GetSelectedMaterial() const
+        inline const std::shared_ptr<Material> &GetSelectedMaterial() const
         {
             return mpSelectedMaterial;
         }
 
-        inline void SetSelectedMaterial(const Material *pMaterial)
+        inline void SetSelectedMaterial(const std::shared_ptr<Material> &rpMaterial)
         {
             mShowMaterialBrowser = true;
-            mpSelectedMaterial = pMaterial;
+            mpSelectedMaterial = rpMaterial;
         }
 #endif
 
@@ -128,8 +128,9 @@ namespace FastCG
         GameObject *mpSelectedGameObject{nullptr};
         bool mShowSceneHierarchy{false};
         bool mShowObjectInspector{false};
-        const Material *mpSelectedMaterial;
+        std::shared_ptr<Material> mpSelectedMaterial{nullptr};
         bool mShowMaterialBrowser{false};
+        IInspectableProperty *mpSelectedInspectableProperty{nullptr};
 #endif
 
         WorldSystem(const WorldSystemArgs &rArgs);
@@ -152,6 +153,7 @@ namespace FastCG
         void Finalize();
 
         friend class GameObject;
+        friend class Component;
     };
 
 }

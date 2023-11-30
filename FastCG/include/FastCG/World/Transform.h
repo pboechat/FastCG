@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vector>
+#include <cassert>
+#include <algorithm>
 
 namespace FastCG
 {
@@ -23,13 +25,15 @@ namespace FastCG
 
 		inline void SetParent(Transform *pParent)
 		{
-			if (mpParent != pParent)
+			if (mpParent != nullptr)
 			{
-				pParent->AddChild(this);
+				mpParent->RemoveChild(this);
 			}
-
 			mpParent = pParent;
-
+			if (mpParent != nullptr)
+			{
+				mpParent->AddChild(this);
+			}
 			Update();
 		}
 
@@ -243,8 +247,17 @@ namespace FastCG
 
 		inline void AddChild(Transform *pChild)
 		{
-			pChild->mpGameObject->SetActive(mpGameObject->IsActive()); // if parent is inactive, set as inactive as well
+			assert(pChild);
+			pChild->GetGameObject()->SetActive(mpGameObject->IsActive()); // if parent is inactive, set as inactive as well
 			mChildren.emplace_back(pChild);
+		}
+
+		inline void RemoveChild(Transform *pChild)
+		{
+			assert(pChild);
+			auto it = std::find(mChildren.begin(), mChildren.end(), pChild);
+			assert(it != mChildren.end());
+			mChildren.erase(it);
 		}
 	};
 

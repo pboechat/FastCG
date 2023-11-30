@@ -1,6 +1,7 @@
 #ifndef FASTCG_COMPONENT_H
 #define FASTCG_COMPONENT_H
 
+#include <FastCG/World/WorldSystem.h>
 #include <FastCG/World/GameObject.h>
 #include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Core/Exception.h>
@@ -136,6 +137,7 @@ namespace FastCG
 		{
 			pComponent->OnDestroy();
 			pComponent->RemoveFromParent();
+			WorldSystem::GetInstance()->UnregisterComponent(pComponent);
 			delete pComponent;
 		}
 
@@ -143,6 +145,7 @@ namespace FastCG
 		static void AddToGameObject(GameObject *pGameObject, Component *pComponent)
 		{
 			pGameObject->AddComponent(pComponent);
+			WorldSystem::GetInstance()->RegisterComponent(pComponent);
 		}
 
 		Component(GameObject *pGameObject) : mpGameObject(pGameObject)

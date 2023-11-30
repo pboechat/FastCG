@@ -1,4 +1,5 @@
 #include <FastCG/Rendering/RenderBatchStrategy.h>
+#include <FastCG/Rendering/Renderable.h>
 
 namespace
 {
@@ -84,94 +85,90 @@ namespace FastCG
 
     void RenderBatchStrategy::AddToShadowCastersRenderBatch(const Renderable *pRenderable)
     {
-        AddToRenderBatch(*(mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SHADOW_CASTERS), pRenderable);
+        AddToRenderBatch(GetShadowCastersRenderBatchIterator(), pRenderable);
     }
 
     void RenderBatchStrategy::RemoveFromShadowCastersRenderBatch(const Renderable *pRenderable)
     {
-        RemoveFromRenderBatch(*(mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SHADOW_CASTERS), pRenderable);
+        RemoveFromRenderBatch(GetShadowCastersRenderBatchIterator(), pRenderable);
     }
 
     void RenderBatchStrategy::AddToSkyboxRenderBatch(const Renderable *pRenderable)
     {
-        auto skyboxRenderBatchIt = mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SKYBOX;
+        auto skyboxRenderBatchIt = GetSkyboxRenderBatchIterator();
         if (skyboxRenderBatchIt->pMaterial != nullptr)
         {
             skyboxRenderBatchIt->renderablesPerMesh.clear();
         }
-        skyboxRenderBatchIt->pMaterial = pRenderable->GetMaterial().get();
-        skyboxRenderBatchIt->renderablesPerMesh.emplace(pRenderable->GetMesh().get(), std::vector<const Renderable *>{pRenderable});
+        skyboxRenderBatchIt->pMaterial = pRenderable->GetMaterial();
+        skyboxRenderBatchIt->renderablesPerMesh.emplace(pRenderable->GetMesh(), std::vector<const Renderable *>{pRenderable});
     }
 
     void RenderBatchStrategy::RemoveFromSkyboxRenderBatch(const Renderable *pRenderable)
     {
-        auto skyboxRenderBatchIt = mRenderBatches.begin() + (RenderGroupInt)RenderGroup::SKYBOX;
+        auto skyboxRenderBatchIt = GetSkyboxRenderBatchIterator();
         skyboxRenderBatchIt->pMaterial = nullptr;
         skyboxRenderBatchIt->renderablesPerMesh.clear();
     }
 
     void RenderBatchStrategy::AddToMaterialRenderBatch(const Renderable *pRenderable)
     {
-        const auto *pMaterial = pRenderable->GetMaterial().get();
-        auto it = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
-                               { return rRenderBatch.pMaterial == pMaterial; });
-        if (it == mRenderBatches.end())
+        const auto &rpMaterial = pRenderable->GetMaterial();
+        auto materialRenderBatchIt = GetMaterialRenderBatchIterator(rpMaterial);
+        if (materialRenderBatchIt == mRenderBatches.end())
         {
-            mRenderBatches.emplace_back(RenderBatch{pMaterial->GetGraphicsContextState().blend ? RenderGroup::TRANSPARENT_MATERIAL : RenderGroup::OPAQUE_MATERIAL, pMaterial});
-            it = std::prev(mRenderBatches.end());
-            AddToRenderBatch(*it, pRenderable);
+            materialRenderBatchIt = mRenderBatches.insert(mRenderBatches.end(),
+                                                          RenderBatch{rpMaterial->GetGraphicsContextState().blend ? RenderGroup::TRANSPARENT_MATERIAL : RenderGroup::OPAQUE_MATERIAL, rpMaterial});
+            AddToRenderBatch(materialRenderBatchIt, pRenderable);
             std::sort(mRenderBatches.begin(), mRenderBatches.end(), RenderBatchComparer());
         }
         else
         {
-            AddToRenderBatch(*it, pRenderable);
+            AddToRenderBatch(materialRenderBatchIt, pRenderable);
         }
     }
 
     void RenderBatchStrategy::RemoveFromMaterialRenderBatch(const Renderable *pRenderable)
     {
-        const auto *pMaterial = pRenderable->GetMaterial().get();
-        auto it = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [pMaterial](const auto &rRenderBatch)
-                               { return rRenderBatch.pMaterial == pMaterial; });
-        if (it != mRenderBatches.end())
-        {
-            RemoveFromRenderBatch(*it, pRenderable);
-        }
+        const auto &rpMaterial = pRenderable->GetMaterial();
+        auto materialRenderBatchIt = GetMaterialRenderBatchIterator(rpMaterial);
+        assert(materialRenderBatchIt != mRenderBatches.end());
+        RemoveFromRenderBatch(materialRenderBatchIt, pRenderable);
     }
 
-    void RenderBatchStrategy::AddToRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable)
+    void RenderBatchStrategy::AddToRenderBatch(const RenderBatches::iterator &rRenderBatchIt, const Renderable *pRenderable)
     {
-        auto &rRenderablesPerMesh = rRenderBatch.renderablesPerMesh;
-        const auto *pMesh = pRenderable->GetMesh().get();
-        auto it = rRenderablesPerMesh.find(pMesh);
-        if (it == rRenderablesPerMesh.end())
-        {
-            it = rRenderablesPerMesh.emplace(pMesh, std::vector<const Renderable *>{}).first;
-        }
-        it->second.emplace_back(pRenderable);
-    }
-
-    inline bool RenderBatchStrategy::RemoveFromRenderBatch(RenderBatch &rRenderBatch, const Renderable *pRenderable)
-    {
-        auto &rRenderablesPerMesh = rRenderBatch.renderablesPerMesh;
-        const auto *pMesh = pRenderable->GetMesh().get();
-        auto renderablesPerMeshIt = rRenderablesPerMesh.find(pMesh);
+        assert(rRenderBatchIt != mRenderBatches.end());
+        auto &rRenderablesPerMesh = rRenderBatchIt->renderablesPerMesh;
+        const auto &rpMesh = pRenderable->GetMesh();
+        auto renderablesPerMeshIt = rRenderablesPerMesh.find(rpMesh);
         if (renderablesPerMeshIt == rRenderablesPerMesh.end())
         {
-            return false;
+            renderablesPerMeshIt = rRenderablesPerMesh.emplace(rpMesh, std::vector<const Renderable *>{}).first;
         }
+        renderablesPerMeshIt->second.emplace_back(pRenderable);
+    }
+
+    inline bool RenderBatchStrategy::RemoveFromRenderBatch(const RenderBatches::iterator &rRenderBatchIt, const Renderable *pRenderable)
+    {
+        assert(rRenderBatchIt != mRenderBatches.end());
+        auto &rRenderablesPerMesh = rRenderBatchIt->renderablesPerMesh;
+        const auto &rpMesh = pRenderable->GetMesh();
+        auto renderablesPerMeshIt = rRenderablesPerMesh.find(rpMesh);
+        assert(renderablesPerMeshIt != rRenderablesPerMesh.end());
         auto &rRenderables = renderablesPerMeshIt->second;
         auto renderableIt = std::find(rRenderables.cbegin(), rRenderables.cend(), pRenderable);
         assert(renderableIt != rRenderables.cend());
         rRenderables.erase(renderableIt);
         if (rRenderables.empty())
         {
-            auto renderBatchIt = std::find_if(mRenderBatches.begin(), mRenderBatches.end(), [&rRenderBatch](const auto &rOtherRenderBatch)
-                                              { return &rRenderBatch == &rOtherRenderBatch; });
-            assert(renderBatchIt != mRenderBatches.end());
-            if (IsMaterialRenderGroup(renderBatchIt->group))
+            rRenderablesPerMesh.erase(renderablesPerMeshIt);
+            if (rRenderablesPerMesh.empty())
             {
-                mRenderBatches.erase(renderBatchIt);
+                if (IsMaterialRenderGroup(rRenderBatchIt->group))
+                {
+                    mRenderBatches.erase(rRenderBatchIt);
+                }
             }
         }
         return true;

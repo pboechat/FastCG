@@ -2,6 +2,7 @@
 #define FASTCG_RENDERING_SYSTEM_H
 
 #include <FastCG/Rendering/RenderingStatistics.h>
+#include <FastCG/Rendering/RenderBatchStrategy.h>
 #include <FastCG/Rendering/IWorldRenderer.h>
 #include <FastCG/Graphics/RenderingPath.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
@@ -12,7 +13,6 @@
 
 namespace FastCG
 {
-    class RenderBatchStrategy;
     class ImGuiRenderer;
 
     struct RenderingSystemArgs
@@ -45,7 +45,7 @@ namespace FastCG
 
     private:
         const RenderingSystemArgs mArgs;
-        std::unique_ptr<RenderBatchStrategy> mpRenderBatchStrategy;
+        RenderBatchStrategy mRenderBatchStrategy;
         std::unique_ptr<IWorldRenderer> mpWorldRenderer;
         std::unique_ptr<ImGuiRenderer> mpImGuiRenderer;
         GraphicsContext *mpGraphicsContext;

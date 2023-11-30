@@ -410,9 +410,8 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateShadowMaps(GraphicsContext *pGraphicsContext)
     {
-        auto shadowCastersRenderBatchIt = mArgs.rRenderBatches.begin() + (RenderGroupInt)RenderGroup::SHADOW_CASTERS;
-        assert(shadowCastersRenderBatchIt->group == RenderGroup::SHADOW_CASTERS);
-        if (shadowCastersRenderBatchIt->renderablesPerMesh.empty())
+        const auto &rShadowCastersRenderBatch = mArgs.rRenderBatchStrategy.GetShadowCastersRenderBatch();
+        if (rShadowCastersRenderBatch.renderablesPerMesh.empty())
         {
             return;
         }
@@ -421,9 +420,10 @@ namespace FastCG
         {
             pGraphicsContext->SetViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
             pGraphicsContext->SetDepthTest(true);
+            pGraphicsContext->SetDepthFunc(CompareOp::LESS);
             pGraphicsContext->SetDepthWrite(true);
-            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetScissorTest(false);
+            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetCullMode(Face::BACK);
             pGraphicsContext->SetBlend(false);
 
@@ -438,7 +438,7 @@ namespace FastCG
 
                 const auto *pShadowMapTexture = rShadowMap.GetTexture();
 
-                for (auto it = shadowCastersRenderBatchIt->renderablesPerMesh.cbegin(); it != shadowCastersRenderBatchIt->renderablesPerMesh.cend(); ++it)
+                for (auto it = rShadowCastersRenderBatch.renderablesPerMesh.cbegin(); it != rShadowCastersRenderBatch.renderablesPerMesh.cend(); ++it)
                 {
                     const auto &pMesh = it->first;
                     const auto &rRenderables = it->second;
@@ -482,8 +482,8 @@ namespace FastCG
             pGraphicsContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
             pGraphicsContext->SetDepthTest(false);
             pGraphicsContext->SetDepthWrite(false);
-            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetScissorTest(false);
+            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetCullMode(Face::NONE);
             pGraphicsContext->SetBlend(false);
 
@@ -533,38 +533,42 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::RenderSkybox(const Texture *pRenderTarget, const Texture *pDepthScencilBuffer, const Buffer *pSceneConstantsBuffer, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
     {
-        auto skyboxRenderBatchId = mArgs.rRenderBatches.cbegin() + (RenderGroupInt)RenderGroup::SKYBOX;
-        if (!skyboxRenderBatchId->renderablesPerMesh.empty())
+        const auto &rSkyboxRenderBatch = mArgs.rRenderBatchStrategy.GetSkyboxRenderBatch();
+        if (rSkyboxRenderBatch.renderablesPerMesh.empty())
         {
-            assert(skyboxRenderBatchId->renderablesPerMesh.size() == 1);
-
-            pGraphicsContext->PushDebugMarker("Skybox Pass");
-            {
-                pGraphicsContext->SetRenderTargets(&pRenderTarget, 1, pDepthScencilBuffer);
-
-                assert(skyboxRenderBatchId->pMaterial != nullptr);
-                BindMaterial(skyboxRenderBatchId->pMaterial, pGraphicsContext);
-
-                pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
-
-                const auto it = skyboxRenderBatchId->renderablesPerMesh.cbegin();
-                const auto *pMesh = it->first;
-                auto result = UpdateInstanceConstants(it->second, rView, rProjection, pGraphicsContext);
-                assert(result.first == 1);
-                const auto *pInstanceConstantsBuffer = result.second;
-
-                pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
-
-                pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
-
-                pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
-
-                mArgs.rRenderingStatistics.drawCalls++;
-                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
-            }
-            pGraphicsContext->PopDebugMarker();
+            return;
         }
+
+        pGraphicsContext->PushDebugMarker("Skybox Pass");
+        {
+            pGraphicsContext->SetRenderTargets(&pRenderTarget, 1, pDepthScencilBuffer);
+
+            assert(rSkyboxRenderBatch.pMaterial != nullptr);
+
+            BindMaterial(rSkyboxRenderBatch.pMaterial, pGraphicsContext);
+
+            // TODO: maybe validate or force skybox graphics context state?
+            SetGraphicsContextState(rSkyboxRenderBatch.pMaterial->GetGraphicsContextState(), pGraphicsContext);
+
+            pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
+
+            const auto it = rSkyboxRenderBatch.renderablesPerMesh.cbegin();
+            const auto &rpMesh = it->first;
+            auto result = UpdateInstanceConstants(it->second, rView, rProjection, pGraphicsContext);
+            assert(result.first == 1);
+            const auto *pInstanceConstantsBuffer = result.second;
+
+            pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
+
+            pGraphicsContext->SetVertexBuffers(rpMesh->GetVertexBuffers(), rpMesh->GetVertexBufferCount());
+            pGraphicsContext->SetIndexBuffer(rpMesh->GetIndexBuffer());
+
+            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, rpMesh->GetIndexCount(), 0);
+
+            mArgs.rRenderingStatistics.drawCalls++;
+            mArgs.rRenderingStatistics.triangles += rpMesh->GetTriangleCount();
+        }
+        pGraphicsContext->PopDebugMarker();
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -575,8 +579,8 @@ namespace FastCG
             pGraphicsContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
             pGraphicsContext->SetDepthTest(false);
             pGraphicsContext->SetDepthWrite(false);
-            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetScissorTest(false);
+            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetCullMode(Face::NONE);
             pGraphicsContext->SetBlend(false);
             pGraphicsContext->SetRenderTargets(&pDestinationRenderTarget, 1, nullptr);
@@ -596,28 +600,26 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindMaterial(const Material *pMaterial, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindMaterial(const std::shared_ptr<Material> &rpMaterial, GraphicsContext *pGraphicsContext)
     {
-        SetGraphicsContextState(pMaterial->GetGraphicsContextState(), pGraphicsContext);
-
-        const auto *pConstantBuffer = pMaterial->GetConstantBuffer();
+        const auto *pConstantBuffer = rpMaterial->GetConstantBuffer();
         if (pConstantBuffer != nullptr)
         {
-            pGraphicsContext->Copy(pConstantBuffer, pMaterial->GetConstantBufferSize(), pMaterial->GetConstantBufferData());
+            pGraphicsContext->Copy(pConstantBuffer, rpMaterial->GetConstantBufferSize(), rpMaterial->GetConstantBufferData());
         }
 
-        pGraphicsContext->BindShader(pMaterial->GetShader());
+        pGraphicsContext->BindShader(rpMaterial->GetShader());
 
         if (pConstantBuffer != nullptr)
         {
             pGraphicsContext->BindResource(pConstantBuffer, MATERIAL_CONSTANTS_SHADER_RESOURCE_NAME);
         }
 
-        for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)
+        for (size_t i = 0; i < rpMaterial->GetTextureCount(); ++i)
         {
             std::string name;
             const Texture *pTexture;
-            pMaterial->GetTextureAt(i, name, pTexture);
+            rpMaterial->GetTextureAt(i, name, pTexture);
             pGraphicsContext->BindResource(pTexture, name.c_str());
         }
     }
@@ -673,18 +675,9 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::EmptyLightingConstants(GraphicsContext *pGraphicsContext)
     {
-        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
-        mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
-        mLightingConstants.light0ViewPosition = rInverseView * mLightingConstants.light0Position;
-        mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();
-        mLightingConstants.light0SpecularColor = pPointLight->GetSpecularColor();
-        mLightingConstants.light0Intensity = pPointLight->GetIntensity();
-        mLightingConstants.light0ConstantAttenuation = pPointLight->GetConstantAttenuation();
-        mLightingConstants.light0LinearAttenuation = pPointLight->GetLinearAttenuation();
-        mLightingConstants.light0QuadraticAttenuation = pPointLight->GetQuadraticAttenuation();
-        mLightingConstants.ambientColor = mArgs.rAmbientLight;
+        mLightingConstants = {};
 
         const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
         pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
@@ -692,18 +685,49 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, GraphicsContext *pGraphicsContext)
     {
-        mLightingConstants.light0Position = glm::vec4(rViewDirection, -1);
-        mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
-        mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
-        mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
-        mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();
-        mLightingConstants.ambientColor = mArgs.rAmbientLight;
+        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
+        mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
+        mLightingConstants.light0ViewPosition = rView * mLightingConstants.light0Position;
+        mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();
+        mLightingConstants.light0SpecularColor = pPointLight->GetSpecularColor();
+        mLightingConstants.light0Intensity = pPointLight->GetIntensity();
+        mLightingConstants.light0ConstantAttenuation = pPointLight->GetConstantAttenuation();
+        mLightingConstants.light0LinearAttenuation = pPointLight->GetLinearAttenuation();
+        mLightingConstants.light0QuadraticAttenuation = pPointLight->GetQuadraticAttenuation();
+        mLightingConstants.ambientColor = mArgs.rAmbientLightColor;
 
         const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
         pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
         return pLightingConstantsBuffer;
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rLightDirection, GraphicsContext *pGraphicsContext)
+    {
+        mLightingConstants.light0Position = glm::vec4(rLightDirection, -1);
+        mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
+        mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
+        mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
+        mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();
+        mLightingConstants.ambientColor = mArgs.rAmbientLightColor;
+
+        const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
+        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
+        return pLightingConstantsBuffer;
+    }
+
+    template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::EmptyPCSSConstants(GraphicsContext *pGraphicsContext)
+    {
+        mPCSSConstants = {};
+
+        pGraphicsContext->BindResource(mpEmptyShadowMap, "uShadowMap");
+
+        const auto *pPCSSConstantsBuffer = GetPCSSConstantsBuffer();
+        pGraphicsContext->Copy(pPCSSConstantsBuffer, sizeof(PCSSConstants), &mPCSSConstants);
+        return pPCSSConstantsBuffer;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>

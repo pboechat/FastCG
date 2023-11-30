@@ -231,28 +231,28 @@ namespace
                      GenericObjectT &);
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMaterial(const std::shared_ptr<FastCG::Material> &pMaterial,
+    void DumpMaterial(const std::shared_ptr<FastCG::Material> &rpMaterial,
                       const std::string &rBasePath,
                       FastCG::GameObjectDumperOptionMaskType options,
                       AllocatorT &rAlloc,
                       GenericObjectT &rMaterialObj,
                       std::unordered_map<std::string, rapidjson::Value> &rTextures)
     {
-        AddValueMember(rAlloc, rMaterialObj, "name", pMaterial->GetName());
-        AddValueMember(rAlloc, rMaterialObj, "materialDefinition", pMaterial->GetMaterialDefinition()->GetName());
-        if (pMaterial->GetConstantBufferSize() > 0)
+        AddValueMember(rAlloc, rMaterialObj, "name", rpMaterial->GetName());
+        AddValueMember(rAlloc, rMaterialObj, "materialDefinition", rpMaterial->GetMaterialDefinition()->GetName());
+        if (rpMaterial->GetConstantBufferSize() > 0)
         {
-            auto data = FastCG::EncodeBase64(pMaterial->GetConstantBufferData(), pMaterial->GetConstantBufferSize());
+            auto data = FastCG::EncodeBase64(rpMaterial->GetConstantBufferData(), rpMaterial->GetConstantBufferSize());
             AddValueMember(rAlloc, rMaterialObj, "constantBufferData", data);
         }
-        if (pMaterial->GetTextureCount() > 0)
+        if (rpMaterial->GetTextureCount() > 0)
         {
             rapidjson::Value texturesArray(rapidjson::kArrayType);
-            for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)
+            for (size_t i = 0; i < rpMaterial->GetTextureCount(); ++i)
             {
                 std::string name;
                 const FastCG::Texture *pTexture;
-                pMaterial->GetTextureAt(i, name, pTexture);
+                rpMaterial->GetTextureAt(i, name, pTexture);
                 if (pTexture != nullptr)
                 {
                     auto id = GetId(pTexture);

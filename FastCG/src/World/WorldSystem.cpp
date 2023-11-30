@@ -3,6 +3,7 @@
 #include <FastCG/World/GameObjectLoader.h>
 #include <FastCG/World/GameObjectDumper.h>
 #include <FastCG/World/GameObject.h>
+#include <FastCG/World/ComponentRegistry.h>
 #include <FastCG/World/Component.h>
 #include <FastCG/World/Behaviour.h>
 #include <FastCG/Rendering/Renderable.h>
@@ -10,7 +11,6 @@
 #include <FastCG/Rendering/Fog.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Rendering/Camera.h>
-#include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Platform/Application.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Debug/DebugMenuSystem.h>
@@ -57,7 +57,7 @@
 namespace
 {
 #if _DEBUG
-    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, std::unordered_set<const FastCG::GameObject *> &rVisitedGameObjects)
+    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, FastCG::GameObject *&rpRemovedGameObject, std::unordered_set<const FastCG::GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -68,84 +68,106 @@ namespace
         rVisitedGameObjects.emplace(pGameObject);
 
         ImGui::PushID(pGameObject);
-        auto &rChildren = pGameObject->GetTransform()->GetChildren();
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        if (pGameObject == rpSelectedGameObject)
         {
-            flags |= ImGuiTreeNodeFlags_Selected;
-        }
-
-        auto DisplayPopup = [&pGameObject]()
-        {
-            if (ImGui::BeginPopup("SceneHierarchy_ItemContextMenu"))
+            auto &rChildren = pGameObject->GetTransform()->GetChildren();
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+            if (pGameObject == rpSelectedGameObject)
             {
-                if (ImGui::MenuItem("Dump"))
+                flags |= ImGuiTreeNodeFlags_Selected;
+            }
+
+            auto DisplayPopup = [&pGameObject, &rpRemovedGameObject]()
+            {
+                if (ImGui::BeginPopup("SceneHierarchy_ItemContextMenu"))
                 {
-                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File", ".json", ".", 1, (void *)pGameObject);
+                    if (ImGui::MenuItem("Add"))
+                    {
+                        auto *pNewChild = FastCG::GameObject::Instantiate("GameObject");
+                        pNewChild->GetTransform()->SetParent(pGameObject->GetTransform());
+                    }
+                    if (ImGui::MenuItem("Remove"))
+                    {
+                        rpRemovedGameObject = pGameObject;
+                    }
+                    if (ImGui::MenuItem("Dump"))
+                    {
+                        ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File", ".json", ".", 1, (void *)pGameObject);
+                    }
+                    ImGui::EndPopup();
                 }
-                ImGui::EndPopup();
-            }
-        };
-        if (rChildren.empty())
-        {
-            ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
+            };
+            if (rChildren.empty())
+            {
+                ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
 
-            if (ImGui::IsItemClicked(1))
-            {
-                ImGui::OpenPopup("SceneHierarchy_ItemContextMenu");
-            }
-            if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
-            {
-                rpSelectedGameObject = pGameObject;
-            }
-            DisplayPopup();
-        }
-        else
-        {
-            auto nodeOpen = ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags);
-
-            if (ImGui::IsItemClicked(1))
-            {
-                ImGui::OpenPopup("SceneHierarchy_ItemContextMenu");
-            }
-            if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
-            {
-                rpSelectedGameObject = pGameObject;
-            }
-            DisplayPopup();
-
-            if (nodeOpen)
-            {
-                for (auto *pChild : rChildren)
+                if (ImGui::IsItemClicked(1))
                 {
-                    DisplaySceneHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rVisitedGameObjects);
+                    ImGui::OpenPopup("SceneHierarchy_ItemContextMenu");
                 }
-                ImGui::TreePop();
+                if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+                {
+                    rpSelectedGameObject = pGameObject;
+                }
+                DisplayPopup();
             }
             else
             {
-                for (auto *pChild : rChildren)
+                auto nodeOpen = ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags);
+
+                if (ImGui::IsItemClicked(1))
                 {
-                    rVisitedGameObjects.emplace(pChild->GetGameObject());
+                    ImGui::OpenPopup("SceneHierarchy_ItemContextMenu");
+                }
+                if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+                {
+                    rpSelectedGameObject = pGameObject;
+                }
+                DisplayPopup();
+
+                if (nodeOpen)
+                {
+                    for (auto *pChild : rChildren)
+                    {
+                        DisplaySceneHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rpRemovedGameObject, rVisitedGameObjects);
+                    }
+                    ImGui::TreePop();
+                }
+                else
+                {
+                    for (auto *pChild : rChildren)
+                    {
+                        rVisitedGameObjects.emplace(pChild->GetGameObject());
+                    }
                 }
             }
         }
-
         ImGui::PopID();
     }
 
-    void DisplaySceneHierarchy(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::GameObject *&rpSelectedGameObject)
+    void DisplaySceneHierarchy(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::GameObject *&rpSelectedGameObject, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         if (ImGui::Begin("Scene Hierarchy"))
         {
             std::unordered_set<const FastCG::GameObject *> visitedGameObjects;
+
+            FastCG::GameObject *pSelectedGameObject = rpSelectedGameObject,
+                               *pRemovedGameObject = nullptr;
             for (auto *pGameObject : rGameObjects)
             {
                 if (pGameObject->GetTransform()->GetParent() != nullptr)
                 {
                     continue;
                 }
-                DisplaySceneHierarchy(pGameObject, rpSelectedGameObject, visitedGameObjects);
+                DisplaySceneHierarchy(pGameObject, pSelectedGameObject, pRemovedGameObject, visitedGameObjects);
+            }
+            if (pSelectedGameObject != rpSelectedGameObject)
+            {
+                rpSelectedInspectableProperty = nullptr;
+                rpSelectedGameObject = pSelectedGameObject;
+            }
+            if (pRemovedGameObject != nullptr)
+            {
+                FastCG::GameObject::Destroy(pRemovedGameObject);
             }
 
             ImGui::InvisibleButton("SceneHierarchy_Background", ImGui::GetContentRegionAvail());
@@ -157,6 +179,10 @@ namespace
 
             if (ImGui::BeginPopup("SceneHierarchy_WindowContextMenu"))
             {
+                if (ImGui::MenuItem("Add"))
+                {
+                    FastCG::GameObject::Instantiate("GameObject");
+                }
                 if (ImGui::MenuItem("Load"))
                 {
                     ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File", ".json", ".");
@@ -398,16 +424,28 @@ namespace
     template <>
     struct InspectablePropertyDisplayFnSelector<FastCG::Material>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
         {
             assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRef());
             std::shared_ptr<FastCG::Material> pMaterial;
             pInspectableProperty->GetValue((void *)&pMaterial);
-            ImGui::Text("Material: %s", pMaterial->GetName().c_str());
-            ImGui::SameLine();
-            if (ImGui::Button("View"))
+            if (pMaterial == nullptr)
             {
-                FastCG::WorldSystem::GetInstance()->SetSelectedMaterial(pMaterial.get());
+                ImGui::Text("Material: <unassigned>");
+            }
+            else
+            {
+                ImGui::Text("Material: %s", pMaterial->GetName().c_str());
+                ImGui::SameLine();
+                if (ImGui::Button("View"))
+                {
+                    FastCG::WorldSystem::GetInstance()->SetSelectedMaterial(pMaterial);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Assign"))
+            {
+                rpSelectedInspectableProperty = pInspectableProperty;
             }
         }
     };
@@ -415,16 +453,28 @@ namespace
     template <>
     struct InspectablePropertyDisplayFnSelector<FastCG::Texture>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
         {
             assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRawPtr());
             const FastCG::Texture *pTexture;
             pInspectableProperty->GetValue((void *)&pTexture);
-            ImGui::Text("Texture: %s", pTexture->GetName().c_str());
-            ImGui::SameLine();
-            if (ImGui::Button("View"))
+            if (pTexture == nullptr)
             {
-                FastCG::GraphicsSystem::GetInstance()->SetSelectedTexture(pTexture);
+                ImGui::Text("Texture: <unassigned>");
+            }
+            else
+            {
+                ImGui::Text("Texture: %s", pTexture->GetName().c_str());
+                ImGui::SameLine();
+                if (ImGui::Button("View"))
+                {
+                    FastCG::GraphicsSystem::GetInstance()->SetSelectedTexture(pTexture);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Assign"))
+            {
+                rpSelectedInspectableProperty = pInspectableProperty;
             }
         }
     };
@@ -432,16 +482,28 @@ namespace
     template <>
     struct InspectablePropertyDisplayFnSelector<FastCG::Mesh>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
         {
             assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRef());
             std::shared_ptr<FastCG::Mesh> pMesh;
             pInspectableProperty->GetValue((void *)&pMesh);
-            ImGui::Text("Mesh: %s", pMesh->GetName().c_str());
-            ImGui::SameLine();
-            if (ImGui::Button("View"))
+            if (pMesh == nullptr)
             {
-                // TODO: implement a mesh viewer
+                ImGui::Text("Mesh: <unassigned>");
+            }
+            else
+            {
+                ImGui::Text("Mesh: %s", pMesh->GetName().c_str());
+                ImGui::SameLine();
+                if (ImGui::Button("View"))
+                {
+                    // TODO: implement a mesh viewer
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Assign"))
+            {
+                rpSelectedInspectableProperty = pInspectableProperty;
             }
         }
     };
@@ -461,111 +523,302 @@ namespace
     {
     };
 
-    void DisplayInspectable(const std::string &rName, FastCG::Inspectable *pInspectable)
+    std::unordered_set<std::shared_ptr<FastCG::Material>> GetMaterials(const std::vector<FastCG::GameObject *> &rGameObjects)
     {
-        if (ImGui::TreeNode(rName.c_str()))
+        std::unordered_set<std::shared_ptr<FastCG::Material>> materials;
+        for (auto *pGameObject : rGameObjects)
         {
-            if (pInspectable != nullptr)
+            const auto *pRenderable = pGameObject->GetComponent<FastCG::Renderable>();
+            if (pRenderable == nullptr)
             {
-                for (size_t i = 0; i < pInspectable->GetInspectablePropertyCount(); ++i)
+                continue;
+            }
+
+            const auto &rpMaterial = pRenderable->GetMaterial();
+            if (rpMaterial == nullptr)
+            {
+                continue;
+            }
+
+            auto it = materials.find(rpMaterial);
+            if (it != materials.end())
+            {
+                continue;
+            }
+            materials.emplace(rpMaterial);
+        }
+        return materials;
+    }
+
+    std::unordered_set<std::shared_ptr<FastCG::Mesh>> GetMeshes(const std::vector<FastCG::GameObject *> &rGameObjects)
+    {
+        std::unordered_set<std::shared_ptr<FastCG::Mesh>> meshes;
+        for (auto *pGameObject : rGameObjects)
+        {
+            const auto *pRenderable = pGameObject->GetComponent<FastCG::Renderable>();
+            if (pRenderable == nullptr)
+            {
+                continue;
+            }
+
+            const auto &rpMesh = pRenderable->GetMesh();
+            if (rpMesh == nullptr)
+            {
+                continue;
+            }
+
+            auto it = meshes.find(rpMesh);
+            if (it != meshes.end())
+            {
+                continue;
+            }
+            meshes.emplace(rpMesh);
+        }
+        return meshes;
+    }
+
+    template <typename IteratorT, typename ItemT, typename CallbackT>
+    void DisplayItemTable(const char *pTitle, const IteratorT &rBegin, const IteratorT &rEnd, ItemT &rSelectedItem, const CallbackT &rCallback)
+    {
+        if (ImGui::BeginTable(pTitle, 1, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders))
+        {
+            ImGui::TableSetupColumn(pTitle);
+            ImGui::TableHeadersRow();
+
+            for (auto it = rBegin; it != rEnd; ++it)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ItemT currItem = (*it);
+                ImGui::Selectable(rCallback(currItem), currItem == rSelectedItem, ImGuiSelectableFlags_SpanAllColumns);
+                if (ImGui::IsItemClicked())
                 {
-                    auto *pInspectableProperty = pInspectable->GetInspectableProperty(i);
-                    switch (pInspectableProperty->GetType())
-                    {
-                    case FastCG::InspectablePropertyType::INSPECTABLE:
-                    {
-                        auto readonly = pInspectableProperty->IsReadOnly();
-                        if (readonly)
-                        {
-                            ImGui::BeginDisabled();
-                        }
-                        FastCG::Inspectable *pOtherInspectable;
-                        pInspectableProperty->GetValue(&pOtherInspectable);
-                        DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable);
-                        if (readonly)
-                        {
-                            ImGui::EndDisabled();
-                        }
-                    }
-                    break;
-                    case FastCG::InspectablePropertyType::ENUM:
-                    {
-                        auto readonly = pInspectableProperty->IsReadOnly();
-                        if (readonly)
-                        {
-                            ImGui::BeginDisabled();
-                        }
-                        auto pInspectableEnumProperty = static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
-                        auto ppItems = pInspectableEnumProperty->GetItems();
-                        int currentItem = (int)pInspectableEnumProperty->GetSelectedItem();
-                        if (ImGui::Combo(pInspectableEnumProperty->GetName().c_str(), &currentItem, ppItems, (int)pInspectableEnumProperty->GetItemCount()))
-                        {
-                            pInspectableEnumProperty->SetSelectedItem((size_t)currentItem);
-                        }
-                        if (readonly)
-                        {
-                            ImGui::EndDisabled();
-                        }
-                    }
-                    break;
-                    case FastCG::InspectablePropertyType::BOOL:
-                        InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::INT32:
-                        InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::UINT32:
-                        InspectablePropertyDisplayFnSelector<uint32_t>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::INT64:
-                        InspectablePropertyDisplayFnSelector<int64_t>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::UINT64:
-                        InspectablePropertyDisplayFnSelector<uint64_t>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::FLOAT:
-                        InspectablePropertyDisplayFnSelector<float>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::DOUBLE:
-                        InspectablePropertyDisplayFnSelector<double>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::VEC2:
-                        InspectablePropertyDisplayFnSelector<glm::vec2>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::VEC3:
-                        InspectablePropertyDisplayFnSelector<glm::vec3>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::VEC4:
-                        InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::STRING:
-                        InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::MATERIAL:
-                        InspectablePropertyDisplayFnSelector<FastCG::Material>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::MESH:
-                        InspectablePropertyDisplayFnSelector<FastCG::Mesh>::value(pInspectableProperty);
-                        break;
-                    case FastCG::InspectablePropertyType::TEXTURE:
-                        InspectablePropertyDisplayFnSelector<FastCG::Texture>::value(pInspectableProperty);
-                        break;
-                    default:
-                        assert(false);
-                    }
+                    rSelectedItem = currItem;
                 }
             }
-            ImGui::TreePop();
+            ImGui::EndTable();
         }
     }
 
-    void DisplayObjectInspector(FastCG::GameObject *pGameObject)
+    void DisplayDeferredAssignDialog(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::IInspectableProperty *&rpInspectableProperty)
+    {
+        if (rpInspectableProperty == nullptr)
+        {
+            return;
+        }
+
+        // FIXME: don't use static storage to store temporary values (side-effects!)
+        static std::shared_ptr<FastCG::Material> spMaterial;
+        static std::shared_ptr<FastCG::Mesh> spMesh;
+        const FastCG::Texture *spTexture;
+
+        void *pValue;
+
+        if (ImGui::Begin("Assign"))
+        {
+            switch (rpInspectableProperty->GetType())
+            {
+            case FastCG::InspectablePropertyType::MATERIAL:
+            {
+                auto materials = GetMaterials(rGameObjects);
+                DisplayItemTable("Materials", materials.begin(), materials.end(), spMaterial, [](const std::shared_ptr<FastCG::Material> &rpMaterial)
+                                 { return rpMaterial->GetName().c_str(); });
+                pValue = &spMaterial;
+            }
+            break;
+            case FastCG::InspectablePropertyType::MESH:
+            {
+                auto meshes = GetMeshes(rGameObjects);
+                DisplayItemTable("Meshes", meshes.begin(), meshes.end(), spMesh, [](const std::shared_ptr<FastCG::Mesh> &rpMesh)
+                                 { return rpMesh->GetName().c_str(); });
+                pValue = &spMesh;
+            }
+            break;
+            case FastCG::InspectablePropertyType::TEXTURE:
+            {
+                auto textures = FastCG::GraphicsSystem::GetInstance()->GetTextures();
+                DisplayItemTable("Textures", textures.begin(), textures.end(), spTexture, [](const FastCG::Texture *pTexture)
+                                 { return pTexture->GetName().c_str(); });
+                pValue = &spTexture;
+            }
+            break;
+            default:
+                FASTCG_THROW_EXCEPTION(FastCG::Exception, "Don't know how to deferred assign to inspectable property (type: %s)", FastCG::GetInspectablePropertyTypeString(rpInspectableProperty->GetType()));
+                break;
+            }
+            bool close = false;
+            if (ImGui::Button("OK"))
+            {
+                rpInspectableProperty->SetValue(pValue);
+                close = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+                close = true;
+            }
+            if (close)
+            {
+                rpInspectableProperty = nullptr;
+                // clean up temporary values statically stored!
+                spMaterial = nullptr;
+                spMesh = nullptr;
+                spTexture = nullptr;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::End();
+        }
+    }
+
+    void DisplayInspectable(const std::string &, FastCG::Inspectable *, FastCG::IInspectableProperty *&);
+
+    void FillInInspectable(FastCG::Inspectable *pInspectable, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    {
+        for (size_t i = 0; i < pInspectable->GetInspectablePropertyCount(); ++i)
+        {
+            auto *pInspectableProperty = pInspectable->GetInspectableProperty(i);
+            ImGui::PushID(pInspectableProperty);
+            {
+                switch (pInspectableProperty->GetType())
+                {
+                case FastCG::InspectablePropertyType::INSPECTABLE:
+                {
+                    auto readonly = pInspectableProperty->IsReadOnly();
+                    if (readonly)
+                    {
+                        ImGui::BeginDisabled();
+                    }
+                    FastCG::Inspectable *pOtherInspectable;
+                    pInspectableProperty->GetValue(&pOtherInspectable);
+                    DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable, rpSelectedInspectableProperty);
+                    if (readonly)
+                    {
+                        ImGui::EndDisabled();
+                    }
+                }
+                break;
+                case FastCG::InspectablePropertyType::ENUM:
+                {
+                    auto readonly = pInspectableProperty->IsReadOnly();
+                    if (readonly)
+                    {
+                        ImGui::BeginDisabled();
+                    }
+                    auto pInspectableEnumProperty = static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
+                    auto ppItems = pInspectableEnumProperty->GetItems();
+                    int currentItem = (int)pInspectableEnumProperty->GetSelectedItem();
+                    if (ImGui::Combo(pInspectableEnumProperty->GetName().c_str(), &currentItem, ppItems, (int)pInspectableEnumProperty->GetItemCount()))
+                    {
+                        pInspectableEnumProperty->SetSelectedItem((size_t)currentItem);
+                    }
+                    if (readonly)
+                    {
+                        ImGui::EndDisabled();
+                    }
+                }
+                break;
+                case FastCG::InspectablePropertyType::BOOL:
+                    InspectablePropertyDisplayFnSelector<bool>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::INT32:
+                    InspectablePropertyDisplayFnSelector<int32_t>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::UINT32:
+                    InspectablePropertyDisplayFnSelector<uint32_t>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::INT64:
+                    InspectablePropertyDisplayFnSelector<int64_t>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::UINT64:
+                    InspectablePropertyDisplayFnSelector<uint64_t>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::FLOAT:
+                    InspectablePropertyDisplayFnSelector<float>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::DOUBLE:
+                    InspectablePropertyDisplayFnSelector<double>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::VEC2:
+                    InspectablePropertyDisplayFnSelector<glm::vec2>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::VEC3:
+                    InspectablePropertyDisplayFnSelector<glm::vec3>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::VEC4:
+                    InspectablePropertyDisplayFnSelector<glm::vec4>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::STRING:
+                    InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::MATERIAL:
+                    InspectablePropertyDisplayFnSelector<FastCG::Material>::value(pInspectableProperty, rpSelectedInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::MESH:
+                    InspectablePropertyDisplayFnSelector<FastCG::Mesh>::value(pInspectableProperty, rpSelectedInspectableProperty);
+                    break;
+                case FastCG::InspectablePropertyType::TEXTURE:
+                    InspectablePropertyDisplayFnSelector<FastCG::Texture>::value(pInspectableProperty, rpSelectedInspectableProperty);
+                    break;
+                default:
+                    assert(false);
+                }
+            }
+            ImGui::PopID();
+        }
+    }
+
+    void DisplayComponent(const std::string &rName, FastCG::Component *pComponent, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    {
+        ImGui::PushID(pComponent);
+        {
+            bool nodeOpened = ImGui::TreeNodeEx(rName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick);
+
+            if (ImGui::IsItemClicked(1))
+            {
+                ImGui::OpenPopup("Inspectable_ItemContextMenu");
+            }
+
+            if (ImGui::BeginPopup("Inspectable_ItemContextMenu"))
+            {
+                if (ImGui::MenuItem("Remove"))
+                {
+                    FastCG::Component::Destroy(pComponent);
+                }
+                ImGui::EndPopup();
+            }
+
+            if (nodeOpened)
+            {
+                FillInInspectable(pComponent, rpSelectedInspectableProperty);
+                ImGui::TreePop();
+            }
+        }
+        ImGui::PopID();
+    }
+
+    void DisplayInspectable(const std::string &rName, FastCG::Inspectable *pInspectable, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    {
+        ImGui::PushID(pInspectable);
+        {
+            if (ImGui::TreeNodeEx(rName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
+            {
+                if (pInspectable != nullptr)
+                {
+                    FillInInspectable(pInspectable, rpSelectedInspectableProperty);
+                }
+                ImGui::TreePop();
+            }
+        }
+        ImGui::PopID();
+    }
+
+    void DisplayObjectInspector(FastCG::GameObject *pGameObject, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         if (ImGui::Begin("Object Inspector"))
         {
             if (pGameObject != nullptr)
             {
-                if (ImGui::TreeNode("Transform"))
+                if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
                 {
                     auto *pTransform = pGameObject->GetTransform();
 
@@ -593,85 +846,98 @@ namespace
 
                 for (auto *pComponent : pGameObject->GetComponents())
                 {
-                    DisplayInspectable(pComponent->GetType().GetName(), pComponent);
+                    DisplayComponent(pComponent->GetType().GetName(), pComponent, rpSelectedInspectableProperty);
+                }
+
+                ImGui::InvisibleButton("ObjectInspector_Background", ImGui::GetContentRegionAvail());
+
+                if (ImGui::IsItemClicked(1))
+                {
+                    ImGui::OpenPopup("ObjectInspector_WindowContextMenu");
+                }
+
+                if (ImGui::BeginPopup("ObjectInspector_WindowContextMenu"))
+                {
+                    if (ImGui::BeginMenu("Add"))
+                    {
+                        for (const auto &rComponentRegister : FastCG::ComponentRegistry::GetComponentRegisters())
+                        {
+                            if (pGameObject->HasComponent(rComponentRegister.GetType()))
+                            {
+                                continue;
+                            }
+                            if (ImGui::MenuItem(rComponentRegister.GetType().GetName().c_str()))
+                            {
+                                rComponentRegister.Instantiate(pGameObject);
+                            }
+                        }
+                        ImGui::EndMenu();
+                    }
+                    ImGui::EndPopup();
                 }
             }
         }
         ImGui::End();
     }
 
-    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects, const FastCG::Material *&rpSelectedMaterial)
+    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects, std::shared_ptr<FastCG::Material> &rpSelectedMaterial)
     {
         if (ImGui::Begin("Material Browser"))
         {
             auto textureWidth = (uint32_t)(ImGui::GetWindowSize().x * 0.333f);
 
-            std::unordered_set<const FastCG::Material *> seenMaterials;
-            for (auto *pGameObject : rGameObjects)
+            for (const auto &rpMaterial : GetMaterials(rGameObjects))
             {
-                const auto *pRenderable = pGameObject->GetComponent<FastCG::Renderable>();
-                if (pRenderable == nullptr)
+                ImGui::PushID(rpMaterial.get());
                 {
-                    continue;
-                }
-
-                const auto *pMaterial = pRenderable->GetMaterial().get();
-
-                auto it = seenMaterials.find(pMaterial);
-                if (it != seenMaterials.end())
-                {
-                    continue;
-                }
-                seenMaterials.emplace(pMaterial);
-
-                ImGui::PushID(pMaterial);
-                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
-                if (pMaterial == rpSelectedMaterial)
-                {
-                    flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
-                }
-                if (ImGui::TreeNodeEx(pMaterial->GetName().c_str(), flags))
-                {
-                    ImGui::Text("Shader: %s", pMaterial->GetShader()->GetName().c_str());
-                    for (size_t i = 0; i < pMaterial->GetConstantCount(); ++i)
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+                    if (rpMaterial == rpSelectedMaterial)
                     {
-                        const auto &rConstant = pMaterial->GetConstantAt(i);
-                        if (rConstant.IsVec4())
-                        {
-                            glm::vec4 value;
-                            pMaterial->GetConstant(rConstant.GetName(), value);
-                            ImGui::Text("%s: (%.3f, %.3f, %.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y, value.z, value.w);
-                        }
-                        else if (rConstant.IsVec2())
-                        {
-                            glm::vec2 value;
-                            pMaterial->GetConstant(rConstant.GetName(), value);
-                            ImGui::Text("%s: (%.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y);
-                        }
-                        else if (rConstant.IsFloat())
-                        {
-                            float value;
-                            pMaterial->GetConstant(rConstant.GetName(), value);
-                            ImGui::Text("%s: %.3f", rConstant.GetName().c_str(), value);
-                        }
-                        else
-                        {
-                            assert(false);
-                        }
+                        flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
                     }
-                    for (size_t i = 0; i < pMaterial->GetTextureCount(); ++i)
+                    if (ImGui::TreeNodeEx(rpMaterial->GetName().c_str(), flags))
                     {
-                        std::string name;
-                        const FastCG::Texture *pTexture;
-                        pMaterial->GetTextureAt(i, name, pTexture);
-                        ImGui::Text("%s:", name.c_str());
-                        if (pTexture != nullptr)
+                        ImGui::Text("Shader: %s", rpMaterial->GetShader()->GetName().c_str());
+                        for (size_t i = 0; i < rpMaterial->GetConstantCount(); ++i)
                         {
-                            ImGui::Text("<%s>", pTexture->GetName().c_str());
-                            DisplayTexture(pTexture, textureWidth);
+                            const auto &rConstant = rpMaterial->GetConstantAt(i);
+                            if (rConstant.IsVec4())
+                            {
+                                glm::vec4 value;
+                                rpMaterial->GetConstant(rConstant.GetName(), value);
+                                ImGui::Text("%s: (%.3f, %.3f, %.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y, value.z, value.w);
+                            }
+                            else if (rConstant.IsVec2())
+                            {
+                                glm::vec2 value;
+                                rpMaterial->GetConstant(rConstant.GetName(), value);
+                                ImGui::Text("%s: (%.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y);
+                            }
+                            else if (rConstant.IsFloat())
+                            {
+                                float value;
+                                rpMaterial->GetConstant(rConstant.GetName(), value);
+                                ImGui::Text("%s: %.3f", rConstant.GetName().c_str(), value);
+                            }
+                            else
+                            {
+                                assert(false);
+                            }
                         }
+                        for (size_t i = 0; i < rpMaterial->GetTextureCount(); ++i)
+                        {
+                            std::string name;
+                            const FastCG::Texture *pTexture;
+                            rpMaterial->GetTextureAt(i, name, pTexture);
+                            ImGui::Text("%s:", name.c_str());
+                            if (pTexture != nullptr)
+                            {
+                                ImGui::Text("<%s>", pTexture->GetName().c_str());
+                                DisplayTexture(pTexture, textureWidth);
+                            }
+                        }
+                        ImGui::TreePop();
                     }
-                    ImGui::TreePop();
                 }
                 ImGui::PopID();
             }
@@ -704,16 +970,17 @@ namespace FastCG
     {
         if (mShowSceneHierarchy)
         {
-            DisplaySceneHierarchy(mGameObjects, mpSelectedGameObject);
+            DisplaySceneHierarchy(mGameObjects, mpSelectedGameObject, mpSelectedInspectableProperty);
         }
         if (mShowObjectInspector)
         {
-            DisplayObjectInspector(mpSelectedGameObject);
+            DisplayObjectInspector(mpSelectedGameObject, mpSelectedInspectableProperty);
         }
         if (mShowMaterialBrowser)
         {
             DisplayMaterialBrowser(mGameObjects, mpSelectedMaterial);
         }
+        DisplayDeferredAssignDialog(mGameObjects, mpSelectedInspectableProperty);
     }
 
     void WorldSystem::DebugMenuItemCallback(int &result)
@@ -740,6 +1007,7 @@ namespace FastCG
         if (mpSelectedGameObject == pGameObject)
         {
             mpSelectedGameObject = nullptr;
+            mpSelectedInspectableProperty = nullptr;
         }
 #endif
     }
@@ -767,6 +1035,8 @@ namespace FastCG
         auto it = std::find(mCameras.cbegin(), mCameras.cend(), pCamera);
         assert(it != mCameras.cend());
 
+        mCameras.erase(it);
+
         if (mpMainCamera == pCamera)
         {
             if (mCameras.empty())
@@ -778,8 +1048,6 @@ namespace FastCG
                 mpMainCamera = mCameras[0];
             }
         }
-
-        mCameras.erase(it);
     }
 
     void WorldSystem::UnregisterComponent(Component *pComponent)
@@ -838,15 +1106,13 @@ namespace FastCG
 
     void WorldSystem::Finalize()
     {
-        auto gameObjectsToDestroy = mGameObjects;
-        for (auto *pGameObject : gameObjectsToDestroy)
+        while (!mGameObjects.empty())
         {
-            GameObject::Destroy(pGameObject);
+            GameObject::Destroy(mGameObjects.back());
         }
 
         mpMainCamera = nullptr;
 
-        assert(mGameObjects.empty());
         assert(mCameras.empty());
         assert(mDirectionalLights.empty());
         assert(mPointLights.empty());

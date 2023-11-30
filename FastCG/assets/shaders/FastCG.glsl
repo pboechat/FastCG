@@ -118,7 +118,7 @@ float GetViewSpaceZ(mat4 projection, float depth)
 
 vec3 PackNormalToColor(vec3 value)
 {
-	return value.xyz * 0.5 + 0.5;
+	return value * 0.5 + 0.5;
 }
 
 vec4 PackNormalToColor(vec4 value)
@@ -128,12 +128,12 @@ vec4 PackNormalToColor(vec4 value)
 
 vec3 UnpackNormalFromColor(vec3 color)
 {
-	return (color.xyz - 0.5) * 2.0;
+	return color * 2.0 - 1.0;
 }
 
 vec4 UnpackNormalFromColor(vec4 color)
 {
-	return vec4((color.xyz - 0.5) * 2.0, color.w);
+	return vec4(UnpackNormalFromColor(color.xyz), color.w);
 }
 
 #endif

@@ -124,25 +124,23 @@ namespace FastCG
             pGraphicsContext->PushDebugMarker("Clear Render Targets");
             {
                 pGraphicsContext->ClearRenderTarget(0, mArgs.rClearColor);
-                pGraphicsContext->ClearDepthStencilBuffer(1, 0);
+                pGraphicsContext->ClearDepthBuffer(1);
             }
             pGraphicsContext->PopDebugMarker();
 
             const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
 
-            auto ProcessMaterialPasses = [&](const auto &rBegin, const auto &rEnd)
+            auto ProcessMaterialPasses = [&](const auto &rFirstRenderBatchIt, const auto &rLastRenderBatchIt)
             {
                 const auto *pFogConstantsBuffer = UpdateFogConstants(WorldSystem::GetInstance()->GetFog(), pGraphicsContext);
 
-                for (auto renderBatchIt = rBegin; renderBatchIt != rEnd; ++renderBatchIt)
+                for (auto renderBatchIt = rFirstRenderBatchIt; renderBatchIt != rLastRenderBatchIt; ++renderBatchIt)
                 {
-                    assert(IsMaterialRenderGroup(renderBatchIt->group));
+                    const auto &rpMaterial = renderBatchIt->pMaterial;
 
-                    const auto *pMaterial = renderBatchIt->pMaterial;
-
-                    pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
+                    pGraphicsContext->PushDebugMarker((rpMaterial->GetName() + " Pass").c_str());
                     {
-                        BindMaterial(pMaterial, pGraphicsContext);
+                        BindMaterial(rpMaterial, pGraphicsContext);
 
                         pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
                         pGraphicsContext->BindResource(pFogConstantsBuffer, FOG_CONSTANTS_SHADER_RESOURCE_NAME);
@@ -151,7 +149,9 @@ namespace FastCG
 
                         for (auto it = renderBatchIt->renderablesPerMesh.cbegin(); it != renderBatchIt->renderablesPerMesh.cend(); ++it)
                         {
-                            const auto *pMesh = it->first;
+                            SetGraphicsContextState(rpMaterial->GetGraphicsContextState(), pGraphicsContext);
+
+                            const auto &rpMesh = it->first;
                             const auto &rRenderables = it->second;
 
                             uint32_t instanceCount;
@@ -169,25 +169,30 @@ namespace FastCG
 
                             pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                            pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
+                            pGraphicsContext->SetVertexBuffers(rpMesh->GetVertexBuffers(), rpMesh->GetVertexBufferCount());
+                            pGraphicsContext->SetIndexBuffer(rpMesh->GetIndexBuffer());
 
                             const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
                             const auto &rPointLights = WorldSystem::GetInstance()->GetPointLights();
 
                             if (rDirectionalLights.size() == 0 && rPointLights.size() == 0)
                             {
+                                const auto *pLightingConstantsBuffer = EmptyLightingConstants(pGraphicsContext);
+                                pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
+                                const auto *pPCSSConstantsBuffer = EmptyPCSSConstants(pGraphicsContext);
+                                pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
+
                                 if (instanceCount == 1)
                                 {
-                                    pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                    pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, rpMesh->GetIndexCount(), 0);
                                 }
                                 else
                                 {
-                                    pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                    pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, rpMesh->GetIndexCount(), 0);
                                 }
 
                                 mArgs.rRenderingStatistics.drawCalls++;
-                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                                mArgs.rRenderingStatistics.triangles += rpMesh->GetTriangleCount();
                             }
                             else
                             {
@@ -200,11 +205,9 @@ namespace FastCG
 
                                 SubpassType lastSubpassType{SubpassType::ST_NONE};
 
-                                auto transposeView = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
-
                                 for (size_t i = 0; i < rDirectionalLights.size(); i++)
                                 {
-                                    pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Directional Light Sub-Pass (" + std::to_string(i) + ")").c_str());
+                                    pGraphicsContext->PushDebugMarker((rpMaterial->GetName() + " Directional Light Sub-Pass (" + std::to_string(i) + ")").c_str());
                                     {
                                         switch (lastSubpassType)
                                         {
@@ -217,20 +220,18 @@ namespace FastCG
 
                                         const auto *pDirectionalLight = rDirectionalLights[i];
 
-                                        auto directionalLightPosition = glm::normalize(pDirectionalLight->GetGameObject()->GetTransform()->GetWorldPosition());
-
-                                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, transposeView * directionalLightPosition, pGraphicsContext);
+                                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, pDirectionalLight->GetDirection(), pGraphicsContext);
                                         pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
                                         const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
                                         pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                         if (instanceCount == 1)
                                         {
-                                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, rpMesh->GetIndexCount(), 0);
                                         }
                                         else
                                         {
-                                            pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                            pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, rpMesh->GetIndexCount(), 0);
                                         }
 
                                         mArgs.rRenderingStatistics.drawCalls++;
@@ -252,7 +253,7 @@ namespace FastCG
 
                                 for (size_t i = 0; i < rPointLights.size(); i++)
                                 {
-                                    pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Point Light Sub-Pass (" + std::to_string(i) + ")").c_str());
+                                    pGraphicsContext->PushDebugMarker((rpMaterial->GetName() + " Point Light Sub-Pass (" + std::to_string(i) + ")").c_str());
                                     {
                                         switch (lastSubpassType)
                                         {
@@ -263,18 +264,18 @@ namespace FastCG
                                             break;
                                         }
 
-                                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], inverseView, pGraphicsContext);
+                                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(rPointLights[i], view, pGraphicsContext);
                                         pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
                                         const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(rPointLights[i], nearClip, pGraphicsContext);
                                         pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                         if (instanceCount == 1)
                                         {
-                                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, rpMesh->GetIndexCount(), 0);
                                         }
                                         else
                                         {
-                                            pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                            pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, rpMesh->GetIndexCount(), 0);
                                         }
 
                                         mArgs.rRenderingStatistics.drawCalls++;
@@ -293,7 +294,7 @@ namespace FastCG
                                     }
                                     pGraphicsContext->PopDebugMarker();
                                 }
-                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                                mArgs.rRenderingStatistics.triangles += rpMesh->GetTriangleCount();
                             }
                         }
                     }
@@ -301,25 +302,25 @@ namespace FastCG
                 }
             };
 
-            auto opaqueRenderBatchBegin = mArgs.rRenderBatches.cbegin() + (RenderGroupInt)RenderGroup::OPAQUE_MATERIAL;
-            auto transparentRenderBatchBegin = std::find_if(opaqueRenderBatchBegin, mArgs.rRenderBatches.cend(), [](const auto &rRenderBatch)
-                                                            { return rRenderBatch.group == RenderGroup::TRANSPARENT_MATERIAL; });
-            if (opaqueRenderBatchBegin != transparentRenderBatchBegin)
+            auto opaqueRenderBatchesIt = mArgs.rRenderBatchStrategy.GetFirstOpaqueMaterialRenderBatchIterator();
+            auto transparentRenderBatchesIt = mArgs.rRenderBatchStrategy.GetFirstTransparentMaterialRenderBatchIterator();
+            if (opaqueRenderBatchesIt != transparentRenderBatchesIt)
             {
-                pGraphicsContext->PushDebugMarker("Opaque Passes");
+                pGraphicsContext->PushDebugMarker("Opaque Material Passes");
                 {
-                    ProcessMaterialPasses(opaqueRenderBatchBegin, transparentRenderBatchBegin);
+                    ProcessMaterialPasses(opaqueRenderBatchesIt, transparentRenderBatchesIt);
                 }
                 pGraphicsContext->PopDebugMarker();
             }
 
             RenderSkybox(pCurrentRenderTarget, pCurrentDepthStencilBuffer, pSceneConstantsBuffer, view, projection, pGraphicsContext);
 
-            if (transparentRenderBatchBegin != mArgs.rRenderBatches.cend())
+            auto lastRenderBatchIt = mArgs.rRenderBatchStrategy.GetLastRenderBatchIterator();
+            if (transparentRenderBatchesIt != lastRenderBatchIt)
             {
-                pGraphicsContext->PushDebugMarker("Transparent Passes");
+                pGraphicsContext->PushDebugMarker("Transparent Material Passes");
                 {
-                    ProcessMaterialPasses(transparentRenderBatchBegin, mArgs.rRenderBatches.cend());
+                    ProcessMaterialPasses(transparentRenderBatchesIt, lastRenderBatchIt);
                 }
                 pGraphicsContext->PopDebugMarker();
             }

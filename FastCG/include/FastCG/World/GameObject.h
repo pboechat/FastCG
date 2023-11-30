@@ -43,22 +43,13 @@ namespace FastCG
 			return mpTransform.get();
 		}
 
-		inline Renderable *GetRenderable()
-		{
-			return mpRenderable;
-		}
-
-		inline const Renderable *GetRenderable() const
-		{
-			return mpRenderable;
-		}
-
 		inline bool IsActive() const
 		{
 			return mActive;
 		}
 
 		void SetActive(bool active);
+		bool HasComponent(const ComponentType &rComponentType) const;
 		Component *GetComponent(const ComponentType &rComponentType) const;
 		template <class ComponentT>
 		ComponentT *GetComponent() const
@@ -77,7 +68,6 @@ namespace FastCG
 
 		std::string mName;
 		TransformUniquePtr mpTransform;
-		Renderable *mpRenderable{nullptr};
 		std::vector<Component *> mComponents;
 		bool mActive{true};
 

@@ -30,7 +30,7 @@ float DistanceAttenuation(vec3 worldPosition)
 	if (GetLightType() == 1.0) 
 	{
 	    float d = distance(uLight0Position.xyz, worldPosition);
-		return 1.0 / max(uLight0ConstantAttenuation + uLight0LinearAttenuation * d + uLight0QuadraticAttenuation * pow(d, 2.0), 1.0);
+		return 1.0 / (uLight0ConstantAttenuation + uLight0LinearAttenuation * d + uLight0QuadraticAttenuation * d * d);
 	}
 	else
 	{
@@ -40,7 +40,7 @@ float DistanceAttenuation(vec3 worldPosition)
 
 vec4 Phong(vec4 diffuse, vec3 lightDirection, float viewDistance, vec3 worldPosition, vec3 normal, vec2 screenCoords)
 {
-    float diffuseAttenuation = max(dot(normal, lightDirection), 0.0);
+    float diffuseAttenuation = max(0.0, dot(normal, lightDirection));
     vec4 diffuseContribution = uLight0DiffuseColor * uLight0Intensity * diffuse * diffuseAttenuation;
 
     vec4 fragColor = DistanceAttenuation(worldPosition) * (uAmbientColor + diffuseContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
@@ -50,38 +50,38 @@ vec4 Phong(vec4 diffuse, vec3 lightDirection, float viewDistance, vec3 worldPosi
 
 vec4 Phong(vec4 diffuse, vec4 specular, float shininess, vec3 lightDirection, float viewDistance, vec3 viewerDirection, vec3 worldPosition, vec3 normal, vec2 screenCoords)
 {
-    float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
-    vec4 diffuseContribution = uLight0DiffuseColor * uLight0Intensity * diffuse * diffuseAttenuation;
+    float diffuseAttenuation = max(0.0, dot(normal, lightDirection));
+    vec4 diffuseContribution = uLight0DiffuseColor * diffuse * diffuseAttenuation;
 
     vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
-    float specularAttenuation = max(pow(max(dot(reflectionDirection, viewerDirection), 0.0), shininess), 0.0);
-    vec4 specularContribution = uLight0SpecularColor * uLight0Intensity * specular * specularAttenuation;
+    float specularAttenuation = pow(max(0.0, dot(viewerDirection, reflectionDirection)), shininess);
+    vec4 specularContribution = uLight0SpecularColor * specular * specularAttenuation;
 
-    vec4 fragColor = DistanceAttenuation(worldPosition) * (uAmbientColor + diffuseContribution + specularContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
+    vec4 fragColor = DistanceAttenuation(worldPosition) * uLight0Intensity * (uAmbientColor + diffuseContribution + specularContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
     fragColor = ApplyFog(viewDistance, fragColor);
     return fragColor;
 }
 
 vec4 BlinnPhong(vec4 diffuse, vec3 lightDirection, float viewDistance, vec3 worldPosition, vec3 normal, vec2 screenCoords)
 {
-    float diffuseAttenuation = max(dot(normal, lightDirection), 0.0);
-    vec4 diffuseContribution = uLight0DiffuseColor * uLight0Intensity * diffuse * diffuseAttenuation;
+    float diffuseAttenuation = max(0.0, dot(normal, lightDirection));
+    vec4 diffuseContribution = uLight0DiffuseColor * diffuse * diffuseAttenuation;
 
-    vec4 fragColor = DistanceAttenuation(worldPosition) * (uAmbientColor + diffuseContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
+    vec4 fragColor = DistanceAttenuation(worldPosition) * uLight0Intensity * (uAmbientColor + diffuseContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
     fragColor = ApplyFog(viewDistance, fragColor);
     return fragColor;
 }
 
 vec4 BlinnPhong(vec4 diffuse, vec4 specular, float shininess, vec3 lightDirection, float viewDistance, vec3 viewerDirection, vec3 worldPosition, vec3 normal, vec2 screenCoords)
 {
-    float diffuseAttenuation = max(dot(lightDirection, normal), 0.0);
-    vec4 diffuseContribution = uLight0DiffuseColor * uLight0Intensity * diffuse * diffuseAttenuation;
+    float diffuseAttenuation = max(0.0, dot(normal, lightDirection));
+    vec4 diffuseContribution = uLight0DiffuseColor * diffuse * diffuseAttenuation;
 
     vec3 halfwayVector = normalize(lightDirection + viewerDirection);
-    float specularAttenuation = max(pow(max(dot(halfwayVector, normal), 0.0), shininess), 0.0);
-    vec4 specularContribution = uLight0SpecularColor * uLight0Intensity * specular * specularAttenuation;
+    float specularAttenuation = pow(max(0.0, dot(normal, halfwayVector)), shininess);
+    vec4 specularContribution = uLight0SpecularColor * specular * specularAttenuation;
 
-    vec4 fragColor = DistanceAttenuation(worldPosition) * (uAmbientColor + diffuseContribution + specularContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
+    vec4 fragColor = DistanceAttenuation(worldPosition) * uLight0Intensity * (uAmbientColor + diffuseContribution + specularContribution) * GetShadow(uPCSSData, uShadowMap, worldPosition) * GetAmbientOcclusion(uAmbientOcclusionMap, screenCoords);
     fragColor = ApplyFog(viewDistance, fragColor);
     return fragColor;
 }

@@ -111,7 +111,7 @@ namespace FastCG
                                                                                 1,
                                                                                 TextureType::TEXTURE_2D,
                                                                                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                                TextureFormat::X8_D24_UNORM_PACK32,
+                                                                                TextureFormat::D24_UNORM_S8_UINT,
                                                                                 TextureFilter::POINT_FILTER,
                                                                                 TextureWrapMode::CLAMP});
         }
@@ -197,10 +197,10 @@ namespace FastCG
 
             pGraphicsContext->SetViewport(0, 0, rCurrentGBuffer[0]->GetWidth(), rCurrentGBuffer[0]->GetHeight());
             pGraphicsContext->SetDepthTest(true);
+            pGraphicsContext->SetDepthFunc(CompareOp::LESS);
             pGraphicsContext->SetDepthWrite(true);
-            pGraphicsContext->SetStencilTest(false);
-            pGraphicsContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0);
             pGraphicsContext->SetScissorTest(false);
+            pGraphicsContext->SetStencilTest(false);
             pGraphicsContext->SetCullMode(Face::BACK);
             pGraphicsContext->SetBlend(false);
             pGraphicsContext->SetRenderTargets(rCurrentGBuffer.data(), (uint32_t)rCurrentGBuffer.size(), pCurrentDepthStencilBuffer);
@@ -217,28 +217,28 @@ namespace FastCG
 
             const auto *pSceneConstantsBuffer = UpdateSceneConstants(view, inverseView, projection, pGraphicsContext);
 
-            auto opaqueRenderBatchBegin = mArgs.rRenderBatches.cbegin() + (RenderGroupInt)RenderGroup::OPAQUE_MATERIAL;
-            auto transparentRenderBatchBegin = std::find_if(opaqueRenderBatchBegin, mArgs.rRenderBatches.cend(), [](const auto &rRenderBatch)
-                                                            { return rRenderBatch.group == RenderGroup::TRANSPARENT_MATERIAL; });
-            if (opaqueRenderBatchBegin != transparentRenderBatchBegin)
+            auto opaqueRenderBatchesIt = mArgs.rRenderBatchStrategy.GetFirstOpaqueMaterialRenderBatchIterator();
+            auto transparentRenderBatchesIt = mArgs.rRenderBatchStrategy.GetFirstTransparentMaterialRenderBatchIterator();
+            if (opaqueRenderBatchesIt != transparentRenderBatchesIt)
             {
                 pGraphicsContext->PushDebugMarker("Geometry Passes");
                 {
-                    for (; opaqueRenderBatchBegin != transparentRenderBatchBegin; ++opaqueRenderBatchBegin)
+                    for (; opaqueRenderBatchesIt != transparentRenderBatchesIt; ++opaqueRenderBatchesIt)
                     {
-                        const auto *pMaterial = opaqueRenderBatchBegin->pMaterial;
+                        const auto &rpMaterial = opaqueRenderBatchesIt->pMaterial;
 
-                        pGraphicsContext->PushDebugMarker((pMaterial->GetName() + " Pass").c_str());
+                        pGraphicsContext->PushDebugMarker((rpMaterial->GetName() + " Pass").c_str());
                         {
-                            assert(IsMaterialRenderGroup(opaqueRenderBatchBegin->group));
+                            assert(IsMaterialRenderGroup(opaqueRenderBatchesIt->group));
 
-                            BindMaterial(pMaterial, pGraphicsContext);
+                            BindMaterial(rpMaterial, pGraphicsContext);
+                            SetGraphicsContextState(rpMaterial->GetGraphicsContextState(), pGraphicsContext);
 
                             pGraphicsContext->BindResource(pSceneConstantsBuffer, SCENE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            for (auto it = opaqueRenderBatchBegin->renderablesPerMesh.cbegin(); it != opaqueRenderBatchBegin->renderablesPerMesh.cend(); ++it)
+                            for (auto it = opaqueRenderBatchesIt->renderablesPerMesh.cbegin(); it != opaqueRenderBatchesIt->renderablesPerMesh.cend(); ++it)
                             {
-                                const auto *pMesh = it->first;
+                                const auto &rpMesh = it->first;
                                 const auto &rRenderables = it->second;
 
                                 uint32_t instanceCount;
@@ -256,20 +256,20 @@ namespace FastCG
 
                                 pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                                pGraphicsContext->SetVertexBuffers(pMesh->GetVertexBuffers(), pMesh->GetVertexBufferCount());
-                                pGraphicsContext->SetIndexBuffer(pMesh->GetIndexBuffer());
+                                pGraphicsContext->SetVertexBuffers(rpMesh->GetVertexBuffers(), rpMesh->GetVertexBufferCount());
+                                pGraphicsContext->SetIndexBuffer(rpMesh->GetIndexBuffer());
 
                                 if (instanceCount == 0)
                                 {
-                                    pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, pMesh->GetIndexCount(), 0);
+                                    pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, rpMesh->GetIndexCount(), 0);
                                 }
                                 else
                                 {
-                                    pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                                    pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, rpMesh->GetIndexCount(), 0);
                                 }
 
                                 mArgs.rRenderingStatistics.drawCalls++;
-                                mArgs.rRenderingStatistics.triangles += pMesh->GetTriangleCount();
+                                mArgs.rRenderingStatistics.triangles += rpMesh->GetTriangleCount();
                             }
                         }
                         pGraphicsContext->PopDebugMarker();
@@ -350,7 +350,7 @@ namespace FastCG
                             const auto *pInstanceConstantsBuffer = UpdateInstanceConstants(model, view, projection, pGraphicsContext);
                             pGraphicsContext->BindResource(pInstanceConstantsBuffer, INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
-                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pPointLight, inverseView, pGraphicsContext);
+                            const auto *pLightingConstantsBuffer = UpdateLightingConstants(pPointLight, view, pGraphicsContext);
                             pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
 
                             const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pPointLight, nearClip, pGraphicsContext);
@@ -376,7 +376,6 @@ namespace FastCG
                 pGraphicsContext->SetDepthTest(false);
                 pGraphicsContext->SetDepthWrite(false);
                 pGraphicsContext->SetStencilTest(false);
-                pGraphicsContext->SetStencilWriteMask(Face::FRONT_AND_BACK, 0);
                 pGraphicsContext->SetBlend(true);
                 pGraphicsContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
                 pGraphicsContext->SetBlendFactors(BlendFactor::ONE, BlendFactor::ONE, BlendFactor::ZERO, BlendFactor::ZERO);
@@ -389,14 +388,13 @@ namespace FastCG
 
                 UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
 
-                auto viewTranspose = glm::transpose(glm::toMat3(pCamera->GetGameObject()->GetTransform()->GetWorldRotation()));
                 const auto &rDirectionalLights = WorldSystem::GetInstance()->GetDirectionalLights();
                 for (size_t i = 0; i < rDirectionalLights.size(); i++)
                 {
                     const auto *pDirectionalLight = rDirectionalLights[i];
                     pGraphicsContext->PushDebugMarker((std::string("Directional Light Pass (") + std::to_string(i) + ")").c_str());
                     {
-                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, glm::normalize(viewTranspose * pDirectionalLight->GetDirection()), pGraphicsContext);
+                        const auto *pLightingConstantsBuffer = UpdateLightingConstants(pDirectionalLight, pDirectionalLight->GetDirection(), pGraphicsContext);
                         pGraphicsContext->BindResource(pLightingConstantsBuffer, LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
                         const auto *pPCSSConstantsBuffer = UpdatePCSSConstants(pDirectionalLight, nearClip, pGraphicsContext);
                         pGraphicsContext->BindResource(pPCSSConstantsBuffer, PCSS_CONSTANTS_SHADER_RESOURCE_NAME);

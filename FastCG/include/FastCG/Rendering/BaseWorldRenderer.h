@@ -2,7 +2,7 @@
 #define FASTCG_BASE_WORLD_RENDERER_H
 
 #include <FastCG/Rendering/RenderingStatistics.h>
-#include <FastCG/Rendering/RenderBatch.h>
+#include <FastCG/Rendering/RenderBatchStrategy.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/Mesh.h>
@@ -27,8 +27,8 @@ namespace FastCG
 		const uint32_t &rScreenWidth;
 		const uint32_t &rScreenHeight;
 		const glm::vec4 &rClearColor;
-		const glm::vec4 &rAmbientLight;
-		const std::vector<RenderBatch> &rRenderBatches;
+		const glm::vec4 &rAmbientLightColor;
+		RenderBatchStrategy &rRenderBatchStrategy;
 		RenderingStatistics &rRenderingStatistics;
 	};
 
@@ -117,11 +117,14 @@ namespace FastCG
 		inline void GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext);
 		inline void RenderSkybox(const Texture *pRenderTarget, const Texture *pDepthScencilBuffer, const Buffer *pSceneConstantsBuffer, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
 		inline void Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext);
-		inline void BindMaterial(const Material *pMaterial, GraphicsContext *pGraphicsContext);
+		inline void BindMaterial(const std::shared_ptr<Material> &rpMaterial, GraphicsContext *pGraphicsContext);
+		inline void SetGraphicsContextState(const GraphicsContextState &rGraphicsContextState, GraphicsContext *pGraphicsContext) const;
 		inline const Buffer *UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
 		inline std::pair<uint32_t, const Buffer *> UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext);
+		inline virtual const Buffer *EmptyLightingConstants(GraphicsContext *pGraphicsContext);
 		inline virtual const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext);
 		inline virtual const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext);
+		inline const Buffer *EmptyPCSSConstants(GraphicsContext *pGraphicsContext);
 		inline const Buffer *UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext);
 		inline const Buffer *UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext);
 		inline void UpdateSSAOConstants(bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const;
@@ -219,7 +222,6 @@ namespace FastCG
 		inline const Buffer *GetPCSSConstantsBuffer();
 		inline const Buffer *GetFogConstantsBuffer();
 		inline const Buffer *GetSceneConstantsBuffer();
-		inline void SetGraphicsContextState(const GraphicsContextState &rGraphicsContextState, GraphicsContext *pGraphicsContext) const;
 		inline void CreateSSAORenderTargets();
 		inline void DestroySSAORenderTargets();
 		inline ShadowMapKey GetShadowMapKey(const Light *pLight) const;

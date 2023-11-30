@@ -9,7 +9,7 @@
 
 namespace FastCG
 {
-	class Renderable : public Component
+	class Renderable final : public Component
 	{
 		FASTCG_DECLARE_COMPONENT(Renderable, Component);
 

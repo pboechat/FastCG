@@ -45,13 +45,6 @@ namespace FastCG
 			FASTCG_THROW_EXCEPTION(Exception, "Cannot add two components of the same type: %s", rComponentType.GetName().c_str());
 		}
 
-		if (rComponentType.IsDerived(Renderable::TYPE))
-		{
-			mpRenderable = static_cast<Renderable *>(pComponent);
-		}
-
-		WorldSystem::GetInstance()->RegisterComponent(pComponent);
-
 		mComponents.emplace_back(pComponent);
 	}
 
@@ -59,18 +52,16 @@ namespace FastCG
 	{
 		assert(pComponent != nullptr);
 
-		if (pComponent->GetType().IsDerived(Renderable::TYPE))
-		{
-			mpRenderable = nullptr;
-		}
-
 		auto it = std::find(mComponents.begin(), mComponents.end(), pComponent);
 
 		assert(it != mComponents.end());
 
 		mComponents.erase(it);
+	}
 
-		WorldSystem::GetInstance()->UnregisterComponent(pComponent);
+	bool GameObject::HasComponent(const ComponentType &rComponentType) const
+	{
+		return GetComponent(rComponentType) != nullptr;
 	}
 
 	Component *GameObject::GetComponent(const ComponentType &rComponentType) const
@@ -107,6 +98,12 @@ namespace FastCG
 
 	void GameObject::Destroy(GameObject *pGameObject)
 	{
+		pGameObject->GetTransform()->SetParent(nullptr);
+		const auto &rChildren = pGameObject->GetTransform()->GetChildren();
+		while (!rChildren.empty())
+		{
+			Destroy(rChildren.back()->GetGameObject());
+		}
 		pGameObject->DestroyAllComponents();
 		WorldSystem::GetInstance()->UnregisterGameObject(pGameObject);
 		delete pGameObject;

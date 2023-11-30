@@ -1,7 +1,6 @@
 #include <FastCG/World/WorldSystem.h>
 #include <FastCG/UI/ImGuiRenderer.h>
 #include <FastCG/Rendering/RenderingSystem.h>
-#include <FastCG/Rendering/RenderBatchStrategy.h>
 #include <FastCG/Rendering/ForwardWorldRenderer.h>
 #include <FastCG/Rendering/DeferredWorldRenderer.h>
 #include <FastCG/Core/Log.h>
@@ -10,8 +9,7 @@
 
 namespace FastCG
 {
-    RenderingSystem::RenderingSystem(const RenderingSystemArgs &rArgs) : mArgs(rArgs),
-                                                                         mpRenderBatchStrategy(std::make_unique<RenderBatchStrategy>())
+    RenderingSystem::RenderingSystem(const RenderingSystemArgs &rArgs) : mArgs(rArgs)
     {
     }
 
@@ -28,7 +26,7 @@ namespace FastCG
                                                                                         mArgs.rScreenHeight,
                                                                                         mArgs.rClearColor,
                                                                                         mArgs.rAmbientLight,
-                                                                                        mpRenderBatchStrategy->GetRenderBatches(),
+                                                                                        mRenderBatchStrategy,
                                                                                         mArgs.rRenderingStatistics}));
             break;
         case RenderingPath::DEFERRED:
@@ -36,7 +34,7 @@ namespace FastCG
                                                                                          mArgs.rScreenHeight,
                                                                                          mArgs.rClearColor,
                                                                                          mArgs.rAmbientLight,
-                                                                                         mpRenderBatchStrategy->GetRenderBatches(),
+                                                                                         mRenderBatchStrategy,
                                                                                          mArgs.rRenderingStatistics}));
             break;
         default:
@@ -56,13 +54,13 @@ namespace FastCG
     void RenderingSystem::RegisterRenderable(const Renderable *pRenderable)
     {
         assert(pRenderable != nullptr);
-        mpRenderBatchStrategy->AddRenderable(pRenderable);
+        mRenderBatchStrategy.AddRenderable(pRenderable);
     }
 
     void RenderingSystem::UnregisterRenderable(const Renderable *pRenderable)
     {
         assert(pRenderable != nullptr);
-        mpRenderBatchStrategy->RemoveRenderable(pRenderable);
+        mRenderBatchStrategy.RemoveRenderable(pRenderable);
     }
 
     void RenderingSystem::Render()
