@@ -3,6 +3,7 @@
 
 #include <FastCG/Rendering/Material.h>
 #include <FastCG/Rendering/Mesh.h>
+#include <FastCG/Core/Enums.h>
 
 #include <glm/glm.hpp>
 
@@ -31,45 +32,33 @@ namespace FastCG
     template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
     using InspectablePropertySetterCRP = void (InspectablePropertyOwnerT::*)(const InspectablePropertyTypeT *);
 
-    enum class InspectablePropertyType : uint8_t
-    {
-        BOOL = 0,
-        ENUM,
-        INT32,
-        UINT32,
-        INT64,
-        UINT64,
-        FLOAT,
-        DOUBLE,
-        VEC2,
-        VEC3,
-        VEC4,
-        STRING,
-        INSPECTABLE,
-        MATERIAL,
-        MESH,
-        TEXTURE,
-
-    };
+    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyType, uint8_t, BOOL,
+                               ENUM,
+                               INT32,
+                               UINT32,
+                               INT64,
+                               UINT64,
+                               FLOAT,
+                               DOUBLE,
+                               VEC2,
+                               VEC3,
+                               VEC4,
+                               STRING,
+                               INSPECTABLE,
+                               MATERIAL,
+                               MESH,
+                               TEXTURE);
 
     template <typename InspectablePropertyTypeT, bool IsDerivedFromInspectable>
     struct _GetInspectablePropertyTypeFromType;
 
-    enum class InspectablePropertyQualifier : uint8_t
-    {
-        CONSTANT = 0,
-        REFERENCE,
-        RAW_POINTER
+    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyQualifier, uint8_t, CONSTANT,
+                               REFERENCE,
+                               RAW_POINTER);
 
-    };
-
-    enum class InspectablePropertyQualifierRequirement : uint8_t
-    {
-        NONE = 0,
-        MUST,
-        MUSTNT
-
-    };
+    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyQualifierRequirement, uint8_t, NONE,
+                               MUST,
+                               MUSTNT);
 
     template <typename InspectablePropertyTypeT, InspectablePropertyQualifier QualifierT, bool IsDerivedFromInspectable = false>
     struct GetInspectablePropertyQualifierRequirement;
