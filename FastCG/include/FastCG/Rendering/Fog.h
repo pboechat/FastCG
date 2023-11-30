@@ -64,9 +64,9 @@ namespace FastCG
     protected:
         FogMode mMode{FogMode::LINEAR};
         glm::vec4 mColor{Colors::WHITE};
-        float mDensity;
-        float mStart;
-        float mEnd;
+        float mDensity{1};
+        float mStart{10.0f};
+        float mEnd{100.0f};
 
         void OnRegisterInspectableProperties() override
         {
