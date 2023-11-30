@@ -2,7 +2,7 @@
 
 #include <FastCG/World/WorldSystem.h>
 #include <FastCG/World/Transform.h>
-#include <FastCG/Rendering/Light.h>
+#include <FastCG/Rendering/PointLight.h>
 
 #include <glm/glm.hpp>
 
@@ -19,10 +19,10 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
 		return;
 	}
 
-	std::vector<Light *> lights;
-	WorldSystem::GetInstance()->FindComponents<Light>(lights);
-	for (auto *pLight : lights)
+	std::vector<PointLight *> pointLights;
+	WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
+	for (auto *pPointLight : pointLights)
 	{
-		pLight->GetGameObject()->GetTransform()->RotateAroundLocal(deltaTime * 100, glm::vec3(0, 1, 0));
+		pPointLight->GetGameObject()->GetTransform()->RotateAroundLocal(deltaTime * 100, glm::vec3(0, 1, 0));
 	}
 }
