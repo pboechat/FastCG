@@ -13,7 +13,7 @@ layout(std140, BINDING_0_0) uniform SceneConstants
 	float uPointSize;
 };
 
-#define GetViewerPosition() (uView[3].xyz)
+#define GetViewerPosition() (uInverseView[3].xyz)
 
 #define GetScreenCoordinates() (gl_FragCoord.xy / uScreenSize)
 
