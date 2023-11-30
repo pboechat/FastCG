@@ -18,7 +18,7 @@ void main()
 	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1);
 	vec3 viewPosition = vec3(uView * worldPosition);
 	vViewDistance = length(viewPosition);
-	vLightDirection = normalize(uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
+	vLightDirection = normalize(GetLightType() * uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
 	vWorldPosition = worldPosition.xyz;
 	vNormal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
 	vUV = iUV;

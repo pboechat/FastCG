@@ -24,7 +24,7 @@ void main()
 	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1);
 	vec3 viewPosition = vec3(uView * worldPosition);
 	vViewDistance = length(viewPosition);
-	vLightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
+	vLightDirection = tangentSpaceMatrix * normalize(GetLightType() * uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
 	vWorldPosition = worldPosition.xyz;
 	vUV = iUV;
 

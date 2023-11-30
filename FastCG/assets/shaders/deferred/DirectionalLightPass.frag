@@ -33,7 +33,7 @@ void main()
 		tangentSpaceMatrix = mat3(1.0);
 	}
 
-	vec3 lightDirection = tangentSpaceMatrix * normalize(uLight0ViewPosition.xyz);
+	vec3 lightDirection = tangentSpaceMatrix * normalize(-uLight0ViewPosition.xyz);
 	float viewDistance = length(viewPosition);
 	vec3 viewerDirection = tangentSpaceMatrix * (-viewPosition / viewDistance);
 
