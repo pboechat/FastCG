@@ -32,8 +32,12 @@ namespace FastCG
 
 						auto euler = glm::degrees(glm::eulerAngles(rotation));
 
-						// FIXME: can't map non-multiple of PI rotations around the Z axis for now
-						assert(fmod(euler.z, 180) == 0);
+						// FIXME: can't map non-multiple of PI rotations around the Z axis to spherical coords for now
+						if (fmod(euler.z, 180) != 0)
+						{
+							FASTCG_LOG_WARN(FlyController, "Couldn't map a non-multiple of PI rotation around the Z axis to spherical coordinates. Zeroing it.");
+							euler.z = 0;
+						}
 
 						mTheta = euler.x;
 						if (euler.z == 180)
