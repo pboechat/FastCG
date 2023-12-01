@@ -12,96 +12,103 @@
 
 namespace
 {
-#define KEY(a, b)                    \
+#ifdef MAP_KEY
+#undef MAP_KEY
+#endif
+
+#define MAP_KEY(a, b)                \
     {                                \
-        (uint64_t) b, FastCG::Key::a \
+        (uint64_t) a, FastCG::Key::b \
     }
 
-    std::unordered_map<uint64_t, FastCG::Key> gKeyLut = {
-        KEY(BACKSPACE, AKEYCODE_BACK),
-        KEY(RETURN, AKEYCODE_ENTER),
-        KEY(ESCAPE, AKEYCODE_ESCAPE),
-        KEY(SPACE, AKEYCODE_SPACE),
-        KEY(ASTERISK, AKEYCODE_STAR),
-        KEY(PLUS, AKEYCODE_PLUS),
-        KEY(COMMA, AKEYCODE_COMMA),
-        KEY(MINUS, AKEYCODE_MINUS),
-        KEY(DOT, AKEYCODE_PERIOD),
-        KEY(SLASH, AKEYCODE_SLASH),
-        KEY(NUMBER_0, AKEYCODE_NUMPAD_0),
-        KEY(NUMBER_1, AKEYCODE_NUMPAD_1),
-        KEY(NUMBER_2, AKEYCODE_NUMPAD_2),
-        KEY(NUMBER_3, AKEYCODE_NUMPAD_3),
-        KEY(NUMBER_4, AKEYCODE_NUMPAD_4),
-        KEY(NUMBER_5, AKEYCODE_NUMPAD_5),
-        KEY(NUMBER_6, AKEYCODE_NUMPAD_6),
-        KEY(NUMBER_7, AKEYCODE_NUMPAD_7),
-        KEY(NUMBER_8, AKEYCODE_NUMPAD_8),
-        KEY(NUMBER_9, AKEYCODE_NUMPAD_9),
-        // KEY(COLON, AKEYCODE_UNKNOWN),
-        KEY(SEMI_COLON, AKEYCODE_SEMICOLON),
-        KEY(EQUALS, AKEYCODE_EQUALS),
-        KEY(LEFT_ARROW, AKEYCODE_DPAD_LEFT),
-        KEY(UP_ARROW, AKEYCODE_DPAD_UP),
-        KEY(RIGHT_ARROW, AKEYCODE_DPAD_RIGHT),
-        KEY(DOWN_ARROW, AKEYCODE_DPAD_DOWN),
-        KEY(F1, AKEYCODE_F1),
-        KEY(F2, AKEYCODE_F2),
-        KEY(F3, AKEYCODE_F3),
-        KEY(F4, AKEYCODE_F4),
-        KEY(F5, AKEYCODE_F5),
-        KEY(F6, AKEYCODE_F6),
-        KEY(F7, AKEYCODE_F7),
-        KEY(F8, AKEYCODE_F8),
-        KEY(F9, AKEYCODE_F9),
-        KEY(F10, AKEYCODE_F10),
-        KEY(F11, AKEYCODE_F11),
-        KEY(F12, AKEYCODE_F12),
-        KEY(PAGE_UP, AKEYCODE_PAGE_UP),
-        KEY(PAGE_DOWN, AKEYCODE_PAGE_DOWN),
-        KEY(END, AKEYCODE_MOVE_END),
-        KEY(HOME, AKEYCODE_MOVE_HOME),
-        KEY(INSERT, AKEYCODE_INSERT),
-        KEY(SHIFT, AKEYCODE_SHIFT_LEFT),
-        KEY(CONTROL, AKEYCODE_CTRL_LEFT),
-        KEY(BACKSLASH, AKEYCODE_BACKSLASH),
-        KEY(LETTER_A, AKEYCODE_A),
-        KEY(LETTER_B, AKEYCODE_B),
-        KEY(LETTER_C, AKEYCODE_C),
-        KEY(LETTER_D, AKEYCODE_D),
-        KEY(LETTER_E, AKEYCODE_E),
-        KEY(LETTER_F, AKEYCODE_F),
-        KEY(LETTER_G, AKEYCODE_G),
-        KEY(LETTER_H, AKEYCODE_H),
-        KEY(LETTER_I, AKEYCODE_I),
-        KEY(LETTER_J, AKEYCODE_J),
-        KEY(LETTER_K, AKEYCODE_K),
-        KEY(LETTER_L, AKEYCODE_L),
-        KEY(LETTER_M, AKEYCODE_M),
-        KEY(LETTER_N, AKEYCODE_N),
-        KEY(LETTER_O, AKEYCODE_O),
-        KEY(LETTER_P, AKEYCODE_P),
-        KEY(LETTER_Q, AKEYCODE_Q),
-        KEY(LETTER_R, AKEYCODE_R),
-        KEY(LETTER_S, AKEYCODE_S),
-        KEY(LETTER_T, AKEYCODE_T),
-        KEY(LETTER_U, AKEYCODE_U),
-        KEY(LETTER_V, AKEYCODE_V),
-        KEY(LETTER_W, AKEYCODE_W),
-        KEY(LETTER_X, AKEYCODE_X),
-        KEY(LETTER_Y, AKEYCODE_Y),
-        KEY(LETTER_Z, AKEYCODE_Z),
-        KEY(DEL, AKEYCODE_DEL),
+    // TODO: complete mapping
+    std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {
+        MAP_KEY(AKEYCODE_BACK, BACKSPACE),
+        MAP_KEY(AKEYCODE_ENTER, RETURN),
+        MAP_KEY(AKEYCODE_ESCAPE, ESCAPE),
+        MAP_KEY(AKEYCODE_SPACE, SPACE),
+        MAP_KEY(AKEYCODE_STAR, ASTERISK),
+        MAP_KEY(AKEYCODE_PLUS, PLUS),
+        MAP_KEY(AKEYCODE_COMMA, COMMA),
+        MAP_KEY(AKEYCODE_MINUS, MINUS),
+        MAP_KEY(AKEYCODE_PERIOD, DOT),
+        MAP_KEY(AKEYCODE_SLASH, SLASH),
+        MAP_KEY(AKEYCODE_NUMPAD_0, NUMBER_0),
+        MAP_KEY(AKEYCODE_NUMPAD_1, NUMBER_1),
+        MAP_KEY(AKEYCODE_NUMPAD_2, NUMBER_2),
+        MAP_KEY(AKEYCODE_NUMPAD_3, NUMBER_3),
+        MAP_KEY(AKEYCODE_NUMPAD_4, NUMBER_4),
+        MAP_KEY(AKEYCODE_NUMPAD_5, NUMBER_5),
+        MAP_KEY(AKEYCODE_NUMPAD_6, NUMBER_6),
+        MAP_KEY(AKEYCODE_NUMPAD_7, NUMBER_7),
+        MAP_KEY(AKEYCODE_NUMPAD_8, NUMBER_8),
+        MAP_KEY(AKEYCODE_NUMPAD_9, NUMBER_9),
+        MAP_KEY(AKEYCODE_SEMICOLON, SEMI_COLON),
+        MAP_KEY(AKEYCODE_EQUALS, EQUALS),
+        MAP_KEY(AKEYCODE_DPAD_LEFT, LEFT_ARROW),
+        MAP_KEY(AKEYCODE_DPAD_UP, UP_ARROW),
+        MAP_KEY(AKEYCODE_DPAD_RIGHT, RIGHT_ARROW),
+        MAP_KEY(AKEYCODE_DPAD_DOWN, DOWN_ARROW),
+        MAP_KEY(AKEYCODE_F1, F1),
+        MAP_KEY(AKEYCODE_F2, F2),
+        MAP_KEY(AKEYCODE_F3, F3),
+        MAP_KEY(AKEYCODE_F4, F4),
+        MAP_KEY(AKEYCODE_F5, F5),
+        MAP_KEY(AKEYCODE_F6, F6),
+        MAP_KEY(AKEYCODE_F7, F7),
+        MAP_KEY(AKEYCODE_F8, F8),
+        MAP_KEY(AKEYCODE_F9, F9),
+        MAP_KEY(AKEYCODE_F10, F10),
+        MAP_KEY(AKEYCODE_F11, F11),
+        MAP_KEY(AKEYCODE_F12, F12),
+        MAP_KEY(AKEYCODE_PAGE_UP, PAGE_UP),
+        MAP_KEY(AKEYCODE_PAGE_DOWN, PAGE_DOWN),
+        MAP_KEY(AKEYCODE_MOVE_END, END),
+        MAP_KEY(AKEYCODE_MOVE_HOME, HOME),
+        MAP_KEY(AKEYCODE_INSERT, INSERT),
+        MAP_KEY(AKEYCODE_SHIFT_LEFT, SHIFT),
+        MAP_KEY(AKEYCODE_CTRL_LEFT, CONTROL),
+        MAP_KEY(AKEYCODE_BACKSLASH, BACKSLASH),
+        MAP_KEY(AKEYCODE_A, LETTER_A),
+        MAP_KEY(AKEYCODE_B, LETTER_B),
+        MAP_KEY(AKEYCODE_C, LETTER_C),
+        MAP_KEY(AKEYCODE_D, LETTER_D),
+        MAP_KEY(AKEYCODE_E, LETTER_E),
+        MAP_KEY(AKEYCODE_F, LETTER_F),
+        MAP_KEY(AKEYCODE_G, LETTER_G),
+        MAP_KEY(AKEYCODE_H, LETTER_H),
+        MAP_KEY(AKEYCODE_I, LETTER_I),
+        MAP_KEY(AKEYCODE_J, LETTER_J),
+        MAP_KEY(AKEYCODE_K, LETTER_K),
+        MAP_KEY(AKEYCODE_L, LETTER_L),
+        MAP_KEY(AKEYCODE_M, LETTER_M),
+        MAP_KEY(AKEYCODE_N, LETTER_N),
+        MAP_KEY(AKEYCODE_O, LETTER_O),
+        MAP_KEY(AKEYCODE_P, LETTER_P),
+        MAP_KEY(AKEYCODE_Q, LETTER_Q),
+        MAP_KEY(AKEYCODE_R, LETTER_R),
+        MAP_KEY(AKEYCODE_S, LETTER_S),
+        MAP_KEY(AKEYCODE_T, LETTER_T),
+        MAP_KEY(AKEYCODE_U, LETTER_U),
+        MAP_KEY(AKEYCODE_V, LETTER_V),
+        MAP_KEY(AKEYCODE_W, LETTER_W),
+        MAP_KEY(AKEYCODE_X, LETTER_X),
+        MAP_KEY(AKEYCODE_Y, LETTER_Y),
+        MAP_KEY(AKEYCODE_Z, LETTER_Z),
+        MAP_KEY(AKEYCODE_DEL, DEL),
     };
 
-    FastCG::Key TranslateKey(uint64_t key)
+#undef MAP_KEY
+
+    bool TranslateToKey(uint64_t key, FastCG::Key &rKey)
     {
-        auto it = gKeyLut.find(key);
-        if (it == gKeyLut.end())
+        auto it = KEY_LUT.find(key);
+        if (it == KEY_LUT.end())
         {
-            return FastCG::Key::UNKNOWN;
+            return false;
         }
-        return it->second;
+        rKey = it->second;
+        return true;
     }
 
 #ifdef CASE_RETURN_STRING
@@ -276,7 +283,11 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
         int32_t keyCode = AKeyEvent_getKeyCode(event);
         int32_t action = AKeyEvent_getAction(event);
         bool pressed = action == AKEY_EVENT_ACTION_DOWN; // AKEY_EVENT_ACTION_MULTIPLE is considered an "unpress" action
-        FastCG::AndroidApplication::GetInstance()->KeyboardCallback(TranslateKey(keyCode), pressed);
+        FastCG::Key key;
+        if (TranslateToKey(keyCode, key))
+        {
+            FastCG::AndroidApplication::GetInstance()->KeyboardCallback(key, pressed);
+        }
         return 1;
     }
     case AINPUT_EVENT_TYPE_FOCUS:
@@ -362,7 +373,7 @@ namespace FastCG
 
     uint64_t AndroidApplication::GetNativeKey(Key key) const
     {
-        for (auto it = gKeyLut.cbegin(); it != gKeyLut.cend(); ++it)
+        for (auto it = KEY_LUT.cbegin(); it != KEY_LUT.cend(); ++it)
         {
             if (it->second == key)
             {

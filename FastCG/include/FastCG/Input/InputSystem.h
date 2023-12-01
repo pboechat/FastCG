@@ -31,10 +31,6 @@ namespace FastCG
 		FASTCG_DECLARE_SYSTEM(InputSystem, InputSystemArgs);
 
 	public:
-		static const int MINIMUM_MOUSE_WHEEL_DELTA = -128;
-		static const int MOUSE_WHEEL_STEP = 1;
-		static const int MAXIMUM_MOUSE_WHEEL_DELTA = 128;
-
 		inline static void GetKeyChanges(KeyChange keyChanges[KEY_COUNT])
 		{
 			const auto *pBackBufferKeys = GetInstance()->mBackBuffer.GetKeys();
@@ -63,11 +59,10 @@ namespace FastCG
 		{
 			return GetInstance()->mFrontBuffer.GetMousePosition();
 		}
-		inline static int GetMouseWheelDelta()
+		inline static float GetMouseWheelDelta()
 		{
 			return GetInstance()->mFrontBuffer.GetMouseWheelDelta();
 		}
-
 		template <typename MaskType, typename ElementType, typename CallbackType>
 		static void IsKeyPressed(Key keyCode, MaskType &pressedElementsMask, ElementType element, const CallbackType &callback)
 		{
@@ -119,15 +114,14 @@ namespace FastCG
 			{
 				return mMousePosition;
 			}
-			inline int GetMouseWheelDelta() const
+			inline float GetMouseWheelDelta() const
 			{
 				return mMouseWheelDelta;
 			}
 			void SetKey(Key keyCode, bool state);
 			void SetMouseButton(MouseButton button, MouseButtonState state);
 			void SetMousePosition(const glm::uvec2 &rPosition);
-			void IncrementMouseWheelDelta();
-			void DecrementMouseWheelDelta();
+			void SetMouseWheelDelta(float delta);
 			void Copy(InputBuffer &rOther);
 			void Clear();
 
@@ -137,7 +131,7 @@ namespace FastCG
 			MouseButtonState mMiddleMouseButton{MouseButtonState::RELEASED};
 			MouseButtonState mRightMouseButton{MouseButtonState::RELEASED};
 			glm::uvec2 mMousePosition;
-			int mMouseWheelDelta{0};
+			float mMouseWheelDelta{0};
 		};
 
 		InputBuffer mFrontBuffer;
@@ -148,8 +142,7 @@ namespace FastCG
 		void SetKey(Key keyCode, bool state);
 		void SetMouseButton(MouseButton button, MouseButtonState state);
 		void SetMousePosition(const glm::uvec2 &rPosition);
-		void IncrementMouseWheelDelta();
-		void DecrementMouseWheelDelta();
+		void SetMouseWheelDelta(float delta);
 		void Swap();
 	};
 

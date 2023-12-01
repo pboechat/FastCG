@@ -13,96 +13,140 @@
 
 namespace
 {
-#define KEY(a, b)                    \
+#ifdef MAP_KEY
+#undef MAP_KEY
+#endif
+
+#define MAP_KEY(a, b)                \
     {                                \
-        (uint64_t) b, FastCG::Key::a \
+        (uint64_t) a, FastCG::Key::b \
     }
 
-    std::unordered_map<uint64_t, FastCG::Key> gKeyLut = {
-        KEY(BACKSPACE, XK_BackSpace),
-        KEY(RETURN, XK_Return),
-        KEY(ESCAPE, XK_Escape),
-        KEY(SPACE, XK_space),
-        KEY(ASTERISK, XK_asterisk),
-        KEY(PLUS, XK_plus),
-        KEY(COMMA, XK_comma),
-        KEY(MINUS, XK_minus),
-        KEY(DOT, XK_period),
-        KEY(SLASH, XK_slash),
-        KEY(NUMBER_0, XK_KP_0),
-        KEY(NUMBER_1, XK_KP_1),
-        KEY(NUMBER_2, XK_KP_2),
-        KEY(NUMBER_3, XK_KP_3),
-        KEY(NUMBER_4, XK_KP_4),
-        KEY(NUMBER_5, XK_KP_5),
-        KEY(NUMBER_6, XK_KP_6),
-        KEY(NUMBER_7, XK_KP_7),
-        KEY(NUMBER_8, XK_KP_8),
-        KEY(NUMBER_9, XK_KP_9),
-        KEY(COLON, XK_colon),
-        KEY(SEMI_COLON, XK_semicolon),
-        KEY(EQUALS, XK_equal),
-        KEY(LEFT_ARROW, XK_Left),
-        KEY(UP_ARROW, XK_Up),
-        KEY(RIGHT_ARROW, XK_Right),
-        KEY(DOWN_ARROW, XK_Down),
-        KEY(F1, XK_F1),
-        KEY(F2, XK_F2),
-        KEY(F3, XK_F3),
-        KEY(F4, XK_F4),
-        KEY(F5, XK_F5),
-        KEY(F6, XK_F6),
-        KEY(F7, XK_F7),
-        KEY(F8, XK_F8),
-        KEY(F9, XK_F9),
-        KEY(F10, XK_F10),
-        KEY(F11, XK_F11),
-        KEY(F12, XK_F12),
-        KEY(PAGE_UP, XK_Page_Up),
-        KEY(PAGE_DOWN, XK_Page_Down),
-        KEY(END, XK_End),
-        KEY(HOME, XK_Home),
-        KEY(INSERT, XK_Insert),
-        KEY(SHIFT, XK_Shift_L),
-        KEY(CONTROL, XK_Control_L),
-        KEY(BACKSLASH, XK_backslash),
-        KEY(LETTER_A, XK_a),
-        KEY(LETTER_B, XK_b),
-        KEY(LETTER_C, XK_c),
-        KEY(LETTER_D, XK_d),
-        KEY(LETTER_E, XK_e),
-        KEY(LETTER_F, XK_f),
-        KEY(LETTER_G, XK_g),
-        KEY(LETTER_H, XK_h),
-        KEY(LETTER_I, XK_i),
-        KEY(LETTER_J, XK_j),
-        KEY(LETTER_K, XK_k),
-        KEY(LETTER_L, XK_l),
-        KEY(LETTER_M, XK_m),
-        KEY(LETTER_N, XK_n),
-        KEY(LETTER_O, XK_o),
-        KEY(LETTER_P, XK_p),
-        KEY(LETTER_Q, XK_q),
-        KEY(LETTER_R, XK_r),
-        KEY(LETTER_S, XK_s),
-        KEY(LETTER_T, XK_t),
-        KEY(LETTER_U, XK_u),
-        KEY(LETTER_V, XK_v),
-        KEY(LETTER_W, XK_w),
-        KEY(LETTER_X, XK_x),
-        KEY(LETTER_Y, XK_y),
-        KEY(LETTER_Z, XK_z),
-        KEY(DEL, XK_Delete),
-    };
+    std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {
+        MAP_KEY(XK_BackSpace, BACKSPACE),
+        MAP_KEY(XK_Return, RETURN),
+        MAP_KEY(XK_Escape, ESCAPE),
+        MAP_KEY(XK_space, SPACE),
+        MAP_KEY(XK_exclam, EXCLAMATION_MARK),
+        MAP_KEY(XK_quotedbl, DOUBLE_QUOTES),
+        MAP_KEY(XK_numbersign, HASH),
+        MAP_KEY(XK_dollar, DOLLAR),
+        MAP_KEY(XK_ampersand, AMPERSAND),
+        MAP_KEY(XK_percent, PERCENT),
+        MAP_KEY(XK_apostrophe, APOSTROPHE),
+        MAP_KEY(XK_parenleft, OPENING_ROUND_BRACKET),
+        MAP_KEY(XK_parenright, CLOSING_ROUND_BRACKET),
+        MAP_KEY(XK_ASTERISK, ASTERISK),
+        MAP_KEY(XK_plus, PLUS),
+        MAP_KEY(XK_comma, COMMA),
+        MAP_KEY(XK_minus, MINUS),
+        MAP_KEY(XK_period, DOT),
+        MAP_KEY(XK_slash, SLASH),
+        MAP_KEY(XK_0, NUMBER_0),
+        MAP_KEY(XK_1, NUMBER_1),
+        MAP_KEY(XK_2, NUMBER_2),
+        MAP_KEY(XK_3, NUMBER_3),
+        MAP_KEY(XK_4, NUMBER_4),
+        MAP_KEY(XK_5, NUMBER_5),
+        MAP_KEY(XK_6, NUMBER_6),
+        MAP_KEY(XK_7, NUMBER_7),
+        MAP_KEY(XK_8, NUMBER_8),
+        MAP_KEY(XK_9, NUMBER_9),
+        MAP_KEY(XK_colon, COLON),
+        MAP_KEY(XK_semicolon, SEMI_COLON),
+        MAP_KEY(XK_less, LESS_THAN),
+        MAP_KEY(XK_equals, EQUALS),
+        MAP_KEY(XK_greater, GREATER_THAN),
+        MAP_KEY(XK_question, QUESTION_MARK),
+        MAP_KEY(XK_at, AT),
+        MAP_KEY(XK_bracketleft, OPENING_SQUARE_BRACKET),
+        MAP_KEY(XK_backslash, BACKSLASH),
+        MAP_KEY(XK_bracketright, CLOSING_SQUARE_BRACKET),
+        MAP_KEY(XK_asciicircum, CIRCUMFLEX),
+        MAP_KEY(XK_underscore, UNDERSCORE),
+        MAP_KEY(XK_grave, GRAVE),
+        MAP_KEY(XK_a, LETTER_A),
+        MAP_KEY(XK_b, LETTER_B),
+        MAP_KEY(XK_c, LETTER_C),
+        MAP_KEY(XK_d, LETTER_D),
+        MAP_KEY(XK_e, LETTER_E),
+        MAP_KEY(XK_f, LETTER_F),
+        MAP_KEY(XK_g, LETTER_G),
+        MAP_KEY(XK_h, LETTER_H),
+        MAP_KEY(XK_i, LETTER_I),
+        MAP_KEY(XK_j, LETTER_J),
+        MAP_KEY(XK_k, LETTER_K),
+        MAP_KEY(XK_l, LETTER_L),
+        MAP_KEY(XK_m, LETTER_M),
+        MAP_KEY(XK_n, LETTER_N),
+        MAP_KEY(XK_o, LETTER_O),
+        MAP_KEY(XK_p, LETTER_P),
+        MAP_KEY(XK_q, LETTER_Q),
+        MAP_KEY(XK_r, LETTER_R),
+        MAP_KEY(XK_s, LETTER_S),
+        MAP_KEY(XK_t, LETTER_T),
+        MAP_KEY(XK_u, LETTER_U),
+        MAP_KEY(XK_v, LETTER_V),
+        MAP_KEY(XK_w, LETTER_W),
+        MAP_KEY(XK_x, LETTER_X),
+        MAP_KEY(XK_y, LETTER_Y),
+        MAP_KEY(XK_z, LETTER_Z),
+        MAP_KEY(XK_braceleft, OPENING_CURLY_BRACKET),
+        MAP_KEY(XK_vertbar, VERTICAL_BAR),
+        MAP_KEY(XK_braceright, CLOSING_CURLY_BRACKET),
+        MAP_KEY(XK_asciitilde, TILDE),
+        MAP_KEY(XK_DEL, DEL),
+        MAP_KEY(XK_Left, LEFT_ARROW),
+        MAP_KEY(XK_Up, UP_ARROW),
+        MAP_KEY(XK_Right, RIGHT_ARROW),
+        MAP_KEY(XK_Down, DOWN_ARROW),
+        MAP_KEY(XK_F1, F1),
+        MAP_KEY(XK_F2, F2),
+        MAP_KEY(XK_F3, F3),
+        MAP_KEY(XK_F4, F4),
+        MAP_KEY(XK_F5, F5),
+        MAP_KEY(XK_F6, F6),
+        MAP_KEY(XK_F7, F7),
+        MAP_KEY(XK_F8, F8),
+        MAP_KEY(XK_F9, F9),
+        MAP_KEY(XK_F10, F10),
+        MAP_KEY(XK_F11, F11),
+        MAP_KEY(XK_F12, F12),
+        MAP_KEY(XK_Page_Up, PAGE_UP),
+        MAP_KEY(XK_Page_Down, PAGE_DOWN),
+        MAP_KEY(XK_End, END),
+        MAP_KEY(XK_Home, HOME),
+        MAP_KEY(XK_Insert, INSERT),
+        MAP_KEY(XK_Num_Lock, NUMLOCK),
+        MAP_KEY(XK_KP_0, KEYPAD_0),
+        MAP_KEY(XK_KP_1, KEYPAD_1),
+        MAP_KEY(XK_KP_2, KEYPAD_2),
+        MAP_KEY(XK_KP_3, KEYPAD_3),
+        MAP_KEY(XK_KP_4, KEYPAD_4),
+        MAP_KEY(XK_KP_5, KEYPAD_5),
+        MAP_KEY(XK_KP_6, KEYPAD_6),
+        MAP_KEY(XK_KP_7, KEYPAD_7),
+        MAP_KEY(XK_KP_8, KEYPAD_8),
+        MAP_KEY(XK_KP_9, KEYPAD_9),
+        MAP_KEY(XK_KP_Decimal, KEYPAD_DECIMAL),
+        MAP_KEY(XK_KP_Divide, KEYPAD_DIVIDE),
+        MAP_KEY(XK_KP_Multiply, KEYPAD_MULTIPLY),
+        MAP_KEY(XK_KP_Subtract, KEYPAD_SUBTRACT),
+        MAP_KEY(XK_KP_Add, KEYPAD_ADD),
+        MAP_KEY(XK_Shift_L, SHIFT),
+        MAP_KEY(CONTROL, XK_Control_L)};
 
-    FastCG::Key TranslateKey(uint64_t key)
+#undef MAP_KEY
+
+    bool TranslateToKey(uint64_t key, FastCG::Key &rKey)
     {
-        auto it = gKeyLut.find(key);
-        if (it == gKeyLut.end())
+        auto it = KEY_LUT.find(key);
+        if (it == KEY_LUT.end())
         {
-            return FastCG::Key::UNKNOWN;
+            return false;
         }
-        return it->second;
+        rKey = it->second;
+        return true;
     }
 
     Bool WaitForMapNotify(Display *display, XEvent *event, char *arg)
@@ -160,10 +204,14 @@ namespace FastCG
                 XNextEvent(mpDisplay, &event);
                 if (event.type == KeyPress || event.type == KeyRelease)
                 {
-                    char buf[128] = {0};
+                    char buffer[128] = {0};
                     KeySym keySym;
-                    XLookupString(&event.xkey, buf, sizeof buf, &keySym, NULL);
-                    KeyboardCallback(TranslateKey((uint64_t)keySym), event.type == KeyPress);
+                    XLookupString(&event.xkey, buffer, sizeof(buffer), &keySym, NULL);
+                    Key key;
+                    if (TranslateToKey((uint64_t)keySym, key))
+                    {
+                        KeyboardCallback(key, event.type == KeyPress);
+                    }
                 }
                 else if (event.type == ButtonPress || event.type == ButtonRelease)
                 {

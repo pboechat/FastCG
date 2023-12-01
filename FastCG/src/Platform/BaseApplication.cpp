@@ -302,6 +302,12 @@ namespace FastCG
 		OnMouseMove(x, y);
 	}
 
+	void BaseApplication::MouseWheelCallback(float delta)
+	{
+		InputSystem::GetInstance()->SetMouseWheelDelta(delta);
+		OnMouseWheel(delta);
+	}
+
 	void BaseApplication::KeyboardCallback(Key key, bool pressed)
 	{
 		InputSystem::GetInstance()->SetKey(key, pressed);

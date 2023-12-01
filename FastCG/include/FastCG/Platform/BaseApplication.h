@@ -129,6 +129,10 @@ namespace FastCG
 			FASTCG_UNUSED(x);
 			FASTCG_UNUSED(y);
 		}
+		virtual void OnMouseWheel(float delta)
+		{
+			FASTCG_UNUSED(delta);
+		}
 		virtual void OnKeyPress(Key key)
 		{
 			FASTCG_UNUSED(key);
@@ -143,6 +147,7 @@ namespace FastCG
 		void WindowResizeCallback(uint32_t width, uint32_t height);
 		void MouseButtonCallback(MouseButton button, MouseButtonState state);
 		void MouseMoveCallback(uint32_t x, uint32_t y);
+		void MouseWheelCallback(float delta);
 		void KeyboardCallback(Key key, bool pressed);
 		virtual void OnPreInitialize() {}
 		virtual void OnPostInitialize() {}

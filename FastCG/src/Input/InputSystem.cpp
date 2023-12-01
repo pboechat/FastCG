@@ -21,14 +21,9 @@ namespace FastCG
 		mBackBuffer.SetMousePosition(rPosition);
 	}
 
-	void InputSystem::IncrementMouseWheelDelta()
+	void InputSystem::SetMouseWheelDelta(float delta)
 	{
-		mBackBuffer.IncrementMouseWheelDelta();
-	}
-
-	void InputSystem::DecrementMouseWheelDelta()
-	{
-		mBackBuffer.DecrementMouseWheelDelta();
+		mBackBuffer.SetMouseWheelDelta(delta);
 	}
 
 	void InputSystem::Swap()
@@ -68,14 +63,9 @@ namespace FastCG
 		mMousePosition = rPosition;
 	}
 
-	void InputSystem::InputBuffer::IncrementMouseWheelDelta()
+	void InputSystem::InputBuffer::SetMouseWheelDelta(float delta)
 	{
-		mMouseWheelDelta = MathI::Clamp(mMouseWheelDelta + 1, MINIMUM_MOUSE_WHEEL_DELTA, MAXIMUM_MOUSE_WHEEL_DELTA);
-	}
-
-	void InputSystem::InputBuffer::DecrementMouseWheelDelta()
-	{
-		mMouseWheelDelta = MathI::Clamp(mMouseWheelDelta - 1, MINIMUM_MOUSE_WHEEL_DELTA, MAXIMUM_MOUSE_WHEEL_DELTA);
+		mMouseWheelDelta = delta;
 	}
 
 	void InputSystem::InputBuffer::Copy(InputBuffer &rOther)

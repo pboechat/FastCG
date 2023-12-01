@@ -9,101 +9,75 @@
 
 namespace
 {
-#define KEY(a, b)                    \
+#ifdef MAP_KEY
+#undef MAP_KEY
+#endif
+
+#define MAP_KEY(a, b)                \
 	{                                \
-		(uint64_t) b, FastCG::Key::a \
+		(uint64_t) a, FastCG::Key::b \
 	}
 
-	std::unordered_map<uint64_t, FastCG::Key> gKeyLut = {
-		KEY(BACKSPACE, VK_BACK),
-		KEY(RETURN, VK_RETURN),
-		KEY(ESCAPE, VK_ESCAPE),
-		KEY(SPACE, VK_SPACE),
-		KEY(ASTERISK, VK_MULTIPLY),
-		KEY(PLUS, VK_ADD),
-		KEY(COMMA, VK_OEM_COMMA),
-		KEY(MINUS, VK_SUBTRACT),
-		KEY(DOT, VK_OEM_PERIOD),
-		KEY(SLASH, VK_DIVIDE),
-		KEY(NUMBER_0, '0'),
-		KEY(NUMBER_1, '1'),
-		KEY(NUMBER_2, '2'),
-		KEY(NUMBER_3, '3'),
-		KEY(NUMBER_4, '4'),
-		KEY(NUMBER_5, '5'),
-		KEY(NUMBER_6, '6'),
-		KEY(NUMBER_7, '7'),
-		KEY(NUMBER_8, '8'),
-		KEY(NUMBER_9, '9'),
-		KEY(COLON, 58),
-		KEY(SEMI_COLON, 59),
-		KEY(EQUALS, 61),
-		KEY(LEFT_ARROW, VK_LEFT),
-		KEY(UP_ARROW, VK_UP),
-		KEY(RIGHT_ARROW, VK_RIGHT),
-		KEY(DOWN_ARROW, VK_DOWN),
-		KEY(F1, VK_F1),
-		KEY(F2, VK_F2),
-		KEY(F3, VK_F3),
-		KEY(F4, VK_F4),
-		KEY(F5, VK_F5),
-		KEY(F6, VK_F6),
-		KEY(F7, VK_F7),
-		KEY(F8, VK_F8),
-		KEY(F9, VK_F9),
-		KEY(F10, VK_F10),
-		KEY(F11, VK_F11),
-		KEY(F12, VK_F12),
-		KEY(PAGE_UP, VK_PRIOR),
-		KEY(PAGE_DOWN, VK_NEXT),
-		KEY(END, VK_END),
-		KEY(HOME, VK_HOME),
-		KEY(INSERT, VK_INSERT),
-		KEY(SHIFT, VK_SHIFT),
-		KEY(CONTROL, VK_CONTROL),
-		KEY(BACKSLASH, 92),
-		KEY(LETTER_A, 'A'),
-		KEY(LETTER_B, 'B'),
-		KEY(LETTER_C, 'C'),
-		KEY(LETTER_D, 'D'),
-		KEY(LETTER_E, 'E'),
-		KEY(LETTER_F, 'F'),
-		KEY(LETTER_G, 'G'),
-		KEY(LETTER_H, 'H'),
-		KEY(LETTER_I, 'I'),
-		KEY(LETTER_J, 'J'),
-		KEY(LETTER_K, 'K'),
-		KEY(LETTER_L, 'L'),
-		KEY(LETTER_M, 'M'),
-		KEY(LETTER_N, 'N'),
-		KEY(LETTER_O, 'O'),
-		KEY(LETTER_P, 'P'),
-		KEY(LETTER_Q, 'Q'),
-		KEY(LETTER_R, 'R'),
-		KEY(LETTER_S, 'S'),
-		KEY(LETTER_T, 'T'),
-		KEY(LETTER_U, 'U'),
-		KEY(LETTER_V, 'V'),
-		KEY(LETTER_W, 'W'),
-		KEY(LETTER_X, 'X'),
-		KEY(LETTER_Y, 'Y'),
-		KEY(LETTER_Z, 'Z'),
-		KEY(DEL, VK_DELETE),
-	};
+	const std::unordered_map<uint64_t, FastCG::Key> VIRTUAL_KEY_LUT = {
+		MAP_KEY(VK_LEFT, LEFT_ARROW),
+		MAP_KEY(VK_UP, UP_ARROW),
+		MAP_KEY(VK_RIGHT, RIGHT_ARROW),
+		MAP_KEY(VK_DOWN, DOWN_ARROW),
+		MAP_KEY(VK_F1, F1),
+		MAP_KEY(VK_F2, F2),
+		MAP_KEY(VK_F3, F3),
+		MAP_KEY(VK_F4, F4),
+		MAP_KEY(VK_F5, F5),
+		MAP_KEY(VK_F6, F6),
+		MAP_KEY(VK_F7, F7),
+		MAP_KEY(VK_F8, F8),
+		MAP_KEY(VK_F9, F9),
+		MAP_KEY(VK_F10, F10),
+		MAP_KEY(VK_F11, F11),
+		MAP_KEY(VK_F12, F12),
+		MAP_KEY(VK_PRIOR, PAGE_UP),
+		MAP_KEY(VK_NEXT, PAGE_DOWN),
+		MAP_KEY(VK_END, END),
+		MAP_KEY(VK_HOME, HOME),
+		MAP_KEY(VK_INSERT, INSERT),
+		MAP_KEY(VK_NUMLOCK, NUMLOCK),
+		MAP_KEY(VK_NUMPAD0, KEYPAD_0),
+		MAP_KEY(VK_NUMPAD1, KEYPAD_1),
+		MAP_KEY(VK_NUMPAD2, KEYPAD_2),
+		MAP_KEY(VK_NUMPAD3, KEYPAD_3),
+		MAP_KEY(VK_NUMPAD4, KEYPAD_4),
+		MAP_KEY(VK_NUMPAD5, KEYPAD_5),
+		MAP_KEY(VK_NUMPAD6, KEYPAD_6),
+		MAP_KEY(VK_NUMPAD7, KEYPAD_7),
+		MAP_KEY(VK_NUMPAD8, KEYPAD_8),
+		MAP_KEY(VK_NUMPAD9, KEYPAD_9),
+		MAP_KEY(VK_DECIMAL, KEYPAD_DECIMAL),
+		MAP_KEY(VK_DIVIDE, KEYPAD_DIVIDE),
+		MAP_KEY(VK_MULTIPLY, KEYPAD_MULTIPLY),
+		MAP_KEY(VK_SUBTRACT, KEYPAD_SUBTRACT),
+		MAP_KEY(VK_ADD, KEYPAD_ADD),
+		MAP_KEY(VK_SHIFT, SHIFT),
+		MAP_KEY(VK_CONTROL, CONTROL)};
 
-	FastCG::Key TranslateKey(uint64_t key)
+#undef MAP_KEY
+
+	bool TranslateToVirtualKey(uint64_t virtualKey, FastCG::Key &rKey)
 	{
-		auto it = gKeyLut.find(key);
-		if (it == gKeyLut.end())
+		auto it = VIRTUAL_KEY_LUT.find(virtualKey);
+		if (it == VIRTUAL_KEY_LUT.end())
 		{
-			return FastCG::Key::UNKNOWN;
+			return false;
 		}
-		return it->second;
+		rKey = it->second;
+		return true;
 	}
 }
 
 LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// FIXME: don't use static storage to store temporary values (side-effects!)
+	static FastCG::Key sLastKeyDown = FastCG::Key::UNKNOWN;
+
 	auto *pApplication = FastCG::WindowsApplication::GetInstance();
 	switch (uMsg)
 	{
@@ -137,8 +111,49 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		pApplication->MouseMoveCallback((uint32_t)LOWORD(lParam), (uint32_t)HIWORD(lParam));
 		break;
 	case WM_KEYDOWN:
+	{
+		if (MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR) == 0)
+		{
+			FastCG::Key key;
+			if (TranslateToVirtualKey((uint64_t)wParam, key))
+			{
+				pApplication->KeyboardCallback(key, true);
+				sLastKeyDown = key;
+			}
+		}
+	}
+	break;
 	case WM_KEYUP:
-		pApplication->KeyboardCallback(TranslateKey((uint64_t)wParam), uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
+		if (sLastKeyDown != FastCG::Key::UNKNOWN)
+		{
+			pApplication->KeyboardCallback(sLastKeyDown, false);
+			sLastKeyDown = FastCG::Key::UNKNOWN;
+		}
+		break;
+	case WM_CHAR:
+	{
+		char asciiChars[2] = {0};
+		if (WideCharToMultiByte(
+				CP_ACP,
+				0,
+				(LPCWCH)&wParam,
+				1,
+				asciiChars,
+				sizeof(asciiChars),
+				nullptr,
+				nullptr))
+		{
+			auto key = (FastCG::Key)asciiChars[0];
+			if (IsCharKey(key))
+			{
+				pApplication->KeyboardCallback(key, true);
+				sLastKeyDown = key;
+			}
+		}
+	}
+	break;
+	case WM_MOUSEWHEEL:
+		pApplication->MouseWheelCallback(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
 		break;
 	default:
 		break;
@@ -243,13 +258,6 @@ namespace FastCG
 
 	uint64_t WindowsApplication::GetNativeKey(Key key) const
 	{
-		for (auto it = gKeyLut.cbegin(); it != gKeyLut.cend(); ++it)
-		{
-			if (it->second == key)
-			{
-				return it->first;
-			}
-		}
 		return uint64_t(~0);
 	}
 }

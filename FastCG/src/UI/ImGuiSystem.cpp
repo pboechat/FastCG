@@ -12,22 +12,14 @@ namespace
     {
         switch (key)
         {
-        case FastCG::Key::UNKNOWN:
-            return ImGuiKey_None;
         case FastCG::Key::BACKSPACE:
             return ImGuiKey_Backspace;
-        case FastCG::Key::DEL:
-            return ImGuiKey_Delete;
         case FastCG::Key::RETURN:
             return ImGuiKey_Enter;
         case FastCG::Key::ESCAPE:
             return ImGuiKey_Escape;
         case FastCG::Key::SPACE:
             return ImGuiKey_Space;
-        case FastCG::Key::ASTERISK:
-            return ImGuiKey_KeypadMultiply;
-        case FastCG::Key::PLUS:
-            return ImGuiKey_KeypadAdd;
         case FastCG::Key::COMMA:
             return ImGuiKey_Comma;
         case FastCG::Key::MINUS:
@@ -56,60 +48,16 @@ namespace
             return ImGuiKey_8;
         case FastCG::Key::NUMBER_9:
             return ImGuiKey_9;
-        case FastCG::Key::COLON:
-            return ImGuiKey_None; // not mappable
         case FastCG::Key::SEMI_COLON:
             return ImGuiKey_Semicolon;
         case FastCG::Key::EQUALS:
             return ImGuiKey_Equal;
-        case FastCG::Key::LEFT_ARROW:
-            return ImGuiKey_LeftArrow;
-        case FastCG::Key::UP_ARROW:
-            return ImGuiKey_UpArrow;
-        case FastCG::Key::RIGHT_ARROW:
-            return ImGuiKey_RightArrow;
-        case FastCG::Key::DOWN_ARROW:
-            return ImGuiKey_DownArrow;
-        case FastCG::Key::F1:
-            return ImGuiKey_F1;
-        case FastCG::Key::F2:
-            return ImGuiKey_F2;
-        case FastCG::Key::F3:
-            return ImGuiKey_F3;
-        case FastCG::Key::F4:
-            return ImGuiKey_F4;
-        case FastCG::Key::F5:
-            return ImGuiKey_F5;
-        case FastCG::Key::F6:
-            return ImGuiKey_F6;
-        case FastCG::Key::F7:
-            return ImGuiKey_F7;
-        case FastCG::Key::F8:
-            return ImGuiKey_F8;
-        case FastCG::Key::F9:
-            return ImGuiKey_F9;
-        case FastCG::Key::F10:
-            return ImGuiKey_F10;
-        case FastCG::Key::F11:
-            return ImGuiKey_F11;
-        case FastCG::Key::F12:
-            return ImGuiKey_F12;
-        case FastCG::Key::PAGE_UP:
-            return ImGuiKey_PageUp;
-        case FastCG::Key::PAGE_DOWN:
-            return ImGuiKey_PageDown;
-        case FastCG::Key::END:
-            return ImGuiKey_End;
-        case FastCG::Key::HOME:
-            return ImGuiKey_Home;
-        case FastCG::Key::INSERT:
-            return ImGuiKey_Insert;
-        case FastCG::Key::SHIFT:
-            return ImGuiKey_LeftShift;
-        case FastCG::Key::CONTROL:
-            return ImGuiKey_LeftCtrl;
         case FastCG::Key::BACKSLASH:
             return ImGuiKey_Backslash;
+        case FastCG::Key::OPENING_SQUARE_BRACKET:
+            return ImGuiKey_LeftBracket;
+        case FastCG::Key::CLOSING_SQUARE_BRACKET:
+            return ImGuiKey_RightBracket;
         case FastCG::Key::LETTER_A:
             return ImGuiKey_A;
         case FastCG::Key::LETTER_B:
@@ -162,10 +110,91 @@ namespace
             return ImGuiKey_Y;
         case FastCG::Key::LETTER_Z:
             return ImGuiKey_Z;
+        case FastCG::Key::DEL:
+            return ImGuiKey_Delete;
+        case FastCG::Key::UNKNOWN:
+            return ImGuiKey_None;
+        case FastCG::Key::LEFT_ARROW:
+            return ImGuiKey_LeftArrow;
+        case FastCG::Key::UP_ARROW:
+            return ImGuiKey_UpArrow;
+        case FastCG::Key::RIGHT_ARROW:
+            return ImGuiKey_RightArrow;
+        case FastCG::Key::DOWN_ARROW:
+            return ImGuiKey_DownArrow;
+        case FastCG::Key::F1:
+            return ImGuiKey_F1;
+        case FastCG::Key::F2:
+            return ImGuiKey_F2;
+        case FastCG::Key::F3:
+            return ImGuiKey_F3;
+        case FastCG::Key::F4:
+            return ImGuiKey_F4;
+        case FastCG::Key::F5:
+            return ImGuiKey_F5;
+        case FastCG::Key::F6:
+            return ImGuiKey_F6;
+        case FastCG::Key::F7:
+            return ImGuiKey_F7;
+        case FastCG::Key::F8:
+            return ImGuiKey_F8;
+        case FastCG::Key::F9:
+            return ImGuiKey_F9;
+        case FastCG::Key::F10:
+            return ImGuiKey_F10;
+        case FastCG::Key::F11:
+            return ImGuiKey_F11;
+        case FastCG::Key::F12:
+            return ImGuiKey_F12;
+        case FastCG::Key::PAGE_UP:
+            return ImGuiKey_PageUp;
+        case FastCG::Key::PAGE_DOWN:
+            return ImGuiKey_PageDown;
+        case FastCG::Key::END:
+            return ImGuiKey_End;
+        case FastCG::Key::HOME:
+            return ImGuiKey_Home;
+        case FastCG::Key::INSERT:
+            return ImGuiKey_Insert;
+        case FastCG::Key::SHIFT:
+            return ImGuiKey_LeftShift;
+        case FastCG::Key::CONTROL:
+            return ImGuiKey_LeftCtrl;
+        case FastCG::Key::NUMLOCK:
+            return ImGuiKey_NumLock;
+        case FastCG::Key::KEYPAD_0:
+            return ImGuiKey_Keypad0;
+        case FastCG::Key::KEYPAD_1:
+            return ImGuiKey_Keypad1;
+        case FastCG::Key::KEYPAD_2:
+            return ImGuiKey_Keypad2;
+        case FastCG::Key::KEYPAD_3:
+            return ImGuiKey_Keypad3;
+        case FastCG::Key::KEYPAD_4:
+            return ImGuiKey_Keypad4;
+        case FastCG::Key::KEYPAD_5:
+            return ImGuiKey_Keypad5;
+        case FastCG::Key::KEYPAD_6:
+            return ImGuiKey_Keypad6;
+        case FastCG::Key::KEYPAD_7:
+            return ImGuiKey_Keypad7;
+        case FastCG::Key::KEYPAD_8:
+            return ImGuiKey_Keypad8;
+        case FastCG::Key::KEYPAD_9:
+            return ImGuiKey_Keypad9;
+        case FastCG::Key::KEYPAD_DECIMAL:
+            return ImGuiKey_KeypadDecimal;
+        case FastCG::Key::KEYPAD_DIVIDE:
+            return ImGuiKey_KeypadDivide;
+        case FastCG::Key::KEYPAD_MULTIPLY:
+            return ImGuiKey_KeypadMultiply;
+        case FastCG::Key::KEYPAD_SUBTRACT:
+            return ImGuiKey_KeypadSubtract;
+        case FastCG::Key::KEYPAD_ADD:
+            return ImGuiKey_KeypadAdd;
         default:
-            assert(false);
+            return ImGuiKey_None;
         }
-        return (ImGuiKey)0;
     }
 }
 
@@ -200,6 +229,7 @@ namespace FastCG
         rIo.AddMouseButtonEvent(0, InputSystem::GetMouseButton((MouseButton)0) == MouseButtonState::PRESSED);
         rIo.AddMouseButtonEvent(1, InputSystem::GetMouseButton((MouseButton)2) == MouseButtonState::PRESSED);
         rIo.AddMouseButtonEvent(2, InputSystem::GetMouseButton((MouseButton)1) == MouseButtonState::PRESSED);
+        rIo.AddMouseWheelEvent(0.0f, InputSystem::GetMouseWheelDelta());
 
         for (KeyInt i = 0; i < KEY_COUNT; ++i)
         {
