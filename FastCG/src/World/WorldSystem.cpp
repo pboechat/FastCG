@@ -25,6 +25,10 @@
 #include <cassert>
 #include <algorithm>
 
+#ifdef max
+#undef max
+#endif
+
 #define FASTCG_TRACK_COMPONENT(className, component)         \
     if (component->GetType().IsDerived(className::TYPE))     \
     {                                                        \
@@ -170,7 +174,10 @@ namespace
                 FastCG::GameObject::Destroy(pRemovedGameObject);
             }
 
-            ImGui::InvisibleButton("SceneHierarchy_Background", ImGui::GetContentRegionAvail());
+            auto bgSize = ImGui::GetContentRegionAvail();
+            bgSize.x = std::max<float>(1, bgSize.x);
+            bgSize.y = std::max<float>(1, bgSize.y);
+            ImGui::InvisibleButton("SceneHierarchy_Background", bgSize);
 
             if (ImGui::IsItemClicked(1))
             {
@@ -849,7 +856,10 @@ namespace
                     DisplayComponent(pComponent->GetType().GetName(), pComponent, rpSelectedInspectableProperty);
                 }
 
-                ImGui::InvisibleButton("ObjectInspector_Background", ImGui::GetContentRegionAvail());
+                auto bgSize = ImGui::GetContentRegionAvail();
+                bgSize.x = std::max<float>(1, bgSize.x);
+                bgSize.y = std::max<float>(1, bgSize.y);
+                ImGui::InvisibleButton("ObjectInspector_Background", bgSize);
 
                 if (ImGui::IsItemClicked(1))
                 {
