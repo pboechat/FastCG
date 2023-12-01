@@ -28,18 +28,18 @@ namespace FastCG
         rStyle.ScaleAllSizes(SCALE_FACTOR);
 #endif
 
-        auto *pImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture({"ImGui",
-                                                                            (uint32_t)width,
-                                                                            (uint32_t)height,
-                                                                            1,
-                                                                            1,
-                                                                            TextureType::TEXTURE_2D,
-                                                                            TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                            TextureFormat::R8G8B8A8_UNORM,
-                                                                            TextureFilter::LINEAR_FILTER,
-                                                                            TextureWrapMode::CLAMP,
-                                                                            pPixels});
-        rIo.Fonts->SetTexID((void *)pImGuiTexture);
+        mpImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture({"ImGui Texture",
+                                                                       (uint32_t)width,
+                                                                       (uint32_t)height,
+                                                                       1,
+                                                                       1,
+                                                                       TextureType::TEXTURE_2D,
+                                                                       TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                       TextureFormat::R8G8B8A8_UNORM,
+                                                                       TextureFilter::LINEAR_FILTER,
+                                                                       TextureWrapMode::CLAMP,
+                                                                       pPixels});
+        rIo.Fonts->SetTexID((void *)mpImGuiTexture);
 
         mpImGuiShader = GraphicsSystem::GetInstance()->FindShader("ImGui");
 
@@ -70,8 +70,8 @@ namespace FastCG
         pGraphicsContext->PushDebugMarker("ImGui Rendering");
         {
             pGraphicsContext->SetBlend(true);
-            pGraphicsContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::NONE);
-            pGraphicsContext->SetBlendFactors(BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA, BlendFactor::ZERO, BlendFactor::ZERO);
+            pGraphicsContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::ADD);
+            pGraphicsContext->SetBlendFactors(BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA, BlendFactor::ONE, BlendFactor::ZERO);
             pGraphicsContext->SetCullMode(Face::NONE);
             pGraphicsContext->SetDepthTest(false);
             pGraphicsContext->SetDepthWrite(false);
@@ -161,7 +161,10 @@ namespace FastCG
                                                          (uint32_t)(clipMax.x - clipMin.x),
                                                          (uint32_t)(clipMax.y - clipMin.y));
 
-                            pGraphicsContext->BindResource((Texture *)pCmd->GetTexID(), "uColorMap");
+                            const auto *pTexture = (const Texture *)pCmd->GetTexID();
+                            // FIXME: there should be a more elegant way to do that
+                            pGraphicsContext->SetBlend(pTexture == nullptr || pTexture == mpImGuiTexture);
+                            pGraphicsContext->BindResource(pTexture, "uColorMap");
 
                             pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, pCmd->IdxOffset + idxOffset, (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset + vtxOffset);
                         }

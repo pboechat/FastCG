@@ -16,8 +16,22 @@ namespace
     void DisplayTexture(const TextureT *pTexture, uint32_t textureWidth)
     {
         float textureHeight = textureWidth * (pTexture->GetHeight() / (float)pTexture->GetWidth());
-        // FIXME: Instead of inverting the V coordinate here we could invert the Y axis of the ImGUI bitmap
-        ImGui::Image((void *)pTexture, ImVec2((float)textureWidth, textureHeight), ImVec2(0, 1), ImVec2(1, 0));
+        ImVec2 uv1 =
+#if defined FASTCG_OPENGL
+            // FIXME: instead of inverting the V coordinate here we could invert the Y axis of the ImGUI bitmap
+            {0, 1}
+#else
+            {0, 0}
+#endif
+        ;
+        ImVec2 uv2 =
+#if defined FASTCG_OPENGL
+            {1, 0}
+#else
+            {1, 1}
+#endif
+        ;
+        ImGui::Image((void *)pTexture, ImVec2((float)textureWidth, textureHeight), uv1, uv2);
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
@@ -30,27 +44,31 @@ namespace
             for (const auto *pTexture : pRenderingSystem->GetTextures())
             {
                 ImGui::PushID(pTexture);
-                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
-                if (pTexture == rpSelectedTexture)
                 {
-                    flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
-                }
-                if (ImGui::TreeNodeEx(pTexture->GetName().c_str(), flags))
-                {
-
-                    ImGui::Text("Dimensions: %ux%u", pTexture->GetWidth(), pTexture->GetHeight());
-                    ImGui::Text("Type: %s", GetTextureTypeString(pTexture->GetType()));
-                    ImGui::Text("Format: %s", GetTextureFormatString(pTexture->GetFormat()));
-                    ImGui::Text("Filter: %s", GetTextureFilterString(pTexture->GetFilter()));
-                    ImGui::Text("Wrap Mode: %s", GetTextureWrapModeString(pTexture->GetWrapMode()));
-
-                    DisplayTexture(pTexture, textureWidth);
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+                    if (pTexture == rpSelectedTexture)
+                    {
+                        flags |= ImGuiTreeNodeFlags_Selected;
+                    }
+                    auto nodeOpened = ImGui::TreeNodeEx(pTexture->GetName().c_str(), flags);
 
                     if (ImGui::IsItemClicked())
                     {
                         rpSelectedTexture = pTexture;
                     }
-                    ImGui::TreePop();
+
+                    if (nodeOpened)
+                    {
+                        ImGui::Text("Dimensions: %ux%u", pTexture->GetWidth(), pTexture->GetHeight());
+                        ImGui::Text("Type: %s", GetTextureTypeString(pTexture->GetType()));
+                        ImGui::Text("Format: %s", GetTextureFormatString(pTexture->GetFormat()));
+                        ImGui::Text("Filter: %s", GetTextureFilterString(pTexture->GetFilter()));
+                        ImGui::Text("Wrap Mode: %s", GetTextureWrapModeString(pTexture->GetWrapMode()));
+
+                        DisplayTexture(pTexture, textureWidth);
+
+                        ImGui::TreePop();
+                    }
                 }
                 ImGui::PopID();
             }
@@ -58,6 +76,7 @@ namespace
         ImGui::End();
     }
 #endif
+
 }
 
 namespace FastCG

@@ -607,7 +607,7 @@ namespace
         }
     }
 
-    void DisplayDeferredAssignDialog(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::IInspectableProperty *&rpInspectableProperty)
+    void DisplayInspectablePropertyAssignDialog(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::IInspectableProperty *&rpInspectableProperty)
     {
         if (rpInspectableProperty == nullptr)
         {
@@ -670,6 +670,45 @@ namespace
                 // clean up temporary values statically stored!
                 spMaterial = nullptr;
                 spMesh = nullptr;
+                spTexture = nullptr;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::End();
+        }
+    }
+
+    void DisplayTextureAssignDialog(std::weak_ptr<FastCG::Material> &rpMaterial, std::string &rTextureName)
+    {
+        auto pMaterial = rpMaterial.lock();
+
+        if (pMaterial == nullptr || rTextureName.empty())
+        {
+            return;
+        }
+
+        // FIXME: don't use static storage to store temporary values (side-effects!)
+        static const FastCG::Texture *spTexture;
+
+        if (ImGui::Begin("Assign"))
+        {
+            auto textures = FastCG::GraphicsSystem::GetInstance()->GetTextures();
+            DisplayItemTable("Textures", textures.begin(), textures.end(), spTexture, [](const FastCG::Texture *pTexture)
+                             { return pTexture->GetName().c_str(); });
+            bool close = false;
+            if (ImGui::Button("OK"))
+            {
+                pMaterial->SetTexture(rTextureName, spTexture);
+                close = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+                close = true;
+            }
+            if (close)
+            {
+                rTextureName = {};
+                // clean up temporary values statically stored!
                 spTexture = nullptr;
                 ImGui::CloseCurrentPopup();
             }
@@ -890,8 +929,10 @@ namespace
         ImGui::End();
     }
 
-    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects, std::shared_ptr<FastCG::Material> &rpSelectedMaterial)
+    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects, std::weak_ptr<FastCG::Material> &rpSelectedMaterial, std::string &rSelectedTextureName)
     {
+        auto pSelectedMaterial = rpSelectedMaterial.lock();
+
         if (ImGui::Begin("Material Browser"))
         {
             auto textureWidth = (uint32_t)(ImGui::GetWindowSize().x * 0.333f);
@@ -900,12 +941,20 @@ namespace
             {
                 ImGui::PushID(rpMaterial.get());
                 {
-                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
-                    if (rpMaterial == rpSelectedMaterial)
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+                    if (rpMaterial == pSelectedMaterial)
                     {
-                        flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
+                        flags |= ImGuiTreeNodeFlags_Selected;
                     }
-                    if (ImGui::TreeNodeEx(rpMaterial->GetName().c_str(), flags))
+
+                    auto nodeOpened = ImGui::TreeNodeEx(rpMaterial->GetName().c_str(), flags);
+
+                    if (ImGui::IsItemClicked(0))
+                    {
+                        rpSelectedMaterial = rpMaterial;
+                    }
+
+                    if (nodeOpened)
                     {
                         ImGui::Text("Shader: %s", rpMaterial->GetShader()->GetName().c_str());
                         for (size_t i = 0; i < rpMaterial->GetConstantCount(); ++i)
@@ -939,12 +988,34 @@ namespace
                             std::string name;
                             const FastCG::Texture *pTexture;
                             rpMaterial->GetTextureAt(i, name, pTexture);
-                            ImGui::Text("%s:", name.c_str());
-                            if (pTexture != nullptr)
+
+                            ImGui::PushID(name.c_str());
                             {
-                                ImGui::Text("<%s>", pTexture->GetName().c_str());
-                                DisplayTexture(pTexture, textureWidth);
+                                if (pTexture == nullptr)
+                                {
+                                    ImGui::Text("%s: <unassigned>", name.c_str(), pTexture->GetName().c_str());
+                                }
+                                else
+                                {
+                                    ImGui::Text("%s: %s", name.c_str(), pTexture->GetName().c_str());
+                                }
+                                ImGui::SameLine();
+                                if (ImGui::Button("View"))
+                                {
+                                    FastCG::GraphicsSystem::GetInstance()->SetSelectedTexture(pTexture);
+                                }
+                                ImGui::SameLine();
+                                if (ImGui::Button("Assign"))
+                                {
+                                    rpSelectedMaterial = rpMaterial;
+                                    rSelectedTextureName = name;
+                                }
+                                if (pTexture != nullptr)
+                                {
+                                    DisplayTexture(pTexture, textureWidth);
+                                }
                             }
+                            ImGui::PopID();
                         }
                         ImGui::TreePop();
                     }
@@ -988,9 +1059,10 @@ namespace FastCG
         }
         if (mShowMaterialBrowser)
         {
-            DisplayMaterialBrowser(mGameObjects, mpSelectedMaterial);
+            DisplayMaterialBrowser(mGameObjects, mpSelectedMaterial, mSelectedTextureName);
         }
-        DisplayDeferredAssignDialog(mGameObjects, mpSelectedInspectableProperty);
+        DisplayInspectablePropertyAssignDialog(mGameObjects, mpSelectedInspectableProperty);
+        DisplayTextureAssignDialog(mpSelectedMaterial, mSelectedTextureName);
     }
 
     void WorldSystem::DebugMenuItemCallback(int &result)

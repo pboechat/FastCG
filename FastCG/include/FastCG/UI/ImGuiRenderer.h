@@ -31,6 +31,7 @@ namespace FastCG
     private:
         const Shader *mpImGuiShader{nullptr};
         const Buffer *mpImGuiConstantsBuffer{nullptr};
+        const Texture *mpImGuiTexture{nullptr};
         std::unique_ptr<Mesh> mpImGuiMesh{nullptr};
         ImGuiConstants mImGuiConstants{};
         std::unique_ptr<uint8_t[]> mpVerticesData;

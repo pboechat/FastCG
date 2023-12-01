@@ -107,15 +107,11 @@ namespace FastCG
         void RegisterCamera(Camera *pCamera);
         void UnregisterCamera(Camera *pCamera);
 #if _DEBUG
-        inline const std::shared_ptr<Material> &GetSelectedMaterial() const
-        {
-            return mpSelectedMaterial;
-        }
-
         inline void SetSelectedMaterial(const std::shared_ptr<Material> &rpMaterial)
         {
             mShowMaterialBrowser = true;
             mpSelectedMaterial = rpMaterial;
+            mSelectedTextureName = {};
         }
 #endif
 
@@ -128,9 +124,10 @@ namespace FastCG
         GameObject *mpSelectedGameObject{nullptr};
         bool mShowSceneHierarchy{false};
         bool mShowObjectInspector{false};
-        std::shared_ptr<Material> mpSelectedMaterial{nullptr};
+        std::weak_ptr<Material> mpSelectedMaterial{};
         bool mShowMaterialBrowser{false};
         IInspectableProperty *mpSelectedInspectableProperty{nullptr};
+        std::string mSelectedTextureName{};
 #endif
 
         WorldSystem(const WorldSystemArgs &rArgs);

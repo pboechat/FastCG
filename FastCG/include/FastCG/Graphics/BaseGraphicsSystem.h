@@ -72,10 +72,6 @@ namespace FastCG
             return mTextures;
         }
 #if _DEBUG
-        inline const Texture *GetSelectedTexture() const
-        {
-            return mpSelectedTexture;
-        }
         inline void SetSelectedTexture(const Texture *pTexture)
         {
             mShowTextureBrowser = true;
