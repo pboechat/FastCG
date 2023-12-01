@@ -112,7 +112,7 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_KEYDOWN:
 	{
-		if (MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR) == 0)
+		if (sLastKeyDown == FastCG::Key::UNKNOWN && MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR) == 0)
 		{
 			FastCG::Key key;
 			if (TranslateToVirtualKey((uint64_t)wParam, key))
@@ -133,15 +133,7 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CHAR:
 	{
 		char asciiChars[2] = {0};
-		if (WideCharToMultiByte(
-				CP_ACP,
-				0,
-				(LPCWCH)&wParam,
-				1,
-				asciiChars,
-				sizeof(asciiChars),
-				nullptr,
-				nullptr))
+		if (sLastKeyDown == FastCG::Key::UNKNOWN && WideCharToMultiByte(CP_ACP, 0, (LPCWCH)&wParam, 1, asciiChars, sizeof(asciiChars), nullptr, nullptr))
 		{
 			auto key = (FastCG::Key)asciiChars[0];
 			if (IsCharKey(key))
@@ -255,7 +247,7 @@ namespace FastCG
 	__exit:
 		return;
 	}
-	
+
 }
 
 #endif
