@@ -160,13 +160,14 @@ namespace
 
 #undef FASTCG_LOAD_VK_DEVICE_EXT_FN
 
-    struct AttachmentDefinition
+    // remove all padding cause struct memory is used to compute hash
+    FASTCG_PACKED_PREFIX struct AttachmentDefinition
     {
         const FastCG::VulkanTexture *pTexture;
         VkAttachmentLoadOp colorOrDepth;
         VkAttachmentLoadOp stencil;
         bool write;
-    };
+    } FASTCG_PACKED_SUFFIX;
 
     size_t GetRenderPassHash(const std::vector<AttachmentDefinition> &rAttachmentDefinitions)
     {

@@ -6,6 +6,7 @@
 #include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/Core/Macros.h>
 
 namespace FastCG
 {
@@ -15,7 +16,8 @@ namespace FastCG
         VkPipelineLayout layout{VK_NULL_HANDLE};
     };
 
-    struct VulkanPipelineDescription
+    // remove all padding cause struct memory is used to compute hash
+    FASTCG_PACKED_PREFIX struct VulkanPipelineDescription
     {
         bool depthTest;
         bool depthWrite;
@@ -28,7 +30,7 @@ namespace FastCG
         bool blend;
         BlendState blendState;
         const VulkanShader *pShader;
-    };
+    } FASTCG_PACKED_SUFFIX;
 
 }
 
