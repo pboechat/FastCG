@@ -29,7 +29,6 @@ namespace FastCG
         }
         Window &CreateSimpleWindow();
         Window &CreateWindow(XVisualInfo *pVisualInfo);
-        uint64_t GetNativeKey(Key key) const override;
 
     protected:
         void OnPreInitialize() override;

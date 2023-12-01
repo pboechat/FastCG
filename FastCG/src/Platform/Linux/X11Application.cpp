@@ -36,7 +36,7 @@ namespace
         MAP_KEY(XK_apostrophe, APOSTROPHE),
         MAP_KEY(XK_parenleft, OPENING_ROUND_BRACKET),
         MAP_KEY(XK_parenright, CLOSING_ROUND_BRACKET),
-        MAP_KEY(XK_ASTERISK, ASTERISK),
+        MAP_KEY(XK_asterisk, ASTERISK),
         MAP_KEY(XK_plus, PLUS),
         MAP_KEY(XK_comma, COMMA),
         MAP_KEY(XK_minus, MINUS),
@@ -55,7 +55,7 @@ namespace
         MAP_KEY(XK_colon, COLON),
         MAP_KEY(XK_semicolon, SEMI_COLON),
         MAP_KEY(XK_less, LESS_THAN),
-        MAP_KEY(XK_equals, EQUALS),
+        MAP_KEY(XK_equal, EQUALS),
         MAP_KEY(XK_greater, GREATER_THAN),
         MAP_KEY(XK_question, QUESTION_MARK),
         MAP_KEY(XK_at, AT),
@@ -92,10 +92,10 @@ namespace
         MAP_KEY(XK_y, LETTER_Y),
         MAP_KEY(XK_z, LETTER_Z),
         MAP_KEY(XK_braceleft, OPENING_CURLY_BRACKET),
-        MAP_KEY(XK_vertbar, VERTICAL_BAR),
+        MAP_KEY(XK_bar, VERTICAL_BAR),
         MAP_KEY(XK_braceright, CLOSING_CURLY_BRACKET),
         MAP_KEY(XK_asciitilde, TILDE),
-        MAP_KEY(XK_DEL, DEL),
+        MAP_KEY(XK_Delete, DEL),
         MAP_KEY(XK_Left, LEFT_ARROW),
         MAP_KEY(XK_Up, UP_ARROW),
         MAP_KEY(XK_Right, RIGHT_ARROW),
@@ -134,7 +134,7 @@ namespace
         MAP_KEY(XK_KP_Subtract, KEYPAD_SUBTRACT),
         MAP_KEY(XK_KP_Add, KEYPAD_ADD),
         MAP_KEY(XK_Shift_L, SHIFT),
-        MAP_KEY(CONTROL, XK_Control_L)};
+        MAP_KEY(XK_Control_L, CONTROL)};
 
 #undef MAP_KEY
 
@@ -321,18 +321,7 @@ namespace FastCG
             XSetWMProtocols(mpDisplay, mWindow, &mDeleteWindowAtom, 1);
         }
     }
-
-    uint64_t X11Application::GetNativeKey(Key key) const
-    {
-        for (auto it = gKeyLut.cbegin(); it != gKeyLut.cend(); ++it)
-        {
-            if (it->second == key)
-            {
-                return it->first;
-            }
-        }
-        return uint64_t(~0);
-    }
+    
 }
 
 #endif

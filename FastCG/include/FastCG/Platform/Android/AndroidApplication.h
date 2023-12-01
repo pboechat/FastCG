@@ -37,7 +37,6 @@ namespace FastCG
         {
             return mPaused;
         }
-        uint64_t GetNativeKey(Key key) const override;
 
     protected:
         void RunMainLoop() override;

@@ -150,6 +150,10 @@ namespace FastCG
 		return (KeyInt)key >= (KeyInt)Key::FIRST_VIRTUAL_KEY && (KeyInt)key <= (KeyInt)Key::LAST_VIRTUAL_KEY;
 	}
 
+#ifdef IsModifierKey
+#undef IsModifierKey
+#endif
+
 	inline bool IsModifierKey(Key key)
 	{
 		return (KeyInt)key >= (KeyInt)Key::FIRST_MODIFIER_KEY && (KeyInt)key <= (KeyInt)Key::LAST_MODIFIER_KEY;

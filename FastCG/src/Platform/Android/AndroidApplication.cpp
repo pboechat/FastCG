@@ -371,18 +371,6 @@ namespace FastCG
         BaseApplication::OnPostFinalize();
     }
 
-    uint64_t AndroidApplication::GetNativeKey(Key key) const
-    {
-        for (auto it = KEY_LUT.cbegin(); it != KEY_LUT.cend(); ++it)
-        {
-            if (it->second == key)
-            {
-                return it->first;
-            }
-        }
-        return uint64_t(~0);
-    }
-
 }
 
 #endif

@@ -255,11 +255,7 @@ namespace FastCG
 	__exit:
 		return;
 	}
-
-	uint64_t WindowsApplication::GetNativeKey(Key key) const
-	{
-		return uint64_t(~0);
-	}
+	
 }
 
 #endif

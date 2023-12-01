@@ -28,7 +28,6 @@ namespace FastCG
         {
             return mHWnd;
         }
-        uint64_t GetNativeKey(Key key) const override;
 
         friend LRESULT(::WndProc)(HWND, UINT, WPARAM, LPARAM);
 
