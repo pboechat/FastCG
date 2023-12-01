@@ -376,7 +376,8 @@ namespace FastCG
         if (ImGui::BeginMenu("SSAO"))
         {
             ImGui::Checkbox("Blur enabled", &mSSAOBlurEnabled);
-            ImGui::SliderFloat("Radius", &mSSAOHighFrequencyPassConstants.radius, 0.01f, 0.1f);
+            ImGui::DragFloat("Radius", &mSSAOHighFrequencyPassConstants.radius, 0.005f, 0.01f, 10.0f);
+            ImGui::DragFloat("Bias", &mSSAOHighFrequencyPassConstants.bias, 0.0001f, 0.0001f, 1.0f);
             ImGui::EndMenu();
         }
     }

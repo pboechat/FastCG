@@ -44,7 +44,7 @@ void main()
 	float occlusion = 0.0;
 	for (int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
-		vec3 sampleViewPos = viewPos + (tangentSpaceMatrix * uRandomSamples[i].xyz) * uAspectRatio;
+		vec3 sampleViewPos = viewPos + (tangentSpaceMatrix * uRandomSamples[i].xyz) * uRadius;
 
 		vec4 sampleClipPos = uProjection * vec4(sampleViewPos, 1.0);
 
