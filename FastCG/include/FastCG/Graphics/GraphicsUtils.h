@@ -208,7 +208,7 @@ namespace FastCG
             return 12;
         }
         FASTCG_THROW_EXCEPTION(Exception, "Couldn't get block width (format: %s)", GetTextureFormatString(format));
-        return 0;
+        return 1;
     }
 
     inline uint32_t GetBlockHeight(TextureFormat format)
