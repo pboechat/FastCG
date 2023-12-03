@@ -28,33 +28,33 @@ namespace FastCG
     void ForwardWorldRenderer::CreateRenderTargets()
     {
         mRenderTargets.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
-        for (auto *&pFrameRenderTarget : mRenderTargets)
+        for (size_t i = 0; i < mRenderTargets.size(); ++i)
         {
-            pFrameRenderTarget = GraphicsSystem::GetInstance()->CreateTexture({"Color",
-                                                                               mArgs.rScreenWidth,
-                                                                               mArgs.rScreenHeight,
-                                                                               1,
-                                                                               1,
-                                                                               TextureType::TEXTURE_2D,
-                                                                               TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                               TextureFormat::R8G8B8A8_UNORM,
-                                                                               TextureFilter::LINEAR_FILTER,
-                                                                               TextureWrapMode::CLAMP});
+            mRenderTargets[i] = GraphicsSystem::GetInstance()->CreateTexture({"Color Buffer " + std::to_string(i),
+                                                                              mArgs.rScreenWidth,
+                                                                              mArgs.rScreenHeight,
+                                                                              1,
+                                                                              1,
+                                                                              TextureType::TEXTURE_2D,
+                                                                              TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
+                                                                              TextureFormat::R8G8B8A8_UNORM,
+                                                                              TextureFilter::LINEAR_FILTER,
+                                                                              TextureWrapMode::CLAMP});
         }
 
         mDepthStencilBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
-        for (auto *&pFrameDepthStencilTarget : mDepthStencilBuffers)
+        for (size_t i = 0; i < mDepthStencilBuffers.size(); ++i)
         {
-            pFrameDepthStencilTarget = GraphicsSystem::GetInstance()->CreateTexture({"Depth",
-                                                                                     mArgs.rScreenWidth,
-                                                                                     mArgs.rScreenHeight,
-                                                                                     1,
-                                                                                     1,
-                                                                                     TextureType::TEXTURE_2D,
-                                                                                     TextureUsageFlagBit::RENDER_TARGET,
-                                                                                     TextureFormat::D24_UNORM_S8_UINT,
-                                                                                     TextureFilter::POINT_FILTER,
-                                                                                     TextureWrapMode::CLAMP});
+            mDepthStencilBuffers[i] = GraphicsSystem::GetInstance()->CreateTexture({"Depth Buffer " + std::to_string(i),
+                                                                                    mArgs.rScreenWidth,
+                                                                                    mArgs.rScreenHeight,
+                                                                                    1,
+                                                                                    1,
+                                                                                    TextureType::TEXTURE_2D,
+                                                                                    TextureUsageFlagBit::RENDER_TARGET,
+                                                                                    TextureFormat::D24_UNORM_S8_UINT,
+                                                                                    TextureFilter::POINT_FILTER,
+                                                                                    TextureWrapMode::CLAMP});
         }
     }
 

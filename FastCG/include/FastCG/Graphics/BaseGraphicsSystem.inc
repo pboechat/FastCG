@@ -163,7 +163,7 @@ namespace FastCG
     void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateDebugObjects()
     {
         // Create backbuffer handler (fake texture)
-        mpBackbuffer = CreateTexture({"Backbuffer",
+        mpBackbuffer = CreateTexture({"Fake Backbuffer",
                                       1,
                                       1,
                                       1,
@@ -174,7 +174,7 @@ namespace FastCG
                                       TextureFilter::POINT_FILTER,
                                       TextureWrapMode::CLAMP});
 
-        uint8_t data[] = {251, 72, 196, 255}; // pink color
+        uint8_t data[] = {251, 72, 196, 255}; // pink
         mMissingTextures.emplace(TextureType::TEXTURE_2D, CreateTexture({"Missing 2D Texture",
                                                                          1,
                                                                          1,
