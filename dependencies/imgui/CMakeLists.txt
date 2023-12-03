@@ -5,10 +5,6 @@ project(imgui)
 list(APPEND HEADERS 
 	"${PROJECT_SOURCE_DIR}/include/imgui.h" 
 	"${PROJECT_SOURCE_DIR}/include/imconfig.h" 
-	"${PROJECT_SOURCE_DIR}/include/imgui_internal.h" 
-	"${PROJECT_SOURCE_DIR}/include/imstb_rectpack.h" 
-	"${PROJECT_SOURCE_DIR}/include/imstb_textedit.h" 
-	"${PROJECT_SOURCE_DIR}/include/imstb_truetype.h"
 )
 list(APPEND SOURCES 
 	"${PROJECT_SOURCE_DIR}/src/imgui_draw.cpp" 
