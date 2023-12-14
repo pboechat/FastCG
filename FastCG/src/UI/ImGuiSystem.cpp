@@ -5,6 +5,7 @@
 #include <FastCG/Core/Log.h>
 
 #include <imgui.h>
+#include <ImGuizmo.h>
 
 namespace
 {
@@ -222,6 +223,8 @@ namespace FastCG
         rIo.DisplaySize.x = (float)mArgs.rScreenWidth;
         rIo.DisplaySize.y = (float)mArgs.rScreenHeight;
 
+        ImGuizmo::SetRect(0, 0, rIo.DisplaySize.x, rIo.DisplaySize.y);
+
         rIo.DeltaTime = (float)deltaTime + 0.0000001f; // avoid an ImGui assert in the very unlikely event that deltaTime is zero!
 
         auto mousePos = InputSystem::GetMousePosition();
@@ -247,6 +250,7 @@ namespace FastCG
         }
 
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
     }
 
     void ImGuiSystem::EndFrame()

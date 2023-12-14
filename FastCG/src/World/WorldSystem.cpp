@@ -18,7 +18,10 @@
 #include <FastCG/Core/Log.h>
 
 #include <imgui.h>
+#if _DEBUG
 #include <ImGuiFileDialog.h>
+#include <glm/gtc/type_ptr.hpp>
+#endif
 
 #include <unordered_set>
 #include <memory>
@@ -864,66 +867,70 @@ namespace
         {
             if (pGameObject != nullptr)
             {
-                if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                ImGui::PushID(pGameObject);
                 {
-                    auto *pTransform = pGameObject->GetTransform();
-
-                    auto scale = pTransform->GetScale();
-                    if (ImGui::DragFloat3("Scale", &scale[0], 0.1f))
+                    if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        pTransform->SetScale(scale);
-                    }
+                        auto *pTransform = pGameObject->GetTransform();
 
-                    auto rotation = pTransform->GetRotation();
-                    auto eulerAngles = glm::degrees(glm::eulerAngles(rotation));
-                    if (ImGui::DragFloat3("Rotation", &eulerAngles[0], 0.1f))
-                    {
-                        eulerAngles = glm::radians(eulerAngles);
-                        pTransform->SetRotation(glm::quat(eulerAngles));
-                    }
-
-                    auto position = pTransform->GetPosition();
-                    if (ImGui::DragFloat3("Position", &position[0], 0.1f))
-                    {
-                        pTransform->SetPosition(position);
-                    }
-                    ImGui::TreePop();
-                }
-
-                for (auto *pComponent : pGameObject->GetComponents())
-                {
-                    DisplayComponent(pComponent->GetType().GetName(), pComponent, rpSelectedInspectableProperty);
-                }
-
-                auto bgSize = ImGui::GetContentRegionAvail();
-                bgSize.x = std::max<float>(1, bgSize.x);
-                bgSize.y = std::max<float>(1, bgSize.y);
-                ImGui::InvisibleButton("ObjectInspector_Background", bgSize);
-
-                if (ImGui::IsItemClicked(1))
-                {
-                    ImGui::OpenPopup("ObjectInspector_WindowContextMenu");
-                }
-
-                if (ImGui::BeginPopup("ObjectInspector_WindowContextMenu"))
-                {
-                    if (ImGui::BeginMenu("Add"))
-                    {
-                        for (const auto &rComponentRegister : FastCG::ComponentRegistry::GetComponentRegisters())
+                        auto scale = pTransform->GetScale();
+                        if (ImGui::DragFloat3("Scale", &scale[0], 0.1f))
                         {
-                            if (pGameObject->HasComponent(rComponentRegister.GetType()))
-                            {
-                                continue;
-                            }
-                            if (ImGui::MenuItem(rComponentRegister.GetType().GetName().c_str()))
-                            {
-                                rComponentRegister.Instantiate(pGameObject);
-                            }
+                            pTransform->SetScale(scale);
                         }
-                        ImGui::EndMenu();
+
+                        auto rotation = pTransform->GetRotation();
+                        auto eulerAngles = glm::degrees(glm::eulerAngles(rotation));
+                        if (ImGui::DragFloat3("Rotation", &eulerAngles[0], 0.1f))
+                        {
+                            eulerAngles = glm::radians(eulerAngles);
+                            pTransform->SetRotation(glm::quat(eulerAngles));
+                        }
+
+                        auto position = pTransform->GetPosition();
+                        if (ImGui::DragFloat3("Position", &position[0], 0.1f))
+                        {
+                            pTransform->SetPosition(position);
+                        }
+                        ImGui::TreePop();
                     }
-                    ImGui::EndPopup();
+
+                    for (auto *pComponent : pGameObject->GetComponents())
+                    {
+                        DisplayComponent(pComponent->GetType().GetName(), pComponent, rpSelectedInspectableProperty);
+                    }
+
+                    auto bgSize = ImGui::GetContentRegionAvail();
+                    bgSize.x = std::max<float>(1, bgSize.x);
+                    bgSize.y = std::max<float>(1, bgSize.y);
+                    ImGui::InvisibleButton("ObjectInspector_Background", bgSize);
+
+                    if (ImGui::IsItemClicked(1))
+                    {
+                        ImGui::OpenPopup("ObjectInspector_WindowContextMenu");
+                    }
+
+                    if (ImGui::BeginPopup("ObjectInspector_WindowContextMenu"))
+                    {
+                        if (ImGui::BeginMenu("Add"))
+                        {
+                            for (const auto &rComponentRegister : FastCG::ComponentRegistry::GetComponentRegisters())
+                            {
+                                if (pGameObject->HasComponent(rComponentRegister.GetType()))
+                                {
+                                    continue;
+                                }
+                                if (ImGui::MenuItem(rComponentRegister.GetType().GetName().c_str()))
+                                {
+                                    rComponentRegister.Instantiate(pGameObject);
+                                }
+                            }
+                            ImGui::EndMenu();
+                        }
+                        ImGui::EndPopup();
+                    }
                 }
+                ImGui::PopID();
             }
         }
         ImGui::End();
@@ -1025,6 +1032,85 @@ namespace
         }
         ImGui::End();
     }
+
+    void DisplayGizmosOptions(ImGuizmo::OPERATION &rOperation, ImGuizmo::MODE &rMode, glm::vec3 &rTranslateSnap, float &rRotateSnap, float &rScaleSnap)
+    {
+        if (ImGui::Begin("Gizmos Options"))
+        {
+            if (ImGui::RadioButton("Translate", rOperation == ImGuizmo::TRANSLATE))
+            {
+                rOperation = ImGuizmo::TRANSLATE;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Rotate", rOperation == ImGuizmo::ROTATE))
+            {
+                rOperation = ImGuizmo::ROTATE;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Scale", rOperation == ImGuizmo::SCALE))
+            {
+                rOperation = ImGuizmo::SCALE;
+            }
+            if (rOperation != ImGuizmo::SCALE)
+            {
+                if (ImGui::RadioButton("World", rMode == ImGuizmo::WORLD))
+                {
+                    rMode = ImGuizmo::WORLD;
+                }
+                ImGui::SameLine();
+                if (ImGui::RadioButton("Local", rMode == ImGuizmo::LOCAL))
+                {
+                    rMode = ImGuizmo::LOCAL;
+                }
+            }
+
+            switch (rOperation)
+            {
+            case ImGuizmo::TRANSLATE:
+                ImGui::InputFloat3("Snap", &rTranslateSnap.x);
+                break;
+            case ImGuizmo::ROTATE:
+                ImGui::InputFloat("Snap", &rRotateSnap);
+                break;
+            case ImGuizmo::SCALE:
+                ImGui::InputFloat("Snap", &rScaleSnap);
+                break;
+            }
+            ImGui::End();
+        }
+    }
+
+    void DisplayGizmos(FastCG::GameObject *pGameObject, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, const glm::vec3 &rTranslateSnap, float rotateSnap, float scaleSnap)
+    {
+        if (pGameObject != nullptr)
+        {
+            auto *pTransform = pGameObject->GetTransform();
+            auto model = pTransform->GetModel();
+            auto *pCamera = FastCG::WorldSystem::GetInstance()->GetMainCamera();
+            if (pCamera != nullptr)
+            {
+                auto view = pCamera->GetView();
+                auto projection = pCamera->GetProjection();
+                const float *pSnap;
+                switch (operation)
+                {
+                case ImGuizmo::TRANSLATE:
+                    pSnap = &rTranslateSnap.x;
+                    break;
+                case ImGuizmo::ROTATE:
+                    pSnap = &rotateSnap;
+                    break;
+                case ImGuizmo::SCALE:
+                    pSnap = &scaleSnap;
+                    break;
+                }
+                if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode, glm::value_ptr(model), nullptr, pSnap))
+                {
+                    pTransform->SetModel(model);
+                }
+            }
+        }
+    }
 #endif
 }
 
@@ -1063,6 +1149,13 @@ namespace FastCG
         }
         DisplayInspectablePropertyAssignDialog(mGameObjects, mpSelectedInspectableProperty);
         DisplayTextureAssignDialog(mpSelectedMaterial, mSelectedTextureName);
+        {
+            if (mShowGizmosOptions)
+            {
+                DisplayGizmosOptions(mOperation, mMode, mTranslateSnap, mRotateSnap, mScaleSnap);
+            }
+            DisplayGizmos(mpSelectedGameObject, mOperation, mMode, mTranslateSnap, mRotateSnap, mScaleSnap);
+        }
     }
 
     void WorldSystem::DebugMenuItemCallback(int &result)
@@ -1070,6 +1163,7 @@ namespace FastCG
         ImGui::Checkbox("Scene Hierarchy", &mShowSceneHierarchy);
         ImGui::Checkbox("Object Inspector", &mShowObjectInspector);
         ImGui::Checkbox("Material Browser", &mShowMaterialBrowser);
+        ImGui::Checkbox("Gizmos Options", &mShowGizmosOptions);
     }
 #endif
 

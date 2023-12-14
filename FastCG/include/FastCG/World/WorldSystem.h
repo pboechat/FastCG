@@ -5,6 +5,11 @@
 #include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Core/System.h>
 
+#if _DEBUG
+#include <ImGuizmo.h>
+#include <glm/glm.hpp>
+#endif
+
 #include <vector>
 #include <string>
 
@@ -128,6 +133,12 @@ namespace FastCG
         bool mShowMaterialBrowser{false};
         IInspectableProperty *mpSelectedInspectableProperty{nullptr};
         std::string mSelectedTextureName{};
+        bool mShowGizmosOptions{false};
+        ImGuizmo::OPERATION mOperation{ImGuizmo::TRANSLATE};
+        ImGuizmo::MODE mMode{ImGuizmo::WORLD};
+        glm::vec3 mTranslateSnap{0.1f, 0.1f, 0.1f};
+        float mRotateSnap{5};
+        float mScaleSnap{0.1f};
 #endif
 
         WorldSystem(const WorldSystemArgs &rArgs);

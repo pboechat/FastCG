@@ -10,6 +10,7 @@ if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL" AND NOT FASTCG_PLATFORM STREQUAL "An
     add_subdirectory(glew)
 endif()
 add_subdirectory(glm)
+add_subdirectory(ImGuizmo)
 add_subdirectory(imgui)
 add_subdirectory(ImGuiFileDialog)
 add_subdirectory(ktx)

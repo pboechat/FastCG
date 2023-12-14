@@ -152,6 +152,24 @@ namespace FastCG
 			return mWorldTransform.ToMat4();
 		}
 
+		inline void SetModel(const glm::mat4 &rModel)
+		{
+			mLocalTransform.position = rModel[3];
+
+			mLocalTransform.scale = {glm::length(glm::vec3(rModel[0])),
+									 glm::length(glm::vec3(rModel[1])),
+									 glm::length(glm::vec3(rModel[2]))};
+
+			glm::mat4 normModel = rModel;
+			normModel[0] /= mLocalTransform.scale.x;
+			normModel[1] /= mLocalTransform.scale.y;
+			normModel[2] /= mLocalTransform.scale.z;
+
+			mLocalTransform.rotation = glm::quat_cast(normModel);
+
+			Update();
+		}
+
 		inline GameObject *GetGameObject()
 		{
 			return mpGameObject;

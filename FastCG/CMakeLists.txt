@@ -57,4 +57,4 @@ source_group("shaders" FILES ${GENERAL_SHADERS})
 
 fastcg_add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} ${PLATFORM_LIBRARIES} ${GRAPHICS_SYSTEM_LIBRARIES} glm imgui ImGuiFileDialog ktx rapidjson stb tinyobj_loader_c)
+target_link_libraries(${PROJECT_NAME} ${PLATFORM_LIBRARIES} ${GRAPHICS_SYSTEM_LIBRARIES} glm ImGuizmo imgui ImGuiFileDialog ktx rapidjson stb tinyobj_loader_c)
