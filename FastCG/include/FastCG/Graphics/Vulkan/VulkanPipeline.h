@@ -8,6 +8,8 @@
 #include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/Macros.h>
 
+#include <vector>
+
 namespace FastCG
 {
     struct VulkanPipeline
@@ -19,17 +21,31 @@ namespace FastCG
     // remove all padding cause struct memory is used to compute hash
     FASTCG_PACKED_PREFIX struct VulkanPipelineDescription
     {
-        bool depthTest;
-        bool depthWrite;
-        CompareOp depthFunc;
-        bool scissorTest;
-        bool stencilTest;
-        StencilState stencilBackState;
-        StencilState stencilFrontState;
-        Face cullMode;
-        bool blend;
-        BlendState blendState;
         const VulkanShader *pShader;
+        union
+        {
+            struct
+            {
+                VkViewport viewport;
+                VkRect2D scissor;
+                uint32_t vertexBufferCount;
+                const VulkanBuffer *ppVertexBuffers[16];
+                const VulkanBuffer *pIndexBuffer;
+                bool depthTest;
+                bool depthWrite;
+                CompareOp depthFunc;
+                bool scissorTest;
+                bool stencilTest;
+                StencilState stencilBackState;
+                StencilState stencilFrontState;
+                Face cullMode;
+                bool blend;
+                BlendState blendState;
+            } graphicsInfo;
+            struct
+            {
+            } computeInfo;
+        };
     } FASTCG_PACKED_SUFFIX;
 
 }

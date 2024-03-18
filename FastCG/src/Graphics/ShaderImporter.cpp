@@ -22,8 +22,8 @@ namespace
     static_assert((size_t) enum ::LAST == FASTCG_ARRAYSIZE(array),      \
                   "Missing element in " #array)
 
-    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert", ".frag");
-    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS, ".vert_spv", ".frag_spv");
+    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert", ".frag", ".comp");
+    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS, ".vert_spv", ".frag_spv", ".comp_spv");
 
     FastCG::RenderingPathMask GetSuitableRenderingPathMask(const std::string &rFileName)
     {
@@ -111,21 +111,21 @@ namespace FastCG
 
         FASTCG_LOG_DEBUG(ShaderImporter, "Importing shaders (%s):", GetRenderingPathString(renderingPath));
 
-        Shader::Args shaderArgs{};
         for (const auto &rEntry : shaderInfos)
         {
             const auto &rShaderInfo = rEntry.second;
+            Shader::Args shaderArgs{};
             shaderArgs.name = rEntry.first;
             shaderArgs.text = rShaderInfo.text;
             ShaderTypeValueArray<std::unique_ptr<uint8_t[]>> programsData;
             for (ShaderTypeInt i = 0; i < (ShaderTypeInt)ShaderType::LAST; ++i)
             {
-                if (rShaderInfo.programFileNames.empty())
+                if (rShaderInfo.programFileNames[i].empty())
                 {
                     continue;
                 }
 
-                FASTCG_LOG_DEBUG(ShaderImporter, "- %s (%s)", shaderArgs.name.c_str(), shaderArgs.text ? "text" : "binary");
+                FASTCG_LOG_DEBUG(ShaderImporter, "- %s [%s] (%s)", shaderArgs.name.c_str(), ShaderType_STRINGS[i], shaderArgs.text ? "t" : "b");
 
                 if (shaderArgs.text)
                 {

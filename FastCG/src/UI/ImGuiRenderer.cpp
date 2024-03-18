@@ -89,7 +89,7 @@ namespace FastCG
             pGraphicsContext->PushDebugMarker("ImGui Passes");
             {
                 mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
-                pGraphicsContext->Copy(mpImGuiConstantsBuffer, sizeof(ImGuiConstants), &mImGuiConstants);
+                pGraphicsContext->Copy(mpImGuiConstantsBuffer, &mImGuiConstants, sizeof(ImGuiConstants));
 
                 pGraphicsContext->BindShader(mpImGuiShader);
 
@@ -111,8 +111,8 @@ namespace FastCG
                     pIndicesDataEnd += pCmdList->IdxBuffer.size_in_bytes();
                 }
 
-                pGraphicsContext->Copy(mpImGuiMesh->GetVertexBuffers()[0], (pVerticesDataEnd - pVerticesDataStart), pVerticesDataStart);
-                pGraphicsContext->Copy(mpImGuiMesh->GetIndexBuffer(), (pIndicesDataEnd - pIndicesDataStart), pIndicesDataStart);
+                pGraphicsContext->Copy(mpImGuiMesh->GetVertexBuffers()[0], pVerticesDataStart, (pVerticesDataEnd - pVerticesDataStart));
+                pGraphicsContext->Copy(mpImGuiMesh->GetIndexBuffer(), pIndicesDataStart, (pIndicesDataEnd - pIndicesDataStart));
 
                 uint32_t idxOffset = 0;
                 uint32_t vtxOffset = 0;

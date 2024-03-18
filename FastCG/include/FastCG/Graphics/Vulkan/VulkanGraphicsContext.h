@@ -42,22 +42,25 @@ namespace FastCG
         void SetDepthFunc(CompareOp depthFunc);
         void SetScissorTest(bool scissorTest);
         void SetCullMode(Face face);
-        void Copy(const VulkanBuffer *pBuffer, size_t dataSize, const void *pData);
-        void Copy(const VulkanBuffer *pBuffer, uint32_t frameIndex, size_t dataSize, const void *pData);
-        void Copy(const VulkanTexture *pTexture, size_t dataSize, const void *pData);
+        void Copy(const VulkanBuffer *pDst, const void *pSrc, size_t size);
+        void Copy(const VulkanBuffer *pDst, const void *pSrc, uint32_t frameIndex, size_t size);
+        void Copy(const VulkanTexture *pDst, const void *pSrc, size_t size);
+        void Copy(void *pDst, const VulkanBuffer *pSrc, size_t offset, size_t size);
+        void Copy(void *pDst, const VulkanBuffer *pSrc, uint32_t frameIndex, size_t offset, size_t size);
         void BindShader(const VulkanShader *pShader);
         void BindResource(const VulkanBuffer *pBuffer, const char *pName);
         void BindResource(const VulkanTexture *pTexture, const char *pName);
         void Blit(const VulkanTexture *pSrc, const VulkanTexture *pDst);
-        void SetRenderTargets(const VulkanTexture *const *pRenderTargets, uint32_t renderTargetCount, const VulkanTexture *pDepthStencilBuffer);
+        void SetRenderTargets(const VulkanTexture *const *ppRenderTargets, uint32_t renderTargetCount, const VulkanTexture *pDepthStencilBuffer);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
         void ClearDepthStencilBuffer(float depth, int32_t stencil);
         void ClearDepthBuffer(float depth);
         void ClearStencilBuffer(int32_t stencil);
-        void SetVertexBuffers(const VulkanBuffer *const *pBuffers, uint32_t bufferCount);
+        void SetVertexBuffers(const Buffer *const *ppVertexBuffers, uint32_t vertexBufferCount);
         void SetIndexBuffer(const VulkanBuffer *pBuffer);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void End();
         double GetElapsedTime() const;
 
@@ -138,58 +141,88 @@ namespace FastCG
         };
 #endif
 
-        struct DrawCommand
+        static constexpr uint32_t MAX_VERTEX_BUFFER_COUNT = 16;
+
+        struct InvokeCommand
         {
 #if _DEBUG
             size_t lastMarkerCommandIdx;
 #endif
-            DrawCommandType type;
-            PrimitiveType primitiveType;
-            uint32_t firstInstance;
-            uint32_t instanceCount;
-            uint32_t firstIndex;
-            uint32_t indexCount;
-            int32_t vertexOffset;
-            VkViewport viewport;
-            VkRect2D scissor;
-            std::vector<VulkanDescriptorSet> pipelineResourcesUsage;
-            std::vector<VkDescriptorSet> descriptorSets;
-            std::vector<VkBuffer> vertexBuffers;
-            VkBuffer pIndexBuffer;
+            VulkanPipelineLayout pipelineLayout;
+            uint32_t setCount = 0;
+            VkDescriptorSet pSets[VulkanPipelineLayout::MAX_SET_COUNT];
+            union
+            {
+                struct
+                {
+                    DrawCommandType type;
+                    PrimitiveType primitiveType;
+                    uint32_t firstInstance;
+                    uint32_t instanceCount;
+                    uint32_t firstIndex;
+                    uint32_t indexCount;
+                    int32_t vertexOffset;
+                    VkViewport viewport;
+                    VkRect2D scissor;
+                    uint32_t vertexBufferCount;
+                    VkBuffer pVertexBuffers[MAX_VERTEX_BUFFER_COUNT];
+                    VkBuffer indexBuffer;
+                } drawInfo;
+                struct
+                {
+                    uint32_t groupCountX;
+                    uint32_t groupCountY;
+                    uint32_t groupCountZ;
+                } dispatchInfo;
+            };
         };
 
-        struct PipelineCommand
+        struct PipelineBatch
         {
-            size_t lastDrawCommandIdx;
+            size_t lastInvokeCommandIdx;
             VulkanPipeline pipeline;
-            std::vector<VulkanDescriptorSetLayout> pipelineResourcesLayout;
+            VulkanPipelineLayoutDescription layoutDescription;
         };
 
-        struct RenderPassCommand
+        enum class PassType : uint8_t
+        {
+            RENDER,
+            COMPUTE
+        };
+
+        struct PassBatch
         {
             size_t lastCopyCommandIdx;
-            size_t lastPipelineCommandIdx;
-            VkRenderPass renderPass;
-            VkFramebuffer frameBuffer;
-            uint32_t width;
-            uint32_t height;
-            std::vector<const VulkanTexture *> renderTargets;
-            const VulkanTexture *pDepthStencilBuffer;
-            std::vector<VkClearValue> clearValues;
-            bool depthStencilWrite;
+            size_t lastPipelineBatchIdx;
+            PassType type;
+            union
+            {
+                struct
+                {
+                    VkRenderPass renderPass;
+                    VkFramebuffer frameBuffer;
+                    uint32_t width;
+                    uint32_t height;
+                    uint32_t renderTargetCount;
+                    const VulkanTexture *ppRenderTargets[VulkanRenderPassDescription::MAX_RENDER_TARGET_COUNT];
+                    const VulkanTexture *pDepthStencilBuffer;
+                    uint32_t clearValueCount;
+                    VkClearValue pClearValues[VulkanRenderPassDescription::MAX_RENDER_TARGET_COUNT + 1];
+                    bool depthStencilWrite;
+                } renderInfo;
+                struct
+                {
+                } computePassInfo;
+            };
         };
 
         VulkanRenderPassDescription mRenderPassDescription;
         VulkanPipelineDescription mPipelineDescription;
-        VkViewport mViewport;
-        VkRect2D mScissor;
-        std::vector<const VulkanBuffer *> mVertexBuffers;
-        VkBuffer mpIndexBuffer;
-        std::vector<VulkanDescriptorSet> mPipelineResourcesUsage;
-        std::vector<RenderPassCommand> mRenderPassCommands;
-        std::vector<PipelineCommand> mPipelineCommands;
+        VulkanPipelineLayout mPipelineLayout;
+        std::vector<PassBatch> mPassBatches;
+        std::vector<PipelineBatch> mPipelineBatches;
         std::vector<CopyCommand> mCopyCommands;
-        std::vector<DrawCommand> mDrawCommands;
+        std::vector<InvokeCommand> mInvokeCommands;
         VkRenderPass mPrevRenderPass{VK_NULL_HANDLE};
         std::vector<VulkanClearRequest> mClearRequests;
         bool mEnded{true};
@@ -226,6 +259,9 @@ namespace FastCG
                                 uint32_t firstIndex,
                                 uint32_t indexCount,
                                 int32_t vertexOffset);
+        void EnqueueDispatchCommand(uint32_t groupCountX,
+                                    uint32_t groupCountY,
+                                    uint32_t groupCountZ);
         void EnqueueTimestampQuery(uint32_t query);
 #if !defined FASTCG_DISABLE_GPU_TIMING
         void InitializeTimeElapsedData();

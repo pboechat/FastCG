@@ -53,8 +53,7 @@ namespace FastCG
 #endif
         }
         void DestroyTexture(const OpenGLTexture *pTexture) override;
-        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
-        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
+        void Synchronize();
 #if defined FASTCG_ANDROID
         void OnWindowInitialized();
         void OnWindowTerminated();
@@ -93,6 +92,10 @@ namespace FastCG
         void CreateOpenGLContext();
         void QueryDeviceProperties();
         void DestroyOpenGLContext();
+        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
+        GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
+
+        friend class OpenGLGraphicsContext;
     };
 
 }

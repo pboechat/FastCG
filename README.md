@@ -30,6 +30,7 @@ Features:
     - Supports various image formats (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
     - Support to KTX (via [KTX-Software](https://github.com/KhronosGroup/KTX-Software)) and DDS.
     - Supports OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
-- Immediate-mode GUI support (via [Dear ImGUI](https://github.com/ocornut/imgui))
+- Immediate-Mode GUI Support (via [Dear ImGUI](https://github.com/ocornut/imgui))
+- Compute Shader Support.
 - API Design:
     - Component-oriented API.

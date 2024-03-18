@@ -563,6 +563,8 @@ namespace FastCG
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         case ShaderType::VERTEX:
             return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderType::COMPUTE:
+            return VK_SHADER_STAGE_COMPUTE_BIT;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stage flag bit (shaderType: %s)", GetShaderTypeString(shaderType));
             return (VkShaderStageFlagBits)0;

@@ -116,7 +116,6 @@ namespace FastCG
 
 			OnStart();
 
-			mRunning = true;
 			RunMainLoop();
 
 			OnEnd();

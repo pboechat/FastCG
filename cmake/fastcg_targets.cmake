@@ -1,10 +1,5 @@
-function(_fastcg_remove)
-    foreach(FILE IN LISTS ARGN)
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E remove ${FILE}
-        )
-    endforeach()
-endfunction()
+# all glsl source extensions
+set(GLSL_SOURCE_EXTS ".vert" ".frag" ".comp")
 
 function(_fastcg_add_compile_shaders_target)
     get_target_property(SOURCE_DIR ${ARGV0} SOURCE_DIR)
@@ -46,7 +41,11 @@ function(_fastcg_add_compile_shaders_target)
         list(APPEND TMP_GLSL_HEADERS ${TMP_GLSL_HEADER})
     endforeach(GLSL_HEADER)
 
-    file(GLOB_RECURSE GLSL_SOURCES "${SRC_SHADERS_DIR}/*.vert" "${SRC_SHADERS_DIR}/*.frag")
+    foreach(GLSL_SOURCE_EXT IN LISTS GLSL_SOURCE_EXTS)
+        list(APPEND GLSL_SOURCE_PATTERNS "${SRC_SHADERS_DIR}/*${GLSL_SOURCE_EXT}")
+    endforeach(GLSL_SOURCE_EXT)
+
+    file(GLOB_RECURSE GLSL_SOURCES ${GLSL_SOURCE_PATTERNS})
     foreach(GLSL_SOURCE IN LISTS GLSL_SOURCES)
         file(RELATIVE_PATH REL_GLSL_SOURCE ${SRC_SHADERS_DIR} ${GLSL_SOURCE})
 
@@ -88,7 +87,7 @@ function(_fastcg_add_compile_shaders_target)
             ${ARGV0}_COMPILE_SHADERS
             DEPENDS ${DST_GLSL_SOURCES}
         )
-        if(NOT FASTCG_USE_TEXT_SHADERS)
+        if(NOT FASTCG_USE_TEXT_SHADERS AND DST_GLSL_HEADERS)
             # clean up text headers in the destination directory (just in case)
             add_custom_command(
                 TARGET ${ARGV0}_COMPILE_SHADERS PRE_BUILD
@@ -138,7 +137,10 @@ function(_fastcg_add_copy_assets_target)
     file(GLOB_RECURSE SRC_ASSET_FILES "${SRC_ASSETS_DIR}/*.*")
     foreach(SRC_ASSET_FILE IN LISTS SRC_ASSET_FILES)
         file(RELATIVE_PATH REL_ASSET_FILE ${SRC_ASSETS_DIR} ${SRC_ASSET_FILE})
-        if(REL_ASSET_FILE MATCHES "\\.vert$" OR REL_ASSET_FILE MATCHES "\\.frag$" OR REL_ASSET_FILE MATCHES "\\.glsl$")
+        if(REL_ASSET_FILE MATCHES "\\.vert$" OR 
+           REL_ASSET_FILE MATCHES "\\.frag$" OR 
+           REL_ASSET_FILE MATCHES "\\.comp$" OR 
+           REL_ASSET_FILE MATCHES "\\.glsl$")
             continue()
         endif()
         if(REL_ASSET_FILE MATCHES "\\.recipe$")
@@ -400,12 +402,3 @@ function(fastcg_add_library)
     _fastcg_target_compile_definitions(${ARGV0})
     _fastcg_target_compile_options(${ARGV0})
 endfunction()
-
-# Custom commands
-
-if(DEFINED FASTCG_EXEC)
-    separate_arguments(FASTCG_EXEC_ARGS)
-    if(FASTCG_EXEC STREQUAL "remove")
-        _fastcg_remove(${FASTCG_EXEC_ARGS})
-    endif()
-endif()

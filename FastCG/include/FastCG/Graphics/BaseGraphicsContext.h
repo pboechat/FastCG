@@ -50,22 +50,24 @@ namespace FastCG
         void SetDepthFunc(CompareOp depthFunc);
         void SetScissorTest(bool scissorTest);
         void SetCullMode(Face face);
-        void Copy(const Buffer *pBuffer, size_t dataSize, const void *pData);
-        void Copy(const Texture *pTexture, size_t dataSize, const void *pData);
+        void Copy(const Buffer *pDst, const void *pSrc, size_t size);
+        void Copy(const Texture *pDst, const void *pSrc, size_t size);
+        void Copy(void *pDst, const Buffer *pSrc, size_t offset, size_t size);
         void BindShader(const Shader *pShader);
         void BindResource(const Buffer *pBuffer, const char *pName);
         void BindResource(const Texture *pTexture, const char *pName);
         void Blit(const Texture *pSrc, const Texture *pDst);
-        void SetRenderTargets(const Texture *const *pRenderTargets, uint32_t renderTargetCount, const Texture *pDepthStencilBuffer);
+        void SetRenderTargets(const Texture *const *ppRenderTargets, uint32_t renderTargetCount, const Texture *pDepthStencilBuffer);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
         void ClearDepthStencilBuffer(float depth, int32_t stencil);
         void ClearDepthBuffer(float depth);
         void ClearStencilBuffer(int32_t stencil);
-        void SetVertexBuffers(const Buffer *const *pBuffers, uint32_t bufferCount);
+        void SetVertexBuffers(const Buffer *const *ppVertexBuffers, uint32_t vertexBufferCount);
         void SetIndexBuffer(const Buffer *pBuffer);
         void SetPrimitiveType(PrimitiveType primitiveType);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void End();
         double GetElapsedTime() const;
 

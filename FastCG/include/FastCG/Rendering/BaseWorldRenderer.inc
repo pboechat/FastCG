@@ -606,7 +606,7 @@ namespace FastCG
         const auto *pConstantBuffer = rpMaterial->GetConstantBuffer();
         if (pConstantBuffer != nullptr)
         {
-            pGraphicsContext->Copy(pConstantBuffer, rpMaterial->GetConstantBufferSize(), rpMaterial->GetConstantBufferData());
+            pGraphicsContext->Copy(pConstantBuffer, rpMaterial->GetConstantBufferData(), rpMaterial->GetConstantBufferSize());
         }
 
         pGraphicsContext->BindShader(rpMaterial->GetShader());
@@ -638,7 +638,7 @@ namespace FastCG
         rInstanceData.modelViewProjection = rProjection * modelView;
 
         const auto *pInstanceConstantsBuffer = GetInstanceConstantsBuffer();
-        pGraphicsContext->Copy(pInstanceConstantsBuffer, sizeof(InstanceConstants::instanceData[0]), &mInstanceConstants);
+        pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants, sizeof(InstanceConstants::instanceData[0]));
         return pInstanceConstantsBuffer;
     }
 
@@ -669,7 +669,7 @@ namespace FastCG
         const auto *pInstanceConstantsBuffer = GetInstanceConstantsBuffer();
         if (instanceCount > 0)
         {
-            pGraphicsContext->Copy(pInstanceConstantsBuffer, sizeof(InstanceConstants::instanceData[0]) * instanceCount, &mInstanceConstants);
+            pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants, sizeof(InstanceConstants::instanceData[0]) * instanceCount);
         }
 
         return {instanceCount, pInstanceConstantsBuffer};
@@ -681,7 +681,7 @@ namespace FastCG
         mLightingConstants = {};
 
         const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
-        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
+        pGraphicsContext->Copy(pLightingConstantsBuffer, &mLightingConstants, sizeof(LightingConstants));
         return pLightingConstantsBuffer;
     }
 
@@ -700,7 +700,7 @@ namespace FastCG
         mLightingConstants.ambientColor = mArgs.rAmbientLightColor;
 
         const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
-        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
+        pGraphicsContext->Copy(pLightingConstantsBuffer, &mLightingConstants, sizeof(LightingConstants));
         return pLightingConstantsBuffer;
     }
 
@@ -715,7 +715,7 @@ namespace FastCG
         mLightingConstants.ambientColor = mArgs.rAmbientLightColor;
 
         const auto *pLightingConstantsBuffer = GetLightingConstantsBuffer();
-        pGraphicsContext->Copy(pLightingConstantsBuffer, sizeof(LightingConstants), &mLightingConstants);
+        pGraphicsContext->Copy(pLightingConstantsBuffer, &mLightingConstants, sizeof(LightingConstants));
         return pLightingConstantsBuffer;
     }
 
@@ -727,7 +727,7 @@ namespace FastCG
         pGraphicsContext->BindResource(mpEmptyShadowMap, "uShadowMap");
 
         const auto *pPCSSConstantsBuffer = GetPCSSConstantsBuffer();
-        pGraphicsContext->Copy(pPCSSConstantsBuffer, sizeof(PCSSConstants), &mPCSSConstants);
+        pGraphicsContext->Copy(pPCSSConstantsBuffer, &mPCSSConstants, sizeof(PCSSConstants));
         return pPCSSConstantsBuffer;
     }
 
@@ -745,7 +745,7 @@ namespace FastCG
         pGraphicsContext->BindResource(mpEmptyShadowMap, "uShadowMap");
 
         const auto *pPCSSConstantsBuffer = GetPCSSConstantsBuffer();
-        pGraphicsContext->Copy(pPCSSConstantsBuffer, sizeof(PCSSConstants), &mPCSSConstants);
+        pGraphicsContext->Copy(pPCSSConstantsBuffer, &mPCSSConstants, sizeof(PCSSConstants));
         return pPCSSConstantsBuffer;
     }
 
@@ -769,7 +769,7 @@ namespace FastCG
         }
 
         const auto *pPCSSConstantsBuffer = GetPCSSConstantsBuffer();
-        pGraphicsContext->Copy(pPCSSConstantsBuffer, sizeof(PCSSConstants), &mPCSSConstants);
+        pGraphicsContext->Copy(pPCSSConstantsBuffer, &mPCSSConstants, sizeof(PCSSConstants));
         return pPCSSConstantsBuffer;
     }
 
@@ -806,7 +806,7 @@ namespace FastCG
         }
 
         const auto *pFogConstantsBuffer = GetFogConstantsBuffer();
-        pGraphicsContext->Copy(pFogConstantsBuffer, sizeof(FogConstants), &mFogConstants);
+        pGraphicsContext->Copy(pFogConstantsBuffer, &mFogConstants, sizeof(FogConstants));
         return pFogConstantsBuffer;
     }
 
@@ -821,7 +821,7 @@ namespace FastCG
         mSceneConstants.pointSize = 1.0f; // TODO: provide a mechanism for users to control point size
 
         const auto *pSceneConstantsBuffer = GetSceneConstantsBuffer();
-        pGraphicsContext->Copy(pSceneConstantsBuffer, sizeof(SceneConstants), &mSceneConstants);
+        pGraphicsContext->Copy(pSceneConstantsBuffer, &mSceneConstants, sizeof(SceneConstants));
         return pSceneConstantsBuffer;
     }
 
@@ -846,7 +846,7 @@ namespace FastCG
         const auto *pShadowMapPassConstantsBuffer = GetShadowMapPassConstantsBuffer();
         if (instanceCount > 0)
         {
-            pGraphicsContext->Copy(pShadowMapPassConstantsBuffer, sizeof(ShadowMapPassConstants::instanceData[0]) * instanceCount, &mShadowMapPassConstants);
+            pGraphicsContext->Copy(pShadowMapPassConstantsBuffer, &mShadowMapPassConstants, sizeof(ShadowMapPassConstants::instanceData[0]) * instanceCount);
         }
 
         return {instanceCount, pShadowMapPassConstantsBuffer};
@@ -859,7 +859,7 @@ namespace FastCG
         mSSAOHighFrequencyPassConstants.aspectRatio = mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
         mSSAOHighFrequencyPassConstants.tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * fov) / 2.0f);
 
-        pGraphicsContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants);
+        pGraphicsContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, &mSSAOHighFrequencyPassConstants, sizeof(SSAOHighFrequencyPassConstants));
 
         pGraphicsContext->BindResource(mpNoiseTexture, "uNoiseMap");
         pGraphicsContext->BindResource(pDepth, "uDepth");

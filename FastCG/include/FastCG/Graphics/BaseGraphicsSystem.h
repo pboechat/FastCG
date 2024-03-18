@@ -92,6 +92,7 @@ namespace FastCG
         inline const Shader *FindShader(const std::string &rName) const;
         inline const Texture *GetMissingTexture(TextureType textureType) const;
         inline bool IsHeadless() const;
+        inline void Synchronize();
 #if defined FASTCG_ANDROID
         inline void OnWindowInitialized();
         inline void OnWindowTerminated();

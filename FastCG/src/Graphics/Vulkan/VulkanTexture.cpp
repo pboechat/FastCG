@@ -96,7 +96,7 @@ namespace FastCG
 
         if (GetData() != nullptr)
         {
-            VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, GetDataSize(), GetData());
+            VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, GetData(), GetDataSize());
         }
     }
 

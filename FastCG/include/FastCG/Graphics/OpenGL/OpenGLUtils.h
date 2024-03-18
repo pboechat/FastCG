@@ -200,6 +200,7 @@ namespace FastCG
         {
             CASE_RETURN_STRING(GL_VERTEX_SHADER);
             CASE_RETURN_STRING(GL_FRAGMENT_SHADER);
+            CASE_RETURN_STRING(GL_COMPUTE_SHADER);
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL shader type string (shaderType: %d)", (int)shaderType);
             return nullptr;
@@ -214,6 +215,8 @@ namespace FastCG
             return GL_VERTEX_SHADER;
         case ShaderType::FRAGMENT:
             return GL_FRAGMENT_SHADER;
+        case ShaderType::COMPUTE:
+            return GL_COMPUTE_SHADER;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL shader type (shaderType: %s)", GetShaderTypeString(shaderType));
             return 0;

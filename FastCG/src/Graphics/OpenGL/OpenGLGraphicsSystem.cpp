@@ -188,6 +188,11 @@ namespace FastCG
         BaseGraphicsSystem::DestroyTexture(pTexture);
     }
 
+    void OpenGLGraphicsSystem::Synchronize()
+    {
+        glFinish();
+    }
+
     GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
     {
         size_t fboHash;

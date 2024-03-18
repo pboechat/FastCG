@@ -121,11 +121,11 @@ namespace
     }
 #endif
 
-#define FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, fn)                                                        \
-    FastCG::VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                     \
-    if (FastCG::VkExt::fn == nullptr)                                                                       \
-    {                                                                                                       \
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't load Vulkan instance extension function " #fn); \
+#define FASTCG_LOAD_VK_INSTANCE_EXT_FN(instance, fn)                                                         \
+    FastCG::VkExt::fn = (PFN_##fn)vkGetInstanceProcAddr(instance, #fn);                                      \
+    if (FastCG::VkExt::fn == nullptr)                                                                        \
+    {                                                                                                        \
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Couldn't load instance extension function " #fn); \
     }
 
     void LoadVulkanInstanceExtensionFunctions(VkInstance instance, const std::vector<const char *> &rExtensions)
@@ -144,11 +144,11 @@ namespace
 
 #undef FASTCG_LOAD_VK_INSTANCE_EXT_FN
 
-#define FASTCG_LOAD_VK_DEVICE_EXT_FN(device, fn)                                                          \
-    FastCG::VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(device, #fn);                                       \
-    if (FastCG::VkExt::fn == nullptr)                                                                     \
-    {                                                                                                     \
-        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't load Vulkan device extension function " #fn); \
+#define FASTCG_LOAD_VK_DEVICE_EXT_FN(device, fn)                                                           \
+    FastCG::VkExt::fn = (PFN_##fn)vkGetDeviceProcAddr(device, #fn);                                        \
+    if (FastCG::VkExt::fn == nullptr)                                                                      \
+    {                                                                                                      \
+        FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Couldn't load device extension function " #fn); \
     }
 
     void LoadVulkanDeviceExtensionFunctions(VkDevice device)
@@ -183,14 +183,14 @@ namespace
 
     size_t GetPipelineLayoutHash(const FastCG::VulkanPipelineLayoutDescription &rPipelineLayoutDescription)
     {
-        assert(!rPipelineLayoutDescription.empty());
-        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rPipelineLayoutDescription[0]), rPipelineLayoutDescription.size() * sizeof(&rPipelineLayoutDescription[0]));
+        assert(rPipelineLayoutDescription.setLayoutCount > 0);
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rPipelineLayoutDescription.pSetLayouts[0]), rPipelineLayoutDescription.setLayoutCount * sizeof(rPipelineLayoutDescription.pSetLayouts[0]));
     }
 
     size_t GetDescriptorSetLayoutHash(const FastCG::VulkanDescriptorSetLayout &rDescriptorSetLayout)
     {
-        assert(!rDescriptorSetLayout.empty());
-        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rDescriptorSetLayout[0]), rDescriptorSetLayout.size() * sizeof(&rDescriptorSetLayout[0]));
+        assert(rDescriptorSetLayout.bindingLayoutCount > 0);
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rDescriptorSetLayout.pBindingLayouts[0]), rDescriptorSetLayout.bindingLayoutCount * sizeof(rDescriptorSetLayout.pBindingLayouts[0]));
     }
 
 }
@@ -290,6 +290,7 @@ namespace FastCG
 #if _DEBUG
         uint32_t availableLayerCount;
         vkEnumerateInstanceLayerProperties(&availableLayerCount, nullptr);
+
         std::vector<VkLayerProperties> availableLayers(availableLayerCount);
         vkEnumerateInstanceLayerProperties(&availableLayerCount, &availableLayers[0]);
 
@@ -312,22 +313,23 @@ namespace FastCG
         }
 #endif
 
-        uint32_t availableExtensionCount;
-        vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, nullptr);
-        std::vector<VkExtensionProperties> availableExtensions(availableExtensionCount);
-        vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, &availableExtensions[0]);
+        uint32_t instanceExtensionCount;
+        vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount, nullptr);
+
+        mInstanceExtensionProperties.resize(instanceExtensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount, &mInstanceExtensionProperties[0]);
 
 #if _DEBUG
-        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Available extensions:");
-        for (const auto &rExtension : availableExtensions)
+        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Available instance extensions:");
+        for (const auto &rExtensionProperty : mInstanceExtensionProperties)
         {
-            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "- %s", rExtension.extensionName);
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "- %s", rExtensionProperty.extensionName);
         }
 #endif
 
-        if (!Contains(availableExtensions, "VK_KHR_surface"))
+        if (!Contains(mInstanceExtensionProperties, "VK_KHR_surface"))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't find VK_KHR_surface extension");
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't find VK_KHR_surface instance extension");
         }
         mInstanceExtensions.emplace_back("VK_KHR_surface");
 
@@ -342,9 +344,9 @@ namespace FastCG
 #error "FASTCG: Don't know how to enable surfaces in the current platform"
 #endif
             ;
-        if (!Contains(availableExtensions, platformSurfaceExtName))
+        if (!Contains(mInstanceExtensionProperties, platformSurfaceExtName))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't find platform surface extension");
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't find %s instance extension", platformSurfaceExtName);
         }
         mInstanceExtensions.emplace_back(platformSurfaceExtName);
 
@@ -458,22 +460,25 @@ namespace FastCG
         {
             uint32_t queueFamiliesCount;
             vkGetPhysicalDeviceQueueFamilyProperties(rPhysicalDevice, &queueFamiliesCount, nullptr);
+
             queueFamiliesProperties.resize(queueFamiliesCount);
             vkGetPhysicalDeviceQueueFamilyProperties(rPhysicalDevice, &queueFamiliesCount, &queueFamiliesProperties[0]);
 
             for (uint32_t queueFamilyIdx = 0; queueFamilyIdx < queueFamiliesCount; ++queueFamilyIdx)
             {
                 auto &rQueueFamilyProperties = queueFamiliesProperties[queueFamilyIdx];
-                // not supporting separate graphics and present queues at the moment
+                // present-only queues are non-existent
                 // see: https://github.com/KhronosGroup/Vulkan-Docs/issues/1234
                 if ((rQueueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 &&
                     SupportsPresentation(rPhysicalDevice, queueFamilyIdx, mSurface))
                 {
-                    mGraphicsAndPresentQueueFamilyIndex = queueFamilyIdx;
-                }
-                if (mGraphicsAndPresentQueueFamilyIndex != ~0u)
-                {
+                    // FIXME: checking invariants
+                    assert((rQueueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0);
+
+                    mQueueSupportsCompute = (rQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0;
+                    mQueueFamilyIdx = queueFamilyIdx;
                     mPhysicalDevice = rPhysicalDevice;
+
                     return;
                 }
             }
@@ -506,8 +511,22 @@ namespace FastCG
 
         for (VkFormat format = VK_FORMAT_UNDEFINED; format < LAST_FORMAT; format = (VkFormat)(((size_t)format) + 1))
         {
-            vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &mFormatProperties[format]);
+            vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &mPhysicalDeviceFormatProperties[format]);
         }
+
+        uint32_t extensionCount = 0;
+        vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, nullptr);
+
+        mPhysicalDeviceExtensionProperties.resize(extensionCount);
+        vkEnumerateDeviceExtensionProperties(mPhysicalDevice, NULL, &extensionCount, &mPhysicalDeviceExtensionProperties[0]);
+
+#if _DEBUG
+        FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Available device extensions:");
+        for (const auto &rExtensionProperty : mPhysicalDeviceExtensionProperties)
+        {
+            FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "- %s", rExtensionProperty.extensionName);
+        }
+#endif
     }
 
     void VulkanGraphicsSystem::AcquirePhysicalDeviceSurfaceProperties()
@@ -570,30 +589,34 @@ namespace FastCG
     {
         static const float sc_queuePriorities[] = {1.f};
 
-        uint32_t queueCount = 0;
-        VkDeviceQueueCreateInfo deviceQueueCreateInfos[2];
-
-        auto &deviceQueueCreateInfo = deviceQueueCreateInfos[queueCount++];
+        VkDeviceQueueCreateInfo deviceQueueCreateInfo;
         deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         deviceQueueCreateInfo.pNext = nullptr;
         deviceQueueCreateInfo.flags = 0;
-        deviceQueueCreateInfo.queueFamilyIndex = mGraphicsAndPresentQueueFamilyIndex;
+        deviceQueueCreateInfo.queueFamilyIndex = mQueueFamilyIdx;
         deviceQueueCreateInfo.queueCount = 1;
         deviceQueueCreateInfo.pQueuePriorities = sc_queuePriorities;
 
-        // TODO: check available extensions
+        if (!Contains(mPhysicalDeviceExtensionProperties, "VK_KHR_swapchain"))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't find VK_KHR_swapchain device extension");
+        }
+        mPhysicalDeviceExtensions.push_back("VK_KHR_swapchain");
 
-        mDeviceExtensions.push_back("VK_KHR_swapchain");
-        mDeviceExtensions.push_back("VK_KHR_create_renderpass2");
+        if (!Contains(mPhysicalDeviceExtensionProperties, "VK_KHR_create_renderpass2"))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't find VK_KHR_create_renderpass2 device extension");
+        }
+        mPhysicalDeviceExtensions.push_back("VK_KHR_create_renderpass2");
 
         VkDeviceCreateInfo deviceCreateInfo;
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         deviceCreateInfo.pNext = nullptr;
         deviceCreateInfo.flags = 0;
-        deviceCreateInfo.queueCreateInfoCount = queueCount;
-        deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfos[0];
-        deviceCreateInfo.enabledExtensionCount = (uint32_t)mDeviceExtensions.size();
-        deviceCreateInfo.ppEnabledExtensionNames = mDeviceExtensions.empty() ? nullptr : &mDeviceExtensions[0];
+        deviceCreateInfo.queueCreateInfoCount = 1;
+        deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+        deviceCreateInfo.enabledExtensionCount = (uint32_t)mPhysicalDeviceExtensions.size();
+        deviceCreateInfo.ppEnabledExtensionNames = mPhysicalDeviceExtensions.empty() ? nullptr : &mPhysicalDeviceExtensions[0];
         deviceCreateInfo.enabledLayerCount = 0;
         deviceCreateInfo.ppEnabledLayerNames = nullptr;
         deviceCreateInfo.pEnabledFeatures = nullptr;
@@ -602,7 +625,7 @@ namespace FastCG
 
         LoadVulkanDeviceExtensionFunctions(mDevice);
 
-        vkGetDeviceQueue(mDevice, mGraphicsAndPresentQueueFamilyIndex, 0, &mGraphicsAndPresentQueue);
+        vkGetDeviceQueue(mDevice, mQueueFamilyIdx, 0, &mQueue);
     }
 
     void VulkanGraphicsSystem::RecreateSwapChainAndGetImages()
@@ -703,10 +726,10 @@ namespace FastCG
         mAcquireSwapChainImageSemaphores.resize(mMaxSimultaneousFrames);
         mSubmitFinishedSemaphores.resize(mMaxSimultaneousFrames);
 
-        VkFenceCreateInfo fenceInfo;
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.pNext = nullptr;
-        fenceInfo.flags = 0;
+        VkFenceCreateInfo fenceCreateInfo;
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.pNext = nullptr;
+        fenceCreateInfo.flags = 0;
 
         VkSemaphoreCreateInfo semaphoreCreateInfo;
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -715,8 +738,8 @@ namespace FastCG
         for (uint32_t i = 0; i < mMaxSimultaneousFrames; ++i)
         {
             // create all fences that are not the current frame fence in signaled state
-            fenceInfo.flags = i != mCurrentFrame ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
-            FASTCG_CHECK_VK_RESULT(vkCreateFence(mDevice, &fenceInfo, mAllocationCallbacks.get(), &mFrameFences[i]));
+            fenceCreateInfo.flags = i != mCurrentFrame ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+            FASTCG_CHECK_VK_RESULT(vkCreateFence(mDevice, &fenceCreateInfo, mAllocationCallbacks.get(), &mFrameFences[i]));
 
             FASTCG_CHECK_VK_RESULT(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, mAllocationCallbacks.get(), &mAcquireSwapChainImageSemaphores[i]));
             FASTCG_CHECK_VK_RESULT(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, mAllocationCallbacks.get(), &mSubmitFinishedSemaphores[i]));
@@ -729,7 +752,7 @@ namespace FastCG
         commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         commandPoolCreateInfo.pNext = nullptr;
         commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        commandPoolCreateInfo.queueFamilyIndex = mGraphicsAndPresentQueueFamilyIndex;
+        commandPoolCreateInfo.queueFamilyIndex = mQueueFamilyIdx;
         FASTCG_CHECK_VK_RESULT(vkCreateCommandPool(mDevice, &commandPoolCreateInfo, mAllocationCallbacks.get(), &mCommandPool));
 
         VkCommandBufferAllocateInfo commandBufferAllocateInfo;
@@ -802,7 +825,7 @@ namespace FastCG
 
     void VulkanGraphicsSystem::ResetQueryPool()
     {
-        // TODO:
+        // TODO: make this less brittle and possibly dynamic
         vkCmdResetQueryPool(mCommandBuffers[mCurrentFrame],
                             mQueryPools[mCurrentFrame],
                             0,
@@ -923,8 +946,9 @@ namespace FastCG
             vkDestroyDevice(mDevice, mAllocationCallbacks.get());
             mDevice = VK_NULL_HANDLE;
         }
-        mGraphicsAndPresentQueue = VK_NULL_HANDLE;
-        mGraphicsAndPresentQueueFamilyIndex = ~0u;
+        mQueue = VK_NULL_HANDLE;
+        mQueueFamilyIdx = ~0u;
+        mQueueSupportsCompute = false;
     }
 
     void VulkanGraphicsSystem::DestroyAllocator()
@@ -1009,7 +1033,7 @@ namespace FastCG
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = &mSubmitFinishedSemaphores[mCurrentFrame];
         }
-        if (vkQueueSubmit(mGraphicsAndPresentQueue, 1, &submitInfo, mFrameFences[mCurrentFrame]) != VK_SUCCESS)
+        if (vkQueueSubmit(mQueue, 1, &submitInfo, mFrameFences[mCurrentFrame]) != VK_SUCCESS)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't submit commands");
         }
@@ -1027,7 +1051,7 @@ namespace FastCG
             presentInfo.pImageIndices = &mSwapChainIndex;
             presentInfo.pResults = nullptr;
 
-            auto result = vkQueuePresentKHR(mGraphicsAndPresentQueue, &presentInfo);
+            auto result = vkQueuePresentKHR(mQueue, &presentInfo);
             switch (result)
             {
             case VK_SUCCESS:
@@ -1099,7 +1123,7 @@ namespace FastCG
                                                                                 bool depthStencilWrite)
     {
         std::vector<AttachmentDefinition> attachmentDefinitions;
-        std::for_each(rRenderPassDescription.renderTargets.begin(), rRenderPassDescription.renderTargets.end(), [&](const auto *pRenderTarget)
+        std::for_each(rRenderPassDescription.ppRenderTargets, rRenderPassDescription.ppRenderTargets + rRenderPassDescription.renderTargetCount, [&](const auto *pRenderTarget)
                       {
                         if (pRenderTarget == nullptr)
                         {
@@ -1194,8 +1218,9 @@ namespace FastCG
 
         subpassDescription.pDepthStencilAttachment = nullptr;
 
-        for (const auto *pRenderTarget : rRenderPassDescription.renderTargets)
+        for (uint32_t i = 0; i < rRenderPassDescription.renderTargetCount; ++i)
         {
+            const auto *pRenderTarget = rRenderPassDescription.ppRenderTargets[i];
             if (pRenderTarget == nullptr)
             {
                 continue;
@@ -1327,8 +1352,9 @@ namespace FastCG
             framebufferCreateInfo.height = std::min(framebufferCreateInfo.height, pRenderTarget->GetHeight());
         };
 
-        for (const auto *pRenderTarget : rRenderPassDescription.renderTargets)
+        for (uint32_t i = 0; i < rRenderPassDescription.renderTargetCount; ++i)
         {
+            const auto *pRenderTarget = rRenderPassDescription.ppRenderTargets[i];
             if (pRenderTarget == nullptr)
             {
                 continue;
@@ -1357,8 +1383,9 @@ namespace FastCG
 
         it = mFrameBuffers.emplace(result.first, frameBuffer).first;
 
-        for (const auto *pRenderTarget : rRenderPassDescription.renderTargets)
+        for (uint32_t i = 0; i < rRenderPassDescription.renderTargetCount; ++i)
         {
+            const auto *pRenderTarget = rRenderPassDescription.ppRenderTargets[i];
             if (pRenderTarget != nullptr)
             {
                 auto image = pRenderTarget->GetImage();
@@ -1370,14 +1397,13 @@ namespace FastCG
         return {it->first, it->second};
     }
 
-    std::pair<size_t, VulkanPipeline> VulkanGraphicsSystem::GetOrCreatePipeline(const VulkanPipelineDescription &rPipelineDescription,
-                                                                                VkRenderPass renderPass,
-                                                                                uint32_t renderTargetCount,
-                                                                                const std::vector<const VulkanBuffer *> &rVertexBuffers)
+    std::pair<size_t, VulkanPipeline> VulkanGraphicsSystem::GetOrCreateGraphicsPipeline(const VulkanPipelineDescription &rPipelineDescription,
+                                                                                        VkRenderPass renderPass,
+                                                                                        uint32_t renderTargetCount)
     {
         assert(rPipelineDescription.pShader != nullptr);
 
-        auto pipelineLayout = GetOrCreatePipelineLayout(rPipelineDescription.pShader->GetLayoutDescription()).second;
+        auto pipelineLayout = GetOrCreatePipelineLayout(rPipelineDescription.pShader->GetPipelineLayoutDescription()).second;
 
         auto pipelineHash = GetPipelineHash(rPipelineDescription);
 
@@ -1415,12 +1441,12 @@ namespace FastCG
             }
         }
 
-        const auto &rVertexInputDescription = rPipelineDescription.pShader->GetVertexInputDescription();
+        const auto &rVertexInputDescription = rPipelineDescription.pShader->GetInputDescription();
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
         std::vector<VkVertexInputBindingDescription> vertexInputBindingDescriptions;
-        for (size_t i = 0; i < rVertexBuffers.size(); ++i)
+        for (uint32_t i = 0; i < rPipelineDescription.graphicsInfo.vertexBufferCount; ++i)
         {
-            const auto *pVertexBuffer = rVertexBuffers[i];
+            const auto *pVertexBuffer = rPipelineDescription.graphicsInfo.ppVertexBuffers[i];
             for (const auto &rVbDesc : pVertexBuffer->GetVertexBindingDescriptors())
             {
                 auto it = rVertexInputDescription.find(rVbDesc.binding);
@@ -1472,7 +1498,7 @@ namespace FastCG
         rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
         rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
         rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterizationStateCreateInfo.cullMode = GetVkCullModeFlags(rPipelineDescription.cullMode);
+        rasterizationStateCreateInfo.cullMode = GetVkCullModeFlags(rPipelineDescription.graphicsInfo.cullMode);
         rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
         rasterizationStateCreateInfo.depthBiasConstantFactor = 0;
@@ -1497,25 +1523,25 @@ namespace FastCG
         depthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         depthStencilStateCreateInfo.pNext = nullptr;
         depthStencilStateCreateInfo.flags = 0;
-        depthStencilStateCreateInfo.depthTestEnable = rPipelineDescription.depthTest;
-        depthStencilStateCreateInfo.depthWriteEnable = rPipelineDescription.depthWrite;
-        depthStencilStateCreateInfo.depthCompareOp = GetVkCompareOp(rPipelineDescription.depthFunc);
+        depthStencilStateCreateInfo.depthTestEnable = rPipelineDescription.graphicsInfo.depthTest;
+        depthStencilStateCreateInfo.depthWriteEnable = rPipelineDescription.graphicsInfo.depthWrite;
+        depthStencilStateCreateInfo.depthCompareOp = GetVkCompareOp(rPipelineDescription.graphicsInfo.depthFunc);
         depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
-        depthStencilStateCreateInfo.stencilTestEnable = rPipelineDescription.stencilTest;
-        depthStencilStateCreateInfo.front.compareMask = rPipelineDescription.stencilFrontState.compareMask;
-        depthStencilStateCreateInfo.front.compareOp = GetVkCompareOp(rPipelineDescription.stencilFrontState.compareOp);
-        depthStencilStateCreateInfo.front.depthFailOp = GetVkStencilOp(rPipelineDescription.stencilFrontState.depthFailOp);
-        depthStencilStateCreateInfo.front.failOp = GetVkStencilOp(rPipelineDescription.stencilFrontState.stencilFailOp);
-        depthStencilStateCreateInfo.front.passOp = GetVkStencilOp(rPipelineDescription.stencilFrontState.passOp);
-        depthStencilStateCreateInfo.front.reference = rPipelineDescription.stencilFrontState.reference;
-        depthStencilStateCreateInfo.front.writeMask = rPipelineDescription.stencilFrontState.writeMask;
-        depthStencilStateCreateInfo.back.compareMask = rPipelineDescription.stencilBackState.compareMask;
-        depthStencilStateCreateInfo.back.compareOp = GetVkCompareOp(rPipelineDescription.stencilBackState.compareOp);
-        depthStencilStateCreateInfo.back.depthFailOp = GetVkStencilOp(rPipelineDescription.stencilBackState.depthFailOp);
-        depthStencilStateCreateInfo.back.failOp = GetVkStencilOp(rPipelineDescription.stencilBackState.stencilFailOp);
-        depthStencilStateCreateInfo.back.passOp = GetVkStencilOp(rPipelineDescription.stencilBackState.passOp);
-        depthStencilStateCreateInfo.back.reference = rPipelineDescription.stencilBackState.reference;
-        depthStencilStateCreateInfo.back.writeMask = rPipelineDescription.stencilBackState.writeMask;
+        depthStencilStateCreateInfo.stencilTestEnable = rPipelineDescription.graphicsInfo.stencilTest;
+        depthStencilStateCreateInfo.front.compareMask = rPipelineDescription.graphicsInfo.stencilFrontState.compareMask;
+        depthStencilStateCreateInfo.front.compareOp = GetVkCompareOp(rPipelineDescription.graphicsInfo.stencilFrontState.compareOp);
+        depthStencilStateCreateInfo.front.depthFailOp = GetVkStencilOp(rPipelineDescription.graphicsInfo.stencilFrontState.depthFailOp);
+        depthStencilStateCreateInfo.front.failOp = GetVkStencilOp(rPipelineDescription.graphicsInfo.stencilFrontState.stencilFailOp);
+        depthStencilStateCreateInfo.front.passOp = GetVkStencilOp(rPipelineDescription.graphicsInfo.stencilFrontState.passOp);
+        depthStencilStateCreateInfo.front.reference = rPipelineDescription.graphicsInfo.stencilFrontState.reference;
+        depthStencilStateCreateInfo.front.writeMask = rPipelineDescription.graphicsInfo.stencilFrontState.writeMask;
+        depthStencilStateCreateInfo.back.compareMask = rPipelineDescription.graphicsInfo.stencilBackState.compareMask;
+        depthStencilStateCreateInfo.back.compareOp = GetVkCompareOp(rPipelineDescription.graphicsInfo.stencilBackState.compareOp);
+        depthStencilStateCreateInfo.back.depthFailOp = GetVkStencilOp(rPipelineDescription.graphicsInfo.stencilBackState.depthFailOp);
+        depthStencilStateCreateInfo.back.failOp = GetVkStencilOp(rPipelineDescription.graphicsInfo.stencilBackState.stencilFailOp);
+        depthStencilStateCreateInfo.back.passOp = GetVkStencilOp(rPipelineDescription.graphicsInfo.stencilBackState.passOp);
+        depthStencilStateCreateInfo.back.reference = rPipelineDescription.graphicsInfo.stencilBackState.reference;
+        depthStencilStateCreateInfo.back.writeMask = rPipelineDescription.graphicsInfo.stencilBackState.writeMask;
         depthStencilStateCreateInfo.minDepthBounds = 0;
         depthStencilStateCreateInfo.maxDepthBounds = 1;
         pipelineCreateInfo.pDepthStencilState = &depthStencilStateCreateInfo;
@@ -1525,13 +1551,13 @@ namespace FastCG
         for (auto &rColorBlendAttachmentState : colorBlendAttachmentStates)
         {
             rColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-            rColorBlendAttachmentState.blendEnable = rPipelineDescription.blend;
-            rColorBlendAttachmentState.colorBlendOp = GetVkBlendOp(rPipelineDescription.blendState.colorOp);
-            rColorBlendAttachmentState.srcColorBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.srcColorFactor);
-            rColorBlendAttachmentState.dstColorBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.dstColorFactor);
-            rColorBlendAttachmentState.alphaBlendOp = GetVkBlendOp(rPipelineDescription.blendState.alphaOp);
-            rColorBlendAttachmentState.srcAlphaBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.srcAlphaFactor);
-            rColorBlendAttachmentState.dstAlphaBlendFactor = GetVkBlendFactor(rPipelineDescription.blendState.dstAlphaFactor);
+            rColorBlendAttachmentState.blendEnable = rPipelineDescription.graphicsInfo.blend;
+            rColorBlendAttachmentState.colorBlendOp = GetVkBlendOp(rPipelineDescription.graphicsInfo.blendState.colorOp);
+            rColorBlendAttachmentState.srcColorBlendFactor = GetVkBlendFactor(rPipelineDescription.graphicsInfo.blendState.srcColorFactor);
+            rColorBlendAttachmentState.dstColorBlendFactor = GetVkBlendFactor(rPipelineDescription.graphicsInfo.blendState.dstColorFactor);
+            rColorBlendAttachmentState.alphaBlendOp = GetVkBlendOp(rPipelineDescription.graphicsInfo.blendState.alphaOp);
+            rColorBlendAttachmentState.srcAlphaBlendFactor = GetVkBlendFactor(rPipelineDescription.graphicsInfo.blendState.srcAlphaFactor);
+            rColorBlendAttachmentState.dstAlphaBlendFactor = GetVkBlendFactor(rPipelineDescription.graphicsInfo.blendState.dstAlphaFactor);
         }
 
         VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
@@ -1577,6 +1603,48 @@ namespace FastCG
         return {it->first, {it->second, pipelineLayout}};
     }
 
+    std::pair<size_t, VulkanPipeline> VulkanGraphicsSystem::GetOrCreateComputePipeline(const VulkanPipelineDescription &rPipelineDescription)
+    {
+        assert(rPipelineDescription.pShader != nullptr);
+
+        auto pipelineLayout = GetOrCreatePipelineLayout(rPipelineDescription.pShader->GetPipelineLayoutDescription()).second;
+
+        auto pipelineHash = GetPipelineHash(rPipelineDescription);
+
+        auto it = mPipelines.find(pipelineHash);
+        if (it != mPipelines.end())
+        {
+            return {it->first, {it->second, pipelineLayout}};
+        }
+
+        VkComputePipelineCreateInfo pipelineCreateInfo;
+        pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+        pipelineCreateInfo.pNext = nullptr;
+        pipelineCreateInfo.flags = 0;
+        pipelineCreateInfo.stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        pipelineCreateInfo.stage.pNext = nullptr;
+        pipelineCreateInfo.stage.flags = 0;
+        pipelineCreateInfo.stage.pName = "main";
+        pipelineCreateInfo.stage.module = rPipelineDescription.pShader->GetModule(ShaderType::COMPUTE);
+        pipelineCreateInfo.stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        pipelineCreateInfo.stage.pSpecializationInfo = NULL;
+        pipelineCreateInfo.layout = pipelineLayout;
+        pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pipelineCreateInfo.basePipelineIndex = 0;
+
+        VkPipeline pipeline;
+        FASTCG_CHECK_VK_RESULT(vkCreateComputePipelines(mDevice,
+                                                        VK_NULL_HANDLE,
+                                                        1,
+                                                        &pipelineCreateInfo,
+                                                        mAllocationCallbacks.get(),
+                                                        &pipeline));
+
+        it = mPipelines.emplace(pipelineHash, pipeline).first;
+
+        return {it->first, {it->second, pipelineLayout}};
+    }
+
     std::pair<size_t, VkPipelineLayout> VulkanGraphicsSystem::GetOrCreatePipelineLayout(const VulkanPipelineLayoutDescription &rPipelineLayoutDescription)
     {
         auto pipelineLayoutHash = GetPipelineLayoutHash(rPipelineLayoutDescription);
@@ -1587,16 +1655,17 @@ namespace FastCG
             return {it->first, it->second};
         }
 
-        std::vector<VkDescriptorSetLayout> setLayouts;
-        for (const auto &rSetLayout : rPipelineLayoutDescription)
+        VkDescriptorSetLayout pSetLayouts[VulkanPipelineLayout::MAX_SET_COUNT];
+        for (uint32_t i = 0; i < rPipelineLayoutDescription.setLayoutCount; ++i)
         {
-            if (!rSetLayout.empty())
+            const auto &rSetLayout = rPipelineLayoutDescription.pSetLayouts[i];
+            if (rSetLayout.bindingLayoutCount > 0)
             {
-                setLayouts.emplace_back(GetOrCreateDescriptorSetLayout(rSetLayout).second);
+                pSetLayouts[i] = GetOrCreateDescriptorSetLayout(rSetLayout).second;
             }
             else
             {
-                setLayouts.emplace_back(nullptr);
+                pSetLayouts[i] = nullptr;
             }
         }
 
@@ -1604,8 +1673,8 @@ namespace FastCG
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutCreateInfo.pNext = nullptr;
         pipelineLayoutCreateInfo.flags = 0;
-        pipelineLayoutCreateInfo.setLayoutCount = (uint32_t)setLayouts.size();
-        pipelineLayoutCreateInfo.pSetLayouts = &setLayouts[0];
+        pipelineLayoutCreateInfo.setLayoutCount = rPipelineLayoutDescription.setLayoutCount;
+        pipelineLayoutCreateInfo.pSetLayouts = pSetLayouts;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
         pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
@@ -1622,7 +1691,7 @@ namespace FastCG
 
     std::pair<size_t, VkDescriptorSetLayout> VulkanGraphicsSystem::GetOrCreateDescriptorSetLayout(const VulkanDescriptorSetLayout &rDescriptorSetLayout)
     {
-        assert(!rDescriptorSetLayout.empty());
+        assert(rDescriptorSetLayout.bindingLayoutCount > 0);
 
         auto setLayoutHash = GetDescriptorSetLayoutHash(rDescriptorSetLayout);
 
@@ -1632,24 +1701,24 @@ namespace FastCG
             return {it->first, it->second};
         }
 
-        std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-        for (const auto &rBinding : rDescriptorSetLayout)
+        VkDescriptorSetLayoutBinding pLayoutBindings[VulkanDescriptorSet::MAX_BINDING_COUNT];
+        for (uint32_t i = 0; i < rDescriptorSetLayout.bindingLayoutCount; ++i)
         {
-            VkDescriptorSetLayoutBinding layoutBinding;
-            layoutBinding.binding = rBinding.binding;
-            layoutBinding.descriptorCount = 1;
-            layoutBinding.descriptorType = rBinding.type;
-            layoutBinding.pImmutableSamplers = nullptr;
-            layoutBinding.stageFlags = rBinding.stageFlags;
-            layoutBindings.emplace_back(layoutBinding);
+            const auto &rBinding = rDescriptorSetLayout.pBindingLayouts[i];
+            auto &rLayoutBinding = pLayoutBindings[i];
+            rLayoutBinding.binding = rBinding.binding;
+            rLayoutBinding.descriptorCount = 1;
+            rLayoutBinding.descriptorType = rBinding.type;
+            rLayoutBinding.pImmutableSamplers = nullptr;
+            rLayoutBinding.stageFlags = rBinding.stageFlags;
         }
 
         VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo;
         setLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         setLayoutCreateInfo.pNext = nullptr;
         setLayoutCreateInfo.flags = 0;
-        setLayoutCreateInfo.bindingCount = (uint32_t)layoutBindings.size();
-        setLayoutCreateInfo.pBindings = &layoutBindings[0];
+        setLayoutCreateInfo.bindingCount = rDescriptorSetLayout.bindingLayoutCount;
+        setLayoutCreateInfo.pBindings = pLayoutBindings;
 
         VkDescriptorSetLayout setLayout;
         FASTCG_CHECK_VK_RESULT(vkCreateDescriptorSetLayout(VulkanGraphicsSystem::GetInstance()->GetDevice(),
@@ -1672,7 +1741,7 @@ namespace FastCG
         {
             auto &rDescriptorSetLocalPool = it->second;
             auto descriptorSet = rDescriptorSetLocalPool.descriptorSets[rDescriptorSetLocalPool.lastDescriptorSetIdx++];
-            assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SETS);
+            assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SET_COUNT);
             return {it->first, descriptorSet};
         }
 
@@ -1680,7 +1749,7 @@ namespace FastCG
 
         auto &rDescriptorSetLocalPool = rDescriptorSetLocalPools[setLayoutHash];
 
-        for (size_t i = 0; i < DescriptorSetLocalPool::MAX_SETS; ++i)
+        for (size_t i = 0; i < DescriptorSetLocalPool::MAX_SET_COUNT; ++i)
         {
             auto &rDescriptorSet = rDescriptorSetLocalPool.descriptorSets[i];
 
@@ -1695,7 +1764,7 @@ namespace FastCG
         }
 
         auto descriptorSet = rDescriptorSetLocalPool.descriptorSets[rDescriptorSetLocalPool.lastDescriptorSetIdx++];
-        assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SETS);
+        assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SET_COUNT);
         return {setLayoutHash, descriptorSet};
     }
 
@@ -1817,6 +1886,41 @@ namespace FastCG
         DestroySurface();
     }
 #endif
+
+    void VulkanGraphicsSystem::Synchronize()
+    {
+        GetImmediateGraphicsContext()->End();
+
+        EndCurrentCommandBuffer();
+
+        VkFenceCreateInfo fenceCreateInfo;
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.pNext = nullptr;
+        fenceCreateInfo.flags = 0;
+
+        VkFence fence;
+        FASTCG_CHECK_VK_RESULT(vkCreateFence(mDevice, &fenceCreateInfo, mAllocationCallbacks.get(), &fence));
+
+        VkSubmitInfo submitInfo;
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.pNext = nullptr;
+        submitInfo.waitSemaphoreCount = 0;
+        submitInfo.pWaitSemaphores = nullptr;
+        submitInfo.pWaitDstStageMask = nullptr;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.pSignalSemaphores = nullptr;
+        FASTCG_CHECK_VK_RESULT(vkQueueSubmit(mQueue, 1, &submitInfo, fence));
+
+        FASTCG_CHECK_VK_RESULT(vkWaitForFences(mDevice, 1, &fence, VK_TRUE, UINT64_MAX));
+
+        vkDestroyFence(mDevice, fence, mAllocationCallbacks.get());
+
+        BeginCurrentCommandBuffer();
+
+        GetImmediateGraphicsContext()->Begin();
+    }
 }
 
 #endif

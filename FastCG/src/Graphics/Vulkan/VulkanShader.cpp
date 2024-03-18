@@ -131,18 +131,21 @@ namespace FastCG
         auto AddResource = [&](const spirv_cross::Compiler &rCompiler, const spirv_cross::Resource &rResource, ShaderType shaderType, VkDescriptorType descriptorType)
         {
             auto set = rCompiler.get_decoration(rResource.id, spv::DecorationDescriptorSet);
+            assert(set < VulkanPipelineLayout::MAX_SET_COUNT);
             auto binding = rCompiler.get_decoration(rResource.id, spv::DecorationBinding);
             mResourceLocation[rResource.name] = {set, binding};
-            if (mLayoutDescription.size() <= set)
+            if (mPipelineLayoutDescription.setLayoutCount <= set)
             {
-                mLayoutDescription.resize(set + 1);
+                auto oldCount = mPipelineLayoutDescription.setLayoutCount;
+                mPipelineLayoutDescription.setLayoutCount = set + 1;
             }
-            auto &rDescriptorSet = mLayoutDescription[set];
-            auto it = std::find_if(rDescriptorSet.begin(), rDescriptorSet.end(), [&binding](const auto &rBinding)
+            auto &rSetLayout = mPipelineLayoutDescription.pSetLayouts[set];
+            auto itEnd = rSetLayout.pBindingLayouts + rSetLayout.bindingLayoutCount;
+            auto it = std::find_if(rSetLayout.pBindingLayouts, itEnd, [&binding](const auto &rBinding)
                                    { return rBinding.binding == binding; });
-            if (it == rDescriptorSet.end())
+            if (it == itEnd)
             {
-                it = rDescriptorSet.emplace(rDescriptorSet.end());
+                it = &rSetLayout.pBindingLayouts[rSetLayout.bindingLayoutCount++];
                 it->binding = binding;
                 it->type = descriptorType;
             }
@@ -190,18 +193,18 @@ namespace FastCG
                 AddResource(compiler, rTexture, shaderType, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
             }
 
-            if (shaderType == ShaderType::VERTEX)
+            if (shaderType == ShaderType::VERTEX || shaderType == ShaderType::COMPUTE)
             {
-                for (const auto &rVertexInput : shaderResources.stage_inputs)
+                for (const auto &rInput : shaderResources.stage_inputs)
                 {
-                    mVertexInputDescription.emplace(compiler.get_decoration(rVertexInput.id, spv::DecorationLocation));
+                    mInputDescription.emplace(compiler.get_decoration(rInput.id, spv::DecorationLocation));
                 }
             }
-            else if (shaderType == ShaderType::FRAGMENT)
+            if (shaderType == ShaderType::FRAGMENT || shaderType == ShaderType::COMPUTE)
             {
-                for (const auto &rFragmentOutput : shaderResources.stage_outputs)
+                for (const auto &rOutput : shaderResources.stage_outputs)
                 {
-                    mFragmentOutputDescription.emplace(compiler.get_decoration(rFragmentOutput.id, spv::DecorationLocation));
+                    mOutputDescription.emplace(compiler.get_decoration(rOutput.id, spv::DecorationLocation));
                 }
             }
         }

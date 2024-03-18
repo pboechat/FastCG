@@ -7,6 +7,7 @@
 #include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 
 #include <vector>
+#include <cstdint>
 
 namespace FastCG
 {
@@ -28,7 +29,10 @@ namespace FastCG
 
     struct VulkanRenderPassDescription
     {
-        std::vector<const VulkanTexture *> renderTargets;
+        static constexpr uint32_t MAX_RENDER_TARGET_COUNT = 8;
+
+        uint32_t renderTargetCount;
+        const VulkanTexture *ppRenderTargets[MAX_RENDER_TARGET_COUNT];
         const VulkanTexture *pDepthStencilBuffer;
     };
 

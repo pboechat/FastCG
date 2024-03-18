@@ -207,7 +207,10 @@ namespace FastCG
 
         for (const auto &shaderId : mShadersIds)
         {
-            glAttachShader(mProgramId, shaderId);
+            if (shaderId != ~0u)
+            {
+                glAttachShader(mProgramId, shaderId);
+            }
         }
 
         glLinkProgram(mProgramId);
@@ -226,7 +229,10 @@ namespace FastCG
 
         for (const auto &shaderId : mShadersIds)
         {
-            glDetachShader(mProgramId, shaderId);
+            if (shaderId != ~0u)
+            {
+                glDetachShader(mProgramId, shaderId);
+            }
         }
 
 #if _DEBUG
@@ -253,7 +259,10 @@ namespace FastCG
     {
         for (auto shaderId : mShadersIds)
         {
-            glDeleteShader(shaderId);
+            if (shaderId != ~0u)
+            {
+                glDeleteShader(shaderId);
+            }
         }
 
         if (mProgramId != ~0u)

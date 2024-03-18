@@ -8,21 +8,10 @@
 #include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
 #include <FastCG/Core/Macros.h>
 
-#include <vector>
 #include <cstdint>
 
 namespace FastCG
 {
-    // remove all padding cause struct memory is used to compute hash
-    FASTCG_PACKED_PREFIX struct VulkanDescriptorSetLayoutBinding
-    {
-        uint32_t binding{~0u};
-        VkDescriptorType type;
-        VkShaderStageFlags stageFlags;
-    } FASTCG_PACKED_SUFFIX;
-
-    using VulkanDescriptorSetLayout = std::vector<VulkanDescriptorSetLayoutBinding>;
-
     struct VulkanDescriptorSetBinding
     {
         union
@@ -32,9 +21,41 @@ namespace FastCG
         };
     };
 
-    using VulkanDescriptorSet = std::vector<VulkanDescriptorSetBinding>;
+    struct VulkanDescriptorSet
+    {
+        static constexpr uint32_t MAX_BINDING_COUNT = 32;
 
-    using VulkanPipelineLayoutDescription = std::vector<VulkanDescriptorSetLayout>;
+        uint32_t bindingCount;
+        VulkanDescriptorSetBinding pBindings[MAX_BINDING_COUNT];
+    };
+
+    struct VulkanPipelineLayout
+    {
+        static constexpr uint32_t MAX_SET_COUNT = 16;
+
+        uint32_t setCount;
+        VulkanDescriptorSet pSet[MAX_SET_COUNT];
+    };
+
+    // remove all padding cause struct memory is used to compute hash
+    FASTCG_PACKED_PREFIX struct VulkanDescriptorSetLayoutBinding
+    {
+        uint32_t binding{~0u};
+        VkDescriptorType type;
+        VkShaderStageFlags stageFlags;
+    } FASTCG_PACKED_SUFFIX;
+
+    struct VulkanDescriptorSetLayout
+    {
+        uint32_t bindingLayoutCount;
+        VulkanDescriptorSetLayoutBinding pBindingLayouts[VulkanDescriptorSet::MAX_BINDING_COUNT];
+    };
+
+    struct VulkanPipelineLayoutDescription
+    {
+        uint32_t setLayoutCount;
+        VulkanDescriptorSetLayout pSetLayouts[VulkanPipelineLayout::MAX_SET_COUNT];
+    };
 }
 
 #endif

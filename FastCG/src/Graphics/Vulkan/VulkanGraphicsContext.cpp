@@ -37,14 +37,10 @@ namespace FastCG
 	void VulkanGraphicsContext::Begin()
 	{
 		assert(mEnded);
-		mRenderPassDescription.renderTargets.resize(0);
+		mRenderPassDescription.renderTargetCount = 0;
 		mRenderPassDescription.pDepthStencilBuffer = nullptr;
 		memset(&mPipelineDescription, 0, sizeof(mPipelineDescription));
-		mViewport = {};
-		mScissor = {};
-		mVertexBuffers.resize(0);
-		mpIndexBuffer = VK_NULL_HANDLE;
-		mPipelineResourcesUsage.resize(0);
+		mPipelineLayout.setCount = 0;
 #if !defined FASTCG_DISABLE_GPU_TIMING
 		if (mTimeElapsedQueries.size() != VulkanGraphicsSystem::GetInstance()->GetMaxSimultaneousFrames())
 		{
@@ -75,36 +71,36 @@ namespace FastCG
 
 	void VulkanGraphicsContext::SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height)
 	{
-		mViewport = VkViewport{(float)x, (float)y, (float)width, (float)height, 0, 1};
+		mPipelineDescription.graphicsInfo.viewport = VkViewport{(float)x, (float)y, (float)width, (float)height, 0, 1};
 	}
 
 	void VulkanGraphicsContext::SetScissor(int32_t x, int32_t y, uint32_t width, uint32_t height)
 	{
-		mScissor = VkRect2D{x, y, width, height};
+		mPipelineDescription.graphicsInfo.scissor = VkRect2D{x, y, width, height};
 	}
 
 	void VulkanGraphicsContext::SetBlend(bool blend)
 	{
-		mPipelineDescription.blend = blend;
+		mPipelineDescription.graphicsInfo.blend = blend;
 	}
 
 	void VulkanGraphicsContext::SetBlendFunc(BlendFunc color, BlendFunc alpha)
 	{
-		mPipelineDescription.blendState.colorOp = color;
-		mPipelineDescription.blendState.alphaOp = alpha;
+		mPipelineDescription.graphicsInfo.blendState.colorOp = color;
+		mPipelineDescription.graphicsInfo.blendState.alphaOp = alpha;
 	}
 
 	void VulkanGraphicsContext::SetBlendFactors(BlendFactor srcColor, BlendFactor dstColor, BlendFactor srcAlpha, BlendFactor dstAlpha)
 	{
-		mPipelineDescription.blendState.srcColorFactor = srcColor;
-		mPipelineDescription.blendState.dstColorFactor = dstColor;
-		mPipelineDescription.blendState.srcAlphaFactor = srcAlpha;
-		mPipelineDescription.blendState.dstAlphaFactor = dstAlpha;
+		mPipelineDescription.graphicsInfo.blendState.srcColorFactor = srcColor;
+		mPipelineDescription.graphicsInfo.blendState.dstColorFactor = dstColor;
+		mPipelineDescription.graphicsInfo.blendState.srcAlphaFactor = srcAlpha;
+		mPipelineDescription.graphicsInfo.blendState.dstAlphaFactor = dstAlpha;
 	}
 
 	void VulkanGraphicsContext::SetStencilTest(bool stencilTest)
 	{
-		mPipelineDescription.stencilTest = stencilTest;
+		mPipelineDescription.graphicsInfo.stencilTest = stencilTest;
 	}
 
 	void VulkanGraphicsContext::SetStencilFunc(Face face, CompareOp stencilFunc, int32_t ref, uint32_t mask)
@@ -112,15 +108,15 @@ namespace FastCG
 		assert(face == Face::FRONT || face == Face::BACK || face == Face::FRONT_AND_BACK);
 		if (face == Face::FRONT || face == Face::FRONT_AND_BACK)
 		{
-			mPipelineDescription.stencilFrontState.compareOp = stencilFunc;
-			mPipelineDescription.stencilFrontState.reference = ref;
-			mPipelineDescription.stencilFrontState.compareMask = mask;
+			mPipelineDescription.graphicsInfo.stencilFrontState.compareOp = stencilFunc;
+			mPipelineDescription.graphicsInfo.stencilFrontState.reference = ref;
+			mPipelineDescription.graphicsInfo.stencilFrontState.compareMask = mask;
 		}
 		if (face == Face::BACK || face == Face::FRONT_AND_BACK)
 		{
-			mPipelineDescription.stencilBackState.compareOp = stencilFunc;
-			mPipelineDescription.stencilBackState.reference = ref;
-			mPipelineDescription.stencilBackState.compareMask = mask;
+			mPipelineDescription.graphicsInfo.stencilBackState.compareOp = stencilFunc;
+			mPipelineDescription.graphicsInfo.stencilBackState.reference = ref;
+			mPipelineDescription.graphicsInfo.stencilBackState.compareMask = mask;
 		}
 	}
 
@@ -129,15 +125,15 @@ namespace FastCG
 		assert(face == Face::FRONT || face == Face::BACK || face == Face::FRONT_AND_BACK);
 		if (face == Face::FRONT || face == Face::FRONT_AND_BACK)
 		{
-			mPipelineDescription.stencilFrontState.stencilFailOp = stencilFail;
-			mPipelineDescription.stencilFrontState.depthFailOp = depthFail;
-			mPipelineDescription.stencilFrontState.passOp = depthPass;
+			mPipelineDescription.graphicsInfo.stencilFrontState.stencilFailOp = stencilFail;
+			mPipelineDescription.graphicsInfo.stencilFrontState.depthFailOp = depthFail;
+			mPipelineDescription.graphicsInfo.stencilFrontState.passOp = depthPass;
 		}
 		if (face == Face::BACK || face == Face::FRONT_AND_BACK)
 		{
-			mPipelineDescription.stencilBackState.stencilFailOp = stencilFail;
-			mPipelineDescription.stencilBackState.depthFailOp = depthFail;
-			mPipelineDescription.stencilBackState.passOp = depthPass;
+			mPipelineDescription.graphicsInfo.stencilBackState.stencilFailOp = stencilFail;
+			mPipelineDescription.graphicsInfo.stencilBackState.depthFailOp = depthFail;
+			mPipelineDescription.graphicsInfo.stencilBackState.passOp = depthPass;
 		}
 	}
 
@@ -145,44 +141,44 @@ namespace FastCG
 	{
 		if (face == Face::FRONT || face == Face::FRONT_AND_BACK)
 		{
-			mPipelineDescription.stencilFrontState.writeMask = mask;
+			mPipelineDescription.graphicsInfo.stencilFrontState.writeMask = mask;
 		}
 		if (face == Face::BACK || face == Face::FRONT_AND_BACK)
 		{
-			mPipelineDescription.stencilBackState.writeMask = mask;
+			mPipelineDescription.graphicsInfo.stencilBackState.writeMask = mask;
 		}
 	}
 
 	void VulkanGraphicsContext::SetDepthTest(bool depthTest)
 	{
-		mPipelineDescription.depthTest = depthTest;
+		mPipelineDescription.graphicsInfo.depthTest = depthTest;
 	}
 
 	void VulkanGraphicsContext::SetDepthWrite(bool depthWrite)
 	{
-		mPipelineDescription.depthWrite = depthWrite;
+		mPipelineDescription.graphicsInfo.depthWrite = depthWrite;
 	}
 
 	void VulkanGraphicsContext::SetDepthFunc(CompareOp depthFunc)
 	{
-		mPipelineDescription.depthFunc = depthFunc;
+		mPipelineDescription.graphicsInfo.depthFunc = depthFunc;
 	}
 
 	void VulkanGraphicsContext::SetScissorTest(bool scissorTest)
 	{
-		mPipelineDescription.scissorTest = scissorTest;
+		mPipelineDescription.graphicsInfo.scissorTest = scissorTest;
 	}
 
 	void VulkanGraphicsContext::SetCullMode(Face face)
 	{
-		mPipelineDescription.cullMode = face;
+		mPipelineDescription.graphicsInfo.cullMode = face;
 	}
 
-	void VulkanGraphicsContext::Copy(const VulkanBuffer *pBuffer, size_t dataSize, const void *pData)
+	void VulkanGraphicsContext::Copy(const VulkanBuffer *pDst, const void *pSrc, size_t size)
 	{
-		assert(pBuffer != nullptr);
+		assert(pDst != nullptr);
 		uint32_t frameIndex;
-		if (pBuffer->IsMultiFrame())
+		if (pDst->IsMultiFrame())
 		{
 			frameIndex = VulkanGraphicsSystem::GetInstance()->GetCurrentFrame();
 		}
@@ -190,25 +186,25 @@ namespace FastCG
 		{
 			frameIndex = 0;
 		}
-		Copy(pBuffer, frameIndex, dataSize, pData);
+		Copy(pDst, pSrc, frameIndex, size);
 	}
 
-	void VulkanGraphicsContext::Copy(const VulkanBuffer *pBuffer, uint32_t frameIndex, size_t dataSize, const void *pData)
+	void VulkanGraphicsContext::Copy(const VulkanBuffer *pDst, const void *pSrc, uint32_t frameIndex, size_t size)
 	{
-		assert(pBuffer != nullptr);
-		assert(dataSize > 0);
-		assert(pData != nullptr);
+		assert(pDst != nullptr);
+		assert(pSrc != nullptr);
+		assert(size > 0);
 
-		auto &rBufferFrameData = pBuffer->GetFrameData(frameIndex);
+		auto &rBufferFrameData = pDst->GetFrameData(frameIndex);
 		assert(rBufferFrameData.allocation != VK_NULL_HANDLE);
 
-		if (pBuffer->UsesMappableMemory())
+		if (pDst->UsesMappableMemory())
 		{
-			void *mappedData;
+			void *pMappedDst;
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 												rBufferFrameData.allocation,
-												&mappedData));
-			std::memcpy(mappedData, pData, dataSize);
+												&pMappedDst));
+			std::memcpy(pMappedDst, pSrc, size);
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 						   rBufferFrameData.allocation);
 
@@ -221,65 +217,106 @@ namespace FastCG
 				FASTCG_CHECK_VK_RESULT(vmaFlushAllocation(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 														  rBufferFrameData.allocation,
 														  0,
-														  dataSize));
+														  size));
 			}
 		}
 		else
 		{
-			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pBuffer->GetName() + (frameIndex > 0 ? " (" + std::to_string(frameIndex) + ")" : ""),
+			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pDst->GetName() + (frameIndex > 0 ? " (" + std::to_string(frameIndex) + ")" : ""),
 																					  BufferUsageFlagBit::DYNAMIC,
-																					  dataSize,
-																					  pData,
+																					  size,
+																					  pSrc,
 																					  {},
 																					  true});
 
-			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_BUFFER, CopyCommandArgs{{pStagingBuffer, 0}, {pBuffer, frameIndex}});
+			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_BUFFER, CopyCommandArgs{{pStagingBuffer, 0}, {pDst, frameIndex}});
 
 			VulkanGraphicsSystem::GetInstance()->DestroyBuffer(pStagingBuffer);
 		}
 	}
 
-	void VulkanGraphicsContext::Copy(const VulkanTexture *pTexture, size_t dataSize, const void *pData)
+	void VulkanGraphicsContext::Copy(const VulkanTexture *pDst, const void *pSrc, size_t size)
 	{
-		assert(pTexture != nullptr);
-		assert(pTexture->GetAllocation() != VK_NULL_HANDLE);
-		assert(dataSize > 0);
-		assert(pData != nullptr);
+		assert(pDst != nullptr);
+		assert(pDst->GetAllocation() != VK_NULL_HANDLE);
+		assert(pSrc != nullptr);
+		assert(size > 0);
 
-		if (pTexture->UsesMappableMemory())
+		if (pDst->UsesMappableMemory())
 		{
-			void *mappedData;
+			void *pMappedDst;
 			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-												pTexture->GetAllocation(),
-												&mappedData));
-			std::memcpy(mappedData, pData, dataSize);
+												pDst->GetAllocation(),
+												&pMappedDst));
+			std::memcpy(pMappedDst, pSrc, size);
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-						   pTexture->GetAllocation());
+						   pDst->GetAllocation());
 
 			VkMemoryPropertyFlags memPropFlags;
 			vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-											 pTexture->GetAllocation(),
+											 pDst->GetAllocation(),
 											 &memPropFlags);
 			if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 			{
 				FASTCG_CHECK_VK_RESULT(vmaFlushAllocation(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-														  pTexture->GetAllocation(),
+														  pDst->GetAllocation(),
 														  0,
 														  VK_WHOLE_SIZE));
 			}
 		}
 		else
 		{
-			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pTexture->GetName(),
+			auto *pStagingBuffer = VulkanGraphicsSystem::GetInstance()->CreateBuffer({"Staging Buffer for " + pDst->GetName(),
 																					  BufferUsageFlagBit::DYNAMIC,
-																					  dataSize,
-																					  pData,
+																					  size,
+																					  pSrc,
 																					  {},
 																					  true});
 
-			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_IMAGE, CopyCommandArgs{{pStagingBuffer, 0}, {pTexture}});
+			EnqueueCopyCommand(CopyCommandType::BUFFER_TO_IMAGE, CopyCommandArgs{{pStagingBuffer, 0}, {pDst}});
 
 			VulkanGraphicsSystem::GetInstance()->DestroyBuffer(pStagingBuffer);
+		}
+	}
+
+	void VulkanGraphicsContext::Copy(void *pDst, const VulkanBuffer *pSrc, size_t offset, size_t size)
+	{
+		assert(pSrc != nullptr);
+		uint32_t frameIndex;
+		if (pSrc->IsMultiFrame())
+		{
+			frameIndex = VulkanGraphicsSystem::GetInstance()->GetCurrentFrame();
+		}
+		else
+		{
+			frameIndex = 0;
+		}
+		Copy(pDst, pSrc, frameIndex, offset, size);
+	}
+
+	void VulkanGraphicsContext::Copy(void *pDst, const VulkanBuffer *pSrc, uint32_t frameIndex, size_t offset, size_t size)
+	{
+		assert(pDst != nullptr);
+		assert(pSrc != nullptr);
+		assert(size > 0);
+
+		auto &rBufferFrameData = pSrc->GetFrameData(frameIndex);
+		assert(rBufferFrameData.allocation != VK_NULL_HANDLE);
+
+		if (pSrc->UsesMappableMemory())
+		{
+			void *pMappedData;
+			FASTCG_CHECK_VK_RESULT(vmaMapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+												rBufferFrameData.allocation,
+												&pMappedData));
+			pMappedData = (void *)((char *)pMappedData + offset);
+			std::memcpy(pDst, pMappedData, size);
+			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+						   rBufferFrameData.allocation);
+		}
+		else
+		{
+			// TODO:
 		}
 	}
 
@@ -292,7 +329,7 @@ namespace FastCG
 		}
 
 		mPipelineDescription.pShader = pShader;
-		mPipelineResourcesUsage.resize(0);
+		mPipelineLayout.setCount = 0;
 	}
 
 	void VulkanGraphicsContext::BindResource(const VulkanBuffer *pBuffer, const char *pName)
@@ -305,16 +342,22 @@ namespace FastCG
 		{
 			return;
 		}
-		if (mPipelineResourcesUsage.size() <= location.set)
+		assert(location.set < VulkanPipelineLayout::MAX_SET_COUNT);
+		assert(location.binding < VulkanDescriptorSet::MAX_BINDING_COUNT);
+		if (mPipelineLayout.setCount <= location.set)
 		{
-			mPipelineResourcesUsage.resize(location.set + 1);
+			auto oldCount = mPipelineLayout.setCount;
+			mPipelineLayout.setCount = location.set + 1;
+			std::memset(mPipelineLayout.pSet + oldCount, 0, (mPipelineLayout.setCount - oldCount) * sizeof(mPipelineLayout.pSet[0]));
 		}
-		auto &rDescriptorSet = mPipelineResourcesUsage[location.set];
-		if (rDescriptorSet.size() <= location.binding)
+		auto &rDescriptorSet = mPipelineLayout.pSet[location.set];
+		if (rDescriptorSet.bindingCount <= location.binding)
 		{
-			rDescriptorSet.resize(location.binding + 1);
+			auto oldCount = rDescriptorSet.bindingCount;
+			rDescriptorSet.bindingCount = location.binding + 1;
+			std::memset(rDescriptorSet.pBindings + oldCount, 0, (rDescriptorSet.bindingCount - oldCount) * sizeof(rDescriptorSet.pBindings[0]));
 		}
-		auto &rBinding = rDescriptorSet[location.binding];
+		auto &rBinding = rDescriptorSet.pBindings[location.binding];
 		rBinding.pBuffer = pBuffer;
 	}
 
@@ -327,16 +370,22 @@ namespace FastCG
 		{
 			return;
 		}
-		if (mPipelineResourcesUsage.size() <= location.set)
+		assert(location.set < VulkanPipelineLayout::MAX_SET_COUNT);
+		assert(location.binding < VulkanDescriptorSet::MAX_BINDING_COUNT);
+		if (mPipelineLayout.setCount <= location.set)
 		{
-			mPipelineResourcesUsage.resize(location.set + 1);
+			auto oldCount = mPipelineLayout.setCount;
+			mPipelineLayout.setCount = location.set + 1;
+			std::memset(mPipelineLayout.pSet + oldCount, 0, (mPipelineLayout.setCount - oldCount) * sizeof(mPipelineLayout.pSet[0]));
 		}
-		auto &rDescriptorSet = mPipelineResourcesUsage[location.set];
-		if (rDescriptorSet.size() <= location.binding)
+		auto &rDescriptorSet = mPipelineLayout.pSet[location.set];
+		if (rDescriptorSet.bindingCount <= location.binding)
 		{
-			rDescriptorSet.resize(location.binding + 1);
+			auto oldCount = rDescriptorSet.bindingCount;
+			rDescriptorSet.bindingCount = location.binding + 1;
+			std::memset(rDescriptorSet.pBindings + oldCount, 0, (rDescriptorSet.bindingCount - oldCount) * sizeof(rDescriptorSet.pBindings[0]));
 		}
-		auto &rBinding = rDescriptorSet[location.binding];
+		auto &rBinding = rDescriptorSet.pBindings[location.binding];
 		rBinding.pTexture = pTexture;
 	}
 
@@ -347,15 +396,15 @@ namespace FastCG
 		EnqueueCopyCommand(CopyCommandType::BLIT, CopyCommandArgs{{pSrc}, {pDst}});
 	}
 
-	void VulkanGraphicsContext::ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor)
+	void VulkanGraphicsContext::ClearRenderTarget(uint32_t renderTargetIdx, const glm::vec4 &rClearColor)
 	{
-		assert(renderTargetIndex < mRenderPassDescription.renderTargets.size());
+		assert(renderTargetIdx < mRenderPassDescription.renderTargetCount);
 		auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [&](const auto &rClearRequest)
-							   { return rClearRequest.pTexture == mRenderPassDescription.renderTargets[renderTargetIndex]; });
+							   { return rClearRequest.pTexture == mRenderPassDescription.ppRenderTargets[renderTargetIdx]; });
 		if (it == mClearRequests.end())
 		{
 			it = mClearRequests.emplace(mClearRequests.end());
-			it->pTexture = mRenderPassDescription.renderTargets[renderTargetIndex];
+			it->pTexture = mRenderPassDescription.ppRenderTargets[renderTargetIdx];
 		}
 		it->value.color.float32[0] = rClearColor.r;
 		it->value.color.float32[1] = rClearColor.g;
@@ -407,33 +456,34 @@ namespace FastCG
 		it->flags = VulkanClearRequestFlagBit::STENCIL;
 	}
 
-	void VulkanGraphicsContext::SetRenderTargets(const VulkanTexture *const *pRenderTargets, uint32_t renderTargetCount, const VulkanTexture *pDepthStencilBuffer)
+	void VulkanGraphicsContext::SetRenderTargets(const VulkanTexture *const *ppRenderTargets, uint32_t renderTargetCount, const VulkanTexture *pDepthStencilBuffer)
 	{
-		mRenderPassDescription.renderTargets.resize(renderTargetCount);
+		assert(renderTargetCount <= VulkanRenderPassDescription::MAX_RENDER_TARGET_COUNT);
+		mRenderPassDescription.renderTargetCount = renderTargetCount;
 		for (uint32_t i = 0; i < renderTargetCount; ++i)
 		{
-			auto *pRenderTarget = pRenderTargets[i];
+			auto *pRenderTarget = ppRenderTargets[i];
 			if (pRenderTarget == VulkanGraphicsSystem::GetInstance()->GetBackbuffer())
 			{
 				pRenderTarget = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
 			}
-			mRenderPassDescription.renderTargets[i] = pRenderTarget;
+			mRenderPassDescription.ppRenderTargets[i] = pRenderTarget;
 		}
 		mRenderPassDescription.pDepthStencilBuffer = pDepthStencilBuffer;
 	}
 
-	void VulkanGraphicsContext::SetVertexBuffers(const VulkanBuffer *const *pBuffers, uint32_t bufferCount)
+	void VulkanGraphicsContext::SetVertexBuffers(const Buffer *const *ppVertexBuffers, uint32_t vertexBufferCount)
 	{
-		assert(pBuffers != nullptr);
-		mVertexBuffers.resize(bufferCount);
-		std::memcpy(&mVertexBuffers[0], pBuffers, bufferCount * sizeof(const VulkanBuffer *));
+		assert(ppVertexBuffers != nullptr);
+		assert(vertexBufferCount <= MAX_VERTEX_BUFFER_COUNT);
+		mPipelineDescription.graphicsInfo.vertexBufferCount = vertexBufferCount;
+		std::memcpy(mPipelineDescription.graphicsInfo.ppVertexBuffers, ppVertexBuffers, vertexBufferCount * sizeof(const VulkanBuffer *));
 	}
 
 	void VulkanGraphicsContext::SetIndexBuffer(const VulkanBuffer *pBuffer)
 	{
 		assert(pBuffer != nullptr);
-		mpIndexBuffer = GetCurrentVkBuffer(pBuffer);
-		assert(mpIndexBuffer != VK_NULL_HANDLE);
+		mPipelineDescription.graphicsInfo.pIndexBuffer = pBuffer;
 	}
 
 	void VulkanGraphicsContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
@@ -444,6 +494,11 @@ namespace FastCG
 	void VulkanGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
 	{
 		EnqueueDrawCommand(DrawCommandType::INSTANCED_INDEXED, primitiveType, firstInstance, instanceCount, firstIndex, indexCount, vertexOffset);
+	}
+
+	void VulkanGraphicsContext::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	{
+		EnqueueDispatchCommand(groupCountX, groupCountY, groupCountZ);
 	}
 
 	void VulkanGraphicsContext::EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs)
@@ -466,18 +521,18 @@ namespace FastCG
 	{
 		assert(mPipelineDescription.pShader != nullptr);
 
-		auto &rFragmentOutputDescription = mPipelineDescription.pShader->GetFragmentOutputDescription();
+		auto &rFragmentOutputDescription = mPipelineDescription.pShader->GetOutputDescription();
 		auto actualRenderPassDescription = mRenderPassDescription;
-		for (size_t i = 0; i < actualRenderPassDescription.renderTargets.size(); ++i)
+		for (size_t i = 0; i < actualRenderPassDescription.renderTargetCount; ++i)
 		{
 			auto it = rFragmentOutputDescription.find((uint32_t)i);
 			if (it == rFragmentOutputDescription.end())
 			{
-				actualRenderPassDescription.renderTargets[i] = nullptr;
+				actualRenderPassDescription.ppRenderTargets[i] = nullptr;
 			}
 		}
 
-		bool depthStencilWrite = mPipelineDescription.depthWrite || (mPipelineDescription.stencilTest && (mPipelineDescription.stencilBackState.writeMask != 0 || mPipelineDescription.stencilFrontState.writeMask != 0));
+		bool depthStencilWrite = mPipelineDescription.graphicsInfo.depthWrite || (mPipelineDescription.graphicsInfo.stencilTest && (mPipelineDescription.graphicsInfo.stencilBackState.writeMask != 0 || mPipelineDescription.graphicsInfo.stencilFrontState.writeMask != 0));
 
 		auto renderPass = VulkanGraphicsSystem::GetInstance()->GetOrCreateRenderPass(actualRenderPassDescription, mClearRequests, depthStencilWrite).second;
 		assert(renderPass != VK_NULL_HANDLE);
@@ -485,27 +540,31 @@ namespace FastCG
 		auto frameBuffer = VulkanGraphicsSystem::GetInstance()->GetOrCreateFrameBuffer(actualRenderPassDescription, mClearRequests, depthStencilWrite).second;
 		assert(frameBuffer != VK_NULL_HANDLE);
 
-		RenderPassCommand *pRenderPassCommand;
-		if (mRenderPassCommands.empty() || mRenderPassCommands.back().renderPass != renderPass)
+		PassBatch *pPassBatch;
+		if (mPassBatches.empty() ||
+			mPassBatches.back().type != PassType::RENDER ||
+			mPassBatches.back().renderInfo.renderPass != renderPass)
 		{
-			mRenderPassCommands.emplace_back();
-			pRenderPassCommand = &mRenderPassCommands.back();
-			pRenderPassCommand->renderPass = renderPass;
-			pRenderPassCommand->frameBuffer = frameBuffer;
-			pRenderPassCommand->width = std::numeric_limits<uint32_t>::max();
-			pRenderPassCommand->height = std::numeric_limits<uint32_t>::max();
-			pRenderPassCommand->renderTargets.resize(0);
-			pRenderPassCommand->clearValues.resize(0);
-			pRenderPassCommand->depthStencilWrite = depthStencilWrite;
+			mPassBatches.emplace_back();
+			pPassBatch = &mPassBatches.back();
+			pPassBatch->type = PassType::RENDER;
+			pPassBatch->renderInfo.renderPass = renderPass;
+			pPassBatch->renderInfo.frameBuffer = frameBuffer;
+			pPassBatch->renderInfo.width = std::numeric_limits<uint32_t>::max();
+			pPassBatch->renderInfo.height = std::numeric_limits<uint32_t>::max();
+			pPassBatch->renderInfo.renderTargetCount = 0;
+			pPassBatch->renderInfo.clearValueCount = 0;
+			pPassBatch->renderInfo.depthStencilWrite = depthStencilWrite;
 
-			auto CalculateRenderArea = [pRenderPassCommand](const VulkanTexture *pRenderTarget)
+			auto CalculateRenderArea = [pPassBatch](const VulkanTexture *pRenderTarget)
 			{
-				pRenderPassCommand->width = std::min(pRenderPassCommand->width, pRenderTarget->GetWidth());
-				pRenderPassCommand->height = std::min(pRenderPassCommand->height, pRenderTarget->GetHeight());
+				pPassBatch->renderInfo.width = std::min(pPassBatch->renderInfo.width, pRenderTarget->GetWidth());
+				pPassBatch->renderInfo.height = std::min(pPassBatch->renderInfo.height, pRenderTarget->GetHeight());
 			};
 
-			for (auto *pRenderTarget : actualRenderPassDescription.renderTargets)
+			for (uint32_t i = 0; i < actualRenderPassDescription.renderTargetCount; ++i)
 			{
+				auto *pRenderTarget = actualRenderPassDescription.ppRenderTargets[i];
 				if (pRenderTarget == nullptr)
 				{
 					continue;
@@ -515,16 +574,17 @@ namespace FastCG
 
 				auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [pRenderTarget](const auto &rClearRequest)
 									   { return rClearRequest.pTexture == pRenderTarget; });
+				auto &rClearValue = pPassBatch->renderInfo.pClearValues[pPassBatch->renderInfo.clearValueCount++];
 				if (it != mClearRequests.end())
 				{
-					pRenderPassCommand->clearValues.emplace_back(it->value);
+					rClearValue = it->value;
 				}
 				else
 				{
-					pRenderPassCommand->clearValues.emplace_back();
+					rClearValue = {};
 				}
 
-				pRenderPassCommand->renderTargets.emplace_back(pRenderTarget);
+				pPassBatch->renderInfo.ppRenderTargets[pPassBatch->renderInfo.renderTargetCount++] = pRenderTarget;
 			}
 
 			if (actualRenderPassDescription.pDepthStencilBuffer != nullptr)
@@ -533,26 +593,28 @@ namespace FastCG
 
 				auto it = std::find_if(mClearRequests.begin(), mClearRequests.end(), [&actualRenderPassDescription](const auto &rClearRequest)
 									   { return rClearRequest.pTexture == actualRenderPassDescription.pDepthStencilBuffer; });
+				auto &rClearValue = pPassBatch->renderInfo.pClearValues[pPassBatch->renderInfo.clearValueCount++];
 				if (it != mClearRequests.end())
 				{
-					pRenderPassCommand->clearValues.emplace_back(it->value);
+					rClearValue = it->value;
 				}
 				else
 				{
-					pRenderPassCommand->clearValues.emplace_back();
+					rClearValue = {};
 				}
 
-				pRenderPassCommand->pDepthStencilBuffer = actualRenderPassDescription.pDepthStencilBuffer;
+				pPassBatch->renderInfo.pDepthStencilBuffer = actualRenderPassDescription.pDepthStencilBuffer;
 			}
 		}
 		else
 		{
-			pRenderPassCommand = &mRenderPassCommands.back();
+			pPassBatch = &mPassBatches.back();
 		}
 
 		uint32_t renderTargetCount = 0;
-		for (const auto *pRenderTarget : actualRenderPassDescription.renderTargets)
+		for (uint32_t i = 0; i < actualRenderPassDescription.renderTargetCount; ++i)
 		{
+			auto *pRenderTarget = actualRenderPassDescription.ppRenderTargets[i];
 			if (pRenderTarget == nullptr)
 			{
 				continue;
@@ -566,8 +628,9 @@ namespace FastCG
 			// erase clear requests only if switching renderpasses for reasons other
 			// than indirect attachments clears. this avoids the unnecessary creation/starting
 			// of renderpasses due to those clears.
-			for (const auto *pRenderTarget : actualRenderPassDescription.renderTargets)
+			for (uint32_t i = 0; i < actualRenderPassDescription.renderTargetCount; ++i)
 			{
+				auto *pRenderTarget = actualRenderPassDescription.ppRenderTargets[i];
 				if (pRenderTarget == nullptr)
 				{
 					continue;
@@ -594,57 +657,117 @@ namespace FastCG
 
 		mPrevRenderPass = renderPass;
 
-		auto pipeline = VulkanGraphicsSystem::GetInstance()->GetOrCreatePipeline(mPipelineDescription, renderPass, renderTargetCount, mVertexBuffers).second;
+		auto pipeline = VulkanGraphicsSystem::GetInstance()->GetOrCreateGraphicsPipeline(mPipelineDescription, renderPass, renderTargetCount).second;
 		assert(pipeline.pipeline != VK_NULL_HANDLE);
 
-		PipelineCommand *pPipelineCommand;
-		if (mPipelineCommands.empty() || mPipelineCommands.back().pipeline.pipeline != pipeline.pipeline)
+		PipelineBatch *pPipelineBatch;
+		if (mPipelineBatches.empty() || mPipelineBatches.back().pipeline.pipeline != pipeline.pipeline)
 		{
-			mPipelineCommands.emplace_back();
-			pPipelineCommand = &mPipelineCommands.back();
-			pPipelineCommand->pipeline = pipeline;
-			pPipelineCommand->pipelineResourcesLayout = mPipelineDescription.pShader->GetLayoutDescription();
+			mPipelineBatches.emplace_back();
+			pPipelineBatch = &mPipelineBatches.back();
+			pPipelineBatch->pipeline = pipeline;
+			pPipelineBatch->layoutDescription = mPipelineDescription.pShader->GetPipelineLayoutDescription();
 		}
 		else
 		{
-			pPipelineCommand = &mPipelineCommands.back();
+			pPipelineBatch = &mPipelineBatches.back();
 		}
 
-		pRenderPassCommand->lastCopyCommandIdx = mCopyCommands.size();
-		pRenderPassCommand->lastPipelineCommandIdx = mPipelineCommands.size();
+		pPassBatch->lastCopyCommandIdx = mCopyCommands.size();
+		pPassBatch->lastPipelineBatchIdx = mPipelineBatches.size();
 
-		mDrawCommands.emplace_back();
-		auto *pDrawCommand = &mDrawCommands.back();
+		mInvokeCommands.emplace_back();
+		auto *pInvokeCommand = &mInvokeCommands.back();
 
-		pPipelineCommand->lastDrawCommandIdx = mDrawCommands.size();
+		pPipelineBatch->lastInvokeCommandIdx = mInvokeCommands.size();
 
 #if _DEBUG
-		pDrawCommand->lastMarkerCommandIdx = mMarkerCommands.size();
+		pInvokeCommand->lastMarkerCommandIdx = mMarkerCommands.size();
 #endif
 
-		pDrawCommand->primitiveType = primitiveType;
-		pDrawCommand->firstInstance = firstInstance;
-		pDrawCommand->instanceCount = instanceCount;
-		pDrawCommand->firstIndex = firstIndex;
-		pDrawCommand->indexCount = indexCount;
-		pDrawCommand->vertexOffset = vertexOffset;
-		pDrawCommand->viewport = {mViewport.x, mViewport.height - mViewport.y, mViewport.width, -mViewport.height, mViewport.minDepth, mViewport.maxDepth}; // flip the viewport y axis
-		// pDrawCommand->viewport = {mViewport.x, mViewport.y, mViewport.width, mViewport.height, mViewport.minDepth, mViewport.maxDepth};
-		if (mScissor.extent.width == 0 || mScissor.extent.height == 0)
+		pInvokeCommand->drawInfo.primitiveType = primitiveType;
+		pInvokeCommand->drawInfo.firstInstance = firstInstance;
+		pInvokeCommand->drawInfo.instanceCount = instanceCount;
+		pInvokeCommand->drawInfo.firstIndex = firstIndex;
+		pInvokeCommand->drawInfo.indexCount = indexCount;
+		pInvokeCommand->drawInfo.vertexOffset = vertexOffset;
+		const auto &rViewport = mPipelineDescription.graphicsInfo.viewport;
+		pInvokeCommand->drawInfo.viewport = {rViewport.x, rViewport.height - rViewport.y, rViewport.width, -rViewport.height, rViewport.minDepth, rViewport.maxDepth}; // flip the viewport y axis
+		// pDrawCommand->viewport = {rViewport.x, rViewport.y, rViewport.width, rViewport.height, rViewport.minDepth, rViewport.maxDepth};
+		const auto &rScissor = mPipelineDescription.graphicsInfo.scissor;
+		if (rScissor.extent.width == 0 || rScissor.extent.height == 0)
 		{
-			pDrawCommand->scissor = {(int32_t)mViewport.x, (int32_t)mViewport.y, (uint32_t)mViewport.width, (uint32_t)mViewport.height};
+			pInvokeCommand->drawInfo.scissor = {(int32_t)rViewport.x, (int32_t)rViewport.y, (uint32_t)rViewport.width, (uint32_t)rViewport.height};
 		}
 		else
 		{
-			pDrawCommand->scissor = mScissor;
+			pInvokeCommand->drawInfo.scissor = rScissor;
 		}
-		pDrawCommand->pipelineResourcesUsage = mPipelineResourcesUsage;
-		pDrawCommand->vertexBuffers.resize(mVertexBuffers.size());
-		for (size_t i = 0; i < mVertexBuffers.size(); ++i)
+		pInvokeCommand->pipelineLayout = mPipelineLayout;
+		pInvokeCommand->drawInfo.vertexBufferCount = mPipelineDescription.graphicsInfo.vertexBufferCount;
+		for (uint32_t i = 0; i < pInvokeCommand->drawInfo.vertexBufferCount; ++i)
 		{
-			pDrawCommand->vertexBuffers[i] = GetCurrentVkBuffer(mVertexBuffers[i]);
+			pInvokeCommand->drawInfo.pVertexBuffers[i] = GetCurrentVkBuffer(mPipelineDescription.graphicsInfo.ppVertexBuffers[i]);
 		}
-		pDrawCommand->pIndexBuffer = mpIndexBuffer;
+		pInvokeCommand->drawInfo.indexBuffer = GetCurrentVkBuffer(mPipelineDescription.graphicsInfo.pIndexBuffer);
+	}
+
+	void VulkanGraphicsContext::EnqueueDispatchCommand(uint32_t groupCountX,
+													   uint32_t groupCountY,
+													   uint32_t groupCountZ)
+	{
+		assert(groupCountX > 0);
+		assert(groupCountY > 0);
+		assert(groupCountZ > 0);
+		assert(mPipelineDescription.pShader != nullptr);
+
+		PassBatch *pPassBatch;
+		if (mPassBatches.empty() || mPassBatches.back().type != PassType::COMPUTE)
+		{
+			mPassBatches.emplace_back();
+			pPassBatch = &mPassBatches.back();
+			pPassBatch->type = PassType::COMPUTE;
+		}
+		else
+		{
+			pPassBatch = &mPassBatches.back();
+		}
+
+		// reset previous renderpass
+		mPrevRenderPass = VK_NULL_HANDLE;
+
+		auto pipeline = VulkanGraphicsSystem::GetInstance()->GetOrCreateComputePipeline(mPipelineDescription).second;
+		assert(pipeline.pipeline != VK_NULL_HANDLE);
+
+		PipelineBatch *pPipelineBatch;
+		if (mPipelineBatches.empty() || mPipelineBatches.back().pipeline.pipeline != pipeline.pipeline)
+		{
+			mPipelineBatches.emplace_back();
+			pPipelineBatch = &mPipelineBatches.back();
+			pPipelineBatch->pipeline = pipeline;
+			pPipelineBatch->layoutDescription = mPipelineDescription.pShader->GetPipelineLayoutDescription();
+		}
+		else
+		{
+			pPipelineBatch = &mPipelineBatches.back();
+		}
+
+		pPassBatch->lastCopyCommandIdx = mCopyCommands.size();
+		pPassBatch->lastPipelineBatchIdx = mPipelineBatches.size();
+
+		mInvokeCommands.emplace_back();
+		auto *pInvokeCommand = &mInvokeCommands.back();
+
+		pPipelineBatch->lastInvokeCommandIdx = mInvokeCommands.size();
+
+#if _DEBUG
+		pInvokeCommand->lastMarkerCommandIdx = mMarkerCommands.size();
+#endif
+
+		pInvokeCommand->dispatchInfo.groupCountX = groupCountX;
+		pInvokeCommand->dispatchInfo.groupCountY = groupCountY;
+		pInvokeCommand->dispatchInfo.groupCountZ = groupCountZ;
+		pInvokeCommand->pipelineLayout = mPipelineLayout;
 	}
 
 	void VulkanGraphicsContext::End()
@@ -653,12 +776,13 @@ namespace FastCG
 
 		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Ending context (context: %s)", GetName().c_str());
 
+		// TODO: make this less brittle and possibly dynamic
 		constexpr size_t MAX_WRITES = 128;
 		constexpr size_t MAX_RESOURCES = MAX_WRITES;
 
-		VkWriteDescriptorSet descriptorSetWrites[MAX_WRITES];
-		VkDescriptorImageInfo descriptorImageInfos[MAX_RESOURCES];
-		VkDescriptorBufferInfo descriptorBufferInfos[MAX_RESOURCES];
+		VkWriteDescriptorSet pSetWrites[MAX_WRITES];
+		VkDescriptorImageInfo pImageInfos[MAX_RESOURCES];
+		VkDescriptorBufferInfo pBufferInfos[MAX_RESOURCES];
 
 #if _DEBUG
 		size_t lastMarkerCommandIdx = 0;
@@ -962,74 +1086,74 @@ namespace FastCG
 			}
 		};
 
-		size_t lastUsedPipelineCommandIdx = 0;
-		size_t lastUsedDrawCommandIdx = 0;
+		size_t lastUsedPipelineBatchIdx = 0;
+		size_t lastUsedInvokeCommandIdx = 0;
 
-		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Iterating over renderpasses (%zu)", mRenderPassCommands.size());
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Iterating over passes (%zu)", mPassBatches.size());
 
-		for (size_t i = 0; i < mRenderPassCommands.size(); ++i)
+		for (size_t i = 0; i < mPassBatches.size(); ++i)
 		{
-			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tRenderpass [%zu/%zu]", i, mRenderPassCommands.size() - 1);
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tPass [%zu/%zu]", i, mPassBatches.size() - 1);
 
-			auto &rRenderPassCommand = mRenderPassCommands[i];
+			auto &rPassBatch = mPassBatches[i];
 
-			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tProcessing pre-renderpass copies (%zu)", rRenderPassCommand.lastCopyCommandIdx - lastUsedCopyCommandIdx);
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tProcessing pre-pass copies (%zu)", rPassBatch.lastCopyCommandIdx - lastUsedCopyCommandIdx);
 
-			ProcessCopies(rRenderPassCommand.lastCopyCommandIdx);
+			ProcessCopies(rPassBatch.lastCopyCommandIdx);
 
-			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tSetting up pipeline resources (%zu)", rRenderPassCommand.lastPipelineCommandIdx - lastUsedPipelineCommandIdx);
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tSetting up pipeline resources (%zu)", rPassBatch.lastPipelineBatchIdx - lastUsedPipelineBatchIdx);
 
-			size_t savedLastUsedDrawCommandIdx = lastUsedDrawCommandIdx;
-			
-			for (size_t j = lastUsedPipelineCommandIdx, jc = 0; j < rRenderPassCommand.lastPipelineCommandIdx; ++j, ++jc)
+			size_t savedLastUsedInvokeCommandIdx = lastUsedInvokeCommandIdx;
+
+			for (size_t j = lastUsedPipelineBatchIdx, jc = 0; j < rPassBatch.lastPipelineBatchIdx; ++j, ++jc)
 			{
-				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rRenderPassCommand.lastPipelineCommandIdx - lastUsedPipelineCommandIdx);
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rPassBatch.lastPipelineBatchIdx - lastUsedPipelineBatchIdx);
 
-				auto &rPipelineCommand = mPipelineCommands[j];
+				auto &rPipelineBatches = mPipelineBatches[j];
 
-				for (size_t k = savedLastUsedDrawCommandIdx, kc = 0; savedLastUsedDrawCommandIdx < rPipelineCommand.lastDrawCommandIdx; ++savedLastUsedDrawCommandIdx, ++kc)
+				for (size_t k = savedLastUsedInvokeCommandIdx, kc = 0; savedLastUsedInvokeCommandIdx < rPipelineBatches.lastInvokeCommandIdx; ++savedLastUsedInvokeCommandIdx, ++kc)
 				{
 					FASTCG_UNUSED(k);
 					FASTCG_UNUSED(kc);
 
-					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - k);
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tInvoke [%zu/%zu]", kc, rPipelineBatches.lastInvokeCommandIdx - k);
 
-					auto &rDrawCommand = mDrawCommands[savedLastUsedDrawCommandIdx];
+					auto &rInvokeCommand = mInvokeCommands[savedLastUsedInvokeCommandIdx];
 
-					rDrawCommand.descriptorSets.resize(rPipelineCommand.pipelineResourcesLayout.size());
+					rInvokeCommand.setCount = rPipelineBatches.layoutDescription.setLayoutCount;
 
-					uint32_t descriptorSetWritesCount = 0;
-					uint32_t lastDescriptorImageInfoIdx = 0;
-					uint32_t lastDescriptorBufferInfoIdx = 0;
-					for (size_t l = 0; l < rPipelineCommand.pipelineResourcesLayout.size(); ++l)
+					uint32_t setWritesCount = 0;
+					uint32_t lastImageInfoIdx = 0;
+					uint32_t lastBufferInfoIdx = 0;
+					for (uint32_t l = 0; l < rPipelineBatches.layoutDescription.setLayoutCount; ++l)
 					{
-						FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t\tPipeline resource [%zu/%zu]", l, rPipelineCommand.pipelineResourcesLayout.size() - 1);
+						FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t\tPipeline resource [%zu/%zu]", l, rPipelineBatches.layoutDescription.size() - 1);
 
-						auto &rDescriptorSetLayout = rPipelineCommand.pipelineResourcesLayout[l];
-						auto &rDescriptorSetUsage = rDrawCommand.pipelineResourcesUsage[l];
-						auto &rDescriptorSet = rDrawCommand.descriptorSets[l];
-						if (rDescriptorSetLayout.empty())
+						auto &rSetLayout = rPipelineBatches.layoutDescription.pSetLayouts[l];
+						auto &rSetUsage = rInvokeCommand.pipelineLayout.pSet[l];
+						auto &rSet = rInvokeCommand.pSets[l];
+						if (rSetLayout.bindingLayoutCount == 0)
 						{
-							rDescriptorSet = VK_NULL_HANDLE;
+							rSet = VK_NULL_HANDLE;
 							continue;
 						}
-						rDescriptorSet = VulkanGraphicsSystem::GetInstance()->GetOrCreateDescriptorSet(rDescriptorSetLayout).second;
-						for (size_t m = 0; m < rDescriptorSetLayout.size(); ++m)
+						rSet = VulkanGraphicsSystem::GetInstance()->GetOrCreateDescriptorSet(rSetLayout).second;
+						for (uint32_t m = 0; m < rSetLayout.bindingLayoutCount; ++m)
 						{
-							auto &rBindingLayout = rDescriptorSetLayout[m];
-							auto *pBinding = rDescriptorSetUsage.size() > rBindingLayout.binding ? &rDescriptorSetUsage[rBindingLayout.binding] : nullptr;
-							auto &rDescriptorSetWrite = descriptorSetWrites[descriptorSetWritesCount++];
-							rDescriptorSetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-							rDescriptorSetWrite.pNext = nullptr;
-							rDescriptorSetWrite.descriptorCount = 1;
-							rDescriptorSetWrite.descriptorType = rBindingLayout.type;
-							rDescriptorSetWrite.dstArrayElement = 0;
-							rDescriptorSetWrite.dstBinding = rBindingLayout.binding;
-							rDescriptorSetWrite.dstSet = rDescriptorSet;
+							auto &rBindingLayout = rSetLayout.pBindingLayouts[m];
+							auto *pBinding = rSetUsage.bindingCount > rBindingLayout.binding ? &rSetUsage.pBindings[rBindingLayout.binding] : nullptr;
+							auto &rSetWrite = pSetWrites[setWritesCount++];
+							rSetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							rSetWrite.pNext = nullptr;
+							rSetWrite.descriptorCount = 1;
+							rSetWrite.descriptorType = rBindingLayout.type;
+							rSetWrite.dstArrayElement = 0;
+							rSetWrite.dstBinding = rBindingLayout.binding;
+							rSetWrite.dstSet = rSet;
 							if (rBindingLayout.type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 							{
-								auto &rDescriptorImageInfo = descriptorImageInfos[lastDescriptorImageInfoIdx++];
-								assert(lastDescriptorImageInfoIdx < MAX_RESOURCES);
+								auto &rImageInfo = pImageInfos[lastImageInfoIdx++];
+								assert(lastImageInfoIdx < MAX_RESOURCES);
 								const VulkanTexture *pTexture = nullptr;
 								if (pBinding != nullptr)
 								{
@@ -1040,67 +1164,82 @@ namespace FastCG
 									// TODO: support other texture types!
 									pTexture = VulkanGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D);
 								}
-								rDescriptorImageInfo.sampler = pTexture->GetDefaultSampler();
-								rDescriptorImageInfo.imageView = pTexture->GetDefaultImageView();
+								rImageInfo.sampler = pTexture->GetDefaultSampler();
+								rImageInfo.imageView = pTexture->GetDefaultImageView();
 
 								VkImageLayout newLayout;
-								if (pTexture == rRenderPassCommand.pDepthStencilBuffer)
+								if (rPassBatch.type == PassType::RENDER &&
+									pTexture == rPassBatch.renderInfo.pDepthStencilBuffer)
 								{
-									assert(!rRenderPassCommand.depthStencilWrite); // read-only
 									newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 								}
 								else
 								{
-									assert(std::find(rRenderPassCommand.renderTargets.begin(), rRenderPassCommand.renderTargets.end(), pTexture) == rRenderPassCommand.renderTargets.end());
 									newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 								}
 
-								rDescriptorImageInfo.imageLayout = newLayout;
-								rDescriptorSetWrite.pImageInfo = &rDescriptorImageInfo;
+								rImageInfo.imageLayout = newLayout;
+								rSetWrite.pImageInfo = &rImageInfo;
 
 								auto imageMemoryTransition = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryTransition(pTexture);
 								if (imageMemoryTransition.layout != newLayout)
 								{
+									auto GetVkPipelineStageFlags = [](VkShaderStageFlags stageFlags)
+									{
+										VkPipelineStageFlags flags = 0;
+										if ((stageFlags & VK_SHADER_STAGE_VERTEX_BIT) != 0)
+										{
+											flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+										}
+										if ((stageFlags & VK_SHADER_STAGE_FRAGMENT_BIT) != 0)
+										{
+											flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+										}
+										if ((stageFlags & VK_SHADER_STAGE_COMPUTE_BIT) != 0)
+										{
+											flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+										}
+										return flags;
+									};
+
 									AddTextureMemoryBarrier(pTexture,
 															newLayout,
 															imageMemoryTransition.accessMask,
 															VK_ACCESS_SHADER_READ_BIT,
 															imageMemoryTransition.stageMask,
-															VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+															GetVkPipelineStageFlags(rBindingLayout.stageFlags));
 								}
 							}
 							else if (rBindingLayout.type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
 									 rBindingLayout.type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 							{
-								auto &rDescriptorBufferInfo = descriptorBufferInfos[lastDescriptorBufferInfoIdx++];
-								assert(lastDescriptorBufferInfoIdx < MAX_RESOURCES);
+								auto &rBufferInfo = pBufferInfos[lastBufferInfoIdx++];
+								assert(lastBufferInfoIdx < MAX_RESOURCES);
 								assert(pBinding != nullptr);
 								assert(pBinding->pBuffer != nullptr);
-								rDescriptorBufferInfo.buffer = GetCurrentVkBuffer(pBinding->pBuffer);
-								rDescriptorBufferInfo.offset = 0;
-								rDescriptorBufferInfo.range = VK_WHOLE_SIZE;
-								rDescriptorSetWrite.pBufferInfo = &rDescriptorBufferInfo;
+								rBufferInfo.buffer = GetCurrentVkBuffer(pBinding->pBuffer);
+								rBufferInfo.offset = 0;
+								rBufferInfo.range = VK_WHOLE_SIZE;
+								rSetWrite.pBufferInfo = &rBufferInfo;
 							}
 							else
 							{
 								FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled descriptor type %d", rBindingLayout.type);
 							}
-							rDescriptorSetWrite.pTexelBufferView = nullptr;
+							rSetWrite.pTexelBufferView = nullptr;
 						}
 					}
 
-					if (descriptorSetWritesCount > 0)
+					if (setWritesCount > 0)
 					{
 						vkUpdateDescriptorSets(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-											   descriptorSetWritesCount,
-											   descriptorSetWrites,
+											   setWritesCount,
+											   pSetWrites,
 											   0,
 											   nullptr);
 					}
 				}
 			}
-
-			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tTransiting rendertargets to initial layouts (%zu)", rRenderPassCommand.renderTargets.size());
 
 			auto TransitionRenderTargetToInitialLayout = [&](const VulkanTexture *pRenderTarget)
 			{
@@ -1113,7 +1252,7 @@ namespace FastCG
 				VkPipelineStageFlagBits dstStageMask;
 				if (IsDepthFormat(pRenderTarget->GetFormat()))
 				{
-					if (rRenderPassCommand.depthStencilWrite)
+					if (rPassBatch.renderInfo.depthStencilWrite)
 					{
 						newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					}
@@ -1142,120 +1281,166 @@ namespace FastCG
 				}
 			};
 
-			std::for_each(rRenderPassCommand.renderTargets.begin(), rRenderPassCommand.renderTargets.end(), TransitionRenderTargetToInitialLayout);
-			TransitionRenderTargetToInitialLayout(rRenderPassCommand.pDepthStencilBuffer);
+			if (rPassBatch.type == PassType::RENDER)
+			{
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tTransiting rendertargets to initial layouts (%u)", rPassBatch.renderInfo.renderTargetCount);
 
-			if (rRenderPassCommand.lastPipelineCommandIdx == lastUsedPipelineCommandIdx)
+				std::for_each(rPassBatch.renderInfo.ppRenderTargets, rPassBatch.renderInfo.ppRenderTargets + rPassBatch.renderInfo.renderTargetCount, TransitionRenderTargetToInitialLayout);
+				TransitionRenderTargetToInitialLayout(rPassBatch.renderInfo.pDepthStencilBuffer);
+			}
+
+			if (rPassBatch.lastPipelineBatchIdx == lastUsedPipelineBatchIdx)
 			{
 				continue;
 			}
 
-			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tRecording draw commands");
+			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tRecording invoke commands");
 
-			VkRenderPassBeginInfo renderPassBeginInfo;
-			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			renderPassBeginInfo.pNext = nullptr;
-			renderPassBeginInfo.renderPass = rRenderPassCommand.renderPass;
-			renderPassBeginInfo.framebuffer = rRenderPassCommand.frameBuffer;
-			renderPassBeginInfo.renderArea = {{0, 0}, {rRenderPassCommand.width, rRenderPassCommand.height}};
-			renderPassBeginInfo.clearValueCount = (uint32_t)rRenderPassCommand.clearValues.size();
-			renderPassBeginInfo.pClearValues = rRenderPassCommand.clearValues.empty() ? nullptr : &rRenderPassCommand.clearValues[0];
+			if (rPassBatch.type == PassType::RENDER)
+			{
+				VkRenderPassBeginInfo renderPassBeginInfo;
+				renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+				renderPassBeginInfo.pNext = nullptr;
+				renderPassBeginInfo.renderPass = rPassBatch.renderInfo.renderPass;
+				renderPassBeginInfo.framebuffer = rPassBatch.renderInfo.frameBuffer;
+				renderPassBeginInfo.renderArea = {{0, 0}, {rPassBatch.renderInfo.width, rPassBatch.renderInfo.height}};
+				renderPassBeginInfo.clearValueCount = rPassBatch.renderInfo.clearValueCount;
+				renderPassBeginInfo.pClearValues = rPassBatch.renderInfo.pClearValues;
 
-			VkSubpassBeginInfoKHR subpassBeginInfo;
-			subpassBeginInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO_KHR;
-			subpassBeginInfo.pNext = nullptr;
-			subpassBeginInfo.contents = VK_SUBPASS_CONTENTS_INLINE;
+				VkSubpassBeginInfoKHR subpassBeginInfo;
+				subpassBeginInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO_KHR;
+				subpassBeginInfo.pNext = nullptr;
+				subpassBeginInfo.contents = VK_SUBPASS_CONTENTS_INLINE;
 
-			VkExt::vkCmdBeginRenderPass2KHR(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-											&renderPassBeginInfo,
-											&subpassBeginInfo);
+				VkExt::vkCmdBeginRenderPass2KHR(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+												&renderPassBeginInfo,
+												&subpassBeginInfo);
+			}
 
-			for (size_t j = lastUsedPipelineCommandIdx, jc = 0; lastUsedPipelineCommandIdx < rRenderPassCommand.lastPipelineCommandIdx; ++lastUsedPipelineCommandIdx, ++jc)
+			for (size_t j = lastUsedPipelineBatchIdx, jc = 0; lastUsedPipelineBatchIdx < rPassBatch.lastPipelineBatchIdx; ++lastUsedPipelineBatchIdx, ++jc)
 			{
 				FASTCG_UNUSED(j);
 				FASTCG_UNUSED(jc);
 
-				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rRenderPassCommand.lastPipelineCommandIdx - j);
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc, rPassBatch.lastPipelineBatchIdx - j);
 
-				auto &rPipelineCommand = mPipelineCommands[lastUsedPipelineCommandIdx];
+				auto &rPipelineBatch = mPipelineBatches[lastUsedPipelineBatchIdx];
 
-				if (rPipelineCommand.lastDrawCommandIdx == lastUsedDrawCommandIdx)
+				if (rPipelineBatch.lastInvokeCommandIdx == lastUsedInvokeCommandIdx)
 				{
 					continue;
 				}
 
-				vkCmdBindPipeline(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-								  VK_PIPELINE_BIND_POINT_GRAPHICS,
-								  rPipelineCommand.pipeline.pipeline);
+				auto GetVkPipelineBindPoint = [](PassType passType)
+				{
+					switch (passType)
+					{
+					case PassType::RENDER:
+						return VK_PIPELINE_BIND_POINT_GRAPHICS;
+					case PassType::COMPUTE:
+						return VK_PIPELINE_BIND_POINT_COMPUTE;
+					default:
+						FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled pass type %d", (int)passType);
+						return (VkPipelineBindPoint)0;
+					}
+				};
 
-				for (size_t k = lastUsedDrawCommandIdx, kc = 0; lastUsedDrawCommandIdx < rPipelineCommand.lastDrawCommandIdx; ++lastUsedDrawCommandIdx, ++kc)
+				auto pipelineBindPoint = GetVkPipelineBindPoint(rPassBatch.type);
+
+				vkCmdBindPipeline(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+								  pipelineBindPoint,
+								  rPipelineBatch.pipeline.pipeline);
+
+				for (size_t k = lastUsedInvokeCommandIdx, kc = 0; lastUsedInvokeCommandIdx < rPipelineBatch.lastInvokeCommandIdx; ++lastUsedInvokeCommandIdx, ++kc)
 				{
 					FASTCG_UNUSED(k);
 					FASTCG_UNUSED(kc);
 
-					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tDraw [%zu/%zu]", kc, rPipelineCommand.lastDrawCommandIdx - k);
+					FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tInvoke [%zu/%zu]", kc, rPipelineBatch.lastInvokeCommandIdx - k);
 
-					const auto &rDrawCommand = mDrawCommands[lastUsedDrawCommandIdx];
+					const auto &rInvokeCommand = mInvokeCommands[lastUsedInvokeCommandIdx];
 
 #if _DEBUG
-					ProccessMarkers(rDrawCommand.lastMarkerCommandIdx);
+					ProccessMarkers(rInvokeCommand.lastMarkerCommandIdx);
 #endif
 
 					// TODO: avoid binding and setting stuff unecessarily
 
-					vkCmdSetViewport(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), 0, 1, &rDrawCommand.viewport);
-					vkCmdSetScissor(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), 0, 1, &rDrawCommand.scissor);
-
-					if (!rDrawCommand.vertexBuffers.empty())
+					if (rPassBatch.type == PassType::RENDER)
 					{
-						std::vector<VkDeviceSize> offsets(rDrawCommand.vertexBuffers.size());
-						vkCmdBindVertexBuffers(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-											   0,
-											   (uint32_t)rDrawCommand.vertexBuffers.size(),
-											   &rDrawCommand.vertexBuffers[0],
-											   &offsets[0]);
-					}
-					if (rDrawCommand.pIndexBuffer != VK_NULL_HANDLE)
-					{
-						vkCmdBindIndexBuffer(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-											 rDrawCommand.pIndexBuffer,
-											 0,
-											 VK_INDEX_TYPE_UINT32); // TODO: support other index types
+						// set dynamic graphics pipeline attributes
+
+						vkCmdSetViewport(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), 0, 1, &rInvokeCommand.drawInfo.viewport);
+						vkCmdSetScissor(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), 0, 1, &rInvokeCommand.drawInfo.scissor);
+
+						if (rInvokeCommand.drawInfo.vertexBufferCount > 0)
+						{
+							std::vector<VkDeviceSize> offsets(rInvokeCommand.drawInfo.vertexBufferCount);
+							vkCmdBindVertexBuffers(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+												   0,
+												   rInvokeCommand.drawInfo.vertexBufferCount,
+												   &rInvokeCommand.drawInfo.pVertexBuffers[0],
+												   &offsets[0]);
+						}
+						if (rInvokeCommand.drawInfo.indexBuffer != VK_NULL_HANDLE)
+						{
+							vkCmdBindIndexBuffer(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+												 rInvokeCommand.drawInfo.indexBuffer,
+												 0,
+												 VK_INDEX_TYPE_UINT32); // TODO: support other index types
+						}
 					}
 
-					if (!rDrawCommand.descriptorSets.empty())
+					if (rInvokeCommand.setCount > 0)
 					{
 						vkCmdBindDescriptorSets(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-												VK_PIPELINE_BIND_POINT_GRAPHICS,
-												rPipelineCommand.pipeline.layout,
+												pipelineBindPoint,
+												rPipelineBatch.pipeline.layout,
 												0,
-												(uint32_t)rDrawCommand.descriptorSets.size(),
-												&rDrawCommand.descriptorSets[0],
+												rInvokeCommand.setCount,
+												rInvokeCommand.pSets,
 												0,
 												nullptr);
 					}
 
-					switch (rDrawCommand.type)
+					switch (rPassBatch.type)
 					{
-					case DrawCommandType::INSTANCED_INDEXED:
-						vkCmdDrawIndexed(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
-										 rDrawCommand.indexCount,
-										 rDrawCommand.instanceCount,
-										 rDrawCommand.firstIndex,
-										 rDrawCommand.vertexOffset,
-										 rDrawCommand.firstInstance);
+					case PassType::RENDER:
+						switch (rInvokeCommand.drawInfo.type)
+						{
+						case DrawCommandType::INSTANCED_INDEXED:
+							vkCmdDrawIndexed(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+											 rInvokeCommand.drawInfo.indexCount,
+											 rInvokeCommand.drawInfo.instanceCount,
+											 rInvokeCommand.drawInfo.firstIndex,
+											 rInvokeCommand.drawInfo.vertexOffset,
+											 rInvokeCommand.drawInfo.firstInstance);
+							break;
+						default:
+							FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled draw command type %d", (int)rInvokeCommand.drawInfo.type);
+							break;
+						}
+						break;
+					case PassType::COMPUTE:
+						vkCmdDispatch(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+									  rInvokeCommand.dispatchInfo.groupCountX,
+									  rInvokeCommand.dispatchInfo.groupCountY,
+									  rInvokeCommand.dispatchInfo.groupCountZ);
 						break;
 					default:
-						FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled draw command type %d", (int)rDrawCommand.type);
+						FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Unhandled pass type %d", (int)rPassBatch.type);
 						break;
 					}
 				}
 			}
 
-			VkSubpassEndInfoKHR subpassEndInfo;
-			subpassEndInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_END_INFO_KHR;
-			subpassEndInfo.pNext = nullptr;
-			VkExt::vkCmdEndRenderPass2KHR(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), &subpassEndInfo);
+			if (rPassBatch.type == PassType::RENDER)
+			{
+				VkSubpassEndInfoKHR subpassEndInfo;
+				subpassEndInfo.sType = VK_STRUCTURE_TYPE_SUBPASS_END_INFO_KHR;
+				subpassEndInfo.pNext = nullptr;
+				VkExt::vkCmdEndRenderPass2KHR(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(), &subpassEndInfo);
+			}
 
 			auto TransitionRenderTargetToFinalLayout = [&](const auto *pRenderTarget)
 			{
@@ -1268,7 +1453,7 @@ namespace FastCG
 				VkPipelineStageFlags stageMask;
 				if (IsDepthFormat(pRenderTarget->GetFormat()))
 				{
-					if (rRenderPassCommand.depthStencilWrite)
+					if (rPassBatch.renderInfo.depthStencilWrite)
 					{
 						newLayout = pRenderTarget->GetRestingLayout();
 					}
@@ -1288,13 +1473,16 @@ namespace FastCG
 				VulkanGraphicsSystem::GetInstance()->NotifyImageMemoryTransition(pRenderTarget, {newLayout, accessMask, stageMask});
 			};
 
-			std::for_each(rRenderPassCommand.renderTargets.begin(), rRenderPassCommand.renderTargets.end(), TransitionRenderTargetToFinalLayout);
-			TransitionRenderTargetToFinalLayout(rRenderPassCommand.pDepthStencilBuffer);
+			if (rPassBatch.type == PassType::RENDER)
+			{
+				std::for_each(rPassBatch.renderInfo.ppRenderTargets, rPassBatch.renderInfo.ppRenderTargets + rPassBatch.renderInfo.renderTargetCount, TransitionRenderTargetToFinalLayout);
+				TransitionRenderTargetToFinalLayout(rPassBatch.renderInfo.pDepthStencilBuffer);
 
-			FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tTransiting rendertargets to final layouts (%zu)", rRenderPassCommand.renderTargets.size());
+				FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\tTransiting rendertargets to final layouts (%zu)", rPassBatch.renderInfo.renderTargets.size());
+			}
 		}
 
-		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Processing frame-end copies (%zu)", mCopyCommands.size() - lastUsedCopyCommandIdx);
+		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Processing end-of-frame copies (%zu)", mCopyCommands.size() - lastUsedCopyCommandIdx);
 
 		ProcessCopies(mCopyCommands.size());
 #if _DEBUG
@@ -1307,9 +1495,9 @@ namespace FastCG
 		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].end);
 #endif
 
-		mRenderPassCommands.resize(0);
-		mPipelineCommands.resize(0);
-		mDrawCommands.resize(0);
+		mPassBatches.resize(0);
+		mPipelineBatches.resize(0);
+		mInvokeCommands.resize(0);
 		mCopyCommands.resize(0);
 		mClearRequests.resize(0);
 		mPrevRenderPass = VK_NULL_HANDLE;

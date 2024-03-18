@@ -110,7 +110,7 @@ namespace FastCG
     const VkFormatProperties *VulkanGraphicsSystem::GetFormatProperties(VkFormat format) const
     {
         assert(format <= LAST_FORMAT);
-        return &mFormatProperties[format];
+        return &mPhysicalDeviceFormatProperties[format];
     }
 
     const VkPhysicalDeviceProperties &VulkanGraphicsSystem::GetPhysicalDeviceProperties() const

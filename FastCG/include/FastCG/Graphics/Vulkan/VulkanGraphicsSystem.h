@@ -70,6 +70,7 @@ namespace FastCG
         {
             return mSurface == VK_NULL_HANDLE;
         }
+        void Synchronize();
 #if defined FASTCG_ANDROID
         void OnWindowInitialized();
         void OnWindowTerminated();
@@ -116,25 +117,29 @@ namespace FastCG
 
         struct DescriptorSetLocalPool
         {
-            static constexpr size_t MAX_SETS = 64;
+            static constexpr size_t MAX_SET_COUNT = 64;
 
-            VkDescriptorSet descriptorSets[MAX_SETS]{};
+            VkDescriptorSet descriptorSets[MAX_SET_COUNT]{};
             size_t lastDescriptorSetIdx{0};
         };
 
         VkInstance mInstance{VK_NULL_HANDLE};
+        std::vector<VkExtensionProperties> mInstanceExtensionProperties;
         std::vector<const char *> mInstanceExtensions;
         VkSurfaceKHR mSurface{VK_NULL_HANDLE};
         VkPhysicalDevice mPhysicalDevice{VK_NULL_HANDLE};
         VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
         VkPhysicalDeviceMemoryProperties mPhysicalDeviceMemoryProperties{};
-        VkFormatProperties mFormatProperties[((size_t)LAST_FORMAT) + 1]{};
+        VkFormatProperties mPhysicalDeviceFormatProperties[((size_t)LAST_FORMAT) + 1]{};
+        std::vector<VkExtensionProperties> mPhysicalDeviceExtensionProperties;
+        std::vector<const char *> mPhysicalDeviceExtensions;
         VkSurfaceCapabilitiesKHR mSurfaceCapabilities{};
         std::unique_ptr<VkAllocationCallbacks> mAllocationCallbacks{nullptr};
         VkDevice mDevice{VK_NULL_HANDLE};
-        std::vector<const char *> mDeviceExtensions;
-        uint32_t mGraphicsAndPresentQueueFamilyIndex{~0u};
-        VkQueue mGraphicsAndPresentQueue{VK_NULL_HANDLE};
+        uint32_t mQueueFamilyIdx{~0u};
+        bool mQueueSupportsCompute{false};
+        // support only one queue at the moment
+        VkQueue mQueue{VK_NULL_HANDLE};
         VkPresentModeKHR mPresentMode{VK_PRESENT_MODE_IMMEDIATE_KHR};
         VkSurfaceFormatKHR mSwapChainSurfaceFormat{};
         // FIXME: because of headless-mode, forcing max simultaneous frame to three so we don't need to write complex logic
@@ -224,10 +229,10 @@ namespace FastCG
         std::pair<size_t, VkFramebuffer> GetOrCreateFrameBuffer(const VulkanRenderPassDescription &rRenderPassDescription,
                                                                 const std::vector<VulkanClearRequest> &rClearRequests,
                                                                 bool depthStencilWrite);
-        std::pair<size_t, VulkanPipeline> GetOrCreatePipeline(const VulkanPipelineDescription &rPipelineDescription,
-                                                              VkRenderPass renderPass,
-                                                              uint32_t renderTargetCount,
-                                                              const std::vector<const VulkanBuffer *> &rVertexBuffers);
+        std::pair<size_t, VulkanPipeline> GetOrCreateGraphicsPipeline(const VulkanPipelineDescription &rPipelineDescription,
+                                                                      VkRenderPass renderPass,
+                                                                      uint32_t renderTargetCount);
+        std::pair<size_t, VulkanPipeline> GetOrCreateComputePipeline(const VulkanPipelineDescription &rPipelineDescription);
         std::pair<size_t, VkPipelineLayout> GetOrCreatePipelineLayout(const VulkanPipelineLayoutDescription &rPipelineLayoutDescription);
         std::pair<size_t, VkDescriptorSetLayout> GetOrCreateDescriptorSetLayout(const VulkanDescriptorSetLayout &rDescriptorSetLayout);
         std::pair<size_t, VkDescriptorSet> GetOrCreateDescriptorSet(const VulkanDescriptorSetLayout &rDescriptorSetLayout);

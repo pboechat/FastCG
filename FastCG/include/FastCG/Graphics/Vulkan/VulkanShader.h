@@ -24,9 +24,9 @@ namespace FastCG
         uint32_t binding{~0u};
     };
 
-    using VulkanVertexInputDescription = std::unordered_set<uint32_t, IdentityHasher<uint32_t>>;
+    using VulkanInputDescription = std::unordered_set<uint32_t, IdentityHasher<uint32_t>>;
 
-    using VulkanFragmentOutputDescription = std::unordered_set<uint32_t, IdentityHasher<uint32_t>>;
+    using VulkanOutputDescription = std::unordered_set<uint32_t, IdentityHasher<uint32_t>>;
 
     class VulkanShader : public BaseShader
     {
@@ -54,25 +54,25 @@ namespace FastCG
     private:
         VkShaderModule mModules[(ShaderTypeInt)ShaderType::LAST]{};
         std::unordered_map<std::string, VulkanResourceLocation> mResourceLocation;
-        VulkanPipelineLayoutDescription mLayoutDescription;
-        VulkanVertexInputDescription mVertexInputDescription;
-        VulkanFragmentOutputDescription mFragmentOutputDescription;
+        VulkanPipelineLayoutDescription mPipelineLayoutDescription{};
+        VulkanInputDescription mInputDescription;
+        VulkanOutputDescription mOutputDescription;
 
         inline VkShaderModule GetModule(ShaderType shaderType) const
         {
             return mModules[(ShaderTypeInt)shaderType];
         }
-        inline const VulkanPipelineLayoutDescription &GetLayoutDescription() const
+        inline const VulkanPipelineLayoutDescription &GetPipelineLayoutDescription() const
         {
-            return mLayoutDescription;
+            return mPipelineLayoutDescription;
         }
-        inline const VulkanVertexInputDescription &GetVertexInputDescription() const
+        inline const VulkanInputDescription &GetInputDescription() const
         {
-            return mVertexInputDescription;
+            return mInputDescription;
         }
-        inline const VulkanFragmentOutputDescription &GetFragmentOutputDescription() const
+        inline const VulkanOutputDescription &GetOutputDescription() const
         {
-            return mFragmentOutputDescription;
+            return mOutputDescription;
         }
 
         friend class VulkanGraphicsContext;

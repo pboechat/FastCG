@@ -39,13 +39,14 @@ namespace FastCG
                 void SetDepthFunc(CompareOp depthFunc);
                 void SetScissorTest(bool scissorTest);
                 void SetCullMode(Face face);
-                void Copy(const OpenGLBuffer *pBuffer, size_t dataSize, const void *pData);
-                void Copy(const OpenGLTexture *pTexture, size_t dataSize, const void *pData);
+                void Copy(const OpenGLBuffer *pDst, const void *pSrc, size_t size);
+                void Copy(const OpenGLTexture *pDst, const void *pSrc, size_t size);
+                void Copy(void *pDst, const OpenGLBuffer *pSrc, size_t offset, size_t size);
                 void BindShader(const OpenGLShader *pShader);
                 void BindResource(const OpenGLBuffer *pBuffer, const char *pName);
                 void BindResource(const OpenGLTexture *pTexture, const char *pName);
                 void Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst);
-                void SetRenderTargets(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
+                void SetRenderTargets(const OpenGLTexture *const *ppRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
                 void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
                 void ClearDepthStencilBuffer(float depth, int32_t stencil);
                 void ClearDepthBuffer(float depth);
@@ -54,6 +55,7 @@ namespace FastCG
                 void SetIndexBuffer(const OpenGLBuffer *pBuffer);
                 void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
                 void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+                void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
                 void End();
                 double GetElapsedTime() const;
 

@@ -188,29 +188,40 @@ namespace FastCG
         }
     }
 
-    void OpenGLGraphicsContext::Copy(const OpenGLBuffer *pBuffer, size_t dataSize, const void *pData)
+    void OpenGLGraphicsContext::Copy(const OpenGLBuffer *pDst, const void *pSrc, size_t size)
     {
-        assert(pBuffer != nullptr);
-        auto target = GetOpenGLTarget(pBuffer->GetUsage());
-        glBindBuffer(target, *pBuffer);
-        glBufferSubData(target, 0, (GLsizeiptr)dataSize, (const GLvoid *)pData);
+        assert(pDst != nullptr);
+        auto target = GetOpenGLTarget(pDst->GetUsage());
+        glBindBuffer(target, *pDst);
+        glBufferSubData(target, 0, (GLsizeiptr)size, (const GLvoid *)pSrc);
     }
 
-    void OpenGLGraphicsContext::Copy(const OpenGLTexture *pTexture, size_t dataSize, const void *pData)
+    void OpenGLGraphicsContext::Copy(const OpenGLTexture *pDst, const void *pSrc, size_t size)
     {
-        FASTCG_UNUSED(dataSize);
-        assert(pTexture != nullptr);
-        auto target = GetOpenGLTarget(pTexture->GetType());
-        glBindTexture(target, *pTexture);
+        FASTCG_UNUSED(size);
+        assert(pDst != nullptr);
+        auto target = GetOpenGLTarget(pDst->GetType());
+        glBindTexture(target, *pDst);
         glTexSubImage2D(target,
                         0,
                         0,
                         0,
-                        (GLsizei)pTexture->GetWidth(),
-                        (GLsizei)pTexture->GetHeight(),
-                        GetOpenGLFormat(pTexture->GetFormat()),
-                        GetOpenGLDataType(pTexture->GetFormat()),
-                        (const GLvoid *)pData);
+                        (GLsizei)pDst->GetWidth(),
+                        (GLsizei)pDst->GetHeight(),
+                        GetOpenGLFormat(pDst->GetFormat()),
+                        GetOpenGLDataType(pDst->GetFormat()),
+                        (const GLvoid *)pSrc);
+    }
+
+    void OpenGLGraphicsContext::Copy(void *pDst, const OpenGLBuffer *pSrc, size_t offset, size_t size)
+    {
+        assert(pDst != nullptr);
+        assert(pSrc != nullptr);
+        assert(size > 0);
+
+        auto target = GetOpenGLTarget(pSrc->GetUsage());
+        glBindBuffer(target, *pSrc);
+        glGetBufferSubData(target, (GLintptr)offset, (GLsizeiptr)size, pDst);
     }
 
     void OpenGLGraphicsContext::BindShader(const OpenGLShader *pShader)
@@ -355,23 +366,23 @@ namespace FastCG
         SetStencilWriteMask(Face::FRONT_AND_BACK, oldStencilMask);
     }
 
-    void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
+    void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *ppRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
     {
         if (renderTargetCount == 1 &&
-            pRenderTargets[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer() &&
+            ppRenderTargets[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer() &&
             pDepthStencilBuffer == nullptr)
         {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             return;
         }
 
-        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(pRenderTargets, renderTargetCount, pDepthStencilBuffer);
+        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(ppRenderTargets, renderTargetCount, pDepthStencilBuffer);
         assert(fbId != ~0u);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbId);
 
         std::vector<GLenum> attachments;
         attachments.reserve(renderTargetCount);
-        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [&attachments, i = 0](const auto *pTexture) mutable
+        std::for_each(ppRenderTargets, ppRenderTargets + renderTargetCount, [&attachments, i = 0](const auto *pTexture) mutable
                       { if (IsColorFormat(pTexture->GetFormat())) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
         assert(attachments.size() <= (size_t)OpenGLGraphicsSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
@@ -436,6 +447,15 @@ namespace FastCG
         SetupDraw();
         glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't draw instanced");
+    }
+
+    void OpenGLGraphicsContext::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+    {
+        assert(groupCountX > 0);
+        assert(groupCountY > 0);
+        assert(groupCountZ > 0);
+        glDispatchCompute(groupCountX, groupCountY, groupCountZ);
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't dispatch");
     }
 
     void OpenGLGraphicsContext::End()

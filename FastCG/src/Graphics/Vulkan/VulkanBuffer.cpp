@@ -60,7 +60,7 @@ namespace FastCG
 
             if (GetData() != nullptr)
             {
-                VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, i, GetDataSize(), GetData());
+                VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, GetData(), i, GetDataSize());
             }
 
 #if _DEBUG

@@ -106,7 +106,7 @@ namespace FastCG
 	protected:
 		const ApplicationSettings mSettings;
 		uint32_t mFrameRate;
-		bool mRunning{false};
+		bool mRunning{true};
 
 		virtual bool ParseCommandLineArguments(int argc, char **argv)
 		{
