@@ -14,7 +14,7 @@ namespace FastCG
     class WindowsApplication : public BaseApplication
     {
     public:
-        WindowsApplication(const ApplicationSettings &applicationSettings) : BaseApplication(applicationSettings) {}
+        WindowsApplication(const ApplicationSettings &applicationSettings = {}) : BaseApplication(applicationSettings) {}
 
         inline static WindowsApplication *GetInstance()
         {

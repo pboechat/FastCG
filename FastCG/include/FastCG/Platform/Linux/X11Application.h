@@ -13,7 +13,7 @@ namespace FastCG
     class X11Application : public BaseApplication
     {
     public:
-        X11Application(const ApplicationSettings &applicationSettings) : BaseApplication(applicationSettings) {}
+        X11Application(const ApplicationSettings &applicationSettings = {}) : BaseApplication(applicationSettings) {}
 
         inline static X11Application *GetInstance()
         {

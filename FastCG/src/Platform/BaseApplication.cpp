@@ -28,6 +28,9 @@
 #include <cassert>
 #include <algorithm>
 
+// defined in the application's Config.cpp
+extern const char *const APPLICATION_NAME;
+
 namespace
 {
 	void DisplayStatisticsWindow(uint32_t width,
@@ -83,7 +86,7 @@ namespace FastCG
 
 	BaseApplication::BaseApplication(const ApplicationSettings &settings) : mSettings(settings),
 																			mFrameRate(settings.frameRate),
-																			mWindowTitle(settings.windowTitle),
+																			mWindowTitle(settings.windowTitle.empty() ? APPLICATION_NAME : settings.windowTitle),
 																			mScreenWidth(settings.screenWidth),
 																			mScreenHeight(settings.screenHeight),
 																			mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate)
