@@ -113,7 +113,7 @@ namespace
 
 }
 
-BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 1024, 768, 60, 3, false, {RenderingPath::FORWARD}, {{"bump_mapping"}}})
+BumpMappingApplication::BumpMappingApplication() : Application({"bump_mapping", 1024, 768, 60, 3, false, {RenderingPath::FORWARD}})
 {
 	ComponentRegistry::RegisterComponent<Controls>();
 	ComponentRegistry::RegisterComponent<LightsAnimator>();
