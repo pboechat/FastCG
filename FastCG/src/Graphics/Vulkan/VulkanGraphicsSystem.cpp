@@ -1447,6 +1447,7 @@ namespace FastCG
         for (uint32_t i = 0; i < rPipelineDescription.graphicsInfo.vertexBufferCount; ++i)
         {
             const auto *pVertexBuffer = rPipelineDescription.graphicsInfo.ppVertexBuffers[i];
+            uint32_t stride = 0;
             for (const auto &rVbDesc : pVertexBuffer->GetVertexBindingDescriptors())
             {
                 auto it = rVertexInputDescription.find(rVbDesc.binding);
@@ -1456,9 +1457,9 @@ namespace FastCG
                 }
                 auto format = GetVkFormat(rVbDesc.type, rVbDesc.size);
                 vertexInputAttributeDescriptions.emplace_back(VkVertexInputAttributeDescription{rVbDesc.binding, (uint32_t)i, format, rVbDesc.offset});
-                auto stride = rVbDesc.stride == 0 ? GetVkStride(format) : rVbDesc.stride;
-                vertexInputBindingDescriptions.emplace_back(VkVertexInputBindingDescription{rVbDesc.binding, stride, VK_VERTEX_INPUT_RATE_VERTEX});
+                stride += rVbDesc.stride == 0 ? GetVkStride(format) : rVbDesc.stride;
             }
+            vertexInputBindingDescriptions.emplace_back(VkVertexInputBindingDescription{(uint32_t)i, stride, VK_VERTEX_INPUT_RATE_VERTEX});
         }
 
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;

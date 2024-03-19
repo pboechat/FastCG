@@ -51,9 +51,9 @@ namespace FastCG
                                                         BufferUsageFlagBit::DYNAMIC,
                                                         verticesDataSize,
                                                         nullptr,
-                                                        {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)},
-                                                         {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)},
-                                                         {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
+                                                        {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert::pos), offsetof(ImDrawVert, pos)},
+                                                         {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert::uv), offsetof(ImDrawVert, uv)},
+                                                         {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert::col), offsetof(ImDrawVert, col)}}}},
                                                       {BufferUsageFlagBit::DYNAMIC, indicesCount, nullptr}});
 
         mpImGuiConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer({"ImGui Constants",
