@@ -1,8 +1,8 @@
 #ifndef FASTCG_IMGUI_SYSTEM_H
 #define FASTCG_IMGUI_SYSTEM_H
 
-#include <FastCG/Input/InputSystem.h>
 #include <FastCG/Core/System.h>
+#include <FastCG/Input/InputSystem.h>
 
 #include <cstdint>
 

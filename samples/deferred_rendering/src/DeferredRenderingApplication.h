@@ -6,10 +6,10 @@
 class DeferredRenderingApplication : public FastCG::Application
 {
 public:
-	DeferredRenderingApplication();
+    DeferredRenderingApplication();
 
 protected:
-	void OnStart() override;
+    void OnStart() override;
 };
 
 #endif

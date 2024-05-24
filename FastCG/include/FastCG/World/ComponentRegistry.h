@@ -3,10 +3,10 @@
 
 #include <FastCG/World/Component.h>
 
+#include <algorithm>
+#include <cassert>
 #include <string>
 #include <vector>
-#include <cassert>
-#include <algorithm>
 
 namespace FastCG
 {
@@ -16,8 +16,7 @@ namespace FastCG
     {
     public:
         ComponentRegister(const ComponentType &rComponentType, ComponentInstantiator componentInstantiator)
-            : mrComponentType(rComponentType),
-              mComponentInstantiator(componentInstantiator)
+            : mrComponentType(rComponentType), mComponentInstantiator(componentInstantiator)
         {
             assert(mComponentInstantiator != nullptr);
         }
@@ -54,8 +53,10 @@ namespace FastCG
         inline static const ComponentRegister *GetComponentRegister(const std::string &rComponentName)
         {
             auto &rComponentRegisters = GetOrCreateComponentRegisters();
-            auto it = std::find_if(rComponentRegisters.cbegin(), rComponentRegisters.cend(), [&rComponentName](const auto &rComponentRegister)
-                                   { return rComponentRegister.GetType().GetName() == rComponentName; });
+            auto it = std::find_if(rComponentRegisters.cbegin(), rComponentRegisters.cend(),
+                                   [&rComponentName](const auto &rComponentRegister) {
+                                       return rComponentRegister.GetType().GetName() == rComponentName;
+                                   });
             if (it == rComponentRegisters.cend())
             {
                 return nullptr;

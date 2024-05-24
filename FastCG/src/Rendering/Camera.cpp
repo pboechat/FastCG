@@ -2,6 +2,6 @@
 
 namespace FastCG
 {
-	FASTCG_IMPLEMENT_COMPONENT(Camera, Component);
+    FASTCG_IMPLEMENT_COMPONENT(Camera, Component);
 
 }

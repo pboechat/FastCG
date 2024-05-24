@@ -9,18 +9,18 @@
 
 class Controls : public FastCG::Behaviour
 {
-	FASTCG_DECLARE_COMPONENT(Controls, FastCG::Behaviour);
+    FASTCG_DECLARE_COMPONENT(Controls, FastCG::Behaviour);
 
 protected:
-	void OnInstantiate() override
-	{
-		mpLightsAnimator = GetGameObject()->GetComponent<LightsAnimator>();
-	}
+    void OnInstantiate() override
+    {
+        mpLightsAnimator = GetGameObject()->GetComponent<LightsAnimator>();
+    }
 
-	void OnUpdate(float time, float deltaTime) override;
+    void OnUpdate(float time, float deltaTime) override;
 
 private:
-	LightsAnimator *mpLightsAnimator{nullptr};
+    LightsAnimator *mpLightsAnimator{nullptr};
 };
 
 #endif

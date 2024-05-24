@@ -1,13 +1,13 @@
 #ifndef FASTCG_MATERIAL_DEFINITION_H
 #define FASTCG_MATERIAL_DEFINITION_H
 
-#include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Graphics/GraphicsContextState.h>
 #include <FastCG/Graphics/ConstantBuffer.h>
+#include <FastCG/Graphics/GraphicsContextState.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
 
-#include <vector>
-#include <unordered_map>
 #include <cassert>
+#include <unordered_map>
+#include <vector>
 
 namespace FastCG
 {
@@ -23,11 +23,9 @@ namespace FastCG
     class MaterialDefinition final
     {
     public:
-        MaterialDefinition(const MaterialDefinitionArgs &rArgs) : mName(rArgs.name),
-                                                                  mpShader(rArgs.pShader),
-                                                                  mConstantBuffer(rArgs.constantBufferMembers),
-                                                                  mTextures(rArgs.textures),
-                                                                  mGraphicsContextState(rArgs.graphicsContextState)
+        MaterialDefinition(const MaterialDefinitionArgs &rArgs)
+            : mName(rArgs.name), mpShader(rArgs.pShader), mConstantBuffer(rArgs.constantBufferMembers),
+              mTextures(rArgs.textures), mGraphicsContextState(rArgs.graphicsContextState)
         {
             assert(mpShader != nullptr);
         }

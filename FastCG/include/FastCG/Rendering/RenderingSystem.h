@@ -1,15 +1,15 @@
 #ifndef FASTCG_RENDERING_SYSTEM_H
 #define FASTCG_RENDERING_SYSTEM_H
 
-#include <FastCG/Rendering/RenderingStatistics.h>
-#include <FastCG/Rendering/RenderBatchStrategy.h>
-#include <FastCG/Rendering/IWorldRenderer.h>
-#include <FastCG/Graphics/RenderingPath.h>
-#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Core/System.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Graphics/RenderingPath.h>
+#include <FastCG/Rendering/IWorldRenderer.h>
+#include <FastCG/Rendering/RenderBatchStrategy.h>
+#include <FastCG/Rendering/RenderingStatistics.h>
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 namespace FastCG
 {

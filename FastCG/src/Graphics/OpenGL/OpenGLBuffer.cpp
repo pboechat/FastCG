@@ -1,8 +1,8 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
 #include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 
 #include <cstring>
 
@@ -27,7 +27,8 @@ namespace FastCG
         if (rArgs.dataSize > 0)
         {
             glBufferData(target, (GLsizeiptr)rArgs.dataSize, rArgs.pData, GetOpenGLUsageHint(mUsage));
-            FASTCG_CHECK_OPENGL_ERROR("Couldn't create buffer data store (buffer: %s, usage: %d)", rArgs.name.c_str(), (int)mUsage);
+            FASTCG_CHECK_OPENGL_ERROR("Couldn't create buffer data store (buffer: %s, usage: %d)", rArgs.name.c_str(),
+                                      (int)mUsage);
 
             if (rArgs.pData != nullptr)
             {

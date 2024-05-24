@@ -3,8 +3,8 @@
 
 #include <FastCG/Platform/Application.h>
 
-#include <vector>
 #include <memory.h>
+#include <vector>
 
 class PCSSApplication : public FastCG::Application
 {

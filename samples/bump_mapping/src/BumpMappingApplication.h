@@ -6,10 +6,10 @@
 class BumpMappingApplication : public FastCG::Application
 {
 public:
-	BumpMappingApplication();
+    BumpMappingApplication();
 
 protected:
-	void OnStart() override;
+    void OnStart() override;
 };
 
 #endif

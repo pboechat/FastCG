@@ -1,8 +1,8 @@
-#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/Rendering/MaterialDefinitionLoader.h>
-#include <FastCG/Rendering/MaterialDefinitionImporter.h>
-#include <FastCG/Core/Log.h>
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/Core/Log.h>
+#include <FastCG/Rendering/MaterialDefinitionImporter.h>
+#include <FastCG/Rendering/MaterialDefinitionLoader.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
 
 namespace FastCG
 {

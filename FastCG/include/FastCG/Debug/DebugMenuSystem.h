@@ -5,11 +5,11 @@
 
 #include <FastCG/Core/System.h>
 
-#include <unordered_map>
-#include <string>
-#include <functional>
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <unordered_map>
 
 namespace FastCG
 {
@@ -58,7 +58,9 @@ namespace FastCG
         std::unordered_map<size_t, Item> mItems;
         std::unordered_map<size_t, DebugMenuCallback> mCallbacks;
 
-        DebugMenuSystem(const DebugMenuSystemArgs &rArgs) : mArgs(rArgs) {}
+        DebugMenuSystem(const DebugMenuSystemArgs &rArgs) : mArgs(rArgs)
+        {
+        }
 
         void DrawMenu();
     };

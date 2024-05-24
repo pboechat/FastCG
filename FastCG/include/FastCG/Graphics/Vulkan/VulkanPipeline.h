@@ -3,10 +3,11 @@
 
 #ifdef FASTCG_VULKAN
 
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
-#include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/Vulkan/VulkanShader.h>
 
 #include <vector>
 
@@ -22,8 +23,7 @@ namespace FastCG
     FASTCG_PACKED_PREFIX struct VulkanPipelineDescription
     {
         const VulkanShader *pShader;
-        union
-        {
+        union {
             struct
             {
                 VkViewport viewport;

@@ -32,16 +32,15 @@
 
 #include <FastCG/Core/Macros.h>
 
-#include <string>
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
+#include <string>
 
 namespace FastCG
 {
-    static constexpr char const base64Chars[] =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
-        "0123456789+/";
+    static constexpr char const base64Chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                                "abcdefghijklmnopqrstuvwxyz"
+                                                "0123456789+/";
 
     static inline size_t findInBase64Chars(char c)
     {
@@ -82,10 +81,8 @@ namespace FastCG
             if (i == 3)
             {
                 charArray4[0] = (charArray3[0] & 0xfc) >> 2;
-                charArray4[1] = ((charArray3[0] & 0x03) << 4) +
-                                ((charArray3[1] & 0xf0) >> 4);
-                charArray4[2] = ((charArray3[1] & 0x0f) << 2) +
-                                ((charArray3[2] & 0xc0) >> 6);
+                charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
+                charArray4[2] = ((charArray3[1] & 0x0f) << 2) + ((charArray3[2] & 0xc0) >> 6);
                 charArray4[3] = charArray3[2] & 0x3f;
 
                 for (i = 0; (i < 4); i++)
@@ -104,10 +101,8 @@ namespace FastCG
             }
 
             charArray4[0] = (charArray3[0] & 0xfc) >> 2;
-            charArray4[1] = ((charArray3[0] & 0x03) << 4) +
-                            ((charArray3[1] & 0xf0) >> 4);
-            charArray4[2] = ((charArray3[1] & 0x0f) << 2) +
-                            ((charArray3[2] & 0xc0) >> 6);
+            charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
+            charArray4[2] = ((charArray3[1] & 0x0f) << 2) + ((charArray3[2] & 0xc0) >> 6);
             charArray4[3] = charArray3[2] & 0x3f;
 
             for (j = 0; (j < i + 1); j++)

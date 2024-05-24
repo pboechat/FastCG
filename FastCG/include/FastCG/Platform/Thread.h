@@ -9,20 +9,20 @@
 
 namespace FastCG
 {
-	class Thread final
-	{
-	public:
-		static void Sleep(double seconds)
-		{
+    class Thread final
+    {
+    public:
+        static void Sleep(double seconds)
+        {
 #if defined FASTCG_WINDOWS
-			::Sleep(static_cast<DWORD>(seconds * 1e3));
+            ::Sleep(static_cast<DWORD>(seconds * 1e3));
 #elif defined FASTCG_POSIX
-			sleep((unsigned int)seconds);
+            sleep((unsigned int)seconds);
 #else
 #error "Thread::Sleep() not implemented on current platform"
 #endif
-		}
-	};
+        }
+    };
 
 }
 

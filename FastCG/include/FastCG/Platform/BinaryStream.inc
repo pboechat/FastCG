@@ -1,5 +1,5 @@
-#include <cstring>
 #include <cassert>
+#include <cstring>
 
 namespace FastCG
 {

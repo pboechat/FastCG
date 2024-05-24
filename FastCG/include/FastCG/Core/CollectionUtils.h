@@ -5,19 +5,20 @@
 
 namespace FastCG
 {
-	class CollectionUtils final
-	{
-	public:
-		template <class CollectionT>
-		inline static void Slice(const CollectionT &rSrcCollection, size_t start, size_t end, CollectionT &rDstCollection);
+    class CollectionUtils final
+    {
+    public:
+        template <class CollectionT>
+        inline static void Slice(const CollectionT &rSrcCollection, size_t start, size_t end,
+                                 CollectionT &rDstCollection);
 
-		template <typename T>
-		inline static void RemoveDuplicates(std::vector<T> &rVector);
+        template <typename T>
+        inline static void RemoveDuplicates(std::vector<T> &rVector);
 
-	private:
-		CollectionUtils() = delete;
-		~CollectionUtils() = delete;
-	};
+    private:
+        CollectionUtils() = delete;
+        ~CollectionUtils() = delete;
+    };
 
 }
 

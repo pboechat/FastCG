@@ -1,19 +1,23 @@
 #ifndef FASTCG_FORWARD_WORLD_RENDERER_H
 #define FASTCG_FORWARD_WORLD_RENDERER_H
 
-#include <FastCG/Rendering/ShaderConstants.h>
-#include <FastCG/Rendering/BaseWorldRenderer.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Rendering/BaseWorldRenderer.h>
+#include <FastCG/Rendering/ShaderConstants.h>
 
-#include <vector>
 #include <array>
+#include <vector>
 
 namespace FastCG
 {
-    class ForwardWorldRenderer : public BaseWorldRenderer<ForwardRenderingPath::InstanceConstants, ForwardRenderingPath::LightingConstants, ForwardRenderingPath::SceneConstants>
+    class ForwardWorldRenderer
+        : public BaseWorldRenderer<ForwardRenderingPath::InstanceConstants, ForwardRenderingPath::LightingConstants,
+                                   ForwardRenderingPath::SceneConstants>
     {
     public:
-        ForwardWorldRenderer(const WorldRendererArgs &rArgs) : BaseWorldRenderer(rArgs) {}
+        ForwardWorldRenderer(const WorldRendererArgs &rArgs) : BaseWorldRenderer(rArgs)
+        {
+        }
 
         void Initialize() override;
         void Resize() override;

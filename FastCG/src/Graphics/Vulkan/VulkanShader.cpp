@@ -1,9 +1,9 @@
 #ifdef FASTCG_VULKAN
 
+#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanShader.h>
 #include <FastCG/Graphics/Vulkan/VulkanUtils.h>
-#include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
-#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
 
 #if defined FASTCG_LINUX
 // use local spirv-cross on Linux
@@ -12,9 +12,9 @@
 #include <spirv_cross.hpp>
 #endif
 
-#include <memory>
-#include <cstring>
 #include <algorithm>
+#include <cstring>
+#include <memory>
 
 namespace
 {
@@ -128,8 +128,8 @@ namespace FastCG
         shaderModuleCreateInfo.pNext = nullptr;
         shaderModuleCreateInfo.flags = 0;
 
-        auto AddResource = [&](const spirv_cross::Compiler &rCompiler, const spirv_cross::Resource &rResource, ShaderType shaderType, VkDescriptorType descriptorType)
-        {
+        auto AddResource = [&](const spirv_cross::Compiler &rCompiler, const spirv_cross::Resource &rResource,
+                               ShaderType shaderType, VkDescriptorType descriptorType) {
             auto set = rCompiler.get_decoration(rResource.id, spv::DecorationDescriptorSet);
             assert(set < VulkanPipelineLayout::MAX_SET_COUNT);
             auto binding = rCompiler.get_decoration(rResource.id, spv::DecorationBinding);
@@ -141,8 +141,8 @@ namespace FastCG
             }
             auto &rSetLayout = mPipelineLayoutDescription.pSetLayouts[set];
             auto itEnd = rSetLayout.pBindingLayouts + rSetLayout.bindingLayoutCount;
-            auto it = std::find_if(rSetLayout.pBindingLayouts, itEnd, [&binding](const auto &rBinding)
-                                   { return rBinding.binding == binding; });
+            auto it = std::find_if(rSetLayout.pBindingLayouts, itEnd,
+                                   [&binding](const auto &rBinding) { return rBinding.binding == binding; });
             if (it == itEnd)
             {
                 it = &rSetLayout.pBindingLayouts[rSetLayout.bindingLayoutCount++];
@@ -167,13 +167,14 @@ namespace FastCG
             auto pCode = std::make_unique<uint32_t[]>(wordCount);
             std::memcpy(pCode.get(), rProgramData.pData, shaderModuleCreateInfo.codeSize);
             shaderModuleCreateInfo.pCode = pCode.get();
-            FASTCG_CHECK_VK_RESULT(vkCreateShaderModule(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                                                        &shaderModuleCreateInfo,
-                                                        VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
-                                                        &mModules[i]));
+            FASTCG_CHECK_VK_RESULT(
+                vkCreateShaderModule(VulkanGraphicsSystem::GetInstance()->GetDevice(), &shaderModuleCreateInfo,
+                                     VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(), &mModules[i]));
 
 #if _DEBUG
-            VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (" + GetShaderTypeString(shaderType) + ") (VkShaderModule)").c_str(), VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)mModules[i]);
+            VulkanGraphicsSystem::GetInstance()->SetObjectName(
+                (GetName() + " (" + GetShaderTypeString(shaderType) + ") (VkShaderModule)").c_str(),
+                VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)mModules[i]);
 #endif
 
             // TODO: cache reflection data
@@ -216,8 +217,7 @@ namespace FastCG
         {
             if (mModules[i] != VK_NULL_HANDLE)
             {
-                vkDestroyShaderModule(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                                      mModules[i],
+                vkDestroyShaderModule(VulkanGraphicsSystem::GetInstance()->GetDevice(), mModules[i],
                                       VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks());
                 mModules[i] = VK_NULL_HANDLE;
             }

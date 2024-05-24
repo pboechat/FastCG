@@ -1,29 +1,30 @@
-#include <FastCG/Graphics/RenderingPath.h>
-#include <FastCG/Graphics/ShaderSource.h>
-#include <FastCG/Graphics/ShaderImporter.h>
-#include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Platform/FileReader.h>
-#include <FastCG/Platform/File.h>
-#include <FastCG/Platform/Application.h>
-#include <FastCG/Core/Macros.h>
-#include <FastCG/Core/Log.h>
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/Core/Log.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/Graphics/RenderingPath.h>
+#include <FastCG/Graphics/ShaderImporter.h>
+#include <FastCG/Graphics/ShaderSource.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Platform/FileReader.h>
 
-#include <vector>
-#include <unordered_map>
-#include <string>
-#include <memory>
 #include <algorithm>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace
 {
-#define DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...) \
-    constexpr arrayType array[] = {__VA_ARGS__};                        \
-    static_assert((size_t) enum ::LAST == FASTCG_ARRAYSIZE(array),      \
-                  "Missing element in " #array)
+#define DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...)                                                \
+    constexpr arrayType array[] = {__VA_ARGS__};                                                                       \
+    static_assert((size_t) enum ::LAST == FASTCG_ARRAYSIZE(array), "Missing element in " #array)
 
-    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert", ".frag", ".comp");
-    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS, ".vert_spv", ".frag_spv", ".comp_spv");
+    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert",
+                                       ".frag", ".comp");
+    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS,
+                                       ".vert_spv", ".frag_spv", ".comp_spv");
 
     FastCG::RenderingPathMask GetSuitableRenderingPathMask(const std::string &rFileName)
     {
@@ -103,7 +104,9 @@ namespace FastCG
             auto &rShaderInfo = it->second;
             if (rShaderInfo.text != text)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Shader %s mixes both text and binary sources, which is not supported", shaderName.c_str());
+                FASTCG_THROW_EXCEPTION(Exception,
+                                       "Shader %s mixes both text and binary sources, which is not supported",
+                                       shaderName.c_str());
             }
 
             rShaderInfo.programFileNames[(ShaderTypeInt)shaderType] = rShaderFileName;
@@ -125,7 +128,8 @@ namespace FastCG
                     continue;
                 }
 
-                FASTCG_LOG_DEBUG(ShaderImporter, "- %s [%s] (%s)", shaderArgs.name.c_str(), ShaderType_STRINGS[i], shaderArgs.text ? "t" : "b");
+                FASTCG_LOG_DEBUG(ShaderImporter, "- %s [%s] (%s)", shaderArgs.name.c_str(), ShaderType_STRINGS[i],
+                                 shaderArgs.text ? "t" : "b");
 
                 if (shaderArgs.text)
                 {
@@ -137,7 +141,8 @@ namespace FastCG
                 }
                 else
                 {
-                    programsData[i] = FileReader::ReadBinary(rShaderInfo.programFileNames[i], shaderArgs.programsData[i].dataSize);
+                    programsData[i] =
+                        FileReader::ReadBinary(rShaderInfo.programFileNames[i], shaderArgs.programsData[i].dataSize);
                 }
                 shaderArgs.programsData[i].pData = (void *)programsData[i].get();
             }

@@ -1,16 +1,16 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Platform/Application.h>
-#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
+#include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
-#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
-#include <FastCG/Core/Macros.h>
-#include <FastCG/Core/Exception.h>
+#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
+#include <FastCG/Platform/Application.h>
 
-#include <vector>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <vector>
 
 namespace FastCG
 {
@@ -91,9 +91,11 @@ namespace FastCG
         }
     }
 
-    void OpenGLGraphicsContext::SetBlendFactors(BlendFactor srcColor, BlendFactor dstColor, BlendFactor srcAlpha, BlendFactor dstAlpha)
+    void OpenGLGraphicsContext::SetBlendFactors(BlendFactor srcColor, BlendFactor dstColor, BlendFactor srcAlpha,
+                                                BlendFactor dstAlpha)
     {
-        glBlendFuncSeparate(GetOpenGLBlendFactor(srcColor), GetOpenGLBlendFactor(dstColor), GetOpenGLBlendFactor(srcAlpha), GetOpenGLBlendFactor(dstAlpha));
+        glBlendFuncSeparate(GetOpenGLBlendFactor(srcColor), GetOpenGLBlendFactor(dstColor),
+                            GetOpenGLBlendFactor(srcAlpha), GetOpenGLBlendFactor(dstAlpha));
     }
 
     void OpenGLGraphicsContext::SetStencilTest(bool stencilTest)
@@ -125,7 +127,8 @@ namespace FastCG
     void OpenGLGraphicsContext::SetStencilOp(Face face, StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass)
     {
         assert(face != Face::NONE);
-        glStencilOpSeparate(GetOpenGLFace(face), GetOpenGLStencilFunc(stencilFail), GetOpenGLStencilFunc(depthFail), GetOpenGLStencilFunc(depthPass));
+        glStencilOpSeparate(GetOpenGLFace(face), GetOpenGLStencilFunc(stencilFail), GetOpenGLStencilFunc(depthFail),
+                            GetOpenGLStencilFunc(depthPass));
     }
 
     void OpenGLGraphicsContext::SetStencilWriteMask(Face face, uint32_t mask)
@@ -202,15 +205,8 @@ namespace FastCG
         assert(pDst != nullptr);
         auto target = GetOpenGLTarget(pDst->GetType());
         glBindTexture(target, *pDst);
-        glTexSubImage2D(target,
-                        0,
-                        0,
-                        0,
-                        (GLsizei)pDst->GetWidth(),
-                        (GLsizei)pDst->GetHeight(),
-                        GetOpenGLFormat(pDst->GetFormat()),
-                        GetOpenGLDataType(pDst->GetFormat()),
-                        (const GLvoid *)pSrc);
+        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pDst->GetWidth(), (GLsizei)pDst->GetHeight(),
+                        GetOpenGLFormat(pDst->GetFormat()), GetOpenGLDataType(pDst->GetFormat()), (const GLvoid *)pSrc);
     }
 
     void OpenGLGraphicsContext::Copy(void *pDst, const OpenGLBuffer *pSrc, size_t offset, size_t size)
@@ -253,7 +249,8 @@ namespace FastCG
             return;
         }
         glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), rResourceInfo.binding, *pBuffer);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind buffer to resource (buffer: %s, resource: %s, binding: %d)", pBuffer->GetName().c_str(), pName, rResourceInfo.binding);
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind buffer to resource (buffer: %s, resource: %s, binding: %d)",
+                                  pBuffer->GetName().c_str(), pName, rResourceInfo.binding);
         mResourceUsage.emplace(pName);
     }
 
@@ -280,7 +277,8 @@ namespace FastCG
         }
         glBindTexture(GetOpenGLTarget(pTexture->GetType()), *pTexture);
         glUniform1i(rResourceInfo.location, rResourceInfo.binding);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture to resource (texture: %s, location: %d, binding: %d)", pTexture->GetName().c_str(), rResourceInfo.location, rResourceInfo.binding);
+        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture to resource (texture: %s, location: %d, binding: %d)",
+                                  pTexture->GetName().c_str(), rResourceInfo.location, rResourceInfo.binding);
     }
 
     void OpenGLGraphicsContext::Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst)
@@ -372,24 +370,28 @@ namespace FastCG
         SetStencilWriteMask(Face::FRONT_AND_BACK, oldStencilMask);
     }
 
-    void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *ppRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
+    void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *ppRenderTargets,
+                                                 uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
     {
-        if (renderTargetCount == 1 &&
-            ppRenderTargets[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer() &&
+        if (renderTargetCount == 1 && ppRenderTargets[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer() &&
             pDepthStencilBuffer == nullptr)
         {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             return;
         }
 
-        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(ppRenderTargets, renderTargetCount, pDepthStencilBuffer);
+        auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(ppRenderTargets, renderTargetCount,
+                                                                                pDepthStencilBuffer);
         assert(fbId != ~0u);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbId);
 
         std::vector<GLenum> attachments;
         attachments.reserve(renderTargetCount);
-        std::for_each(ppRenderTargets, ppRenderTargets + renderTargetCount, [&attachments, i = 0](const auto *pTexture) mutable
-                      { if (IsColorFormat(pTexture->GetFormat())) attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++)); });
+        std::for_each(ppRenderTargets, ppRenderTargets + renderTargetCount,
+                      [&attachments, i = 0](const auto *pTexture) mutable {
+                          if (IsColorFormat(pTexture->GetFormat()))
+                              attachments.emplace_back(GL_COLOR_ATTACHMENT0 + (i++));
+                      });
         assert(attachments.size() <= (size_t)OpenGLGraphicsSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
         {
@@ -433,25 +435,32 @@ namespace FastCG
             {
                 if (rResourceInfo.type == GL_SAMPLER_2D || rResourceInfo.type == GL_IMAGE_2D)
                 {
-                    BindResource(OpenGLGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D), rResourceInfo);
+                    BindResource(OpenGLGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D),
+                                 rResourceInfo);
                 }
             }
         }
     }
 
-    void OpenGLGraphicsContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
+    void OpenGLGraphicsContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount,
+                                            int32_t vertexOffset)
     {
         SetupDraw();
-        glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset);
+        glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT,
+                                 (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't draw");
     }
 
-    void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset)
+    void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance,
+                                                     uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount,
+                                                     int32_t vertexOffset)
     {
         FASTCG_UNUSED(firstInstance);
         assert(firstInstance == 0);
         SetupDraw();
-        glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT, (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset);
+        glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT,
+                                          (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount,
+                                          (GLint)vertexOffset);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't draw instanced");
     }
 

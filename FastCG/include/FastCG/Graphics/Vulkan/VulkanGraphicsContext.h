@@ -3,17 +3,17 @@
 
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/Vulkan.h>
-#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
-#include <FastCG/Graphics/Vulkan/VulkanShader.h>
-#include <FastCG/Graphics/Vulkan/VulkanRenderPass.h>
-#include <FastCG/Graphics/Vulkan/VulkanPipeline.h>
-#include <FastCG/Graphics/Vulkan/VulkanDescriptorSet.h>
-#include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
 #include <FastCG/Graphics/BaseGraphicsContext.h>
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
+#include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
+#include <FastCG/Graphics/Vulkan/VulkanDescriptorSet.h>
+#include <FastCG/Graphics/Vulkan/VulkanPipeline.h>
+#include <FastCG/Graphics/Vulkan/VulkanRenderPass.h>
+#include <FastCG/Graphics/Vulkan/VulkanShader.h>
+#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 namespace FastCG
 {
@@ -52,7 +52,8 @@ namespace FastCG
         void BindResource(const VulkanBuffer *pBuffer, const char *pName);
         void BindResource(const VulkanTexture *pTexture, const char *pName);
         void Blit(const VulkanTexture *pSrc, const VulkanTexture *pDst);
-        void SetRenderTargets(const VulkanTexture *const *ppRenderTargets, uint32_t renderTargetCount, const VulkanTexture *pDepthStencilBuffer);
+        void SetRenderTargets(const VulkanTexture *const *ppRenderTargets, uint32_t renderTargetCount,
+                              const VulkanTexture *pDepthStencilBuffer);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
         void ClearDepthStencilBuffer(float depth, int32_t stencil);
         void ClearDepthBuffer(float depth);
@@ -60,7 +61,8 @@ namespace FastCG
         void SetVertexBuffers(const Buffer *const *ppVertexBuffers, uint32_t vertexBufferCount);
         void SetIndexBuffer(const VulkanBuffer *pBuffer);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
-        void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount,
+                                  uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void End();
         double GetElapsedTime() const;
@@ -92,29 +94,29 @@ namespace FastCG
                 const VulkanTexture *pTexture;
             };
 
-            union
-            {
+            union {
                 BufferData srcBufferData;
                 TextureData srcTextureData;
             };
-            union
-            {
+            union {
                 BufferData dstBufferData;
                 TextureData dstTextureData;
             };
 
-            CopyCommandArgs() {}
-            CopyCommandArgs(const BufferData &rSrcBufferData, const BufferData &rDstBufferData) : srcBufferData(rSrcBufferData),
-                                                                                                  dstBufferData(rDstBufferData)
+            CopyCommandArgs()
+            {
+            }
+            CopyCommandArgs(const BufferData &rSrcBufferData, const BufferData &rDstBufferData)
+                : srcBufferData(rSrcBufferData), dstBufferData(rDstBufferData)
             {
             }
 
-            CopyCommandArgs(const BufferData &rSrcBufferData, const TextureData &rDstTextureData) : srcBufferData(rSrcBufferData),
-                                                                                                    dstTextureData(rDstTextureData)
+            CopyCommandArgs(const BufferData &rSrcBufferData, const TextureData &rDstTextureData)
+                : srcBufferData(rSrcBufferData), dstTextureData(rDstTextureData)
             {
             }
-            CopyCommandArgs(const TextureData &rSrcTextureData, const TextureData &rDstTextureData) : srcTextureData(rSrcTextureData),
-                                                                                                      dstTextureData(rDstTextureData)
+            CopyCommandArgs(const TextureData &rSrcTextureData, const TextureData &rDstTextureData)
+                : srcTextureData(rSrcTextureData), dstTextureData(rDstTextureData)
             {
             }
         };
@@ -152,8 +154,7 @@ namespace FastCG
             VulkanPipelineLayout pipelineLayout;
             uint32_t setCount = 0;
             VkDescriptorSet pSets[VulkanPipelineLayout::MAX_SET_COUNT];
-            union
-            {
+            union {
                 struct
                 {
                     DrawCommandType type;
@@ -196,8 +197,7 @@ namespace FastCG
             size_t lastCopyCommandIdx;
             size_t lastPipelineBatchIdx;
             PassType type;
-            union
-            {
+            union {
                 struct
                 {
                     VkRenderPass renderPass;
@@ -241,29 +241,15 @@ namespace FastCG
         std::vector<double> mElapsedTimes;
 #endif
 
-        void AddBufferMemoryBarrier(VkBuffer buffer,
-                                    VkAccessFlags srcAccessMask,
-                                    VkAccessFlags dstAccessMask,
-                                    VkPipelineStageFlags srcStageMask,
-                                    VkPipelineStageFlags dstStageMask);
-        void AddTextureMemoryBarrier(const VulkanTexture *pTexture,
-                                     VkImageLayout newLayout,
-                                     VkAccessFlags srcAccessMask,
-                                     VkAccessFlags dstAccessMask,
-                                     VkPipelineStageFlags srcStageMask,
-                                     VkPipelineStageFlags dstStageMask);
-        void EnqueueCopyCommand(CopyCommandType type,
-                                const CopyCommandArgs &rArgs);
-        void EnqueueDrawCommand(DrawCommandType type,
-                                PrimitiveType primitiveType,
-                                uint32_t firstInstance,
-                                uint32_t instanceCount,
-                                uint32_t firstIndex,
-                                uint32_t indexCount,
-                                int32_t vertexOffset);
-        void EnqueueDispatchCommand(uint32_t groupCountX,
-                                    uint32_t groupCountY,
-                                    uint32_t groupCountZ);
+        void AddBufferMemoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+                                    VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask);
+        void AddTextureMemoryBarrier(const VulkanTexture *pTexture, VkImageLayout newLayout,
+                                     VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+                                     VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask);
+        void EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs);
+        void EnqueueDrawCommand(DrawCommandType type, PrimitiveType primitiveType, uint32_t firstInstance,
+                                uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void EnqueueDispatchCommand(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void EnqueueTimestampQuery(uint32_t query);
 #if !defined FASTCG_DISABLE_GPU_TIMING
         void InitializeTimeElapsedData();

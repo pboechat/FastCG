@@ -101,7 +101,8 @@ namespace FastCG
             skyboxRenderBatchIt->renderablesPerMesh.clear();
         }
         skyboxRenderBatchIt->pMaterial = pRenderable->GetMaterial();
-        skyboxRenderBatchIt->renderablesPerMesh.emplace(pRenderable->GetMesh(), std::vector<const Renderable *>{pRenderable});
+        skyboxRenderBatchIt->renderablesPerMesh.emplace(pRenderable->GetMesh(),
+                                                        std::vector<const Renderable *>{pRenderable});
     }
 
     void RenderBatchStrategy::RemoveFromSkyboxRenderBatch(const Renderable *pRenderable)
@@ -117,8 +118,11 @@ namespace FastCG
         auto materialRenderBatchIt = GetMaterialRenderBatchIterator(rpMaterial);
         if (materialRenderBatchIt == mRenderBatches.end())
         {
-            materialRenderBatchIt = mRenderBatches.insert(mRenderBatches.end(),
-                                                          RenderBatch{rpMaterial->GetGraphicsContextState().blend ? RenderGroup::TRANSPARENT_MATERIAL : RenderGroup::OPAQUE_MATERIAL, rpMaterial});
+            materialRenderBatchIt =
+                mRenderBatches.insert(mRenderBatches.end(), RenderBatch{rpMaterial->GetGraphicsContextState().blend
+                                                                            ? RenderGroup::TRANSPARENT_MATERIAL
+                                                                            : RenderGroup::OPAQUE_MATERIAL,
+                                                                        rpMaterial});
             AddToRenderBatch(materialRenderBatchIt, pRenderable);
             std::sort(mRenderBatches.begin(), mRenderBatches.end(), RenderBatchComparer());
         }
@@ -136,7 +140,8 @@ namespace FastCG
         RemoveFromRenderBatch(materialRenderBatchIt, pRenderable);
     }
 
-    void RenderBatchStrategy::AddToRenderBatch(const RenderBatches::iterator &rRenderBatchIt, const Renderable *pRenderable)
+    void RenderBatchStrategy::AddToRenderBatch(const RenderBatches::iterator &rRenderBatchIt,
+                                               const Renderable *pRenderable)
     {
         assert(rRenderBatchIt != mRenderBatches.end());
         auto &rRenderablesPerMesh = rRenderBatchIt->renderablesPerMesh;
@@ -149,7 +154,8 @@ namespace FastCG
         renderablesPerMeshIt->second.emplace_back(pRenderable);
     }
 
-    inline bool RenderBatchStrategy::RemoveFromRenderBatch(const RenderBatches::iterator &rRenderBatchIt, const Renderable *pRenderable)
+    inline bool RenderBatchStrategy::RemoveFromRenderBatch(const RenderBatches::iterator &rRenderBatchIt,
+                                                           const Renderable *pRenderable)
     {
         assert(rRenderBatchIt != mRenderBatches.end());
         auto &rRenderablesPerMesh = rRenderBatchIt->renderablesPerMesh;

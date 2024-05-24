@@ -1,22 +1,22 @@
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
-#include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
+#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 
 #include <cstring>
 
 namespace FastCG
 {
-    VulkanTexture::VulkanTexture(const Args &rArgs) : BaseTexture(rArgs),
-                                                      mImage(rArgs.image)
+    VulkanTexture::VulkanTexture(const Args &rArgs) : BaseTexture(rArgs), mImage(rArgs.image)
     {
         if (mImage == VK_NULL_HANDLE)
         {
             CreateImage();
         }
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImage)").c_str(), VK_OBJECT_TYPE_IMAGE, (uint64_t)mImage);
+        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImage)").c_str(), VK_OBJECT_TYPE_IMAGE,
+                                                           (uint64_t)mImage);
 #endif
         CreateDefaultImageView();
         if ((GetUsage() & TextureUsageFlagBit::SAMPLED) != 0)
@@ -49,7 +49,8 @@ namespace FastCG
         imageCreateInfo.arrayLayers = GetSlices();
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT; // multisampled texture not supported yet
 
-        const auto *pFormatProperties = VulkanGraphicsSystem::GetInstance()->GetFormatProperties(imageCreateInfo.format);
+        const auto *pFormatProperties =
+            VulkanGraphicsSystem::GetInstance()->GetFormatProperties(imageCreateInfo.format);
         assert(pFormatProperties != nullptr);
         if ((pFormatProperties->optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) != 0)
         {
@@ -63,7 +64,8 @@ namespace FastCG
         }
         else
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: No tiling features found for format %s (texture: %s)", GetVkFormatString(imageCreateInfo.format), mName.c_str());
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: No tiling features found for format %s (texture: %s)",
+                                   GetVkFormatString(imageCreateInfo.format), mName.c_str());
         }
 
         imageCreateInfo.usage = GetVkImageUsageFlags(GetUsage(), GetFormat());
@@ -87,12 +89,8 @@ namespace FastCG
         allocationCreateInfo.pUserData = nullptr;
         allocationCreateInfo.priority = 0;
 
-        FASTCG_CHECK_VK_RESULT(vmaCreateImage(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-                                              &imageCreateInfo,
-                                              &allocationCreateInfo,
-                                              &mImage,
-                                              &mAllocation,
-                                              &mAllocationInfo));
+        FASTCG_CHECK_VK_RESULT(vmaCreateImage(VulkanGraphicsSystem::GetInstance()->GetAllocator(), &imageCreateInfo,
+                                              &allocationCreateInfo, &mImage, &mAllocation, &mAllocationInfo));
 
         if (GetData() != nullptr)
         {
@@ -104,9 +102,7 @@ namespace FastCG
     {
         if (mImage != VK_NULL_HANDLE)
         {
-            vmaDestroyImage(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-                            mImage,
-                            mAllocation);
+            vmaDestroyImage(VulkanGraphicsSystem::GetInstance()->GetAllocator(), mImage, mAllocation);
             mImage = VK_NULL_HANDLE;
             mAllocation = VK_NULL_HANDLE;
         }
@@ -114,12 +110,9 @@ namespace FastCG
 
     void VulkanTexture::TransitionToRestingLayout()
     {
-        VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->AddTextureMemoryBarrier(this,
-                                                                                                    GetRestingLayout(),
-                                                                                                    0,
-                                                                                                    VK_ACCESS_MEMORY_READ_BIT,
-                                                                                                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                                                                                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+        VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->AddTextureMemoryBarrier(
+            this, GetRestingLayout(), 0, VK_ACCESS_MEMORY_READ_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
     }
 
     void VulkanTexture::CreateDefaultImageView()
@@ -131,7 +124,9 @@ namespace FastCG
         imageViewCreateInfo.image = mImage;
         imageViewCreateInfo.viewType = GetVkImageViewType(GetType());
         imageViewCreateInfo.format = GetVulkanFormat();
-        imageViewCreateInfo.components = VkComponentMapping{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
+        imageViewCreateInfo.components =
+            VkComponentMapping{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                               VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
         if (IsDepthFormat(GetFormat()))
         {
             // TODO: support stencil
@@ -145,12 +140,12 @@ namespace FastCG
         imageViewCreateInfo.subresourceRange.levelCount = GetMipCount();
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = GetSlices();
-        FASTCG_CHECK_VK_RESULT(vkCreateImageView(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                                                 &imageViewCreateInfo,
+        FASTCG_CHECK_VK_RESULT(vkCreateImageView(VulkanGraphicsSystem::GetInstance()->GetDevice(), &imageViewCreateInfo,
                                                  VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
                                                  &mDefaultImageView));
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImageView)").c_str(), VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)mDefaultImageView);
+        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkImageView)").c_str(),
+                                                           VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)mDefaultImageView);
 #endif
     }
 
@@ -162,7 +157,8 @@ namespace FastCG
         samplerCreateInfo.flags = 0;
         samplerCreateInfo.magFilter = samplerCreateInfo.minFilter = GetVkFilter(GetFilter());
         samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-        samplerCreateInfo.addressModeU = samplerCreateInfo.addressModeV = samplerCreateInfo.addressModeW = GetVkAddressMode(GetWrapMode());
+        samplerCreateInfo.addressModeU = samplerCreateInfo.addressModeV = samplerCreateInfo.addressModeW =
+            GetVkAddressMode(GetWrapMode());
         samplerCreateInfo.mipLodBias = 0;
         samplerCreateInfo.anisotropyEnable = VK_FALSE;
         samplerCreateInfo.maxAnisotropy = 0;
@@ -173,13 +169,13 @@ namespace FastCG
         samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
         samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
-        FASTCG_CHECK_VK_RESULT(vkCreateSampler(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                                               &samplerCreateInfo,
+        FASTCG_CHECK_VK_RESULT(vkCreateSampler(VulkanGraphicsSystem::GetInstance()->GetDevice(), &samplerCreateInfo,
                                                VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks(),
                                                &mDefaultSampler));
 
 #if _DEBUG
-        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkSampler)").c_str(), VK_OBJECT_TYPE_SAMPLER, (uint64_t)mDefaultSampler);
+        VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + " (VkSampler)").c_str(), VK_OBJECT_TYPE_SAMPLER,
+                                                           (uint64_t)mDefaultSampler);
 #endif
     }
 
@@ -187,8 +183,7 @@ namespace FastCG
     {
         if (mDefaultImageView != VK_NULL_HANDLE)
         {
-            vkDestroyImageView(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                               mDefaultImageView,
+            vkDestroyImageView(VulkanGraphicsSystem::GetInstance()->GetDevice(), mDefaultImageView,
                                VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks());
             mDefaultImageView = VK_NULL_HANDLE;
         }
@@ -198,8 +193,7 @@ namespace FastCG
     {
         if (mDefaultSampler != VK_NULL_HANDLE)
         {
-            vkDestroySampler(VulkanGraphicsSystem::GetInstance()->GetDevice(),
-                             mDefaultSampler,
+            vkDestroySampler(VulkanGraphicsSystem::GetInstance()->GetDevice(), mDefaultSampler,
                              VulkanGraphicsSystem::GetInstance()->GetAllocationCallbacks());
             mDefaultSampler = VK_NULL_HANDLE;
         }

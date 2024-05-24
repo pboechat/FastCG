@@ -1,20 +1,20 @@
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Platform/Application.h>
-#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
-#include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
-#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
-#include <FastCG/Core/Macros.h>
-#include <FastCG/Core/Exception.h>
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
+#include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
+#include <FastCG/Platform/Application.h>
 
 #if defined FASTCG_LINUX
 #include <X11/extensions/Xrender.h>
 #endif
 
-#include <stdio.h>
-#include <iostream>
 #include <algorithm>
+#include <iostream>
+#include <stdio.h>
 
 namespace
 {
@@ -31,8 +31,8 @@ namespace
 #undef CASE_RETURN_STRING
 #endif
 
-#define CASE_RETURN_STRING(str) \
-    case str:                   \
+#define CASE_RETURN_STRING(str)                                                                                        \
+    case str:                                                                                                          \
         return #str
 
         switch (error)
@@ -78,14 +78,12 @@ namespace
 #define FASTCG_CHECK_EGL_ERROR(...)
 #endif
 
-    const EGLint EGL_CONTEXT_ATTRIBS[] = {
-        EGL_CONTEXT_MAJOR_VERSION, 3,
-        EGL_CONTEXT_MINOR_VERSION, 2,
-        EGL_NONE};
+    const EGLint EGL_CONTEXT_ATTRIBS[] = {EGL_CONTEXT_MAJOR_VERSION, 3, EGL_CONTEXT_MINOR_VERSION, 2, EGL_NONE};
 
 #endif
 
-    void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam)
+    void OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                             const GLchar *message, const GLvoid *userParam)
     {
         FASTCG_UNUSED(source);
         FASTCG_UNUSED(type);
@@ -94,13 +92,10 @@ namespace
         FASTCG_UNUSED(length);
         FASTCG_UNUSED(message);
         FASTCG_UNUSED(userParam);
-        FASTCG_LOG_DEBUG(OpenGLGraphicsSystem,
-                         "%s - %s - %s - %u - %s",
+        FASTCG_LOG_DEBUG(OpenGLGraphicsSystem, "%s - %s - %s - %u - %s",
                          FastCG::GetOpenGLDebugOutputMessageSeverity(severity),
                          FastCG::GetOpenGLDebugOutputMessageSourceString(source),
-                         FastCG::GetOpenGLDebugOutputMessageTypeString(type),
-                         id,
-                         message);
+                         FastCG::GetOpenGLDebugOutputMessageTypeString(type), id, message);
     }
 }
 
@@ -125,8 +120,10 @@ namespace FastCG
 #if _DEBUG
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(OpenGLDebugCallback, nullptr);
-        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
-        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0,
+                              nullptr, false);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0,
+                              nullptr, false);
 #endif
 
         QueryDeviceProperties();
@@ -151,20 +148,21 @@ namespace FastCG
         BaseGraphicsSystem::OnPostFinalize();
     }
 
-#define DECLARE_DESTROY_METHOD(className, containerMember)                                                              \
-    void OpenGLGraphicsSystem::Destroy##className(const OpenGL##className *p##className)                                \
-    {                                                                                                                   \
-        assert(p##className != nullptr);                                                                                \
-        auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className);                            \
-        if (it != containerMember.cend())                                                                               \
-        {                                                                                                               \
-            containerMember.erase(it);                                                                                  \
-            delete p##className;                                                                                        \
-        }                                                                                                               \
-        else                                                                                                            \
-        {                                                                                                               \
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy " #className " '%s'", p##className->GetName().c_str()); \
-        }                                                                                                               \
+#define DECLARE_DESTROY_METHOD(className, containerMember)                                                             \
+    void OpenGLGraphicsSystem::Destroy##className(const OpenGL##className *p##className)                               \
+    {                                                                                                                  \
+        assert(p##className != nullptr);                                                                               \
+        auto it = std::find(containerMember.cbegin(), containerMember.cend(), p##className);                           \
+        if (it != containerMember.cend())                                                                              \
+        {                                                                                                              \
+            containerMember.erase(it);                                                                                 \
+            delete p##className;                                                                                       \
+        }                                                                                                              \
+        else                                                                                                           \
+        {                                                                                                              \
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy " #className " '%s'",                                  \
+                                   p##className->GetName().c_str());                                                   \
+        }                                                                                                              \
     }
 
     void OpenGLGraphicsSystem::DestroyTexture(const OpenGLTexture *pTexture)
@@ -214,7 +212,9 @@ namespace FastCG
         }
     }
 
-    GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
+    GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets,
+                                                        uint32_t renderTargetCount,
+                                                        const OpenGLTexture *pDepthStencilBuffer)
     {
         size_t fboHash;
         {
@@ -245,8 +245,10 @@ namespace FastCG
             glObjectLabel(GL_FRAMEBUFFER, fboId, (GLsizei)framebufferLabel.size(), framebufferLabel.c_str());
         }
 #endif
-        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [i = 0](const auto *pRenderTarget) mutable
-                      { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (i++), GetOpenGLTarget(pRenderTarget->GetType()), *pRenderTarget, 0); });
+        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [i = 0](const auto *pRenderTarget) mutable {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (i++),
+                                   GetOpenGLTarget(pRenderTarget->GetType()), *pRenderTarget, 0);
+        });
 
         if (pDepthStencilBuffer != nullptr)
         {
@@ -259,7 +261,8 @@ namespace FastCG
             {
                 attachment = GL_DEPTH_ATTACHMENT;
             }
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()), *pDepthStencilBuffer, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()),
+                                   *pDepthStencilBuffer, 0);
         }
 
         auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
@@ -270,8 +273,8 @@ namespace FastCG
 
         mFboIds.emplace(fboHash, fboId);
 
-        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [&](const auto *pRenderTarget)
-                      { mTextureToFboHashes[*pRenderTarget].emplace_back(fboHash); });
+        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount,
+                      [&](const auto *pRenderTarget) { mTextureToFboHashes[*pRenderTarget].emplace_back(fboHash); });
 
         if (pDepthStencilBuffer != nullptr)
         {
@@ -286,12 +289,13 @@ namespace FastCG
     GLuint OpenGLGraphicsSystem::GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount)
     {
         assert(bufferCount > 0);
-        assert(std::all_of(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
-                           { 
-                            assert(pBuffer != nullptr); 
-                            const auto& rVbDescs = pBuffer->GetVertexBindingDescriptors(); 
-                            return (pBuffer->GetUsage() & BufferUsageFlagBit::VERTEX_BUFFER) != 0 && 
-                                std::all_of(rVbDescs.cbegin(), rVbDescs.cend(), [](const auto& rVbDesc) { return rVbDesc.IsValid(); }); }));
+        assert(std::all_of(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer) {
+            assert(pBuffer != nullptr);
+            const auto &rVbDescs = pBuffer->GetVertexBindingDescriptors();
+            return (pBuffer->GetUsage() & BufferUsageFlagBit::VERTEX_BUFFER) != 0 &&
+                   std::all_of(rVbDescs.cbegin(), rVbDescs.cend(),
+                               [](const auto &rVbDesc) { return rVbDesc.IsValid(); });
+        }));
 
         auto vaoHash = (size_t)FNV1a(reinterpret_cast<const uint8_t *>(pBuffers), bufferCount * sizeof(OpenGLBuffer *));
 
@@ -311,14 +315,16 @@ namespace FastCG
         }
 #endif
 
-        std::for_each(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer)
-                      {
-                        glBindBuffer(GetOpenGLTarget(pBuffer->GetUsage()), *pBuffer);
+        std::for_each(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer) {
+            glBindBuffer(GetOpenGLTarget(pBuffer->GetUsage()), *pBuffer);
             for (const auto &rVbDesc : pBuffer->GetVertexBindingDescriptors())
             {
                 glEnableVertexAttribArray(rVbDesc.binding);
-                glVertexAttribPointer(rVbDesc.binding, rVbDesc.size, GetOpenGLType(rVbDesc.type), (GLboolean)rVbDesc.normalized, rVbDesc.stride, (const GLvoid*)(uintptr_t)rVbDesc.offset);
-            } });
+                glVertexAttribPointer(rVbDesc.binding, rVbDesc.size, GetOpenGLType(rVbDesc.type),
+                                      (GLboolean)rVbDesc.normalized, rVbDesc.stride,
+                                      (const GLvoid *)(uintptr_t)rVbDesc.offset);
+            }
+        });
 
         mVaoIds.emplace(vaoHash, vaoId);
 
@@ -335,23 +341,34 @@ namespace FastCG
         mHDC = GetDC(hWnd);
         assert(mHDC != 0);
 
-        PIXELFORMATDESCRIPTOR pixelFormatDescr =
-            {
-                sizeof(PIXELFORMATDESCRIPTOR),
-                1,
-                PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-                PFD_TYPE_RGBA,
-                32,                     // color bits
-                0, 0, 0, 0, 0, 0, 0, 0, // per-channel color bits and shifts (RGBA)
-                0,                      // accum bits
-                0, 0, 0, 0,             // per-channel accum bits
-                0,                      // depth bits
-                0,                      // stencil bits
-                0,                      // auxiliary buffers
-                PFD_MAIN_PLANE,         // layer type
-                0,                      // reserved
-                0, 0, 0,                // layer mask, visible mask, damage mask
-            };
+        PIXELFORMATDESCRIPTOR pixelFormatDescr = {
+            sizeof(PIXELFORMATDESCRIPTOR),
+            1,
+            PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+            PFD_TYPE_RGBA,
+            32, // color bits
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0, // per-channel color bits and shifts (RGBA)
+            0, // accum bits
+            0,
+            0,
+            0,
+            0,              // per-channel accum bits
+            0,              // depth bits
+            0,              // stencil bits
+            0,              // auxiliary buffers
+            PFD_MAIN_PLANE, // layer type
+            0,              // reserved
+            0,
+            0,
+            0, // layer mask, visible mask, damage mask
+        };
         auto pixelFormat = ChoosePixelFormat(mHDC, &pixelFormatDescr);
         if (!SetPixelFormat(mHDC, pixelFormat, &pixelFormatDescr))
         {
@@ -401,21 +418,19 @@ namespace FastCG
     void OpenGLGraphicsSystem::CreateOpenGLContext()
     {
 #if defined FASTCG_WINDOWS
-        const int attribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            WGL_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int attribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
+                               4,
+                               WGL_CONTEXT_MINOR_VERSION_ARB,
+                               3,
+                               WGL_CONTEXT_PROFILE_MASK_ARB,
+                               WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                               WGL_CONTEXT_FLAGS_ARB,
+                               WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | WGL_CONTEXT_DEBUG_BIT_ARB
+                                   | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                               ,
+                               0};
 
         auto oldHGLRC = mHGLRC;
 
@@ -437,21 +452,19 @@ namespace FastCG
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         assert(pDisplay != nullptr);
 
-        const int attribs[] = {
-            GLX_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            GLX_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            GLX_CONTEXT_PROFILE_MASK_ARB,
-            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-            GLX_CONTEXT_FLAGS_ARB,
-            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int attribs[] = {GLX_CONTEXT_MAJOR_VERSION_ARB,
+                               4,
+                               GLX_CONTEXT_MINOR_VERSION_ARB,
+                               3,
+                               GLX_CONTEXT_PROFILE_MASK_ARB,
+                               GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                               GLX_CONTEXT_FLAGS_ARB,
+                               GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | GLX_CONTEXT_DEBUG_BIT_ARB
+                                   | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                               ,
+                               0};
 
         int dummy;
         if (!glXQueryExtension(pDisplay, &dummy, &dummy))
@@ -459,16 +472,23 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "OpenGL not supported by X server");
         }
 
-        const int fbAttribs[] = {
-            GLX_RENDER_TYPE, GLX_RGBA_BIT,
-            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-            GLX_DOUBLEBUFFER, True,
-            GLX_RED_SIZE, 8,
-            GLX_GREEN_SIZE, 8,
-            GLX_BLUE_SIZE, 8,
-            GLX_ALPHA_SIZE, 8,
-            GLX_DEPTH_SIZE, 0,
-            None};
+        const int fbAttribs[] = {GLX_RENDER_TYPE,
+                                 GLX_RGBA_BIT,
+                                 GLX_DRAWABLE_TYPE,
+                                 GLX_WINDOW_BIT,
+                                 GLX_DOUBLEBUFFER,
+                                 True,
+                                 GLX_RED_SIZE,
+                                 8,
+                                 GLX_GREEN_SIZE,
+                                 8,
+                                 GLX_BLUE_SIZE,
+                                 8,
+                                 GLX_ALPHA_SIZE,
+                                 8,
+                                 GLX_DEPTH_SIZE,
+                                 0,
+                                 None};
 
         auto defaultScreen = DefaultScreen(pDisplay);
 
@@ -536,14 +556,19 @@ namespace FastCG
             FASTCG_CHECK_EGL_ERROR("EGL: Couldn't initialize EGL");
         }
 
-        const EGLint configAttribs[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-            EGL_BLUE_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
-            EGL_ALPHA_SIZE, 8,
-            EGL_NONE};
+        const EGLint configAttribs[] = {EGL_SURFACE_TYPE,
+                                        EGL_WINDOW_BIT,
+                                        EGL_RENDERABLE_TYPE,
+                                        EGL_OPENGL_ES2_BIT,
+                                        EGL_BLUE_SIZE,
+                                        8,
+                                        EGL_GREEN_SIZE,
+                                        8,
+                                        EGL_RED_SIZE,
+                                        8,
+                                        EGL_ALPHA_SIZE,
+                                        8,
+                                        EGL_NONE};
 
         EGLint numConfigs;
         if (!eglChooseConfig(mDisplay, configAttribs, &mConfig, 1, &numConfigs))
@@ -557,10 +582,7 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "EGL: Couldn't create the headless EGL context");
         }
 
-        const EGLint pbufferAttribs[] = {
-            EGL_WIDTH, 1,
-            EGL_HEIGHT, 1,
-            EGL_NONE};
+        const EGLint pbufferAttribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
 
         mPbufferSurface = eglCreatePbufferSurface(mDisplay, mConfig, pbufferAttribs);
         if (mPbufferSurface == EGL_NO_SURFACE)

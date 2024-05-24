@@ -3,10 +3,10 @@
 
 #include <FastCG/Rendering/MaterialDefinition.h>
 
-#include <unordered_map>
-#include <string>
-#include <memory>
 #include <cassert>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace FastCG
 {

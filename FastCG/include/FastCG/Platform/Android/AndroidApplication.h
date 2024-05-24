@@ -15,7 +15,9 @@ namespace FastCG
     class AndroidApplication : public BaseApplication
     {
     public:
-        AndroidApplication(const ApplicationSettings &applicationSettings = {}) : BaseApplication(applicationSettings) {}
+        AndroidApplication(const ApplicationSettings &applicationSettings = {}) : BaseApplication(applicationSettings)
+        {
+        }
 
         inline static AndroidApplication *GetInstance()
         {

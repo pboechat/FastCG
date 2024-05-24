@@ -1,21 +1,21 @@
-#include <FastCG/World/WorldSystem.h>
-#include <FastCG/World/Transform.h>
-#include <FastCG/World/GameObjectLoader.h>
-#include <FastCG/World/GameObjectDumper.h>
-#include <FastCG/World/GameObject.h>
-#include <FastCG/World/ComponentRegistry.h>
-#include <FastCG/World/Component.h>
-#include <FastCG/World/Behaviour.h>
-#include <FastCG/Rendering/Renderable.h>
-#include <FastCG/Rendering/PointLight.h>
-#include <FastCG/Rendering/Fog.h>
-#include <FastCG/Rendering/DirectionalLight.h>
-#include <FastCG/Rendering/Camera.h>
-#include <FastCG/Platform/Application.h>
-#include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Debug/DebugMenuSystem.h>
-#include <FastCG/Core/Math.h>
 #include <FastCG/Core/Log.h>
+#include <FastCG/Core/Math.h>
+#include <FastCG/Debug/DebugMenuSystem.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/Rendering/Camera.h>
+#include <FastCG/Rendering/DirectionalLight.h>
+#include <FastCG/Rendering/Fog.h>
+#include <FastCG/Rendering/PointLight.h>
+#include <FastCG/Rendering/Renderable.h>
+#include <FastCG/World/Behaviour.h>
+#include <FastCG/World/Component.h>
+#include <FastCG/World/ComponentRegistry.h>
+#include <FastCG/World/GameObject.h>
+#include <FastCG/World/GameObjectDumper.h>
+#include <FastCG/World/GameObjectLoader.h>
+#include <FastCG/World/Transform.h>
+#include <FastCG/World/WorldSystem.h>
 
 #include <imgui.h>
 #if _DEBUG
@@ -23,48 +23,50 @@
 #include <glm/gtc/type_ptr.hpp>
 #endif
 
-#include <unordered_set>
-#include <memory>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <memory>
+#include <unordered_set>
 
 #ifdef max
 #undef max
 #endif
 
-#define FASTCG_TRACK_COMPONENT(className, component)         \
-    if (component->GetType().IsDerived(className::TYPE))     \
-    {                                                        \
-        mp##className = static_cast<className *>(component); \
+#define FASTCG_TRACK_COMPONENT(className, component)                                                                   \
+    if (component->GetType().IsDerived(className::TYPE))                                                               \
+    {                                                                                                                  \
+        mp##className = static_cast<className *>(component);                                                           \
     }
 
-#define FASTCG_UNTRACK_COMPONENT(className, component)   \
-    if (component->GetType().IsDerived(className::TYPE)) \
-    {                                                    \
-        mp##className = nullptr;                         \
+#define FASTCG_UNTRACK_COMPONENT(className, component)                                                                 \
+    if (component->GetType().IsDerived(className::TYPE))                                                               \
+    {                                                                                                                  \
+        mp##className = nullptr;                                                                                       \
     }
 
-#define FASTCG_TRACK_COMPONENT_COLLECTION(className, component)            \
-    if (component->GetType().IsDerived(className::TYPE))                   \
-    {                                                                      \
-        m##className##s.emplace_back(static_cast<className *>(component)); \
+#define FASTCG_TRACK_COMPONENT_COLLECTION(className, component)                                                        \
+    if (component->GetType().IsDerived(className::TYPE))                                                               \
+    {                                                                                                                  \
+        m##className##s.emplace_back(static_cast<className *>(component));                                             \
     }
 
-#define FASTCG_UNTRACK_COMPONENT_COLLECTION(className, component)                                        \
-    if (component->GetType().IsDerived(className::TYPE))                                                 \
-    {                                                                                                    \
-        auto it = std::find(m##className##s.begin(), m##className##s.end(), component);                  \
-        if (it == m##className##s.end())                                                                 \
-        {                                                                                                \
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't untrack component (component: %s)", #className); \
-        }                                                                                                \
-        m##className##s.erase(it);                                                                       \
+#define FASTCG_UNTRACK_COMPONENT_COLLECTION(className, component)                                                      \
+    if (component->GetType().IsDerived(className::TYPE))                                                               \
+    {                                                                                                                  \
+        auto it = std::find(m##className##s.begin(), m##className##s.end(), component);                                \
+        if (it == m##className##s.end())                                                                               \
+        {                                                                                                              \
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't untrack component (component: %s)", #className);               \
+        }                                                                                                              \
+        m##className##s.erase(it);                                                                                     \
     }
 
 namespace
 {
 #if _DEBUG
-    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject, FastCG::GameObject *&rpRemovedGameObject, std::unordered_set<const FastCG::GameObject *> &rVisitedGameObjects)
+    void DisplaySceneHierarchy(FastCG::GameObject *pGameObject, FastCG::GameObject *&rpSelectedGameObject,
+                               FastCG::GameObject *&rpRemovedGameObject,
+                               std::unordered_set<const FastCG::GameObject *> &rVisitedGameObjects)
     {
         auto it = rVisitedGameObjects.find(pGameObject);
         if (it != rVisitedGameObjects.end())
@@ -83,8 +85,7 @@ namespace
                 flags |= ImGuiTreeNodeFlags_Selected;
             }
 
-            auto DisplayPopup = [&pGameObject, &rpRemovedGameObject]()
-            {
+            auto DisplayPopup = [&pGameObject, &rpRemovedGameObject]() {
                 if (ImGui::BeginPopup("SceneHierarchy_ItemContextMenu"))
                 {
                     if (ImGui::MenuItem("Add"))
@@ -98,14 +99,16 @@ namespace
                     }
                     if (ImGui::MenuItem("Dump"))
                     {
-                        ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File", ".json", ".", 1, (void *)pGameObject);
+                        ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File", ".json",
+                                                                ".", 1, (void *)pGameObject);
                     }
                     ImGui::EndPopup();
                 }
             };
             if (rChildren.empty())
             {
-                ImGui::TreeNodeEx(pGameObject->GetName().c_str(), flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
+                ImGui::TreeNodeEx(pGameObject->GetName().c_str(),
+                                  flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
 
                 if (ImGui::IsItemClicked(1))
                 {
@@ -135,7 +138,8 @@ namespace
                 {
                     for (auto *pChild : rChildren)
                     {
-                        DisplaySceneHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rpRemovedGameObject, rVisitedGameObjects);
+                        DisplaySceneHierarchy(pChild->GetGameObject(), rpSelectedGameObject, rpRemovedGameObject,
+                                              rVisitedGameObjects);
                     }
                     ImGui::TreePop();
                 }
@@ -151,14 +155,15 @@ namespace
         ImGui::PopID();
     }
 
-    void DisplaySceneHierarchy(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::GameObject *&rpSelectedGameObject, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    void DisplaySceneHierarchy(const std::vector<FastCG::GameObject *> &rGameObjects,
+                               FastCG::GameObject *&rpSelectedGameObject,
+                               FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         if (ImGui::Begin("Scene Hierarchy"))
         {
             std::unordered_set<const FastCG::GameObject *> visitedGameObjects;
 
-            FastCG::GameObject *pSelectedGameObject = rpSelectedGameObject,
-                               *pRemovedGameObject = nullptr;
+            FastCG::GameObject *pSelectedGameObject = rpSelectedGameObject, *pRemovedGameObject = nullptr;
             for (auto *pGameObject : rGameObjects)
             {
                 if (pGameObject->GetTransform()->GetParent() != nullptr)
@@ -195,7 +200,8 @@ namespace
                 }
                 if (ImGui::MenuItem("Load"))
                 {
-                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File", ".json", ".");
+                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File", ".json",
+                                                            ".");
                 }
                 ImGui::EndPopup();
             }
@@ -263,11 +269,11 @@ namespace
     template <typename T>
     struct ImGuiDragFnFormatSelector;
 
-#define FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(type, format) \
-    template <>                                                    \
-    struct ImGuiDragFnFormatSelector<type>                         \
-    {                                                              \
-        static constexpr char const *value = format;               \
+#define FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(type, format)                                                     \
+    template <>                                                                                                        \
+    struct ImGuiDragFnFormatSelector<type>                                                                             \
+    {                                                                                                                  \
+        static constexpr char const *value = format;                                                                   \
     }
 
     FASTCG_DECLARE_IMGUI_DRAG_FN_FORMAT_SELECTOR(float, "%.3f");
@@ -283,20 +289,24 @@ namespace
     template <typename T, typename U>
     struct InspectablePropertyDragScalarFnSelector
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1,
+                          const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
             auto readonly = pInspectableProperty->IsReadOnly();
             if (readonly)
             {
                 ImGui::BeginDisabled();
             }
-            auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
+            auto *pInspectableDelimitedProperty =
+                static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
             pInspectableDelimitedProperty->GetMax(&max);
             pInspectableDelimitedProperty->GetValue(&value);
             auto proxyValue = (U)value;
-            if (ImGuiDragFnSelector<U>::value(pInspectableDelimitedProperty->GetName().c_str(), &proxyValue, speed, (U)min, (U)max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            if (ImGuiDragFnSelector<U>::value(pInspectableDelimitedProperty->GetName().c_str(), &proxyValue, speed,
+                                              (U)min, (U)max, pFormat, sliderFlags) &&
+                !pInspectableProperty->IsReadOnly())
             {
                 value = (T)proxyValue;
                 pInspectableDelimitedProperty->SetValue((void *)&value);
@@ -311,19 +321,23 @@ namespace
     template <typename T>
     struct InspectablePropertyDragScalarFnSelector<T, void>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1,
+                          const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
             auto readonly = pInspectableProperty->IsReadOnly();
             if (readonly)
             {
                 ImGui::BeginDisabled();
             }
-            auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
+            auto *pInspectableDelimitedProperty =
+                static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
             pInspectableDelimitedProperty->GetMax(&max);
             pInspectableDelimitedProperty->GetValue(&value);
-            if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value, speed, min, max, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value, speed, min, max,
+                                              pFormat, sliderFlags) &&
+                !pInspectableProperty->IsReadOnly())
             {
                 pInspectableDelimitedProperty->SetValue((void *)&value);
             }
@@ -337,21 +351,25 @@ namespace
     template <typename T>
     struct InspectablePropertyDragVectorFnSelector
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1, const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty, float speed = 1,
+                          const char *pFormat = ImGuiDragFnFormatSelector<T>::value, ImGuiSliderFlags sliderFlags = 0)
         {
             auto readonly = pInspectableProperty->IsReadOnly();
             if (readonly)
             {
                 ImGui::BeginDisabled();
             }
-            auto *pInspectableDelimitedProperty = static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
+            auto *pInspectableDelimitedProperty =
+                static_cast<FastCG::IInspectableDelimitedProperty *>(pInspectableProperty);
             T min, max, value;
             pInspectableDelimitedProperty->GetMin(&min);
             pInspectableDelimitedProperty->GetMax(&max);
             pInspectableDelimitedProperty->GetValue(&value);
             auto scalarMin = glm::min(min, min).x;
             auto scalarMax = glm::max(max, max).x;
-            if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value[0], speed, scalarMin, scalarMax, pFormat, sliderFlags) && !pInspectableProperty->IsReadOnly())
+            if (ImGuiDragFnSelector<T>::value(pInspectableDelimitedProperty->GetName().c_str(), &value[0], speed,
+                                              scalarMin, scalarMax, pFormat, sliderFlags) &&
+                !pInspectableProperty->IsReadOnly())
             {
                 pInspectableDelimitedProperty->SetValue((void *)&value);
             }
@@ -368,11 +386,11 @@ namespace
         using value = void;
     };
 
-#define FASTCG_DECLARE_IMGUI_SCALAR_PROXY(type, proxyType) \
-    template <>                                            \
-    struct ImGuiScalarProxy<type>                          \
-    {                                                      \
-        using value = proxyType;                           \
+#define FASTCG_DECLARE_IMGUI_SCALAR_PROXY(type, proxyType)                                                             \
+    template <>                                                                                                        \
+    struct ImGuiScalarProxy<type>                                                                                      \
+    {                                                                                                                  \
+        using value = proxyType;                                                                                       \
     }
 
     FASTCG_DECLARE_IMGUI_SCALAR_PROXY(uint32_t, int32_t);
@@ -381,7 +399,8 @@ namespace
     FASTCG_DECLARE_IMGUI_SCALAR_PROXY(double, float);
 
     template <typename T>
-    struct InspectablePropertyDisplayFnSelector : InspectablePropertyDragScalarFnSelector<T, typename ImGuiScalarProxy<T>::value>
+    struct InspectablePropertyDisplayFnSelector
+        : InspectablePropertyDragScalarFnSelector<T, typename ImGuiScalarProxy<T>::value>
     {
     };
 
@@ -420,7 +439,8 @@ namespace
             }
             std::string value;
             pInspectableProperty->GetValue((void *)&value);
-            if (ImGui::InputText(pInspectableProperty->GetName().c_str(), &value[0], value.size()) && !pInspectableProperty->IsReadOnly())
+            if (ImGui::InputText(pInspectableProperty->GetName().c_str(), &value[0], value.size()) &&
+                !pInspectableProperty->IsReadOnly())
             {
                 pInspectableProperty->SetValue((void *)&value[0]);
             }
@@ -434,7 +454,8 @@ namespace
     template <>
     struct InspectablePropertyDisplayFnSelector<FastCG::Material>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty,
+                          FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
         {
             assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRef());
             std::shared_ptr<FastCG::Material> pMaterial;
@@ -463,7 +484,8 @@ namespace
     template <>
     struct InspectablePropertyDisplayFnSelector<FastCG::Texture>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty,
+                          FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
         {
             assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRawPtr());
             const FastCG::Texture *pTexture;
@@ -492,7 +514,8 @@ namespace
     template <>
     struct InspectablePropertyDisplayFnSelector<FastCG::Mesh>
     {
-        static void value(FastCG::IInspectableProperty *pInspectableProperty, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+        static void value(FastCG::IInspectableProperty *pInspectableProperty,
+                          FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
         {
             assert(pInspectableProperty->IsConst() && pInspectableProperty->IsRef());
             std::shared_ptr<FastCG::Mesh> pMesh;
@@ -533,7 +556,8 @@ namespace
     {
     };
 
-    std::unordered_set<std::shared_ptr<FastCG::Material>> GetMaterials(const std::vector<FastCG::GameObject *> &rGameObjects)
+    std::unordered_set<std::shared_ptr<FastCG::Material>> GetMaterials(
+        const std::vector<FastCG::GameObject *> &rGameObjects)
     {
         std::unordered_set<std::shared_ptr<FastCG::Material>> materials;
         for (auto *pGameObject : rGameObjects)
@@ -588,7 +612,8 @@ namespace
     }
 
     template <typename IteratorT, typename ItemT, typename CallbackT>
-    void DisplayItemTable(const char *pTitle, const IteratorT &rBegin, const IteratorT &rEnd, ItemT &rSelectedItem, const CallbackT &rCallback)
+    void DisplayItemTable(const char *pTitle, const IteratorT &rBegin, const IteratorT &rEnd, ItemT &rSelectedItem,
+                          const CallbackT &rCallback)
     {
         if (ImGui::BeginTable(pTitle, 1, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders))
         {
@@ -610,7 +635,8 @@ namespace
         }
     }
 
-    void DisplayInspectablePropertyAssignDialog(const std::vector<FastCG::GameObject *> &rGameObjects, FastCG::IInspectableProperty *&rpInspectableProperty)
+    void DisplayInspectablePropertyAssignDialog(const std::vector<FastCG::GameObject *> &rGameObjects,
+                                                FastCG::IInspectableProperty *&rpInspectableProperty)
     {
         if (rpInspectableProperty == nullptr)
         {
@@ -628,32 +654,32 @@ namespace
         {
             switch (rpInspectableProperty->GetType())
             {
-            case FastCG::InspectablePropertyType::MATERIAL:
-            {
+            case FastCG::InspectablePropertyType::MATERIAL: {
                 auto materials = GetMaterials(rGameObjects);
-                DisplayItemTable("Materials", materials.begin(), materials.end(), spMaterial, [](const std::shared_ptr<FastCG::Material> &rpMaterial)
-                                 { return rpMaterial->GetName().c_str(); });
+                DisplayItemTable(
+                    "Materials", materials.begin(), materials.end(), spMaterial,
+                    [](const std::shared_ptr<FastCG::Material> &rpMaterial) { return rpMaterial->GetName().c_str(); });
                 pValue = &spMaterial;
             }
             break;
-            case FastCG::InspectablePropertyType::MESH:
-            {
+            case FastCG::InspectablePropertyType::MESH: {
                 auto meshes = GetMeshes(rGameObjects);
-                DisplayItemTable("Meshes", meshes.begin(), meshes.end(), spMesh, [](const std::shared_ptr<FastCG::Mesh> &rpMesh)
-                                 { return rpMesh->GetName().c_str(); });
+                DisplayItemTable("Meshes", meshes.begin(), meshes.end(), spMesh,
+                                 [](const std::shared_ptr<FastCG::Mesh> &rpMesh) { return rpMesh->GetName().c_str(); });
                 pValue = &spMesh;
             }
             break;
-            case FastCG::InspectablePropertyType::TEXTURE:
-            {
+            case FastCG::InspectablePropertyType::TEXTURE: {
                 auto textures = FastCG::GraphicsSystem::GetInstance()->GetTextures();
-                DisplayItemTable("Textures", textures.begin(), textures.end(), spTexture, [](const FastCG::Texture *pTexture)
-                                 { return pTexture->GetName().c_str(); });
+                DisplayItemTable("Textures", textures.begin(), textures.end(), spTexture,
+                                 [](const FastCG::Texture *pTexture) { return pTexture->GetName().c_str(); });
                 pValue = &spTexture;
             }
             break;
             default:
-                FASTCG_THROW_EXCEPTION(FastCG::Exception, "Don't know how to deferred assign to inspectable property (type: %s)", FastCG::GetInspectablePropertyTypeString(rpInspectableProperty->GetType()));
+                FASTCG_THROW_EXCEPTION(FastCG::Exception,
+                                       "Don't know how to deferred assign to inspectable property (type: %s)",
+                                       FastCG::GetInspectablePropertyTypeString(rpInspectableProperty->GetType()));
                 break;
             }
             bool close = false;
@@ -695,8 +721,8 @@ namespace
         if (ImGui::Begin("Assign"))
         {
             auto textures = FastCG::GraphicsSystem::GetInstance()->GetTextures();
-            DisplayItemTable("Textures", textures.begin(), textures.end(), spTexture, [](const FastCG::Texture *pTexture)
-                             { return pTexture->GetName().c_str(); });
+            DisplayItemTable("Textures", textures.begin(), textures.end(), spTexture,
+                             [](const FastCG::Texture *pTexture) { return pTexture->GetName().c_str(); });
             bool close = false;
             if (ImGui::Button("OK"))
             {
@@ -721,7 +747,8 @@ namespace
 
     void DisplayInspectable(const std::string &, FastCG::Inspectable *, FastCG::IInspectableProperty *&);
 
-    void FillInInspectable(FastCG::Inspectable *pInspectable, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    void FillInInspectable(FastCG::Inspectable *pInspectable,
+                           FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         for (size_t i = 0; i < pInspectable->GetInspectablePropertyCount(); ++i)
         {
@@ -730,8 +757,7 @@ namespace
             {
                 switch (pInspectableProperty->GetType())
                 {
-                case FastCG::InspectablePropertyType::INSPECTABLE:
-                {
+                case FastCG::InspectablePropertyType::INSPECTABLE: {
                     auto readonly = pInspectableProperty->IsReadOnly();
                     if (readonly)
                     {
@@ -739,24 +765,26 @@ namespace
                     }
                     FastCG::Inspectable *pOtherInspectable;
                     pInspectableProperty->GetValue(&pOtherInspectable);
-                    DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable, rpSelectedInspectableProperty);
+                    DisplayInspectable(pInspectableProperty->GetName().c_str(), pOtherInspectable,
+                                       rpSelectedInspectableProperty);
                     if (readonly)
                     {
                         ImGui::EndDisabled();
                     }
                 }
                 break;
-                case FastCG::InspectablePropertyType::ENUM:
-                {
+                case FastCG::InspectablePropertyType::ENUM: {
                     auto readonly = pInspectableProperty->IsReadOnly();
                     if (readonly)
                     {
                         ImGui::BeginDisabled();
                     }
-                    auto pInspectableEnumProperty = static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
+                    auto pInspectableEnumProperty =
+                        static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
                     auto ppItems = pInspectableEnumProperty->GetItems();
                     int currentItem = (int)pInspectableEnumProperty->GetSelectedItem();
-                    if (ImGui::Combo(pInspectableEnumProperty->GetName().c_str(), &currentItem, ppItems, (int)pInspectableEnumProperty->GetItemCount()))
+                    if (ImGui::Combo(pInspectableEnumProperty->GetName().c_str(), &currentItem, ppItems,
+                                     (int)pInspectableEnumProperty->GetItemCount()))
                     {
                         pInspectableEnumProperty->SetSelectedItem((size_t)currentItem);
                     }
@@ -800,13 +828,16 @@ namespace
                     InspectablePropertyDisplayFnSelector<std::string>::value(pInspectableProperty);
                     break;
                 case FastCG::InspectablePropertyType::MATERIAL:
-                    InspectablePropertyDisplayFnSelector<FastCG::Material>::value(pInspectableProperty, rpSelectedInspectableProperty);
+                    InspectablePropertyDisplayFnSelector<FastCG::Material>::value(pInspectableProperty,
+                                                                                  rpSelectedInspectableProperty);
                     break;
                 case FastCG::InspectablePropertyType::MESH:
-                    InspectablePropertyDisplayFnSelector<FastCG::Mesh>::value(pInspectableProperty, rpSelectedInspectableProperty);
+                    InspectablePropertyDisplayFnSelector<FastCG::Mesh>::value(pInspectableProperty,
+                                                                              rpSelectedInspectableProperty);
                     break;
                 case FastCG::InspectablePropertyType::TEXTURE:
-                    InspectablePropertyDisplayFnSelector<FastCG::Texture>::value(pInspectableProperty, rpSelectedInspectableProperty);
+                    InspectablePropertyDisplayFnSelector<FastCG::Texture>::value(pInspectableProperty,
+                                                                                 rpSelectedInspectableProperty);
                     break;
                 default:
                     assert(false);
@@ -816,11 +847,13 @@ namespace
         }
     }
 
-    void DisplayComponent(const std::string &rName, FastCG::Component *pComponent, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    void DisplayComponent(const std::string &rName, FastCG::Component *pComponent,
+                          FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         ImGui::PushID(pComponent);
         {
-            bool nodeOpened = ImGui::TreeNodeEx(rName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick);
+            bool nodeOpened = ImGui::TreeNodeEx(rName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth |
+                                                                   ImGuiTreeNodeFlags_OpenOnDoubleClick);
 
             if (ImGui::IsItemClicked(1))
             {
@@ -845,11 +878,13 @@ namespace
         ImGui::PopID();
     }
 
-    void DisplayInspectable(const std::string &rName, FastCG::Inspectable *pInspectable, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    void DisplayInspectable(const std::string &rName, FastCG::Inspectable *pInspectable,
+                            FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         ImGui::PushID(pInspectable);
         {
-            if (ImGui::TreeNodeEx(rName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
+            if (ImGui::TreeNodeEx(rName.c_str(),
+                                  ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
             {
                 if (pInspectable != nullptr)
                 {
@@ -861,7 +896,8 @@ namespace
         ImGui::PopID();
     }
 
-    void DisplayObjectInspector(FastCG::GameObject *pGameObject, FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
+    void DisplayObjectInspector(FastCG::GameObject *pGameObject,
+                                FastCG::IInspectableProperty *&rpSelectedInspectableProperty)
     {
         if (ImGui::Begin("Object Inspector"))
         {
@@ -869,7 +905,8 @@ namespace
             {
                 ImGui::PushID(pGameObject);
                 {
-                    if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (ImGui::TreeNodeEx("Transform",
+                                          ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         auto *pTransform = pGameObject->GetTransform();
 
@@ -936,7 +973,8 @@ namespace
         ImGui::End();
     }
 
-    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects, std::weak_ptr<FastCG::Material> &rpSelectedMaterial, std::string &rSelectedTextureName)
+    void DisplayMaterialBrowser(const std::vector<FastCG::GameObject *> &rGameObjects,
+                                std::weak_ptr<FastCG::Material> &rpSelectedMaterial, std::string &rSelectedTextureName)
     {
         auto pSelectedMaterial = rpSelectedMaterial.lock();
 
@@ -971,7 +1009,8 @@ namespace
                             {
                                 glm::vec4 value;
                                 rpMaterial->GetConstant(rConstant.GetName(), value);
-                                ImGui::Text("%s: (%.3f, %.3f, %.3f, %.3f)", rConstant.GetName().c_str(), value.x, value.y, value.z, value.w);
+                                ImGui::Text("%s: (%.3f, %.3f, %.3f, %.3f)", rConstant.GetName().c_str(), value.x,
+                                            value.y, value.z, value.w);
                             }
                             else if (rConstant.IsVec2())
                             {
@@ -1033,7 +1072,8 @@ namespace
         ImGui::End();
     }
 
-    void DisplayGizmosOptions(ImGuizmo::OPERATION &rOperation, ImGuizmo::MODE &rMode, glm::vec3 &rTranslateSnap, float &rRotateSnap, float &rScaleSnap)
+    void DisplayGizmosOptions(ImGuizmo::OPERATION &rOperation, ImGuizmo::MODE &rMode, glm::vec3 &rTranslateSnap,
+                              float &rRotateSnap, float &rScaleSnap)
     {
         if (ImGui::Begin("Gizmos Options"))
         {
@@ -1080,7 +1120,8 @@ namespace
         }
     }
 
-    void DisplayGizmos(FastCG::GameObject *pGameObject, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode, const glm::vec3 &rTranslateSnap, float rotateSnap, float scaleSnap)
+    void DisplayGizmos(FastCG::GameObject *pGameObject, ImGuizmo::OPERATION operation, ImGuizmo::MODE mode,
+                       const glm::vec3 &rTranslateSnap, float rotateSnap, float scaleSnap)
     {
         if (pGameObject != nullptr)
         {
@@ -1104,7 +1145,8 @@ namespace
                     pSnap = &scaleSnap;
                     break;
                 }
-                if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode, glm::value_ptr(model), nullptr, pSnap))
+                if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,
+                                         glm::value_ptr(model), nullptr, pSnap))
                 {
                     pTransform->SetModel(model);
                 }
@@ -1127,8 +1169,10 @@ namespace FastCG
         FASTCG_LOG_DEBUG(RenderingSystem, "\tInitializing world system");
 
 #if _DEBUG
-        DebugMenuSystem::GetInstance()->AddCallback("World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
-        DebugMenuSystem::GetInstance()->AddItem("World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));
+        DebugMenuSystem::GetInstance()->AddCallback(
+            "World System", std::bind(&WorldSystem::DebugMenuCallback, this, std::placeholders::_1));
+        DebugMenuSystem::GetInstance()->AddItem(
+            "World System", std::bind(&WorldSystem::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
     }
 

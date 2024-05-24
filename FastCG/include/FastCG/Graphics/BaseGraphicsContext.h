@@ -5,8 +5,8 @@
 
 #include <glm/glm.hpp>
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 namespace FastCG
 {
@@ -58,7 +58,8 @@ namespace FastCG
         void BindResource(const Buffer *pBuffer, const char *pName);
         void BindResource(const Texture *pTexture, const char *pName);
         void Blit(const Texture *pSrc, const Texture *pDst);
-        void SetRenderTargets(const Texture *const *ppRenderTargets, uint32_t renderTargetCount, const Texture *pDepthStencilBuffer);
+        void SetRenderTargets(const Texture *const *ppRenderTargets, uint32_t renderTargetCount,
+                              const Texture *pDepthStencilBuffer);
         void ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor);
         void ClearDepthStencilBuffer(float depth, int32_t stencil);
         void ClearDepthBuffer(float depth);
@@ -67,7 +68,8 @@ namespace FastCG
         void SetIndexBuffer(const Buffer *pBuffer);
         void SetPrimitiveType(PrimitiveType primitiveType);
         void DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
-        void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount, uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
+        void DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance, uint32_t instanceCount,
+                                  uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void End();
         double GetElapsedTime() const;
@@ -75,7 +77,9 @@ namespace FastCG
     protected:
         const Args mArgs;
 
-        BaseGraphicsContext(const Args &rArgs) : mArgs(rArgs) {}
+        BaseGraphicsContext(const Args &rArgs) : mArgs(rArgs)
+        {
+        }
         virtual ~BaseGraphicsContext() = default;
     };
 

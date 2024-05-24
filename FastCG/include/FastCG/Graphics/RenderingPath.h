@@ -3,8 +3,8 @@
 
 #include <FastCG/Core/Enums.h>
 
-#include <type_traits>
 #include <cstdint>
+#include <type_traits>
 
 namespace FastCG
 {
@@ -15,7 +15,8 @@ namespace FastCG
 
     constexpr const char *const FORWARD_RENDERING_PATH_PATTERN = "forward/";
     constexpr const char *const DEFERRED_RENDERING_PATH_PATTERN = "deferred/";
-    constexpr const char *const RENDERING_PATH_PATH_PATTERNS[] = {FORWARD_RENDERING_PATH_PATTERN, DEFERRED_RENDERING_PATH_PATTERN};
+    constexpr const char *const RENDERING_PATH_PATH_PATTERNS[] = {FORWARD_RENDERING_PATH_PATTERN,
+                                                                  DEFERRED_RENDERING_PATH_PATTERN};
 
 }
 

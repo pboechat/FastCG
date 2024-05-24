@@ -1,18 +1,18 @@
 #include "PCSSApplication.h"
 #include "Controls.h"
 
-#include <FastCG/World/FlyController.h>
-#include <FastCG/Rendering/StandardGeometries.h>
-#include <FastCG/Rendering/Renderable.h>
-#include <FastCG/Rendering/ModelLoader.h>
-#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/Rendering/DirectionalLight.h>
-#include <FastCG/Rendering/Camera.h>
-#include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Core/Math.h>
-#include <FastCG/Core/Colors.h>
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/Core/Colors.h>
+#include <FastCG/Core/Math.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Graphics/TextureLoader.h>
+#include <FastCG/Rendering/Camera.h>
+#include <FastCG/Rendering/DirectionalLight.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
+#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/Renderable.h>
+#include <FastCG/Rendering/StandardGeometries.h>
+#include <FastCG/World/FlyController.h>
 
 #include <memory>
 
@@ -24,9 +24,11 @@ namespace
 
     void LoadModel()
     {
-        auto pDefaultMaterial = std::make_shared<Material>(MaterialArgs{"Default Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
+        auto pDefaultMaterial = std::make_shared<Material>(MaterialArgs{
+            "Default Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 
-        auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial, (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
+        auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial,
+                                         (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't find bunny model");
@@ -47,7 +49,8 @@ namespace
 
     void CreateGround()
     {
-        auto pGroundMaterial = std::make_unique<Material>(MaterialArgs{"Ground", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
+        auto pGroundMaterial = std::make_unique<Material>(MaterialArgs{
+            "Ground", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 
         auto *pGroundGameObject = GameObject::Instantiate("Ground");
         auto pGroundMesh = StandardGeometries::CreateXZPlane("Ground", GROUND_SIZE, GROUND_SIZE);
@@ -76,7 +79,8 @@ void PCSSApplication::OnStart()
     pMainCameraGameObject->GetTransform()->SetPosition(glm::vec3(0, GROUND_SIZE * 0.5f, GROUND_SIZE));
     pMainCameraGameObject->GetTransform()->RotateAround(-20, glm::vec3(1, 0, 0));
 
-    Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768}, ProjectionMode::PERSPECTIVE);
+    Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768},
+                        ProjectionMode::PERSPECTIVE);
 
     auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);
     pFlyController->SetMoveSpeed(5);

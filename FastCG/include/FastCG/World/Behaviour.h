@@ -5,22 +5,22 @@
 
 namespace FastCG
 {
-	class Behaviour : public Component
-	{
-		FASTCG_DECLARE_ABSTRACT_COMPONENT(Behaviour, Component);
+    class Behaviour : public Component
+    {
+        FASTCG_DECLARE_ABSTRACT_COMPONENT(Behaviour, Component);
 
-	public:
-		inline void Update(float time, float deltaTime)
-		{
-			if (IsEnabled())
-			{
-				OnUpdate(time, deltaTime);
-			}
-		}
+    public:
+        inline void Update(float time, float deltaTime)
+        {
+            if (IsEnabled())
+            {
+                OnUpdate(time, deltaTime);
+            }
+        }
 
-	protected:
-		virtual void OnUpdate(float time, float deltaTime) = 0;
-	};
+    protected:
+        virtual void OnUpdate(float time, float deltaTime) = 0;
+    };
 
 }
 

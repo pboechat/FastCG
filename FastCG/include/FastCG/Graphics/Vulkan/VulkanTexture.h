@@ -3,9 +3,9 @@
 
 #ifdef FASTCG_VULKAN
 
+#include <FastCG/Graphics/BaseTexture.h>
 #include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/Vulkan/VulkanUtils.h>
-#include <FastCG/Graphics/BaseTexture.h>
 
 namespace FastCG
 {
@@ -19,29 +19,15 @@ namespace FastCG
         {
             VkImage image;
 
-            Args(const std::string &rName = "",
-                 uint32_t width = 1,
-                 uint32_t height = 1,
-                 uint32_t depthOrSlices = 1,
-                 uint8_t mipCount = 1,
-                 TextureType type = TextureType::TEXTURE_2D,
+            Args(const std::string &rName = "", uint32_t width = 1, uint32_t height = 1, uint32_t depthOrSlices = 1,
+                 uint8_t mipCount = 1, TextureType type = TextureType::TEXTURE_2D,
                  TextureUsageFlags usage = TextureUsageFlagBit::SAMPLED,
                  TextureFormat format = TextureFormat::R8G8B8A8_UNORM,
-                 TextureFilter filter = TextureFilter::LINEAR_FILTER,
-                 TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
-                 const uint8_t *pData = nullptr,
-                 VkImage image = VK_NULL_HANDLE) : BaseTexture::Args(rName,
-                                                                     width,
-                                                                     height,
-                                                                     depthOrSlices,
-                                                                     mipCount,
-                                                                     type,
-                                                                     usage,
-                                                                     format,
-                                                                     filter,
-                                                                     wrapMode,
-                                                                     pData),
-                                                   image(image)
+                 TextureFilter filter = TextureFilter::LINEAR_FILTER, TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
+                 const uint8_t *pData = nullptr, VkImage image = VK_NULL_HANDLE)
+                : BaseTexture::Args(rName, width, height, depthOrSlices, mipCount, type, usage, format, filter,
+                                    wrapMode, pData),
+                  image(image)
             {
             }
         };

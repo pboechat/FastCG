@@ -2,24 +2,25 @@
 #include "Controls.h"
 #include "LightsAnimator.h"
 
-#include <FastCG/World/GameObjectLoader.h>
-#include <FastCG/World/ComponentRegistry.h>
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/World/ComponentRegistry.h>
+#include <FastCG/World/GameObjectLoader.h>
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 using namespace FastCG;
 
-DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering", 1024, 768, 60, 3, false, {RenderingPath::DEFERRED}})
+DeferredRenderingApplication::DeferredRenderingApplication()
+    : Application({"deferred_rendering", 1024, 768, 60, 3, false, {RenderingPath::DEFERRED}})
 {
-	ComponentRegistry::RegisterComponent<Controls>();
-	ComponentRegistry::RegisterComponent<LightsAnimator>();
+    ComponentRegistry::RegisterComponent<Controls>();
+    ComponentRegistry::RegisterComponent<LightsAnimator>();
 }
 
 void DeferredRenderingApplication::OnStart()
 {
-	GameObjectLoader::Load(AssetSystem::GetInstance()->Resolve("scenes/deferred_rendering.scene"));
+    GameObjectLoader::Load(AssetSystem::GetInstance()->Resolve("scenes/deferred_rendering.scene"));
 }
 
 FASTCG_MAIN(DeferredRenderingApplication)

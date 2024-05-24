@@ -1,13 +1,13 @@
-#include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Debug/DebugMenuSystem.h>
-#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Log.h>
+#include <FastCG/Debug/DebugMenuSystem.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
 
 #include <imgui.h>
 
-#include <functional>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <functional>
 
 namespace
 {
@@ -18,15 +18,17 @@ namespace
         float textureHeight = textureWidth * (pTexture->GetHeight() / (float)pTexture->GetWidth());
         ImVec2 uv1 =
 #if defined FASTCG_OPENGL
-            // FIXME: instead of inverting the V coordinate here we could invert the Y axis of the ImGUI bitmap
-            {0, 1}
+        // FIXME: instead of inverting the V coordinate here we could invert the Y axis of the ImGUI bitmap
+        { 0,
+          1 }
 #else
             {0, 0}
 #endif
         ;
         ImVec2 uv2 =
 #if defined FASTCG_OPENGL
-            {1, 0}
+        { 1,
+          0 }
 #else
             {1, 1}
 #endif
@@ -35,7 +37,9 @@ namespace
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    void DisplayTextureBrowser(const FastCG::BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem, const TextureT *&rpSelectedTexture)
+    void DisplayTextureBrowser(
+        const FastCG::BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT> *pRenderingSystem,
+        const TextureT *&rpSelectedTexture)
     {
         if (ImGui::Begin("Texture Browser"))
         {
@@ -82,7 +86,8 @@ namespace
 namespace FastCG
 {
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    const TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::GetMissingTexture(TextureType textureType) const
+    const TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::GetMissingTexture(
+        TextureType textureType) const
     {
         auto it = mMissingTextures.find(textureType);
         if (it != mMissingTextures.end())
@@ -97,10 +102,12 @@ namespace FastCG
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    const ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::FindShader(const std::string &rName) const
+    const ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::FindShader(
+        const std::string &rName) const
     {
-        auto it = std::find_if(mShaders.cbegin(), mShaders.cend(), [&rName](const auto &pShader)
-                               { return strcmp(pShader->GetName().c_str(), rName.c_str()) == 0; });
+        auto it = std::find_if(mShaders.cbegin(), mShaders.cend(), [&rName](const auto &pShader) {
+            return strcmp(pShader->GetName().c_str(), rName.c_str()) == 0;
+        });
         if (it == mShaders.cend())
         {
             return nullptr;
@@ -114,8 +121,10 @@ namespace FastCG
         FASTCG_LOG_DEBUG(BaseGraphicsSystem, "\tInitializing graphics system");
 
 #if _DEBUG
-        DebugMenuSystem::GetInstance()->AddCallback("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuCallback, this, std::placeholders::_1));
-        DebugMenuSystem::GetInstance()->AddItem("Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuItemCallback, this, std::placeholders::_1));
+        DebugMenuSystem::GetInstance()->AddCallback(
+            "Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuCallback, this, std::placeholders::_1));
+        DebugMenuSystem::GetInstance()->AddItem(
+            "Rendering System", std::bind(&BaseGraphicsSystem::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
 
         OnInitialize();
@@ -163,54 +172,44 @@ namespace FastCG
     void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateDebugObjects()
     {
         // Create backbuffer handler (fake texture)
-        mpBackbuffer = CreateTexture({"Fake Backbuffer",
-                                      1,
-                                      1,
-                                      1,
-                                      1,
-                                      TextureType::TEXTURE_2D,
-                                      TextureUsageFlagBit::RENDER_TARGET,
-                                      TextureFormat::R8G8B8A8_UNORM,
-                                      TextureFilter::POINT_FILTER,
-                                      TextureWrapMode::CLAMP});
+        mpBackbuffer =
+            CreateTexture({"Fake Backbuffer", 1, 1, 1, 1, TextureType::TEXTURE_2D, TextureUsageFlagBit::RENDER_TARGET,
+                           TextureFormat::R8G8B8A8_UNORM, TextureFilter::POINT_FILTER, TextureWrapMode::CLAMP});
 
         uint8_t data[] = {251, 72, 196, 255}; // pink
-        mMissingTextures.emplace(TextureType::TEXTURE_2D, CreateTexture({"Missing 2D Texture",
-                                                                         1,
-                                                                         1,
-                                                                         1,
-                                                                         1,
-                                                                         TextureType::TEXTURE_2D,
-                                                                         TextureUsageFlagBit::SAMPLED,
-                                                                         TextureFormat::R8G8B8A8_UNORM,
-                                                                         TextureFilter::LINEAR_FILTER,
-                                                                         TextureWrapMode::CLAMP,
-                                                                         data}));
+        mMissingTextures.emplace(
+            TextureType::TEXTURE_2D,
+            CreateTexture({"Missing 2D Texture", 1, 1, 1, 1, TextureType::TEXTURE_2D, TextureUsageFlagBit::SAMPLED,
+                           TextureFormat::R8G8B8A8_UNORM, TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP, data}));
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    BufferT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateBuffer(const typename Buffer::Args &rArgs)
+    BufferT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateBuffer(
+        const typename Buffer::Args &rArgs)
     {
         mBuffers.emplace_back(new BufferT{rArgs});
         return mBuffers.back();
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    GraphicsContextT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateGraphicsContext(const typename GraphicsContext::Args &rArgs)
+    GraphicsContextT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateGraphicsContext(
+        const typename GraphicsContext::Args &rArgs)
     {
         mGraphicsContexts.emplace_back(new GraphicsContextT{rArgs});
         return mGraphicsContexts.back();
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateShader(const typename Shader::Args &rArgs)
+    ShaderT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateShader(
+        const typename Shader::Args &rArgs)
     {
         mShaders.emplace_back(new ShaderT{rArgs});
         return mShaders.back();
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateTexture(const typename Texture::Args &rArgs)
+    TextureT *BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::CreateTexture(
+        const typename Texture::Args &rArgs)
     {
         mTextures.emplace_back(new TextureT{rArgs});
         return mTextures.back();
@@ -233,7 +232,8 @@ namespace FastCG
     }
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
-    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DestroyGraphicsContext(const GraphicsContext *pGraphicsContext)
+    void BaseGraphicsSystem<BufferT, GraphicsContextT, ShaderT, TextureT>::DestroyGraphicsContext(
+        const GraphicsContext *pGraphicsContext)
     {
         assert(pGraphicsContext != nullptr);
         auto it = std::find(mGraphicsContexts.cbegin(), mGraphicsContexts.cend(), pGraphicsContext);
@@ -244,7 +244,8 @@ namespace FastCG
         }
         else
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy GraphicsContext '%s'", pGraphicsContext->GetName().c_str());
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't destroy GraphicsContext '%s'",
+                                   pGraphicsContext->GetName().c_str());
         }
     }
 

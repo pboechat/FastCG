@@ -21,7 +21,8 @@ namespace FastCG
     static constexpr const char *const LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME = "LightingConstants";
     static constexpr const char *const MATERIAL_CONSTANTS_SHADER_RESOURCE_NAME = "MaterialConstants";
     static constexpr const char *const SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_NAME = "ShadowMapPassConstants";
-    static constexpr const char *const SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_NAME = "SSAOHighFrequencyPassConstants";
+    static constexpr const char *const SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_NAME =
+        "SSAOHighFrequencyPassConstants";
 
     struct ShadowMapData
     {
@@ -47,9 +48,8 @@ namespace FastCG
     struct PCSSData
     {
         ShadowMapData shadowMapData;
-        float uvScale
-        {
-            // TODO: solve this in a more elegant way
+        float uvScale{
+        // TODO: solve this in a more elegant way
 #if FASTCG_VULKAN
             0.001f
 #else

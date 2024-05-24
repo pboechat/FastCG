@@ -3,44 +3,46 @@
 
 #include <FastCG/Graphics/GraphicsUtils.h>
 
-#include <type_traits>
-#include <string>
 #include <array>
+#include <string>
+#include <type_traits>
 
 namespace FastCG
 {
-	using ShaderTypeInt = std::underlying_type_t<ShaderType>;
+    using ShaderTypeInt = std::underlying_type_t<ShaderType>;
 
-	template <typename T>
-	using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::LAST>;
+    template <typename T>
+    using ShaderTypeValueArray = std::array<T, (ShaderTypeInt)ShaderType::LAST>;
 
-	struct ShaderProgramData
-	{
-		size_t dataSize{0};
-		const void *pData{nullptr};
-	};
+    struct ShaderProgramData
+    {
+        size_t dataSize{0};
+        const void *pData{nullptr};
+    };
 
-	class BaseShader
-	{
-	public:
-		struct Args
-		{
-			std::string name;
-			ShaderTypeValueArray<ShaderProgramData> programsData;
-			bool text{false};
-		};
+    class BaseShader
+    {
+    public:
+        struct Args
+        {
+            std::string name;
+            ShaderTypeValueArray<ShaderProgramData> programsData;
+            bool text{false};
+        };
 
-		inline const std::string &GetName() const
-		{
-			return mName;
-		}
+        inline const std::string &GetName() const
+        {
+            return mName;
+        }
 
-	protected:
-		const std::string mName;
+    protected:
+        const std::string mName;
 
-		BaseShader(const Args &rArgs) : mName(rArgs.name) {}
-		virtual ~BaseShader() = default;
-	};
+        BaseShader(const Args &rArgs) : mName(rArgs.name)
+        {
+        }
+        virtual ~BaseShader() = default;
+    };
 
 }
 

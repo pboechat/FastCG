@@ -2,7 +2,8 @@
 
 namespace FastCG
 {
-    std::vector<glm::vec3> MeshUtils::CalculateNormals(const std::vector<glm::vec3> &positions, const std::vector<uint32_t> &indices)
+    std::vector<glm::vec3> MeshUtils::CalculateNormals(const std::vector<glm::vec3> &positions,
+                                                       const std::vector<uint32_t> &indices)
     {
         std::vector<glm::vec3> normals;
         normals.resize(positions.size());
@@ -30,7 +31,10 @@ namespace FastCG
         return normals;
     }
 
-    std::vector<glm::vec4> MeshUtils::CalculateTangents(const std::vector<glm::vec3> &positions, const std::vector<glm::vec3> &normals, const std::vector<glm::vec2> &uvs, const std::vector<uint32_t> &indices)
+    std::vector<glm::vec4> MeshUtils::CalculateTangents(const std::vector<glm::vec3> &positions,
+                                                        const std::vector<glm::vec3> &normals,
+                                                        const std::vector<glm::vec2> &uvs,
+                                                        const std::vector<uint32_t> &indices)
     {
         // if there's no positions, exit
         if (positions.empty())
@@ -79,13 +83,9 @@ namespace FastCG
 
             auto r = 1.0f / (s1 * t2 - s2 * t1);
 
-            glm::vec3 sdir((t2 * x1 - t1 * x2) * r,
-                           (t2 * y1 - t1 * y2) * r,
-                           (t2 * z1 - t1 * z2) * r);
+            glm::vec3 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
 
-            glm::vec3 tdir((s1 * x2 - s2 * x1) * r,
-                           (s1 * y2 - s2 * y1) * r,
-                           (s1 * z2 - s2 * z1) * r);
+            glm::vec3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
 
             tangents1[i1] += sdir;
             tangents1[i2] += sdir;

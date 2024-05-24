@@ -3,24 +3,25 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Graphics/OpenGL/OpenGL.h>
-#include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
-#include <FastCG/Graphics/OpenGL/OpenGLShader.h>
-#include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
-#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
-#include <FastCG/Graphics/BaseGraphicsSystem.h>
-#include <FastCG/Core/System.h>
 #include <FastCG/Core/Hash.h>
+#include <FastCG/Core/System.h>
+#include <FastCG/Graphics/BaseGraphicsSystem.h>
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
+#include <FastCG/Graphics/OpenGL/OpenGLBuffer.h>
+#include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
+#include <FastCG/Graphics/OpenGL/OpenGLShader.h>
+#include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
 
-#include <vector>
-#include <unordered_map>
-#include <memory>
-#include <cstring>
 #include <cassert>
+#include <cstring>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 namespace FastCG
 {
-    class OpenGLGraphicsSystem : public BaseGraphicsSystem<OpenGLBuffer, OpenGLGraphicsContext, OpenGLShader, OpenGLTexture>
+    class OpenGLGraphicsSystem
+        : public BaseGraphicsSystem<OpenGLBuffer, OpenGLGraphicsContext, OpenGLShader, OpenGLTexture>
     {
         FASTCG_DECLARE_SYSTEM(OpenGLGraphicsSystem, GraphicsSystemArgs);
 
@@ -85,7 +86,9 @@ namespace FastCG
 
         void OnInitialize() override;
         void OnPostFinalize() override;
-        void Resize() {}
+        void Resize()
+        {
+        }
         void Present();
         double GetGpuElapsedTime() const;
 #if !defined FASTCG_ANDROID
@@ -94,7 +97,8 @@ namespace FastCG
         void CreateOpenGLContext();
         void QueryDeviceProperties();
         void DestroyOpenGLContext();
-        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer);
+        GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount,
+                                      const OpenGLTexture *pDepthStencilBuffer);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
 
         friend class OpenGLGraphicsContext;

@@ -1,10 +1,10 @@
-#include <FastCG/Rendering/MaterialDefinitionLoader.h>
-#include <FastCG/Platform/FileReader.h>
-#include <FastCG/Platform/File.h>
-#include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Graphics/GraphicsContextState.h>
-#include <FastCG/Graphics/ConstantBuffer.h>
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/Graphics/ConstantBuffer.h>
+#include <FastCG/Graphics/GraphicsContextState.h>
+#include <FastCG/Graphics/TextureLoader.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Platform/FileReader.h>
+#include <FastCG/Rendering/MaterialDefinitionLoader.h>
 
 #ifdef FASTCG_LINUX
 // X11 defines Bool and rapidjson uses Bool as a member-function identifier
@@ -12,13 +12,13 @@
 #undef Bool
 #endif
 #endif
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/document.h>
 #include <glm/glm.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 namespace
 {
@@ -80,7 +80,8 @@ namespace
     }
 
     template <typename GenericObjectT, typename EnumT>
-    void GetEnumMember(const GenericObjectT &rGenericObj, const char *pName, EnumT &rValue, const char *const *rValues, size_t valueCount)
+    void GetEnumMember(const GenericObjectT &rGenericObj, const char *pName, EnumT &rValue, const char *const *rValues,
+                       size_t valueCount)
     {
         static_assert(std::is_enum<EnumT>::value, "EnumT must be an enumerator");
         if (rGenericObj.HasMember(pName))
@@ -130,12 +131,15 @@ namespace FastCG
                     auto valueArray = memberArray[1].GetArray();
                     if (valueArray.Size() == 2)
                     {
-                        members.emplace_back(memberArray[0].GetString(), glm::vec2{valueArray[0].GetFloat(), valueArray[1].GetFloat()});
+                        members.emplace_back(memberArray[0].GetString(),
+                                             glm::vec2{valueArray[0].GetFloat(), valueArray[1].GetFloat()});
                     }
                     else
                     {
                         assert(valueArray.Size() == 4);
-                        members.emplace_back(memberArray[0].GetString(), glm::vec4{valueArray[0].GetFloat(), valueArray[1].GetFloat(), valueArray[2].GetFloat(), valueArray[3].GetFloat()});
+                        members.emplace_back(memberArray[0].GetString(),
+                                             glm::vec4{valueArray[0].GetFloat(), valueArray[1].GetFloat(),
+                                                       valueArray[2].GetFloat(), valueArray[3].GetFloat()});
                     }
                 }
             }
@@ -153,7 +157,8 @@ namespace FastCG
                 assert(textureArray[0].IsString());
                 if (textureArray[1].IsString())
                 {
-                    textures.emplace(textureArray[0].GetString(), TextureLoader::Load(File::Join({basePath, textureArray[1].GetString()})));
+                    textures.emplace(textureArray[0].GetString(),
+                                     TextureLoader::Load(File::Join({basePath, textureArray[1].GetString()})));
                 }
                 else
                 {
@@ -171,7 +176,8 @@ namespace FastCG
 
             GetBoolMember(graphicsContextStateObj, "depthTest", graphicsContextState.depthTest);
             GetBoolMember(graphicsContextStateObj, "depthWrite", graphicsContextState.depthWrite);
-            GetEnumMember(graphicsContextStateObj, "depthFunc", graphicsContextState.depthFunc, CompareOp_STRINGS, FASTCG_ARRAYSIZE(CompareOp_STRINGS));
+            GetEnumMember(graphicsContextStateObj, "depthFunc", graphicsContextState.depthFunc, CompareOp_STRINGS,
+                          FASTCG_ARRAYSIZE(CompareOp_STRINGS));
             GetBoolMember(graphicsContextStateObj, "scissorTest", graphicsContextState.scissorTest);
             GetBoolMember(graphicsContextStateObj, "stencilTest", graphicsContextState.stencilTest);
             struct Iter
@@ -179,37 +185,50 @@ namespace FastCG
                 const char *pMemberName;
                 StencilState &rStencilState;
             };
-            for (auto &rIter : {Iter{"stencilBackState", graphicsContextState.stencilBackState}, Iter{"stencilFrontState", graphicsContextState.stencilFrontState}})
+            for (auto &rIter : {Iter{"stencilBackState", graphicsContextState.stencilBackState},
+                                Iter{"stencilFrontState", graphicsContextState.stencilFrontState}})
             {
                 if (graphicsContextStateObj.HasMember(rIter.pMemberName))
                 {
                     assert(graphicsContextStateObj.FindMember(rIter.pMemberName)->value.IsObject());
                     auto stencilStateObj = graphicsContextStateObj.FindMember(rIter.pMemberName)->value.GetObj();
-                    GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, CompareOp_STRINGS, FASTCG_ARRAYSIZE(CompareOp_STRINGS));
-                    GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
-                    GetEnumMember(stencilStateObj, "stencilFailOp", rIter.rStencilState.stencilFailOp, StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
-                    GetEnumMember(stencilStateObj, "depthFailOp", rIter.rStencilState.depthFailOp, StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "compareOp", rIter.rStencilState.compareOp, CompareOp_STRINGS,
+                                  FASTCG_ARRAYSIZE(CompareOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "passOp", rIter.rStencilState.passOp, StencilOp_STRINGS,
+                                  FASTCG_ARRAYSIZE(StencilOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "stencilFailOp", rIter.rStencilState.stencilFailOp,
+                                  StencilOp_STRINGS, FASTCG_ARRAYSIZE(StencilOp_STRINGS));
+                    GetEnumMember(stencilStateObj, "depthFailOp", rIter.rStencilState.depthFailOp, StencilOp_STRINGS,
+                                  FASTCG_ARRAYSIZE(StencilOp_STRINGS));
                     GetInt32Member(stencilStateObj, "reference", rIter.rStencilState.reference);
                     GetUint32Member(stencilStateObj, "compareMask", rIter.rStencilState.compareMask);
                     GetUint32Member(stencilStateObj, "writeMask", rIter.rStencilState.writeMask);
                 }
             }
-            GetEnumMember(graphicsContextStateObj, "cullMode", graphicsContextState.cullMode, Face_STRINGS, FASTCG_ARRAYSIZE(Face_STRINGS));
+            GetEnumMember(graphicsContextStateObj, "cullMode", graphicsContextState.cullMode, Face_STRINGS,
+                          FASTCG_ARRAYSIZE(Face_STRINGS));
             GetBoolMember(graphicsContextStateObj, "blend", graphicsContextState.blend);
             if (graphicsContextStateObj.HasMember("blendState"))
             {
                 assert(graphicsContextStateObj.FindMember("blendState")->value.IsObject());
                 auto blendStateObj = graphicsContextStateObj.FindMember("blendState")->value.GetObj();
-                GetEnumMember(blendStateObj, "alphaOp", graphicsContextState.blendState.alphaOp, BlendFunc_STRINGS, FASTCG_ARRAYSIZE(BlendFunc_STRINGS));
-                GetEnumMember(blendStateObj, "srcAlphaFactor", graphicsContextState.blendState.srcAlphaFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
-                GetEnumMember(blendStateObj, "dstAlphaFactor", graphicsContextState.blendState.dstAlphaFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
-                GetEnumMember(blendStateObj, "colorOp", graphicsContextState.blendState.colorOp, BlendFunc_STRINGS, FASTCG_ARRAYSIZE(BlendFunc_STRINGS));
-                GetEnumMember(blendStateObj, "srcColorFactor", graphicsContextState.blendState.srcColorFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
-                GetEnumMember(blendStateObj, "dstColorFactor", graphicsContextState.blendState.dstColorFactor, BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "alphaOp", graphicsContextState.blendState.alphaOp, BlendFunc_STRINGS,
+                              FASTCG_ARRAYSIZE(BlendFunc_STRINGS));
+                GetEnumMember(blendStateObj, "srcAlphaFactor", graphicsContextState.blendState.srcAlphaFactor,
+                              BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "dstAlphaFactor", graphicsContextState.blendState.dstAlphaFactor,
+                              BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "colorOp", graphicsContextState.blendState.colorOp, BlendFunc_STRINGS,
+                              FASTCG_ARRAYSIZE(BlendFunc_STRINGS));
+                GetEnumMember(blendStateObj, "srcColorFactor", graphicsContextState.blendState.srcColorFactor,
+                              BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
+                GetEnumMember(blendStateObj, "dstColorFactor", graphicsContextState.blendState.dstColorFactor,
+                              BlendFactor_STRINGS, FASTCG_ARRAYSIZE(BlendFactor_STRINGS));
             }
         }
 
-        return std::make_unique<MaterialDefinition>(MaterialDefinitionArgs{File::GetFileNameWithoutExtension(rFilePath), pShader, {members}, textures, graphicsContextState});
+        return std::make_unique<MaterialDefinition>(MaterialDefinitionArgs{
+            File::GetFileNameWithoutExtension(rFilePath), pShader, {members}, textures, graphicsContextState});
     }
 
     std::string MaterialDefinitionLoader::Dump(const std::unique_ptr<MaterialDefinition> &pMaterialDefinition)

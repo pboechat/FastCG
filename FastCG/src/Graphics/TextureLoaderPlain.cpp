@@ -1,11 +1,11 @@
-#include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/TextureLoader.h>
 
 #include <stb_image.h>
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 namespace FastCG
 {
@@ -28,8 +28,7 @@ namespace FastCG
         case 2:
             format = TextureFormat::R8G8_UNORM;
             break;
-        case 3:
-        {
+        case 3: {
             // make data RGBA by adding a constant alpha value (ie, alpha = 1)
             transformedData = std::make_unique<uint8_t[]>(width * height * 4 * sizeof(uint8_t));
             int i = 0, j = 0;
@@ -52,21 +51,14 @@ namespace FastCG
             format = TextureFormat::R8G8B8A8_UNORM;
             break;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Invalid component count (texture: %s, componentCount: %d)", rFilePath.c_str(), componentCount);
+            FASTCG_THROW_EXCEPTION(Exception, "Invalid component count (texture: %s, componentCount: %d)",
+                                   rFilePath.c_str(), componentCount);
             return nullptr;
         }
 
-        auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture({rFilePath,
-                                                                       (uint32_t)width,
-                                                                       (uint32_t)height,
-                                                                       1,
-                                                                       1,
-                                                                       TextureType::TEXTURE_2D,
-                                                                       settings.usage,
-                                                                       format,
-                                                                       settings.filter,
-                                                                       settings.wrapMode,
-                                                                       pData});
+        auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture(
+            {rFilePath, (uint32_t)width, (uint32_t)height, 1, 1, TextureType::TEXTURE_2D, settings.usage, format,
+             settings.filter, settings.wrapMode, pData});
         if (transformedData == nullptr)
         {
             stbi_image_free(pData);

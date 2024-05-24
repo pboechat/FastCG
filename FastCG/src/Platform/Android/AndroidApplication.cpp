@@ -1,10 +1,10 @@
 #ifdef FASTCG_ANDROID
 
-#include <FastCG/Platform/Timer.h>
-#include <FastCG/Platform/Android/AndroidApplication.h>
-#include <FastCG/Graphics/GraphicsSystem.h>
-#include <FastCG/Core/Log.h>
 #include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Log.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Platform/Android/AndroidApplication.h>
+#include <FastCG/Platform/Timer.h>
 
 #include <android/native_window.h>
 
@@ -16,10 +16,7 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b)                \
-    {                                \
-        (uint64_t) a, FastCG::Key::b \
-    }
+#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
 
     // TODO: complete mapping
     std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {
@@ -115,8 +112,8 @@ namespace
 #undef CASE_RETURN_STRING
 #endif
 
-#define CASE_RETURN_STRING(str) \
-    case str:                   \
+#define CASE_RETURN_STRING(str)                                                                                        \
+    case str:                                                                                                          \
         return #str
 
     const char *GetAInputEventTypeString(int32_t eventType)
@@ -176,8 +173,7 @@ void onAppCmd(android_app *app, int32_t cmd)
 
             // obtain the actual size of the window
             FastCG::AndroidApplication::GetInstance()->WindowResizeCallback(
-                (uint32_t)ANativeWindow_getWidth(app->window),
-                (uint32_t)ANativeWindow_getHeight(app->window));
+                (uint32_t)ANativeWindow_getWidth(app->window), (uint32_t)ANativeWindow_getHeight(app->window));
 
             FastCG::GraphicsSystem::GetInstance()->OnWindowInitialized();
         }
@@ -189,9 +185,8 @@ void onAppCmd(android_app *app, int32_t cmd)
         break;
     case APP_CMD_WINDOW_RESIZED:
         // obtain the actual size of the window
-        FastCG::AndroidApplication::GetInstance()->WindowResizeCallback(
-            (uint32_t)ANativeWindow_getWidth(app->window),
-            (uint32_t)ANativeWindow_getHeight(app->window));
+        FastCG::AndroidApplication::GetInstance()->WindowResizeCallback((uint32_t)ANativeWindow_getWidth(app->window),
+                                                                        (uint32_t)ANativeWindow_getHeight(app->window));
         break;
     case APP_CMD_WINDOW_REDRAW_NEEDED:
         // not implemented
@@ -239,21 +234,19 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
     int32_t eventType = AInputEvent_getType(event);
     switch (eventType)
     {
-    case AINPUT_EVENT_TYPE_MOTION:
-    {
+    case AINPUT_EVENT_TYPE_MOTION: {
         int32_t action = AMotionEvent_getAction(event);
         switch (action)
         {
         case AMOTION_EVENT_ACTION_DOWN:
-        case AMOTION_EVENT_ACTION_UP:
-        {
-            auto state = action == AMOTION_EVENT_ACTION_DOWN ? FastCG::MouseButtonState::PRESSED : FastCG::MouseButtonState::RELEASED;
+        case AMOTION_EVENT_ACTION_UP: {
+            auto state = action == AMOTION_EVENT_ACTION_DOWN ? FastCG::MouseButtonState::PRESSED
+                                                             : FastCG::MouseButtonState::RELEASED;
             // press both buttons at the same time
             FastCG::AndroidApplication::GetInstance()->MouseButtonCallback(FastCG::MouseButton::LEFT_BUTTON, state);
             FastCG::AndroidApplication::GetInstance()->MouseButtonCallback(FastCG::MouseButton::RIGHT_BUTTON, state);
         }
-        case AMOTION_EVENT_ACTION_MOVE:
-        {
+        case AMOTION_EVENT_ACTION_MOVE: {
             // pointer motion tracking stops when action up occurs,
             // so we also update the pointer position whenever there's a pointer up/down event
 
@@ -278,8 +271,7 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
 
         return 1;
     }
-    case AINPUT_EVENT_TYPE_KEY:
-    {
+    case AINPUT_EVENT_TYPE_KEY: {
         int32_t keyCode = AKeyEvent_getKeyCode(event);
         int32_t action = AKeyEvent_getAction(event);
         bool pressed = action == AKEY_EVENT_ACTION_DOWN; // AKEY_EVENT_ACTION_MULTIPLE is considered an "unpress" action

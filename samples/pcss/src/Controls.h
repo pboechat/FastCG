@@ -7,10 +7,10 @@
 
 class Controls : public FastCG::Behaviour
 {
-	FASTCG_DECLARE_COMPONENT(Controls, FastCG::Behaviour);
+    FASTCG_DECLARE_COMPONENT(Controls, FastCG::Behaviour);
 
 protected:
-	void OnUpdate(float time, float deltaTime) override;
+    void OnUpdate(float time, float deltaTime) override;
 };
 
 #endif

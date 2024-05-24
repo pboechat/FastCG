@@ -3,8 +3,8 @@
 
 #include <FastCG/Rendering/MaterialDefinition.h>
 
-#include <string>
 #include <memory>
+#include <string>
 
 namespace FastCG
 {

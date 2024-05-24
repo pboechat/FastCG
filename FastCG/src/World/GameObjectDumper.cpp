@@ -1,13 +1,13 @@
-#include <FastCG/World/Transform.h>
-#include <FastCG/World/GameObjectDumper.h>
-#include <FastCG/World/Component.h>
-#include <FastCG/Reflection/Inspectable.h>
-#include <FastCG/Platform/FileWriter.h>
-#include <FastCG/Platform/File.h>
+#include <FastCG/Core/Base64.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Core/Macros.h>
-#include <FastCG/Core/Base64.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Platform/FileWriter.h>
+#include <FastCG/Reflection/Inspectable.h>
+#include <FastCG/World/Component.h>
+#include <FastCG/World/GameObjectDumper.h>
+#include <FastCG/World/Transform.h>
 
 #ifdef FASTCG_LINUX
 // X11 defines Bool and rapidjson uses Bool as a member-function identifier
@@ -15,17 +15,17 @@
 #undef Bool
 #endif
 #endif
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
-#include <rapidjson/document.h>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/glm.hpp>
 
-#include <vector>
-#include <unordered_map>
-#include <string>
-#include <memory>
 #include <cassert>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace
 {
@@ -158,51 +158,67 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const char *pMemberValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const char *pMemberValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, pMemberValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName),
+                              CreateValue(rAlloc, rGenericObj, pMemberValue), rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const std::string &rMemberValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const std::string &rMemberValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rMemberValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName),
+                              CreateValue(rAlloc, rGenericObj, rMemberValue), rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const glm::vec2 &rValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const glm::vec2 &rValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue),
+                              rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const glm::vec3 &rValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const glm::vec3 &rValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue),
+                              rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const glm::vec4 &rValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const glm::vec4 &rValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue),
+                              rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const glm::ivec4 &rValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const glm::ivec4 &rValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue),
+                              rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const glm::quat &rValue)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const glm::quat &rValue)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, rValue),
+                              rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT, typename ElementT>
-    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName, const ElementT *pArray, size_t count)
+    void AddValueMember(AllocatorT &rAlloc, GenericObjectT &rGenericObj, const std::string &rMemberName,
+                        const ElementT *pArray, size_t count)
     {
-        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName), CreateValue(rAlloc, rGenericObj, pArray, count), rAlloc);
+        rGenericObj.AddMember(CreateValue(rAlloc, rGenericObj, rMemberName),
+                              CreateValue(rAlloc, rGenericObj, pArray, count), rAlloc);
     }
 
     template <typename AllocatorT, typename GenericObjectT, typename GenericValueT>
@@ -224,18 +240,12 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpTexture(const FastCG::Texture *,
-                     const std::string &,
-                     FastCG::GameObjectDumperOptionMaskType,
-                     AllocatorT &,
+    void DumpTexture(const FastCG::Texture *, const std::string &, FastCG::GameObjectDumperOptionMaskType, AllocatorT &,
                      GenericObjectT &);
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMaterial(const std::shared_ptr<FastCG::Material> &rpMaterial,
-                      const std::string &rBasePath,
-                      FastCG::GameObjectDumperOptionMaskType options,
-                      AllocatorT &rAlloc,
-                      GenericObjectT &rMaterialObj,
+    void DumpMaterial(const std::shared_ptr<FastCG::Material> &rpMaterial, const std::string &rBasePath,
+                      FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc, GenericObjectT &rMaterialObj,
                       std::unordered_map<std::string, rapidjson::Value> &rTextures)
     {
         AddValueMember(rAlloc, rMaterialObj, "name", rpMaterial->GetName());
@@ -274,11 +284,8 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMesh(const std::shared_ptr<FastCG::Mesh> &pMesh,
-                  const std::string &rBasePath,
-                  FastCG::GameObjectDumperOptionMaskType options,
-                  AllocatorT &rAlloc,
-                  GenericObjectT &rMeshObj)
+    void DumpMesh(const std::shared_ptr<FastCG::Mesh> &pMesh, const std::string &rBasePath,
+                  FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc, GenericObjectT &rMeshObj)
     {
         AddValueMember(rAlloc, rMeshObj, "name", pMesh->GetName());
         if (pMesh->GetVertexBufferCount() > 0)
@@ -291,7 +298,8 @@ namespace
                 const auto *pVertexBuffer = pVertexBuffers[i];
                 AddValueMember(rAlloc, vertexBufferObj, "name", pVertexBuffer->GetName());
                 AddValueMember(rAlloc, vertexBufferObj, "usage", pVertexBuffer->GetUsage());
-                if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::ENCODE_DATA) != 0)
+                if ((options & (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::ENCODE_DATA) !=
+                    0)
                 {
                     auto data = FastCG::EncodeBase64(pVertexBuffer->GetData(), pVertexBuffer->GetDataSize());
                     AddValueMember(rAlloc, vertexBufferObj, "encodedData", data);
@@ -310,7 +318,8 @@ namespace
                     rapidjson::Value bindingDecriptorObj(rapidjson::kObjectType);
                     AddValueMember(rAlloc, bindingDecriptorObj, "binding", rBindingDescriptor.binding);
                     AddValueMember(rAlloc, bindingDecriptorObj, "size", rBindingDescriptor.size);
-                    AddValueMember(rAlloc, bindingDecriptorObj, "type", FastCG::GetVertexDataTypeString(rBindingDescriptor.type));
+                    AddValueMember(rAlloc, bindingDecriptorObj, "type",
+                                   FastCG::GetVertexDataTypeString(rBindingDescriptor.type));
                     AddValueMember(rAlloc, bindingDecriptorObj, "normalized", rBindingDescriptor.normalized);
                     AddValueMember(rAlloc, bindingDecriptorObj, "stride", rBindingDescriptor.stride);
                     AddValueMember(rAlloc, bindingDecriptorObj, "offset", rBindingDescriptor.offset);
@@ -347,11 +356,8 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpTexture(const FastCG::Texture *pTexture,
-                     const std::string &rBasePath,
-                     FastCG::GameObjectDumperOptionMaskType options,
-                     AllocatorT &rAlloc,
-                     GenericObjectT &rTextureObj)
+    void DumpTexture(const FastCG::Texture *pTexture, const std::string &rBasePath,
+                     FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc, GenericObjectT &rTextureObj)
     {
         AddValueMember(rAlloc, rTextureObj, "name", pTexture->GetName());
         AddValueMember(rAlloc, rTextureObj, "width", pTexture->GetWidth());
@@ -367,20 +373,14 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpInspectable(const FastCG::Inspectable *,
-                         const std::string &,
-                         FastCG::GameObjectDumperOptionMaskType,
-                         AllocatorT &,
-                         GenericObjectT &,
-                         std::unordered_map<std::string, rapidjson::Value> &,
+    void DumpInspectable(const FastCG::Inspectable *, const std::string &, FastCG::GameObjectDumperOptionMaskType,
+                         AllocatorT &, GenericObjectT &, std::unordered_map<std::string, rapidjson::Value> &,
                          std::unordered_map<std::string, rapidjson::Value> &,
                          std::unordered_map<std::string, rapidjson::Value> &);
 
     template <typename AllocatorT, typename GenericValueT>
-    void DumpInspectableProperty(const FastCG::IInspectableProperty *pInspectableProperty,
-                                 const std::string &rBasePath,
-                                 FastCG::GameObjectDumperOptionMaskType options,
-                                 AllocatorT &rAlloc,
+    void DumpInspectableProperty(const FastCG::IInspectableProperty *pInspectableProperty, const std::string &rBasePath,
+                                 FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc,
                                  GenericValueT &rInspectableObj,
                                  std::unordered_map<std::string, rapidjson::Value> &rMaterials,
                                  std::unordered_map<std::string, rapidjson::Value> &rMeshes,
@@ -388,100 +388,89 @@ namespace
     {
         switch (pInspectableProperty->GetType())
         {
-        case FastCG::InspectablePropertyType::INSPECTABLE:
-        {
+        case FastCG::InspectablePropertyType::INSPECTABLE: {
             FastCG::Inspectable *pInspectable;
             pInspectableProperty->GetValue(&pInspectable);
             rapidjson::Value inspectablePropertyObj(rapidjson::kObjectType);
-            DumpInspectable(pInspectable, rBasePath, options, rAlloc, inspectablePropertyObj, rMaterials, rMeshes, rTextures);
+            DumpInspectable(pInspectable, rBasePath, options, rAlloc, inspectablePropertyObj, rMaterials, rMeshes,
+                            rTextures);
             AddMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), inspectablePropertyObj);
         }
         break;
-        case FastCG::InspectablePropertyType::ENUM:
-        {
-            auto *pInspectableEnumProperty = static_cast<const FastCG::IInspectableEnumProperty *>(pInspectableProperty);
-            AddValueMember(rAlloc, rInspectableObj, pInspectableEnumProperty->GetName(), pInspectableEnumProperty->GetSelectedItemName());
+        case FastCG::InspectablePropertyType::ENUM: {
+            auto *pInspectableEnumProperty =
+                static_cast<const FastCG::IInspectableEnumProperty *>(pInspectableProperty);
+            AddValueMember(rAlloc, rInspectableObj, pInspectableEnumProperty->GetName(),
+                           pInspectableEnumProperty->GetSelectedItemName());
         }
         break;
-        case FastCG::InspectablePropertyType::BOOL:
-        {
+        case FastCG::InspectablePropertyType::BOOL: {
             bool value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::INT32:
-        {
+        case FastCG::InspectablePropertyType::INT32: {
             int32_t value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::UINT32:
-        {
+        case FastCG::InspectablePropertyType::UINT32: {
             uint32_t value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::INT64:
-        {
+        case FastCG::InspectablePropertyType::INT64: {
             int64_t value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::UINT64:
-        {
+        case FastCG::InspectablePropertyType::UINT64: {
             uint64_t value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::FLOAT:
-        {
+        case FastCG::InspectablePropertyType::FLOAT: {
             float value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::DOUBLE:
-        {
+        case FastCG::InspectablePropertyType::DOUBLE: {
             double value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::VEC2:
-        {
+        case FastCG::InspectablePropertyType::VEC2: {
             glm::vec2 value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::VEC3:
-        {
+        case FastCG::InspectablePropertyType::VEC3: {
             glm::vec3 value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::VEC4:
-        {
+        case FastCG::InspectablePropertyType::VEC4: {
             glm::vec4 value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::STRING:
-        {
+        case FastCG::InspectablePropertyType::STRING: {
             std::string value;
             pInspectableProperty->GetValue(&value);
             AddValueMember(rAlloc, rInspectableObj, pInspectableProperty->GetName(), value);
         }
         break;
-        case FastCG::InspectablePropertyType::MATERIAL:
-        {
+        case FastCG::InspectablePropertyType::MATERIAL: {
             std::shared_ptr<FastCG::Material> pMaterial;
             pInspectableProperty->GetValue(&pMaterial);
             if (pMaterial != nullptr)
@@ -498,8 +487,7 @@ namespace
             }
         }
         break;
-        case FastCG::InspectablePropertyType::MESH:
-        {
+        case FastCG::InspectablePropertyType::MESH: {
             std::shared_ptr<FastCG::Mesh> pMesh;
             pInspectableProperty->GetValue(&pMesh);
             if (pMesh != nullptr)
@@ -516,8 +504,7 @@ namespace
             }
         }
         break;
-        case FastCG::InspectablePropertyType::TEXTURE:
-        {
+        case FastCG::InspectablePropertyType::TEXTURE: {
             const FastCG::Texture *pTexture;
             pInspectableProperty->GetValue(&pTexture);
             if (pTexture != nullptr)
@@ -540,29 +527,24 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpInspectable(const FastCG::Inspectable *pInspectable,
-                         const std::string &rBasePath,
-                         FastCG::GameObjectDumperOptionMaskType options,
-                         AllocatorT &rAlloc,
-                         GenericObjectT &rInspectableObj,
-                         std::unordered_map<std::string, rapidjson::Value> &rMaterials,
+    void DumpInspectable(const FastCG::Inspectable *pInspectable, const std::string &rBasePath,
+                         FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc,
+                         GenericObjectT &rInspectableObj, std::unordered_map<std::string, rapidjson::Value> &rMaterials,
                          std::unordered_map<std::string, rapidjson::Value> &rMeshes,
                          std::unordered_map<std::string, rapidjson::Value> &rTextures)
     {
         for (size_t i = 0; i < pInspectable->GetInspectablePropertyCount(); ++i)
         {
             auto *pInspectableProperty = pInspectable->GetInspectableProperty(i);
-            DumpInspectableProperty(pInspectableProperty, rBasePath, options, rAlloc, rInspectableObj, rMaterials, rMeshes, rTextures);
+            DumpInspectableProperty(pInspectableProperty, rBasePath, options, rAlloc, rInspectableObj, rMaterials,
+                                    rMeshes, rTextures);
         }
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpGameObject(const FastCG::GameObject *pGameObject,
-                        const std::string &rBasePath,
-                        FastCG::GameObjectDumperOptionMaskType options,
-                        AllocatorT &rAlloc,
-                        GenericObjectT &rGameObjectObj,
-                        std::unordered_map<std::string, rapidjson::Value> &rMaterials,
+    void DumpGameObject(const FastCG::GameObject *pGameObject, const std::string &rBasePath,
+                        FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc,
+                        GenericObjectT &rGameObjectObj, std::unordered_map<std::string, rapidjson::Value> &rMaterials,
                         std::unordered_map<std::string, rapidjson::Value> &rMeshes,
                         std::unordered_map<std::string, rapidjson::Value> &rTextures)
     {
@@ -595,7 +577,8 @@ namespace
             for (auto *pChild : rChildren)
             {
                 rapidjson::Value childObj(rapidjson::kObjectType);
-                DumpGameObject(pChild->GetGameObject(), rBasePath, options, rAlloc, childObj, rMaterials, rMeshes, rTextures);
+                DumpGameObject(pChild->GetGameObject(), rBasePath, options, rAlloc, childObj, rMaterials, rMeshes,
+                               rTextures);
                 childrenArray.PushBack(childObj, rAlloc);
             }
             AddMember(rAlloc, rGameObjectObj, "children", childrenArray);
@@ -605,7 +588,8 @@ namespace
 
 namespace FastCG
 {
-    void GameObjectDumper::Dump(const std::string &rFilePath, GameObject *pRootGameObject, GameObjectDumperOptionMaskType options)
+    void GameObjectDumper::Dump(const std::string &rFilePath, GameObject *pRootGameObject,
+                                GameObjectDumperOptionMaskType options)
     {
         rapidjson::Document document;
 

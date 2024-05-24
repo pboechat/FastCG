@@ -2,6 +2,6 @@
 
 namespace FastCG
 {
-	const ComponentType Component::TYPE("Component", nullptr);
+    const ComponentType Component::TYPE("Component", nullptr);
 
 }

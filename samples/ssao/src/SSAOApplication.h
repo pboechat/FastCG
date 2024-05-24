@@ -3,16 +3,16 @@
 
 #include <FastCG/Platform/Application.h>
 
-#include <vector>
 #include <memory.h>
+#include <vector>
 
 class SSAOApplication : public FastCG::Application
 {
 public:
-	SSAOApplication();
+    SSAOApplication();
 
 protected:
-	void OnStart() override;
+    void OnStart() override;
 };
 
 #endif

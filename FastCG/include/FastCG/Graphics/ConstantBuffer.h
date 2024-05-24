@@ -3,14 +3,14 @@
 
 #include <glm/glm.hpp>
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <initializer_list>
-#include <cstring>
-#include <cstdint>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <cstring>
+#include <initializer_list>
+#include <memory>
+#include <string>
+#include <vector>
 
 #ifdef max
 #undef max
@@ -24,27 +24,23 @@ namespace FastCG
         class Member
         {
         public:
-            Member(const std::string &rName, float value) : mName(rName),
-                                                            mType(Type::FLOAT),
-                                                            mDefaultValue_float(value)
+            Member(const std::string &rName, float value) : mName(rName), mType(Type::FLOAT), mDefaultValue_float(value)
             {
             }
 
-            Member(const std::string &rName, const glm::vec2 &rValue) : mName(rName),
-                                                                        mType(Type::VEC2),
-                                                                        mDefaultValue_vec2(rValue)
+            Member(const std::string &rName, const glm::vec2 &rValue)
+                : mName(rName), mType(Type::VEC2), mDefaultValue_vec2(rValue)
             {
             }
 
-            Member(const std::string &rName, const glm::vec4 &rValue) : mName(rName),
-                                                                        mType(Type::VEC4),
-                                                                        mDefaultValue_vec4(rValue)
+            Member(const std::string &rName, const glm::vec4 &rValue)
+                : mName(rName), mType(Type::VEC4), mDefaultValue_vec4(rValue)
             {
             }
 
-            Member(const Member &rOther) : mName(rOther.mName),
-                                           mType(rOther.mType),
-                                           mDefaultValue_vec4(rOther.mDefaultValue_vec4) // largest union member
+            Member(const Member &rOther)
+                : mName(rOther.mName), mType(rOther.mType),
+                  mDefaultValue_vec4(rOther.mDefaultValue_vec4) // largest union member
             {
             }
 
@@ -78,8 +74,7 @@ namespace FastCG
 
             std::string mName;
             Type mType;
-            union
-            {
+            union {
                 int32_t mDefaultValue_int;
                 float mDefaultValue_float;
                 glm::vec2 mDefaultValue_vec2;
@@ -121,10 +116,8 @@ namespace FastCG
             Initialize();
         }
 
-        ConstantBuffer(const ConstantBuffer &rOther) : mAlignment(rOther.mAlignment),
-                                                       mMembers(rOther.mMembers),
-                                                       mOffsets(rOther.mOffsets),
-                                                       mSize(rOther.mSize)
+        ConstantBuffer(const ConstantBuffer &rOther)
+            : mAlignment(rOther.mAlignment), mMembers(rOther.mMembers), mOffsets(rOther.mOffsets), mSize(rOther.mSize)
         {
             mData = std::make_unique<uint8_t[]>(mSize);
             std::memcpy((void *)&mData[0], rOther.GetData(), mSize);

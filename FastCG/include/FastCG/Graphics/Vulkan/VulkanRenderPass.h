@@ -6,8 +6,8 @@
 #include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 namespace FastCG
 {

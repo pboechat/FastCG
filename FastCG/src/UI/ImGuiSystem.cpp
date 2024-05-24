@@ -1,11 +1,11 @@
-#include <FastCG/UI/ImGuiSystem.h>
-#include <FastCG/UI/ImGuiRenderer.h>
-#include <FastCG/Platform/Application.h>
-#include <FastCG/Input/InputSystem.h>
 #include <FastCG/Core/Log.h>
+#include <FastCG/Input/InputSystem.h>
+#include <FastCG/Platform/Application.h>
+#include <FastCG/UI/ImGuiRenderer.h>
+#include <FastCG/UI/ImGuiSystem.h>
 
-#include <imgui.h>
 #include <ImGuizmo.h>
+#include <imgui.h>
 
 namespace
 {
@@ -225,7 +225,8 @@ namespace FastCG
 
         ImGuizmo::SetRect(0, 0, rIo.DisplaySize.x, rIo.DisplaySize.y);
 
-        rIo.DeltaTime = (float)deltaTime + 0.0000001f; // avoid an ImGui assert in the very unlikely event that deltaTime is zero!
+        rIo.DeltaTime =
+            (float)deltaTime + 0.0000001f; // avoid an ImGui assert in the very unlikely event that deltaTime is zero!
 
         auto mousePos = InputSystem::GetMousePosition();
         rIo.AddMousePosEvent((float)mousePos.x, (float)mousePos.y);

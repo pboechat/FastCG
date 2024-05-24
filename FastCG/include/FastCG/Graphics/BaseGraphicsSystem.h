@@ -1,18 +1,18 @@
 #ifndef FASTCG_BASE_GRAPHICS_SYSTEM_H
 #define FASTCG_BASE_GRAPHICS_SYSTEM_H
 
-#include <FastCG/Graphics/BaseTexture.h>
-#include <FastCG/Graphics/BaseShader.h>
-#include <FastCG/Graphics/BaseGraphicsContext.h>
-#include <FastCG/Graphics/BaseBuffer.h>
 #include <FastCG/Core/Hash.h>
+#include <FastCG/Graphics/BaseBuffer.h>
+#include <FastCG/Graphics/BaseGraphicsContext.h>
+#include <FastCG/Graphics/BaseShader.h>
+#include <FastCG/Graphics/BaseTexture.h>
 
 #include <glm/glm.hpp>
 
+#include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
-#include <type_traits>
-#include <string>
 
 namespace FastCG
 {
@@ -35,9 +35,12 @@ namespace FastCG
         using Shader = ShaderT;
         using Texture = TextureT;
 
-        static_assert(std::is_same<typename GraphicsContext::Shader, Shader>::value, "GraphicsContext::Shader type must be the same as Shader type");
-        static_assert(std::is_same<typename GraphicsContext::Texture, Texture>::value, "GraphicsContext::Texture type must be the same as Texture type");
-        static_assert(std::is_same<typename GraphicsContext::Buffer, Buffer>::value, "GraphicsContext::Buffer type must be the same as Buffer type");
+        static_assert(std::is_same<typename GraphicsContext::Shader, Shader>::value,
+                      "GraphicsContext::Shader type must be the same as Shader type");
+        static_assert(std::is_same<typename GraphicsContext::Texture, Texture>::value,
+                      "GraphicsContext::Texture type must be the same as Texture type");
+        static_assert(std::is_same<typename GraphicsContext::Buffer, Buffer>::value,
+                      "GraphicsContext::Buffer type must be the same as Buffer type");
 
         inline bool IsInitialized() const
         {
@@ -107,9 +110,15 @@ namespace FastCG
         virtual ~BaseGraphicsSystem() = default;
 
         // Non-interface methods
-        virtual void OnInitialize() {}
-        virtual void OnPreFinalize() {}
-        virtual void OnPostFinalize() {}
+        virtual void OnInitialize()
+        {
+        }
+        virtual void OnPreFinalize()
+        {
+        }
+        virtual void OnPostFinalize()
+        {
+        }
 #if _DEBUG
         inline void DebugMenuCallback(int result);
         inline void DebugMenuItemCallback(int &result);

@@ -1,8 +1,8 @@
 #ifndef FASTCG_FOG_H
 #define FASTCG_FOG_H
 
-#include <FastCG/World/Component.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/World/Component.h>
 
 namespace FastCG
 {
@@ -70,8 +70,11 @@ namespace FastCG
 
         void OnRegisterInspectableProperties() override
         {
-            RegisterInspectableProperty(this, "Mode", &Fog::GetMode, &Fog::SetMode, {{FogMode::NONE, "None"}, {FogMode::LINEAR, "Linear"}, {FogMode::EXP, "Exp"}, {FogMode::EXP2, "Exp2"}});
-            RegisterInspectableProperty(this, "Color", &Fog::GetColor, &Fog::SetColor, glm::vec4{0, 0, 0, 0}, glm::vec4{1, 1, 1, 1});
+            RegisterInspectableProperty(
+                this, "Mode", &Fog::GetMode, &Fog::SetMode,
+                {{FogMode::NONE, "None"}, {FogMode::LINEAR, "Linear"}, {FogMode::EXP, "Exp"}, {FogMode::EXP2, "Exp2"}});
+            RegisterInspectableProperty(this, "Color", &Fog::GetColor, &Fog::SetColor, glm::vec4{0, 0, 0, 0},
+                                        glm::vec4{1, 1, 1, 1});
             RegisterInspectableProperty(this, "Density", &Fog::GetDensity, &Fog::SetDensity, 0.0f, 1.0f);
             RegisterInspectableProperty(this, "Start", &Fog::GetStart, &Fog::SetStart, 0.0f, 1000.0f);
             RegisterInspectableProperty(this, "End", &Fog::GetEnd, &Fog::SetEnd, 0.0f, 10000.0f);

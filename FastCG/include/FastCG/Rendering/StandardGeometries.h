@@ -5,23 +5,27 @@
 
 #include <glm/glm.hpp>
 
-#include <string>
-#include <memory>
 #include <cstdint>
+#include <memory>
+#include <string>
 
 namespace FastCG
 {
-	class StandardGeometries
-	{
-	public:
-		inline static std::unique_ptr<Mesh> CreateXYPlane(const std::string &rName, float width, float height, uint32_t xSegments = 1, uint32_t ySegments = 1, const glm::vec3 &rCenter = glm::vec3(0.0f, 0.0f, 0.0f));
-		inline static std::unique_ptr<Mesh> CreateXZPlane(const std::string &rName, float width, float depth, uint32_t xSegments = 1, uint32_t zSegments = 1, const glm::vec3 &rCenter = glm::vec3(0.0f, 0.0f, 0.0f));
-		inline static std::unique_ptr<Mesh> CreateSphere(const std::string &rName, float radius, uint32_t slices);
+    class StandardGeometries
+    {
+    public:
+        inline static std::unique_ptr<Mesh> CreateXYPlane(const std::string &rName, float width, float height,
+                                                          uint32_t xSegments = 1, uint32_t ySegments = 1,
+                                                          const glm::vec3 &rCenter = glm::vec3(0.0f, 0.0f, 0.0f));
+        inline static std::unique_ptr<Mesh> CreateXZPlane(const std::string &rName, float width, float depth,
+                                                          uint32_t xSegments = 1, uint32_t zSegments = 1,
+                                                          const glm::vec3 &rCenter = glm::vec3(0.0f, 0.0f, 0.0f));
+        inline static std::unique_ptr<Mesh> CreateSphere(const std::string &rName, float radius, uint32_t slices);
 
-	private:
-		StandardGeometries() = delete;
-		~StandardGeometries() = delete;
-	};
+    private:
+        StandardGeometries() = delete;
+        ~StandardGeometries() = delete;
+    };
 
 }
 

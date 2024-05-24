@@ -3,8 +3,8 @@
 
 #include <FastCG/Core/System.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace FastCG
 {
@@ -21,7 +21,8 @@ namespace FastCG
         inline std::vector<std::string> List(const std::string &rRelDirectoryPath, bool recursive = false) const;
         inline bool Resolve(const std::string &rRelFilePath, std::string &rAbsFilePath) const;
         inline std::string Resolve(const std::string &rRelFilePath) const;
-        inline void Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths, bool includeNonExistant = false) const;
+        inline void Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths,
+                           bool includeNonExistant = false) const;
         inline std::vector<std::string> Expand(const std::string &rRelFilePath, bool includeNonExistant = false) const;
 
     private:

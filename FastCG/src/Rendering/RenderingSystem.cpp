@@ -1,9 +1,9 @@
-#include <FastCG/World/WorldSystem.h>
-#include <FastCG/UI/ImGuiRenderer.h>
-#include <FastCG/Rendering/RenderingSystem.h>
-#include <FastCG/Rendering/ForwardWorldRenderer.h>
-#include <FastCG/Rendering/DeferredWorldRenderer.h>
 #include <FastCG/Core/Log.h>
+#include <FastCG/Rendering/DeferredWorldRenderer.h>
+#include <FastCG/Rendering/ForwardWorldRenderer.h>
+#include <FastCG/Rendering/RenderingSystem.h>
+#include <FastCG/UI/ImGuiRenderer.h>
+#include <FastCG/World/WorldSystem.h>
 
 #include <imgui.h>
 
@@ -22,20 +22,14 @@ namespace FastCG
         switch (mArgs.renderingPath)
         {
         case RenderingPath::FORWARD:
-            mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new ForwardWorldRenderer({mArgs.rScreenWidth,
-                                                                                        mArgs.rScreenHeight,
-                                                                                        mArgs.rClearColor,
-                                                                                        mArgs.rAmbientLight,
-                                                                                        mRenderBatchStrategy,
-                                                                                        mArgs.rRenderingStatistics}));
+            mpWorldRenderer = std::unique_ptr<IWorldRenderer>(
+                new ForwardWorldRenderer({mArgs.rScreenWidth, mArgs.rScreenHeight, mArgs.rClearColor,
+                                          mArgs.rAmbientLight, mRenderBatchStrategy, mArgs.rRenderingStatistics}));
             break;
         case RenderingPath::DEFERRED:
-            mpWorldRenderer = std::unique_ptr<IWorldRenderer>(new DeferredWorldRenderer({mArgs.rScreenWidth,
-                                                                                         mArgs.rScreenHeight,
-                                                                                         mArgs.rClearColor,
-                                                                                         mArgs.rAmbientLight,
-                                                                                         mRenderBatchStrategy,
-                                                                                         mArgs.rRenderingStatistics}));
+            mpWorldRenderer = std::unique_ptr<IWorldRenderer>(
+                new DeferredWorldRenderer({mArgs.rScreenWidth, mArgs.rScreenHeight, mArgs.rClearColor,
+                                           mArgs.rAmbientLight, mRenderBatchStrategy, mArgs.rRenderingStatistics}));
             break;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Unhandled rendering path: %d", (int)mArgs.renderingPath);
@@ -43,8 +37,7 @@ namespace FastCG
         }
         mpWorldRenderer->Initialize();
 
-        mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mArgs.rScreenWidth,
-                                                                            mArgs.rScreenHeight});
+        mpImGuiRenderer = std::make_unique<ImGuiRenderer>(ImGuiRendererArgs{mArgs.rScreenWidth, mArgs.rScreenHeight});
 
         mpImGuiRenderer->Initialize();
 

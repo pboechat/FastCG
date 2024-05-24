@@ -1,19 +1,23 @@
 #ifndef FASTCG_DEFERRED_WORLD_RENDERER_H
 #define FASTCG_DEFERRED_WORLD_RENDERER_H
 
-#include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/Rendering/BaseWorldRenderer.h>
+#include <FastCG/Rendering/ShaderConstants.h>
 
-#include <vector>
-#include <memory>
 #include <array>
+#include <memory>
+#include <vector>
 
 namespace FastCG
 {
-    class DeferredWorldRenderer : public BaseWorldRenderer<DeferredRenderingPath::InstanceConstants, DeferredRenderingPath::LightingConstants, DeferredRenderingPath::SceneConstants>
+    class DeferredWorldRenderer
+        : public BaseWorldRenderer<DeferredRenderingPath::InstanceConstants, DeferredRenderingPath::LightingConstants,
+                                   DeferredRenderingPath::SceneConstants>
     {
     public:
-        DeferredWorldRenderer(const WorldRendererArgs &rArgs) : BaseWorldRenderer(rArgs) {}
+        DeferredWorldRenderer(const WorldRendererArgs &rArgs) : BaseWorldRenderer(rArgs)
+        {
+        }
 
         void Initialize() override;
         void Resize() override;
@@ -24,8 +28,11 @@ namespace FastCG
         void CreateGBuffers();
         void DestroyGBuffers();
         void BindGBuffer(GraphicsContext *pGraphicsContext) const;
-        const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView, GraphicsContext *pGraphicsContext) override;
-        const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rViewDirection, GraphicsContext *pGraphicsContext) override;
+        const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView,
+                                              GraphicsContext *pGraphicsContext) override;
+        const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight,
+                                              const glm::vec3 &rViewDirection,
+                                              GraphicsContext *pGraphicsContext) override;
 
     private:
         std::vector<std::array<const Texture *, 6>> mGBuffers;

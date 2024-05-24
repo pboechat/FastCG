@@ -3,16 +3,15 @@
 
 #include <FastCG/World/GameObject.h>
 
-#include <type_traits>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <type_traits>
 
 namespace FastCG
 {
     enum class GameObjectLoaderOption : uint8_t
     {
         NONE = 0,
-
     };
 
     using GameObjectLoaderOptionIntType = std::underlying_type<GameObjectLoaderOption>::type;
@@ -21,7 +20,9 @@ namespace FastCG
     class GameObjectLoader
     {
     public:
-        static GameObject *Load(const std::string &rFilePath, GameObjectoaderOptionMaskType options = (GameObjectoaderOptionMaskType)GameObjectLoaderOption::NONE);
+        static GameObject *Load(const std::string &rFilePath,
+                                GameObjectoaderOptionMaskType options = (GameObjectoaderOptionMaskType)
+                                    GameObjectLoaderOption::NONE);
 
     private:
         GameObjectLoader() = delete;

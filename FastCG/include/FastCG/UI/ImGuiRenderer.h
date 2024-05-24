@@ -1,15 +1,15 @@
 #ifndef FASTCG_IMGUI_RENDERER_H
 #define FASTCG_IMGUI_RENDERER_H
 
-#include <FastCG/Rendering/ShaderConstants.h>
-#include <FastCG/Rendering/Mesh.h>
-#include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/GraphicsSystem.h>
+#include <FastCG/Rendering/Mesh.h>
+#include <FastCG/Rendering/ShaderConstants.h>
 
 #include <imgui.h>
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 namespace FastCG
 {
@@ -22,7 +22,10 @@ namespace FastCG
     class ImGuiRenderer
     {
     public:
-        ImGuiRenderer(const ImGuiRendererArgs &rArgs) { FASTCG_UNUSED(rArgs); }
+        ImGuiRenderer(const ImGuiRendererArgs &rArgs)
+        {
+            FASTCG_UNUSED(rArgs);
+        }
 
         void Initialize();
         void Render(const ImDrawData *pImDrawData, GraphicsContext *pGraphicsContext);

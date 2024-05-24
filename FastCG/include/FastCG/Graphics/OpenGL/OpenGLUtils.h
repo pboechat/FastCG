@@ -3,24 +3,24 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Graphics/OpenGL/OpenGL.h>
-#include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 
 #ifdef CASE_RETURN
 #undef CASE_RETURN
 #endif
-#define CASE_RETURN(x, y) \
-    case x:               \
+#define CASE_RETURN(x, y)                                                                                              \
+    case x:                                                                                                            \
         return y
 
 #ifdef CASE_RETURN_STRING
 #undef CASE_RETURN_STRING
 #endif
 
-#define CASE_RETURN_STRING(str) \
-    case str:                   \
+#define CASE_RETURN_STRING(str)                                                                                        \
+    case str:                                                                                                          \
         return #str
 
 namespace FastCG
@@ -97,7 +97,8 @@ namespace FastCG
         case StencilOp::DECREMENT_AND_WRAP:
             return GL_DECR_WRAP;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL stencil func (stencilFunc: %s)", GetStencilOpString(stencilFunc));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL stencil func (stencilFunc: %s)",
+                                   GetStencilOpString(stencilFunc));
             return (GLenum)0;
         }
     }
@@ -139,7 +140,8 @@ namespace FastCG
         case CompareOp::ALWAYS:
             return GL_ALWAYS;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL compare op (compareOp: %s)", GetCompareOpString(compareOp));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL compare op (compareOp: %s)",
+                                   GetCompareOpString(compareOp));
             return (GLenum)0;
         }
     }
@@ -151,7 +153,8 @@ namespace FastCG
         case BlendFunc::ADD:
             return GL_FUNC_ADD;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL blend func (blendFunc: %s)", GetBlendFuncString(blendFunc));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL blend func (blendFunc: %s)",
+                                   GetBlendFuncString(blendFunc));
             return (GLenum)0;
         }
     }
@@ -177,7 +180,8 @@ namespace FastCG
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return GL_ONE_MINUS_SRC_ALPHA;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL blend factor (blendFactor: %s)", GetBlendFactorString(blendFactor));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL blend factor (blendFactor: %s)",
+                                   GetBlendFactorString(blendFactor));
             return (GLenum)0;
         }
     }
@@ -189,7 +193,8 @@ namespace FastCG
         case PrimitiveType::TRIANGLES:
             return GL_TRIANGLES;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL primitive type (primitiveType: %s)", GetPrimitiveTypeString(primitiveType));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL primitive type (primitiveType: %s)",
+                                   GetPrimitiveTypeString(primitiveType));
             return (GLenum)0;
         }
     }
@@ -218,7 +223,8 @@ namespace FastCG
         case ShaderType::COMPUTE:
             return GL_COMPUTE_SHADER;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL shader type (shaderType: %s)", GetShaderTypeString(shaderType));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL shader type (shaderType: %s)",
+                                   GetShaderTypeString(shaderType));
             return 0;
         }
     }
@@ -268,7 +274,8 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return GL_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL wrap mode (wrapMode: %s)", GetTextureWrapModeString(wrapMode));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL wrap mode (wrapMode: %s)",
+                                   GetTextureWrapModeString(wrapMode));
             return 0;
         }
     }
@@ -360,7 +367,8 @@ namespace FastCG
             CASE_RETURN(TextureFormat::ASTC_12x10_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_12x10_KHR);
             CASE_RETURN(TextureFormat::ASTC_12x12_UNORM_BLOCK, GL_COMPRESSED_RGBA_ASTC_12x12_KHR);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL internal format (format: %s)", GetTextureFormatString(format));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL internal format (format: %s)",
+                                   GetTextureFormatString(format));
             return 0;
         }
     }
@@ -434,7 +442,8 @@ namespace FastCG
             CASE_RETURN(TextureFormat::X8_D24_UNORM_PACK32, GL_UNSIGNED_INT);
             CASE_RETURN(TextureFormat::D16_UNORM, GL_FLOAT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL data type (format: %s)", GetTextureFormatString(format));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a GL data type (format: %s)",
+                                   GetTextureFormatString(format));
             return 0;
         }
     }
@@ -449,7 +458,8 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_SOURCE_APPLICATION);
             CASE_RETURN_STRING(GL_DEBUG_SOURCE_OTHER);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message source string (source: %d)", (int)source);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception,
+                                   "Couldn't get a GL debug output message source string (source: %d)", (int)source);
             return nullptr;
         }
     }
@@ -468,7 +478,8 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_TYPE_PUSH_GROUP);
             CASE_RETURN_STRING(GL_DEBUG_TYPE_POP_GROUP);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message type string (type: %d)", (int)type);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message type string (type: %d)",
+                                   (int)type);
             return nullptr;
         }
     }
@@ -482,7 +493,8 @@ namespace FastCG
             CASE_RETURN_STRING(GL_DEBUG_SEVERITY_LOW);
             CASE_RETURN_STRING(GL_DEBUG_SEVERITY_NOTIFICATION);
         default:
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message severity (severity: %d)", (int)severity);
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Couldn't get a GL debug output message severity (severity: %d)",
+                                   (int)severity);
             return nullptr;
         }
     }

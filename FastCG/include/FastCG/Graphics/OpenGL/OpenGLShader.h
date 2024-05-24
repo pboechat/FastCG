@@ -3,11 +3,11 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Graphics/BaseShader.h>
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 namespace FastCG
 {

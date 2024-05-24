@@ -3,25 +3,25 @@
 
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/Vulkan.h>
-#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
-#include <FastCG/Graphics/Vulkan/VulkanShader.h>
-#include <FastCG/Graphics/Vulkan/VulkanRenderPass.h>
-#include <FastCG/Graphics/Vulkan/VulkanPipeline.h>
-#include <FastCG/Graphics/Vulkan/VulkanGraphicsContext.h>
-#include <FastCG/Graphics/Vulkan/VulkanDescriptorSet.h>
-#include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
-#include <FastCG/Graphics/BaseGraphicsSystem.h>
-#include <FastCG/Core/System.h>
 #include <FastCG/Core/Hash.h>
+#include <FastCG/Core/System.h>
+#include <FastCG/Graphics/BaseGraphicsSystem.h>
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
+#include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
+#include <FastCG/Graphics/Vulkan/VulkanDescriptorSet.h>
+#include <FastCG/Graphics/Vulkan/VulkanGraphicsContext.h>
+#include <FastCG/Graphics/Vulkan/VulkanPipeline.h>
+#include <FastCG/Graphics/Vulkan/VulkanRenderPass.h>
+#include <FastCG/Graphics/Vulkan/VulkanShader.h>
+#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 
-#include <vector>
-#include <unordered_map>
-#include <tuple>
-#include <memory>
-#include <deque>
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
+#include <deque>
+#include <memory>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
 
 namespace FastCG
 {
@@ -56,7 +56,8 @@ namespace FastCG
         VkPipelineStageFlags stageMask;
     };
 
-    class VulkanGraphicsSystem : public BaseGraphicsSystem<VulkanBuffer, VulkanGraphicsContext, VulkanShader, VulkanTexture>
+    class VulkanGraphicsSystem
+        : public BaseGraphicsSystem<VulkanBuffer, VulkanGraphicsContext, VulkanShader, VulkanTexture>
     {
         FASTCG_DECLARE_SYSTEM(VulkanGraphicsSystem, GraphicsSystemArgs);
 
@@ -108,18 +109,29 @@ namespace FastCG
 
             uint32_t frame;
             Type type;
-            union
-            {
+            union {
                 const VulkanBuffer *pBuffer;
                 const VulkanShader *pShader;
                 const VulkanTexture *pTexture;
                 VkFramebuffer frameBuffer;
             };
 
-            DeferredDestroyRequest(uint32_t frame, const VulkanBuffer *pBuffer) : frame(frame), type(Type::BUFFER), pBuffer(pBuffer) {}
-            DeferredDestroyRequest(uint32_t frame, const VulkanShader *pShader) : frame(frame), type(Type::SHADER), pShader(pShader) {}
-            DeferredDestroyRequest(uint32_t frame, const VulkanTexture *pTexture) : frame(frame), type(Type::TEXTURE), pTexture(pTexture) {}
-            DeferredDestroyRequest(uint32_t frame, VkFramebuffer frameBuffer) : frame(frame), type(Type::FRAME_BUFFER), frameBuffer(frameBuffer) {}
+            DeferredDestroyRequest(uint32_t frame, const VulkanBuffer *pBuffer)
+                : frame(frame), type(Type::BUFFER), pBuffer(pBuffer)
+            {
+            }
+            DeferredDestroyRequest(uint32_t frame, const VulkanShader *pShader)
+                : frame(frame), type(Type::SHADER), pShader(pShader)
+            {
+            }
+            DeferredDestroyRequest(uint32_t frame, const VulkanTexture *pTexture)
+                : frame(frame), type(Type::TEXTURE), pTexture(pTexture)
+            {
+            }
+            DeferredDestroyRequest(uint32_t frame, VkFramebuffer frameBuffer)
+                : frame(frame), type(Type::FRAME_BUFFER), frameBuffer(frameBuffer)
+            {
+            }
         };
 
         struct DescriptorSetLocalPool
@@ -149,8 +161,8 @@ namespace FastCG
         VkQueue mQueue{VK_NULL_HANDLE};
         VkPresentModeKHR mPresentMode{VK_PRESENT_MODE_IMMEDIATE_KHR};
         VkSurfaceFormatKHR mSwapChainSurfaceFormat{};
-        // FIXME: because of headless-mode, forcing max simultaneous frame to three so we don't need to write complex logic
-        // to recreate objects that depend on the number of simultaneous frames (eg, fences).
+        // FIXME: because of headless-mode, forcing max simultaneous frame to three so we don't need to write complex
+        // logic to recreate objects that depend on the number of simultaneous frames (eg, fences).
         uint32_t mMaxSimultaneousFrames{3};
         uint32_t mCurrentFrame{0};
         uint32_t mSwapChainIndex{0};
@@ -172,7 +184,8 @@ namespace FastCG
         std::unordered_map<size_t, VkPipeline, IdentityHasher<size_t>> mPipelines;
         std::unordered_map<size_t, VkPipelineLayout, IdentityHasher<size_t>> mPipelineLayouts;
         std::unordered_map<size_t, VkDescriptorSetLayout, IdentityHasher<size_t>> mDescriptorSetLayouts;
-        std::vector<std::unordered_map<size_t, DescriptorSetLocalPool, IdentityHasher<size_t>>> mDescriptorSetLocalPools;
+        std::vector<std::unordered_map<size_t, DescriptorSetLocalPool, IdentityHasher<size_t>>>
+            mDescriptorSetLocalPools;
         std::unordered_map<VkImage, VulkanImageMemoryBarrier, IdentityHasher<VkImage>> mLastImageMemoryBarriers;
         std::unordered_map<VkBuffer, VulkanBufferMemoryBarrier, IdentityHasher<VkBuffer>> mLastBufferMemoryBarriers;
         VulkanGraphicsContext *mpImmediateGraphicsContext;
@@ -223,7 +236,9 @@ namespace FastCG
         void DestroyAllocator();
         void DestroySurface();
         void DestroyInstance();
-        void Resize() {}
+        void Resize()
+        {
+        }
         void Present();
         double GetGpuElapsedTime() const;
 #if _DEBUG
@@ -234,21 +249,25 @@ namespace FastCG
         std::pair<size_t, VkRenderPass> GetOrCreateRenderPass(const VulkanRenderPassDescription &rRenderPassDescription,
                                                               const std::vector<VulkanClearRequest> &rClearRequests,
                                                               bool depthStencilWrite);
-        std::pair<size_t, VkFramebuffer> GetOrCreateFrameBuffer(const VulkanRenderPassDescription &rRenderPassDescription,
-                                                                const std::vector<VulkanClearRequest> &rClearRequests,
-                                                                bool depthStencilWrite);
-        std::pair<size_t, VulkanPipeline> GetOrCreateGraphicsPipeline(const VulkanPipelineDescription &rPipelineDescription,
-                                                                      VkRenderPass renderPass,
-                                                                      uint32_t renderTargetCount);
-        std::pair<size_t, VulkanPipeline> GetOrCreateComputePipeline(const VulkanPipelineDescription &rPipelineDescription);
-        std::pair<size_t, VkPipelineLayout> GetOrCreatePipelineLayout(const VulkanPipelineLayoutDescription &rPipelineLayoutDescription);
-        std::pair<size_t, VkDescriptorSetLayout> GetOrCreateDescriptorSetLayout(const VulkanDescriptorSetLayout &rDescriptorSetLayout);
-        std::pair<size_t, VkDescriptorSet> GetOrCreateDescriptorSet(const VulkanDescriptorSetLayout &rDescriptorSetLayout);
+        std::pair<size_t, VkFramebuffer> GetOrCreateFrameBuffer(
+            const VulkanRenderPassDescription &rRenderPassDescription,
+            const std::vector<VulkanClearRequest> &rClearRequests, bool depthStencilWrite);
+        std::pair<size_t, VulkanPipeline> GetOrCreateGraphicsPipeline(
+            const VulkanPipelineDescription &rPipelineDescription, VkRenderPass renderPass, uint32_t renderTargetCount);
+        std::pair<size_t, VulkanPipeline> GetOrCreateComputePipeline(
+            const VulkanPipelineDescription &rPipelineDescription);
+        std::pair<size_t, VkPipelineLayout> GetOrCreatePipelineLayout(
+            const VulkanPipelineLayoutDescription &rPipelineLayoutDescription);
+        std::pair<size_t, VkDescriptorSetLayout> GetOrCreateDescriptorSetLayout(
+            const VulkanDescriptorSetLayout &rDescriptorSetLayout);
+        std::pair<size_t, VkDescriptorSet> GetOrCreateDescriptorSet(
+            const VulkanDescriptorSetLayout &rDescriptorSetLayout);
         void PerformDeferredDestroys();
         void FinalizeDeferredDestroys();
         inline VulkanImageMemoryBarrier GetLastImageMemoryBarrier(const VulkanTexture *pTexture) const;
         inline VulkanBufferMemoryBarrier GetLastBufferMemoryBarrier(VkBuffer buffer) const;
-        inline void NotifyImageMemoryBarrier(const VulkanTexture *pTexture, const VulkanImageMemoryBarrier &rImageMemoryBarrier);
+        inline void NotifyImageMemoryBarrier(const VulkanTexture *pTexture,
+                                             const VulkanImageMemoryBarrier &rImageMemoryBarrier);
         inline void NotifyBufferMemoryBarrier(VkBuffer buffer, const VulkanBufferMemoryBarrier &rBufferMemoryBarrier);
         inline void DestroyFrameBuffer(size_t frameBufferHash);
 

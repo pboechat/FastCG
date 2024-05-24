@@ -1,9 +1,9 @@
-#include <FastCG/World/WorldSystem.h>
-#include <FastCG/Rendering/StandardGeometries.h>
-#include <FastCG/Debug/DebugMenuSystem.h>
-#include <FastCG/Core/Random.h>
-#include <FastCG/Core/Math.h>
 #include <FastCG/Core/Macros.h>
+#include <FastCG/Core/Math.h>
+#include <FastCG/Core/Random.h>
+#include <FastCG/Debug/DebugMenuSystem.h>
+#include <FastCG/Rendering/StandardGeometries.h>
+#include <FastCG/World/WorldSystem.h>
 
 #include <imgui.h>
 
@@ -15,7 +15,8 @@ namespace
         FastCG::Random::SeedWithTime();
         for (uint32_t i = 0; i < N; i++)
         {
-            glm::vec3 randomSample{FastCG::Random::NextFloat() * 2 - 1, FastCG::Random::NextFloat() * 2 - 1, FastCG::Random::NextFloat()};
+            glm::vec3 randomSample{FastCG::Random::NextFloat() * 2 - 1, FastCG::Random::NextFloat() * 2 - 1,
+                                   FastCG::Random::NextFloat()};
             randomSample = glm::normalize(randomSample);
             auto scale = i / (float)N;
             scale = FastCG::MathF::Lerp(0.1f, 1.0f, FastCG::MathF::Pow(scale, 2));
@@ -24,19 +25,14 @@ namespace
         }
     }
 
-    const auto *CreateShadowMapTexture(const std::string &rName, uint32_t width, uint32_t height, const uint8_t *pData = nullptr)
+    const auto *CreateShadowMapTexture(const std::string &rName, uint32_t width, uint32_t height,
+                                       const uint8_t *pData = nullptr)
     {
-        return FastCG::GraphicsSystem::GetInstance()->CreateTexture({rName,
-                                                                     width,
-                                                                     height,
-                                                                     1,
-                                                                     1,
-                                                                     FastCG::TextureType::TEXTURE_2D,
-                                                                     FastCG::TextureUsageFlagBit::SAMPLED | FastCG::TextureUsageFlagBit::RENDER_TARGET,
-                                                                     FastCG::TextureFormat::X8_D24_UNORM_PACK32,
-                                                                     FastCG::TextureFilter::POINT_FILTER,
-                                                                     FastCG::TextureWrapMode::CLAMP,
-                                                                     pData});
+        return FastCG::GraphicsSystem::GetInstance()->CreateTexture(
+            {rName, width, height, 1, 1, FastCG::TextureType::TEXTURE_2D,
+             FastCG::TextureUsageFlagBit::SAMPLED | FastCG::TextureUsageFlagBit::RENDER_TARGET,
+             FastCG::TextureFormat::X8_D24_UNORM_PACK32, FastCG::TextureFilter::POINT_FILTER,
+             FastCG::TextureWrapMode::CLAMP, pData});
     }
 
 }
@@ -47,7 +43,8 @@ namespace FastCG
     const glm::mat4 INVALID_SHADOW_MAP_PROJECTION = glm::ortho(-FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX);
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    typename BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::ShadowMapKey BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetShadowMapKey(const Light *pLight) const
+    typename BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::ShadowMapKey BaseWorldRenderer<
+        InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetShadowMapKey(const Light *pLight) const
     {
         return (ShadowMapKey)pLight;
     }
@@ -56,7 +53,8 @@ namespace FastCG
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Initialize()
     {
 #if _DEBUG
-        DebugMenuSystem::GetInstance()->AddItem("World Renderer", std::bind(&BaseWorldRenderer::DebugMenuItemCallback, this, std::placeholders::_1));
+        DebugMenuSystem::GetInstance()->AddItem(
+            "World Renderer", std::bind(&BaseWorldRenderer::DebugMenuItemCallback, this, std::placeholders::_1));
 #endif
 
         {
@@ -69,10 +67,9 @@ namespace FastCG
 
         CreateSSAORenderTargets();
 
-        mpSSAOHighFrequencyPassConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer({"SSAO High Frequency Pass Constants",
-                                                                                              BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                              sizeof(SSAOHighFrequencyPassConstants),
-                                                                                              &mSSAOHighFrequencyPassConstants});
+        mpSSAOHighFrequencyPassConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer(
+            {"SSAO High Frequency Pass Constants", BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
+             sizeof(SSAOHighFrequencyPassConstants), &mSSAOHighFrequencyPassConstants});
 
         GenerateRandomSamplesInAHemisphere<NUMBER_OF_RANDOM_SAMPLES>(mSSAOHighFrequencyPassConstants.randomSamples);
 
@@ -84,37 +81,23 @@ namespace FastCG
             {
                 for (uint32_t j = 0; j < NOISE_TEXTURE_WIDTH; j++, pNoise += 4)
                 {
-                    auto noise = glm::normalize(glm::vec4(Random::NextFloat() * 2 - 1, Random::NextFloat() * 2 - 1, 0, 0));
+                    auto noise =
+                        glm::normalize(glm::vec4(Random::NextFloat() * 2 - 1, Random::NextFloat() * 2 - 1, 0, 0));
                     pNoise[0] = (uint8_t)(noise.x * 255);
                     pNoise[1] = (uint8_t)(noise.y * 255);
                 }
             }
-            mpNoiseTexture = GraphicsSystem::GetInstance()->CreateTexture({"Noise",
-                                                                           NOISE_TEXTURE_WIDTH,
-                                                                           NOISE_TEXTURE_HEIGHT,
-                                                                           1,
-                                                                           1,
-                                                                           TextureType::TEXTURE_2D,
-                                                                           TextureUsageFlagBit::SAMPLED,
-                                                                           TextureFormat::R8G8B8A8_UNORM,
-                                                                           TextureFilter::POINT_FILTER,
-                                                                           TextureWrapMode::CLAMP,
-                                                                           &pData[0]});
+            mpNoiseTexture = GraphicsSystem::GetInstance()->CreateTexture(
+                {"Noise", NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 1, 1, TextureType::TEXTURE_2D,
+                 TextureUsageFlagBit::SAMPLED, TextureFormat::R8G8B8A8_UNORM, TextureFilter::POINT_FILTER,
+                 TextureWrapMode::CLAMP, &pData[0]});
         }
 
         {
             uint8_t data[] = {255};
-            mpEmptySSAOTexture = GraphicsSystem::GetInstance()->CreateTexture({"Empty Ambient Occlusion Map",
-                                                                               1,
-                                                                               1,
-                                                                               1,
-                                                                               1,
-                                                                               TextureType::TEXTURE_2D,
-                                                                               TextureUsageFlagBit::SAMPLED,
-                                                                               TextureFormat::R8_UNORM,
-                                                                               TextureFilter::POINT_FILTER,
-                                                                               TextureWrapMode::CLAMP,
-                                                                               data});
+            mpEmptySSAOTexture = GraphicsSystem::GetInstance()->CreateTexture(
+                {"Empty Ambient Occlusion Map", 1, 1, 1, 1, TextureType::TEXTURE_2D, TextureUsageFlagBit::SAMPLED,
+                 TextureFormat::R8_UNORM, TextureFilter::POINT_FILTER, TextureWrapMode::CLAMP, data});
         }
 
         mpSSAOHighFrequencyPassShader = GraphicsSystem::GetInstance()->FindShader("SSAOHighFrequencyPass");
@@ -129,7 +112,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Render(const Camera *pCamera, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Render(
+        const Camera *pCamera, GraphicsContext *pGraphicsContext)
     {
         assert(pGraphicsContext != nullptr);
 
@@ -149,37 +133,40 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetShadowMapPassConstantsBuffer()
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT,
+                                    SceneConstantsT>::GetShadowMapPassConstantsBuffer()
     {
         while (mShadowMapPassConstantsBuffers.size() <= mLastShadowMapPassConstantsBufferIdx)
         {
-            mShadowMapPassConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"Shadow Map Pass Constants (" + std::to_string(mShadowMapPassConstantsBuffers.size()) + ")",
-                                                                                                     BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                                     sizeof(ShadowMapPassConstants)}));
+            mShadowMapPassConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer(
+                {"Shadow Map Pass Constants (" + std::to_string(mShadowMapPassConstantsBuffers.size()) + ")",
+                 BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(ShadowMapPassConstants)}));
         }
         return mShadowMapPassConstantsBuffers[mLastShadowMapPassConstantsBufferIdx++];
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetInstanceConstantsBuffer()
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT,
+                                    SceneConstantsT>::GetInstanceConstantsBuffer()
     {
         while (mInstanceConstantsBuffers.size() <= mLastInstanceConstantsBufferIdx)
         {
-            mInstanceConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"Instance Constants (" + std::to_string(mInstanceConstantsBuffers.size()) + ")",
-                                                                                                BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                                sizeof(InstanceConstants)}));
+            mInstanceConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer(
+                {"Instance Constants (" + std::to_string(mInstanceConstantsBuffers.size()) + ")",
+                 BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(InstanceConstants)}));
         }
         return mInstanceConstantsBuffers[mLastInstanceConstantsBufferIdx++];
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetLightingConstantsBuffer()
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT,
+                                    SceneConstantsT>::GetLightingConstantsBuffer()
     {
         while (mLightingConstantsBuffers.size() <= mLastLightingConstantsBufferIdx)
         {
-            mLightingConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"Lighting Constants (" + std::to_string(mLightingConstantsBuffers.size()) + ")",
-                                                                                                BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                                sizeof(LightingConstants)}));
+            mLightingConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer(
+                {"Lighting Constants (" + std::to_string(mLightingConstantsBuffers.size()) + ")",
+                 BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(LightingConstants)}));
         }
         return mLightingConstantsBuffers[mLastLightingConstantsBufferIdx++];
     }
@@ -189,9 +176,9 @@ namespace FastCG
     {
         while (mPCSSConstantsBuffers.size() <= mLastPCSSConstantsBufferIdx)
         {
-            mPCSSConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"PCSS Constants (" + std::to_string(mPCSSConstantsBuffers.size()) + ")",
-                                                                                            BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                            sizeof(PCSSConstants)}));
+            mPCSSConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer(
+                {"PCSS Constants (" + std::to_string(mPCSSConstantsBuffers.size()) + ")",
+                 BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(PCSSConstants)}));
         }
         return mPCSSConstantsBuffers[mLastPCSSConstantsBufferIdx++];
     }
@@ -201,9 +188,9 @@ namespace FastCG
     {
         while (mFogConstantsBuffers.size() <= mLastFogConstantsBufferIdx)
         {
-            mFogConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"Fog Constants (" + std::to_string(mFogConstantsBuffers.size()) + ")",
-                                                                                           BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                           sizeof(FogConstants)}));
+            mFogConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer(
+                {"Fog Constants (" + std::to_string(mFogConstantsBuffers.size()) + ")",
+                 BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(FogConstants)}));
         }
         return mFogConstantsBuffers[mLastFogConstantsBufferIdx++];
     }
@@ -213,15 +200,16 @@ namespace FastCG
     {
         while (mSceneConstantsBuffers.size() <= mLastSceneConstantsBufferIdx)
         {
-            mSceneConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer({"Scene Constants (" + std::to_string(mSceneConstantsBuffers.size()) + ")",
-                                                                                             BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                                             sizeof(SceneConstants)}));
+            mSceneConstantsBuffers.emplace_back(GraphicsSystem::GetInstance()->CreateBuffer(
+                {"Scene Constants (" + std::to_string(mSceneConstantsBuffers.size()) + ")",
+                 BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(SceneConstants)}));
         }
         return mSceneConstantsBuffers[mLastSceneConstantsBufferIdx++];
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::SetGraphicsContextState(const GraphicsContextState &rGraphicsContextState, GraphicsContext *pGraphicsContext) const
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::SetGraphicsContextState(
+        const GraphicsContextState &rGraphicsContextState, GraphicsContext *pGraphicsContext) const
     {
         pGraphicsContext->SetDepthTest(rGraphicsContextState.depthTest);
         pGraphicsContext->SetDepthWrite(rGraphicsContextState.depthWrite);
@@ -230,11 +218,19 @@ namespace FastCG
         if (rGraphicsContextState.stencilTest)
         {
             pGraphicsContext->SetStencilTest(true);
-            pGraphicsContext->SetStencilFunc(Face::BACK, rGraphicsContextState.stencilBackState.compareOp, rGraphicsContextState.stencilBackState.reference, rGraphicsContextState.stencilBackState.compareMask);
-            pGraphicsContext->SetStencilOp(Face::BACK, rGraphicsContextState.stencilBackState.stencilFailOp, rGraphicsContextState.stencilBackState.depthFailOp, rGraphicsContextState.stencilBackState.passOp);
+            pGraphicsContext->SetStencilFunc(Face::BACK, rGraphicsContextState.stencilBackState.compareOp,
+                                             rGraphicsContextState.stencilBackState.reference,
+                                             rGraphicsContextState.stencilBackState.compareMask);
+            pGraphicsContext->SetStencilOp(Face::BACK, rGraphicsContextState.stencilBackState.stencilFailOp,
+                                           rGraphicsContextState.stencilBackState.depthFailOp,
+                                           rGraphicsContextState.stencilBackState.passOp);
             pGraphicsContext->SetStencilWriteMask(Face::BACK, rGraphicsContextState.stencilBackState.writeMask);
-            pGraphicsContext->SetStencilFunc(Face::FRONT, rGraphicsContextState.stencilFrontState.compareOp, rGraphicsContextState.stencilFrontState.reference, rGraphicsContextState.stencilFrontState.compareMask);
-            pGraphicsContext->SetStencilOp(Face::FRONT, rGraphicsContextState.stencilFrontState.stencilFailOp, rGraphicsContextState.stencilFrontState.depthFailOp, rGraphicsContextState.stencilFrontState.passOp);
+            pGraphicsContext->SetStencilFunc(Face::FRONT, rGraphicsContextState.stencilFrontState.compareOp,
+                                             rGraphicsContextState.stencilFrontState.reference,
+                                             rGraphicsContextState.stencilFrontState.compareMask);
+            pGraphicsContext->SetStencilOp(Face::FRONT, rGraphicsContextState.stencilFrontState.stencilFailOp,
+                                           rGraphicsContextState.stencilFrontState.depthFailOp,
+                                           rGraphicsContextState.stencilFrontState.passOp);
             pGraphicsContext->SetStencilWriteMask(Face::FRONT, rGraphicsContextState.stencilFrontState.writeMask);
         }
         else
@@ -245,8 +241,11 @@ namespace FastCG
         if (rGraphicsContextState.blend)
         {
             pGraphicsContext->SetBlend(true);
-            pGraphicsContext->SetBlendFunc(rGraphicsContextState.blendState.colorOp, rGraphicsContextState.blendState.alphaOp);
-            pGraphicsContext->SetBlendFactors(rGraphicsContextState.blendState.srcColorFactor, rGraphicsContextState.blendState.dstColorFactor, rGraphicsContextState.blendState.srcAlphaFactor, rGraphicsContextState.blendState.dstAlphaFactor);
+            pGraphicsContext->SetBlendFunc(rGraphicsContextState.blendState.colorOp,
+                                           rGraphicsContextState.blendState.alphaOp);
+            pGraphicsContext->SetBlendFactors(
+                rGraphicsContextState.blendState.srcColorFactor, rGraphicsContextState.blendState.dstColorFactor,
+                rGraphicsContextState.blendState.srcAlphaFactor, rGraphicsContextState.blendState.dstAlphaFactor);
         }
         else
         {
@@ -257,26 +256,14 @@ namespace FastCG
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::CreateSSAORenderTargets()
     {
-        mSSAORenderTargets[0] = GraphicsSystem::GetInstance()->CreateTexture({"Ambient Occlusion Map",
-                                                                              mArgs.rScreenWidth,
-                                                                              mArgs.rScreenHeight,
-                                                                              1,
-                                                                              1,
-                                                                              TextureType::TEXTURE_2D,
-                                                                              TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                              TextureFormat::R8G8B8A8_UNORM,
-                                                                              TextureFilter::LINEAR_FILTER,
-                                                                              TextureWrapMode::CLAMP});
-        mSSAORenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture({"Blurred Ambient Occlusion Map",
-                                                                              mArgs.rScreenWidth,
-                                                                              mArgs.rScreenHeight,
-                                                                              1,
-                                                                              1,
-                                                                              TextureType::TEXTURE_2D,
-                                                                              TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                              TextureFormat::R8G8B8A8_UNORM,
-                                                                              TextureFilter::LINEAR_FILTER,
-                                                                              TextureWrapMode::CLAMP});
+        mSSAORenderTargets[0] = GraphicsSystem::GetInstance()->CreateTexture(
+            {"Ambient Occlusion Map", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
+             TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, TextureFormat::R8G8B8A8_UNORM,
+             TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
+        mSSAORenderTargets[1] = GraphicsSystem::GetInstance()->CreateTexture(
+            {"Blurred Ambient Occlusion Map", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
+             TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, TextureFormat::R8G8B8A8_UNORM,
+             TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
@@ -384,19 +371,25 @@ namespace FastCG
 #endif
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const typename BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::ShadowMap &BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetOrCreateShadowMap(const Light *pLight)
+    const typename BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::ShadowMap &
+    BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetOrCreateShadowMap(
+        const Light *pLight)
     {
         auto shadowMapKey = GetShadowMapKey(pLight);
         auto it = mShadowMaps.find(shadowMapKey);
         if (it == mShadowMaps.end())
         {
-            it = mShadowMaps.emplace(shadowMapKey, ShadowMap{pLight, CreateShadowMapTexture("Shadow Map", SHADOW_MAP_SIZE, SHADOW_MAP_SIZE)}).first;
+            it = mShadowMaps
+                     .emplace(shadowMapKey,
+                              ShadowMap{pLight, CreateShadowMapTexture("Shadow Map", SHADOW_MAP_SIZE, SHADOW_MAP_SIZE)})
+                     .first;
         }
         return it->second;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    bool BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetShadowMap(const Light *pLight, ShadowMap &rShadowMap) const
+    bool BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GetShadowMap(
+        const Light *pLight, ShadowMap &rShadowMap) const
     {
         auto shadowMapKey = GetShadowMapKey(pLight);
         auto it = mShadowMaps.find(shadowMapKey);
@@ -409,7 +402,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateShadowMaps(GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateShadowMaps(
+        GraphicsContext *pGraphicsContext)
     {
         const auto &rShadowCastersRenderBatch = mArgs.rRenderBatchStrategy.GetShadowCastersRenderBatch();
         if (rShadowCastersRenderBatch.renderablesPerMesh.empty())
@@ -439,7 +433,8 @@ namespace FastCG
 
                 const auto *pShadowMapTexture = rShadowMap.GetTexture();
 
-                for (auto it = rShadowCastersRenderBatch.renderablesPerMesh.cbegin(); it != rShadowCastersRenderBatch.renderablesPerMesh.cend(); ++it)
+                for (auto it = rShadowCastersRenderBatch.renderablesPerMesh.cbegin();
+                     it != rShadowCastersRenderBatch.renderablesPerMesh.cend(); ++it)
                 {
                     const auto &pMesh = it->first;
                     const auto &rRenderables = it->second;
@@ -453,11 +448,13 @@ namespace FastCG
                     uint32_t instanceCount;
                     const Buffer *pShadowMapPassConstantsBuffer;
                     {
-                        auto result = UpdateShadowMapPassConstants(rRenderables, rShadowMap.GetView(), rShadowMap.GetProjection(), pGraphicsContext);
+                        auto result = UpdateShadowMapPassConstants(rRenderables, rShadowMap.GetView(),
+                                                                   rShadowMap.GetProjection(), pGraphicsContext);
                         instanceCount = result.first;
                         pShadowMapPassConstantsBuffer = result.second;
                     }
-                    pGraphicsContext->BindResource(pShadowMapPassConstantsBuffer, SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_NAME);
+                    pGraphicsContext->BindResource(pShadowMapPassConstantsBuffer,
+                                                   SHADOW_MAP_PASS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                     if (instanceCount == 1)
                     {
@@ -465,7 +462,8 @@ namespace FastCG
                     }
                     else
                     {
-                        pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0, pMesh->GetIndexCount(), 0);
+                        pGraphicsContext->DrawInstancedIndexed(PrimitiveType::TRIANGLES, 0, instanceCount, 0,
+                                                               pMesh->GetIndexCount(), 0);
                     }
 
                     mArgs.rRenderingStatistics.drawCalls++;
@@ -476,7 +474,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateAmbientOcculusionMap(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::GenerateAmbientOcculusionMap(
+        const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext)
     {
         pGraphicsContext->PushDebugMarker("Ambient Occlusion Map Generation");
         {
@@ -496,7 +495,8 @@ namespace FastCG
                 pGraphicsContext->BindShader(mpSSAOHighFrequencyPassShader);
 
                 UpdateSSAOHighFrequencyPassConstants(rProjection, fov, pDepth, pGraphicsContext);
-                pGraphicsContext->BindResource(mpSSAOHighFrequencyPassConstantsBuffer, SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_NAME);
+                pGraphicsContext->BindResource(mpSSAOHighFrequencyPassConstantsBuffer,
+                                               SSAO_HIGH_FREQUENCY_PASS_CONSTANTS_SHADER_RESOURCE_NAME);
 
                 pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
                 pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
@@ -518,7 +518,8 @@ namespace FastCG
 
                     pGraphicsContext->BindResource(mSSAORenderTargets[0], "uAmbientOcclusionMap");
 
-                    pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
+                    pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(),
+                                                       mpQuadMesh->GetVertexBufferCount());
                     pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
 
                     pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
@@ -532,7 +533,9 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::RenderSkybox(const Texture *pRenderTarget, const Texture *pDepthScencilBuffer, const Buffer *pSceneConstantsBuffer, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::RenderSkybox(
+        const Texture *pRenderTarget, const Texture *pDepthScencilBuffer, const Buffer *pSceneConstantsBuffer,
+        const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
     {
         const auto &rSkyboxRenderBatch = mArgs.rRenderBatchStrategy.GetSkyboxRenderBatch();
         if (rSkyboxRenderBatch.renderablesPerMesh.empty())
@@ -573,7 +576,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Tonemap(const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Tonemap(
+        const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext)
     {
         pGraphicsContext->PushDebugMarker("Tonemapping");
         {
@@ -601,12 +605,14 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindMaterial(const std::shared_ptr<Material> &rpMaterial, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::BindMaterial(
+        const std::shared_ptr<Material> &rpMaterial, GraphicsContext *pGraphicsContext)
     {
         const auto *pConstantBuffer = rpMaterial->GetConstantBuffer();
         if (pConstantBuffer != nullptr)
         {
-            pGraphicsContext->Copy(pConstantBuffer, rpMaterial->GetConstantBufferData(), rpMaterial->GetConstantBufferSize());
+            pGraphicsContext->Copy(pConstantBuffer, rpMaterial->GetConstantBufferData(),
+                                   rpMaterial->GetConstantBufferSize());
         }
 
         pGraphicsContext->BindShader(rpMaterial->GetShader());
@@ -626,7 +632,9 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateInstanceConstants(const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateInstanceConstants(
+        const glm::mat4 &rModel, const glm::mat4 &rView, const glm::mat4 &rProjection,
+        GraphicsContext *pGraphicsContext)
     {
         auto &rInstanceData = mInstanceConstants.instanceData[0];
 
@@ -638,12 +646,15 @@ namespace FastCG
         rInstanceData.modelViewProjection = rProjection * modelView;
 
         const auto *pInstanceConstantsBuffer = GetInstanceConstantsBuffer();
-        pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants, sizeof(InstanceConstants::instanceData[0]));
+        pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants,
+                               sizeof(InstanceConstants::instanceData[0]));
         return pInstanceConstantsBuffer;
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    std::pair<uint32_t, const Buffer *> BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
+    std::pair<uint32_t, const Buffer *> BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::
+        UpdateInstanceConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView,
+                                const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
     {
         uint32_t instanceCount = 0;
         for (const auto *pRenderable : rRenderables)
@@ -669,14 +680,16 @@ namespace FastCG
         const auto *pInstanceConstantsBuffer = GetInstanceConstantsBuffer();
         if (instanceCount > 0)
         {
-            pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants, sizeof(InstanceConstants::instanceData[0]) * instanceCount);
+            pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants,
+                                   sizeof(InstanceConstants::instanceData[0]) * instanceCount);
         }
 
         return {instanceCount, pInstanceConstantsBuffer};
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::EmptyLightingConstants(GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::EmptyLightingConstants(
+        GraphicsContext *pGraphicsContext)
     {
         mLightingConstants = {};
 
@@ -686,7 +699,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rView, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(
+        const PointLight *pPointLight, const glm::mat4 &rView, GraphicsContext *pGraphicsContext)
     {
         const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
         mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
@@ -705,7 +719,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(const DirectionalLight *pDirectionalLight, const glm::vec3 &rLightDirection, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(
+        const DirectionalLight *pDirectionalLight, const glm::vec3 &rLightDirection, GraphicsContext *pGraphicsContext)
     {
         mLightingConstants.light0Position = glm::vec4(rLightDirection, -1);
         mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
@@ -720,7 +735,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::EmptyPCSSConstants(GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::EmptyPCSSConstants(
+        GraphicsContext *pGraphicsContext)
     {
         mPCSSConstants = {};
 
@@ -732,7 +748,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(
+        const PointLight *pPointLight, float nearClip, GraphicsContext *pGraphicsContext)
     {
         FASTCG_UNUSED(pPointLight);
         FASTCG_UNUSED(nearClip);
@@ -750,7 +767,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdatePCSSConstants(
+        const DirectionalLight *pDirectionalLight, float nearClip, GraphicsContext *pGraphicsContext)
     {
         ShadowMap shadowMap;
         if (GetShadowMap(pDirectionalLight, shadowMap))
@@ -774,7 +792,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSSAOConstants(bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSSAOConstants(
+        bool isSSAOEnabled, GraphicsContext *pGraphicsContext) const
     {
         if (isSSAOEnabled)
         {
@@ -794,7 +813,8 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateFogConstants(const Fog *pFog, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateFogConstants(
+        const Fog *pFog, GraphicsContext *pGraphicsContext)
     {
         if (pFog == nullptr)
         {
@@ -802,7 +822,8 @@ namespace FastCG
         }
         else
         {
-            mFogConstants.fogData = FogData{pFog->GetColor(), (uint32_t)pFog->GetMode(), pFog->GetDensity(), pFog->GetStart(), pFog->GetEnd()};
+            mFogConstants.fogData = FogData{pFog->GetColor(), (uint32_t)pFog->GetMode(), pFog->GetDensity(),
+                                            pFog->GetStart(), pFog->GetEnd()};
         }
 
         const auto *pFogConstantsBuffer = GetFogConstantsBuffer();
@@ -811,7 +832,9 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSceneConstants(const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
+    const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSceneConstants(
+        const glm::mat4 &rView, const glm::mat4 &rInverseView, const glm::mat4 &rProjection,
+        GraphicsContext *pGraphicsContext)
     {
         mSceneConstants.view = rView;
         mSceneConstants.inverseView = rInverseView;
@@ -826,7 +849,9 @@ namespace FastCG
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    std::pair<uint32_t, const Buffer *> BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView, const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
+    std::pair<uint32_t, const Buffer *> BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::
+        UpdateShadowMapPassConstants(const std::vector<const Renderable *> &rRenderables, const glm::mat4 &rView,
+                                     const glm::mat4 &rProjection, GraphicsContext *pGraphicsContext)
     {
         uint32_t instanceCount = 0;
         for (const auto *pRenderable : rRenderables)
@@ -838,7 +863,8 @@ namespace FastCG
 
             auto &rInstanceData = mShadowMapPassConstants.instanceData[instanceCount++];
 
-            rInstanceData.modelViewProjection = rProjection * rView * pRenderable->GetGameObject()->GetTransform()->GetModel();
+            rInstanceData.modelViewProjection =
+                rProjection * rView * pRenderable->GetGameObject()->GetTransform()->GetModel();
         }
 
         assert(instanceCount < MAX_NUM_INSTANCES);
@@ -846,20 +872,25 @@ namespace FastCG
         const auto *pShadowMapPassConstantsBuffer = GetShadowMapPassConstantsBuffer();
         if (instanceCount > 0)
         {
-            pGraphicsContext->Copy(pShadowMapPassConstantsBuffer, &mShadowMapPassConstants, sizeof(ShadowMapPassConstants::instanceData[0]) * instanceCount);
+            pGraphicsContext->Copy(pShadowMapPassConstantsBuffer, &mShadowMapPassConstants,
+                                   sizeof(ShadowMapPassConstants::instanceData[0]) * instanceCount);
         }
 
         return {instanceCount, pShadowMapPassConstantsBuffer};
     }
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
-    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection, float fov, const Texture *pDepth, GraphicsContext *pGraphicsContext)
+    void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT,
+                           SceneConstantsT>::UpdateSSAOHighFrequencyPassConstants(const glm::mat4 &rProjection,
+                                                                                  float fov, const Texture *pDepth,
+                                                                                  GraphicsContext *pGraphicsContext)
     {
         mSSAOHighFrequencyPassConstants.projection = rProjection;
         mSSAOHighFrequencyPassConstants.aspectRatio = mArgs.rScreenWidth / (float)mArgs.rScreenHeight;
         mSSAOHighFrequencyPassConstants.tanHalfFov = MathF::Tan((MathF::DEGREES_TO_RADIANS * fov) / 2.0f);
 
-        pGraphicsContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, &mSSAOHighFrequencyPassConstants, sizeof(SSAOHighFrequencyPassConstants));
+        pGraphicsContext->Copy(mpSSAOHighFrequencyPassConstantsBuffer, &mSSAOHighFrequencyPassConstants,
+                               sizeof(SSAOHighFrequencyPassConstants));
 
         pGraphicsContext->BindResource(mpNoiseTexture, "uNoiseMap");
         pGraphicsContext->BindResource(pDepth, "uDepth");

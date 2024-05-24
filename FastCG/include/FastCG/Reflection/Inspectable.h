@@ -1,21 +1,21 @@
 #ifndef FASTCG_INSPECTABLE_H
 #define FASTCG_INSPECTABLE_H
 
+#include <FastCG/Core/Enums.h>
 #include <FastCG/Rendering/Material.h>
 #include <FastCG/Rendering/Mesh.h>
-#include <FastCG/Core/Enums.h>
 
 #include <glm/glm.hpp>
 
-#include <vector>
-#include <type_traits>
-#include <string>
-#include <string.h>
-#include <memory>
-#include <iterator>
-#include <initializer_list>
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
+#include <initializer_list>
+#include <iterator>
+#include <memory>
+#include <string.h>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace FastCG
 {
@@ -32,66 +32,49 @@ namespace FastCG
     template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
     using InspectablePropertySetterCRP = void (InspectablePropertyOwnerT::*)(const InspectablePropertyTypeT *);
 
-    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyType, uint8_t, BOOL,
-                               ENUM,
-                               INT32,
-                               UINT32,
-                               INT64,
-                               UINT64,
-                               FLOAT,
-                               DOUBLE,
-                               VEC2,
-                               VEC3,
-                               VEC4,
-                               STRING,
-                               INSPECTABLE,
-                               MATERIAL,
-                               MESH,
-                               TEXTURE);
+    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyType, uint8_t, BOOL, ENUM, INT32, UINT32, INT64, UINT64, FLOAT,
+                               DOUBLE, VEC2, VEC3, VEC4, STRING, INSPECTABLE, MATERIAL, MESH, TEXTURE);
 
     template <typename InspectablePropertyTypeT, bool IsDerivedFromInspectable>
     struct _GetInspectablePropertyTypeFromType;
 
-    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyQualifier, uint8_t, CONSTANT,
-                               REFERENCE,
-                               RAW_POINTER);
+    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyQualifier, uint8_t, CONSTANT, REFERENCE, RAW_POINTER);
 
-    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyQualifierRequirement, uint8_t, NONE,
-                               MUST,
-                               MUSTNT);
+    FASTCG_DECLARE_SCOPED_ENUM(InspectablePropertyQualifierRequirement, uint8_t, NONE, MUST, MUSTNT);
 
-    template <typename InspectablePropertyTypeT, InspectablePropertyQualifier QualifierT, bool IsDerivedFromInspectable = false>
+    template <typename InspectablePropertyTypeT, InspectablePropertyQualifier QualifierT,
+              bool IsDerivedFromInspectable = false>
     struct GetInspectablePropertyQualifierRequirement;
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum, constQualifier, refQualifier, ptrQualifier)  \
-    template <>                                                                                               \
-    struct _GetInspectablePropertyTypeFromType<type, false>                                                   \
-    {                                                                                                         \
-        static constexpr auto value = InspectablePropertyType::typeEnum;                                      \
-    };                                                                                                        \
-    template <>                                                                                               \
-    struct GetInspectablePropertyQualifierRequirement<type, InspectablePropertyQualifier::CONSTANT, false>    \
-    {                                                                                                         \
-        static constexpr auto value = InspectablePropertyQualifierRequirement::constQualifier;                \
-    };                                                                                                        \
-    template <>                                                                                               \
-    struct GetInspectablePropertyQualifierRequirement<type, InspectablePropertyQualifier::REFERENCE, false>   \
-    {                                                                                                         \
-        static constexpr auto value = InspectablePropertyQualifierRequirement::refQualifier;                  \
-    };                                                                                                        \
-    template <>                                                                                               \
-    struct GetInspectablePropertyQualifierRequirement<type, InspectablePropertyQualifier::RAW_POINTER, false> \
-    {                                                                                                         \
-        static constexpr auto value = InspectablePropertyQualifierRequirement::ptrQualifier;                  \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum, constQualifier, refQualifier, ptrQualifier)           \
+    template <>                                                                                                        \
+    struct _GetInspectablePropertyTypeFromType<type, false>                                                            \
+    {                                                                                                                  \
+        static constexpr auto value = InspectablePropertyType::typeEnum;                                               \
+    };                                                                                                                 \
+    template <>                                                                                                        \
+    struct GetInspectablePropertyQualifierRequirement<type, InspectablePropertyQualifier::CONSTANT, false>             \
+    {                                                                                                                  \
+        static constexpr auto value = InspectablePropertyQualifierRequirement::constQualifier;                         \
+    };                                                                                                                 \
+    template <>                                                                                                        \
+    struct GetInspectablePropertyQualifierRequirement<type, InspectablePropertyQualifier::REFERENCE, false>            \
+    {                                                                                                                  \
+        static constexpr auto value = InspectablePropertyQualifierRequirement::refQualifier;                           \
+    };                                                                                                                 \
+    template <>                                                                                                        \
+    struct GetInspectablePropertyQualifierRequirement<type, InspectablePropertyQualifier::RAW_POINTER, false>          \
+    {                                                                                                                  \
+        static constexpr auto value = InspectablePropertyQualifierRequirement::ptrQualifier;                           \
     }
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_VALUE_ONLY_TYPE(type, typeEnum) \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_VALUE_ONLY_TYPE(type, typeEnum)                                            \
     FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum, NONE, MUSTNT, MUSTNT)
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_CONSTANT_REFERENCE_ONLY_TYPE(type, typeEnum) \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_CONSTANT_REFERENCE_ONLY_TYPE(type, typeEnum)                               \
     FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum, MUST, MUST, MUSTNT)
 
-#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_CONSTANT_RAW_POINTER_ONLY_TYPE(type, typeEnum) \
+#define FASTCG_DECLARE_INSPECTABLE_PROPERTY_CONSTANT_RAW_POINTER_ONLY_TYPE(type, typeEnum)                             \
     FASTCG_DECLARE_INSPECTABLE_PROPERTY_TYPE(type, typeEnum, MUST, MUSTNT, MUST)
 
     template <typename InspectablePropertyTypeT>
@@ -101,19 +84,22 @@ namespace FastCG
     };
 
     template <typename InspectablePropertyTypeT>
-    struct GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::CONSTANT, true>
+    struct GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::CONSTANT,
+                                                      true>
     {
         static constexpr auto value = InspectablePropertyQualifierRequirement::MUST;
     };
 
     template <typename InspectablePropertyTypeT>
-    struct GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::REFERENCE, true>
+    struct GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::REFERENCE,
+                                                      true>
     {
         static constexpr auto value = InspectablePropertyQualifierRequirement::MUSTNT;
     };
 
     template <typename InspectablePropertyTypeT>
-    struct GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::RAW_POINTER, true>
+    struct GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                      InspectablePropertyQualifier::RAW_POINTER, true>
     {
         static constexpr auto value = InspectablePropertyQualifierRequirement::MUST;
     };
@@ -136,7 +122,9 @@ namespace FastCG
     class Inspectable;
 
     template <typename InspectablePropertyTypeT>
-    struct GetInspectablePropertyTypeFromType : _GetInspectablePropertyTypeFromType<InspectablePropertyTypeT, std::is_base_of<Inspectable, InspectablePropertyTypeT>::value>
+    struct GetInspectablePropertyTypeFromType
+        : _GetInspectablePropertyTypeFromType<InspectablePropertyTypeT,
+                                              std::is_base_of<Inspectable, InspectablePropertyTypeT>::value>
     {
     };
 
@@ -181,33 +169,36 @@ namespace FastCG
         std::string mName;
 
         BaseInspectableProperty(InspectablePropertyOwnerT *pOwner, const std::string &rName)
-            : mpOwner(pOwner),
-              mName(rName)
+            : mpOwner(pOwner), mName(rName)
         {
         }
     };
 
     template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-    class InspectableProperty : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>, public IInspectableDelimitedProperty
+    class InspectableProperty : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>,
+                                public IInspectableDelimitedProperty
     {
     public:
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::CONSTANT>::value != InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::CONSTANT>::value !=
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be constant");
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::REFERENCE>::value != InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::REFERENCE>::value !=
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be a reference");
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::RAW_POINTER>::value != InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::RAW_POINTER>::value !=
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be a raw pointer");
 
-        InspectableProperty(InspectablePropertyOwnerT *pOwner,
-                            const std::string &rName,
-                            const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                            const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
-                            const InspectablePropertyTypeT &rMin,
-                            const InspectablePropertyTypeT &rMax) : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
-                                                                    mMin(rMin),
-                                                                    mMax(rMax),
-                                                                    mGetter(rGetter),
-                                                                    mSetter(rSetter)
+        InspectableProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
+            const InspectablePropertyTypeT &rMin, const InspectablePropertyTypeT &rMax)
+            : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName), mMin(rMin),
+              mMax(rMax), mGetter(rGetter), mSetter(rSetter)
         {
         }
 
@@ -293,26 +284,30 @@ namespace FastCG
     };
 
     template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-    class InspectablePropertyCR : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>, public IInspectableDelimitedProperty
+    class InspectablePropertyCR : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>,
+                                  public IInspectableDelimitedProperty
     {
     public:
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::CONSTANT>::value != InspectablePropertyQualifierRequirement::MUSTNT,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::CONSTANT>::value !=
+                          InspectablePropertyQualifierRequirement::MUSTNT,
                       "Inspectable property type mustn't be constant");
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::REFERENCE>::value != InspectablePropertyQualifierRequirement::MUSTNT,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::REFERENCE>::value !=
+                          InspectablePropertyQualifierRequirement::MUSTNT,
                       "Inspectable property type mustn't be a reference");
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::RAW_POINTER>::value != InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::RAW_POINTER>::value !=
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be a raw pointer");
 
-        InspectablePropertyCR(InspectablePropertyOwnerT *pOwner,
-                              const std::string &rName,
-                              const InspectablePropertyGetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                              const InspectablePropertySetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
-                              const InspectablePropertyTypeT &rMin,
-                              const InspectablePropertyTypeT &rMax) : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
-                                                                      mMin(rMin),
-                                                                      mMax(rMax),
-                                                                      mGetter(rGetter),
-                                                                      mSetter(rSetter)
+        InspectablePropertyCR(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const InspectablePropertySetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
+            const InspectablePropertyTypeT &rMin, const InspectablePropertyTypeT &rMax)
+            : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName), mMin(rMin),
+              mMax(rMax), mGetter(rGetter), mSetter(rSetter)
         {
         }
 
@@ -398,22 +393,29 @@ namespace FastCG
     };
 
     template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-    class InspectablePropertyCRP : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>, public IInspectableProperty
+    class InspectablePropertyCRP : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>,
+                                   public IInspectableProperty
     {
     public:
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::CONSTANT>::value == InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::CONSTANT>::value ==
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be constant");
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::REFERENCE>::value != InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::REFERENCE>::value !=
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be a reference");
-        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT, InspectablePropertyQualifier::RAW_POINTER>::value == InspectablePropertyQualifierRequirement::MUST,
+        static_assert(GetInspectablePropertyQualifierRequirement<InspectablePropertyTypeT,
+                                                                 InspectablePropertyQualifier::RAW_POINTER>::value ==
+                          InspectablePropertyQualifierRequirement::MUST,
                       "Inspectable property type must be a raw pointer");
 
-        InspectablePropertyCRP(InspectablePropertyOwnerT *pOwner,
-                               const std::string &rName,
-                               const InspectablePropertyGetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                               const InspectablePropertySetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter) : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
-                                                                                                                                   mGetter(rGetter),
-                                                                                                                                   mSetter(rSetter)
+        InspectablePropertyCRP(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const InspectablePropertySetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter)
+            : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
+              mGetter(rGetter), mSetter(rSetter)
         {
         }
 
@@ -484,26 +486,26 @@ namespace FastCG
     using InspectableEnumPropertyItem = std::pair<InspectablePropertyTypeT, std::string>;
 
     template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-    class InspectableEnumProperty : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>, public IInspectableEnumProperty
+    class InspectableEnumProperty : public BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>,
+                                    public IInspectableEnumProperty
     {
     public:
         static_assert(std::is_enum<InspectablePropertyTypeT>::value, "Inspectable property type must be an enum");
 
-        InspectableEnumProperty(InspectablePropertyOwnerT *pOwner,
-                                const std::string &rName,
-                                const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                                const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
-                                const std::initializer_list<InspectableEnumPropertyItem<InspectablePropertyTypeT>> &rItems) : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
-                                                                                                                              mGetter(rGetter),
-                                                                                                                              mSetter(rSetter)
+        InspectableEnumProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
+            const std::initializer_list<InspectableEnumPropertyItem<InspectablePropertyTypeT>> &rItems)
+            : BaseInspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName),
+              mGetter(rGetter), mSetter(rSetter)
         {
-            std::transform(rItems.begin(), rItems.end(), std::back_inserter(mItemValues), [](const auto &rItem)
-                           { return rItem.first; });
-            std::transform(rItems.begin(), rItems.end(), std::back_inserter(mItemNames), [](const auto &rItem)
-                           { return rItem.second; });
-            std::transform(
-                mItemNames.cbegin(), mItemNames.cend(), std::back_inserter(mItemNamePtrs), [](const auto &rItemName)
-                { return rItemName.c_str(); });
+            std::transform(rItems.begin(), rItems.end(), std::back_inserter(mItemValues),
+                           [](const auto &rItem) { return rItem.first; });
+            std::transform(rItems.begin(), rItems.end(), std::back_inserter(mItemNames),
+                           [](const auto &rItem) { return rItem.second; });
+            std::transform(mItemNames.cbegin(), mItemNames.cend(), std::back_inserter(mItemNamePtrs),
+                           [](const auto &rItemName) { return rItemName.c_str(); });
         }
 
         inline InspectablePropertyType GetType() const override
@@ -571,8 +573,10 @@ namespace FastCG
 
         inline void SetSelectedItem(const char *pSelectedItemName) override
         {
-            auto it = std::find_if(mItemNamePtrs.cbegin(), mItemNamePtrs.cend(), [pSelectedItemName](const auto *pItemName)
-                                   { return strcmp(pSelectedItemName, pItemName) == 0; });
+            auto it =
+                std::find_if(mItemNamePtrs.cbegin(), mItemNamePtrs.cend(), [pSelectedItemName](const auto *pItemName) {
+                    return strcmp(pSelectedItemName, pItemName) == 0;
+                });
             assert(it != mItemNamePtrs.cend());
             auto idx = (size_t)std::distance(mItemNamePtrs.cbegin(), it);
             SetSelectedItem(idx);
@@ -662,67 +666,76 @@ namespace FastCG
 #undef max
 #endif
         template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-        inline void RegisterInspectableProperty(InspectablePropertyOwnerT *pOwner,
-                                                const std::string &rName,
-                                                const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                                                const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter = nullptr,
-                                                const InspectablePropertyTypeT &rMin = std::numeric_limits<InspectablePropertyTypeT>::min(),
-                                                const InspectablePropertyTypeT &rMax = std::numeric_limits<InspectablePropertyTypeT>::max())
+        inline void RegisterInspectableProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter = nullptr,
+            const InspectablePropertyTypeT &rMin = std::numeric_limits<InspectablePropertyTypeT>::min(),
+            const InspectablePropertyTypeT &rMax = std::numeric_limits<InspectablePropertyTypeT>::max())
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
-            mInspectableProperties.emplace_back(new InspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetter, rSetter, rMin, rMax));
+            mInspectableProperties.emplace_back(
+                new InspectableProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetter,
+                                                                                             rSetter, rMin, rMax));
         }
 
         template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-        inline void RegisterInspectableProperty(InspectablePropertyOwnerT *pOwner,
-                                                const std::string &rName,
-                                                const InspectablePropertyGetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetterCR,
-                                                const InspectablePropertySetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetterCR = nullptr,
-                                                const InspectablePropertyTypeT &rMin = std::numeric_limits<InspectablePropertyTypeT>::min(),
-                                                const InspectablePropertyTypeT &rMax = std::numeric_limits<InspectablePropertyTypeT>::max())
+        inline void RegisterInspectableProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetterCR,
+            const InspectablePropertySetterCR<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetterCR = nullptr,
+            const InspectablePropertyTypeT &rMin = std::numeric_limits<InspectablePropertyTypeT>::min(),
+            const InspectablePropertyTypeT &rMax = std::numeric_limits<InspectablePropertyTypeT>::max())
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
-            mInspectableProperties.emplace_back(new InspectablePropertyCR<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetterCR, rSetterCR, rMin, rMax));
+            mInspectableProperties.emplace_back(
+                new InspectablePropertyCR<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetterCR,
+                                                                                               rSetterCR, rMin, rMax));
         }
 
         template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-        inline void RegisterInspectableProperty(InspectablePropertyOwnerT *pOwner,
-                                                const std::string &rName,
-                                                const InspectablePropertyGetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetterCRP,
-                                                const InspectablePropertySetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetterCRP = nullptr)
+        inline void RegisterInspectableProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetterCRP,
+            const InspectablePropertySetterCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetterCRP =
+                nullptr)
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
-            mInspectableProperties.emplace_back(new InspectablePropertyCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetterCRP, rSetterCRP));
+            mInspectableProperties.emplace_back(
+                new InspectablePropertyCRP<InspectablePropertyOwnerT, InspectablePropertyTypeT>(
+                    pOwner, rName, rGetterCRP, rSetterCRP));
         }
 
         template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-        inline void RegisterInspectableProperty(InspectablePropertyOwnerT *pOwner,
-                                                const std::string &rName,
-                                                const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                                                const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
-                                                const std::initializer_list<InspectableEnumPropertyItem<InspectablePropertyTypeT>> &rItems)
+        inline void RegisterInspectableProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const InspectablePropertySetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rSetter,
+            const std::initializer_list<InspectableEnumPropertyItem<InspectablePropertyTypeT>> &rItems)
         {
             assert(pOwner != nullptr);
             auto it = GetInspectablePropertyIterator(rName);
             FASTCG_UNUSED(it);
             assert(it == mInspectableProperties.cend());
-            mInspectableProperties.emplace_back(new InspectableEnumProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetter, rSetter, rItems));
+            mInspectableProperties.emplace_back(
+                new InspectableEnumProperty<InspectablePropertyOwnerT, InspectablePropertyTypeT>(pOwner, rName, rGetter,
+                                                                                                 rSetter, rItems));
         }
 
         template <typename InspectablePropertyOwnerT, typename InspectablePropertyTypeT>
-        inline void RegisterInspectableProperty(InspectablePropertyOwnerT *pOwner,
-                                                const std::string &rName,
-                                                const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
-                                                const std::initializer_list<InspectableEnumPropertyItem<InspectablePropertyTypeT>> &rItems)
+        inline void RegisterInspectableProperty(
+            InspectablePropertyOwnerT *pOwner, const std::string &rName,
+            const InspectablePropertyGetter<InspectablePropertyOwnerT, InspectablePropertyTypeT> &rGetter,
+            const std::initializer_list<InspectableEnumPropertyItem<InspectablePropertyTypeT>> &rItems)
         {
             RegisterInspectableProperty(pOwner, rName, rGetter, nullptr, rItems);
         }
@@ -740,8 +753,9 @@ namespace FastCG
 
         auto GetInspectablePropertyIterator(const std::string &rName) -> decltype(mInspectableProperties.begin())
         {
-            return std::find_if(mInspectableProperties.begin(), mInspectableProperties.end(), [&rName](const auto &pInspectableProperty)
-                                { return pInspectableProperty->GetName() == rName; });
+            return std::find_if(
+                mInspectableProperties.begin(), mInspectableProperties.end(),
+                [&rName](const auto &pInspectableProperty) { return pInspectableProperty->GetName() == rName; });
         }
     };
 }

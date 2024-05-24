@@ -77,7 +77,8 @@ namespace FastCG
         }
     }
 
-    void VulkanGraphicsSystem::NotifyImageMemoryBarrier(const VulkanTexture *pTexture, const VulkanImageMemoryBarrier &rImageMemoryBarrier)
+    void VulkanGraphicsSystem::NotifyImageMemoryBarrier(const VulkanTexture *pTexture,
+                                                        const VulkanImageMemoryBarrier &rImageMemoryBarrier)
     {
         assert(pTexture != nullptr);
         auto image = pTexture->GetImage();
@@ -85,7 +86,8 @@ namespace FastCG
         mLastImageMemoryBarriers[image] = rImageMemoryBarrier;
     }
 
-    void VulkanGraphicsSystem::NotifyBufferMemoryBarrier(VkBuffer buffer, const VulkanBufferMemoryBarrier &rBufferMemoryBarrier)
+    void VulkanGraphicsSystem::NotifyBufferMemoryBarrier(VkBuffer buffer,
+                                                         const VulkanBufferMemoryBarrier &rBufferMemoryBarrier)
     {
         assert(buffer != VK_NULL_HANDLE);
         mLastBufferMemoryBarriers[buffer] = rBufferMemoryBarrier;

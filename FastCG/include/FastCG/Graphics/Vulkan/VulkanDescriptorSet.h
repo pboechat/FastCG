@@ -3,10 +3,10 @@
 
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/Vulkan.h>
-#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
-#include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
 #include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
+#include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
+#include <FastCG/Graphics/Vulkan/VulkanTexture.h>
 
 #include <cstdint>
 
@@ -14,8 +14,7 @@ namespace FastCG
 {
     struct VulkanDescriptorSetBinding
     {
-        union
-        {
+        union {
             const VulkanBuffer *pBuffer;
             const VulkanTexture *pTexture;
         };

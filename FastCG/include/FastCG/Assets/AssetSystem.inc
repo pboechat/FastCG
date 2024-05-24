@@ -1,5 +1,5 @@
-#include <FastCG/Platform/File.h>
 #include <FastCG/Platform/Directory.h>
+#include <FastCG/Platform/File.h>
 
 #include <algorithm>
 
@@ -38,7 +38,8 @@ namespace FastCG
         return absFilePath;
     }
 
-    void AssetSystem::Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths, bool includeNonExistant /* = false*/) const
+    void AssetSystem::Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths,
+                             bool includeNonExistant /* = false*/) const
     {
         rAbsFilePaths.clear();
         for (const auto &rBundleRoot : mBundleRoots)
@@ -51,7 +52,8 @@ namespace FastCG
         }
     }
 
-    std::vector<std::string> AssetSystem::Expand(const std::string &rRelFilePath, bool includeNonExistant /* = false*/) const
+    std::vector<std::string> AssetSystem::Expand(const std::string &rRelFilePath,
+                                                 bool includeNonExistant /* = false*/) const
     {
         std::vector<std::string> absFilePaths;
         Expand(rRelFilePath, absFilePaths, includeNonExistant);

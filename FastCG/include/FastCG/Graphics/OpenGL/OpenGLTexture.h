@@ -3,8 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Graphics/BaseTexture.h>
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 
 namespace FastCG
 {
@@ -17,29 +17,15 @@ namespace FastCG
         {
             bool generateMips;
 
-            Args(const std::string &rName = "",
-                 uint32_t width = 1,
-                 uint32_t height = 1,
-                 uint32_t depthOrSlices = 1,
-                 uint8_t mipCount = 1,
-                 TextureType type = TextureType::TEXTURE_2D,
+            Args(const std::string &rName = "", uint32_t width = 1, uint32_t height = 1, uint32_t depthOrSlices = 1,
+                 uint8_t mipCount = 1, TextureType type = TextureType::TEXTURE_2D,
                  TextureUsageFlags usage = TextureUsageFlagBit::SAMPLED,
                  TextureFormat format = TextureFormat::R8G8B8A8_UNORM,
-                 TextureFilter filter = TextureFilter::LINEAR_FILTER,
-                 TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
-                 const uint8_t *pData = nullptr,
-                 bool generateMips = false) : BaseTexture::Args(rName,
-                                                                width,
-                                                                height,
-                                                                depthOrSlices,
-                                                                mipCount,
-                                                                type,
-                                                                usage,
-                                                                format,
-                                                                filter,
-                                                                wrapMode,
-                                                                pData),
-                                              generateMips(generateMips)
+                 TextureFilter filter = TextureFilter::LINEAR_FILTER, TextureWrapMode wrapMode = TextureWrapMode::CLAMP,
+                 const uint8_t *pData = nullptr, bool generateMips = false)
+                : BaseTexture::Args(rName, width, height, depthOrSlices, mipCount, type, usage, format, filter,
+                                    wrapMode, pData),
+                  generateMips(generateMips)
             {
             }
         };

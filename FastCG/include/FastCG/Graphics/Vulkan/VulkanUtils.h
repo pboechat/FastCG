@@ -3,9 +3,9 @@
 
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/Vulkan.h>
-#include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Core/Exception.h>
+#include <FastCG/Graphics/GraphicsUtils.h>
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
 
 #include <algorithm>
 
@@ -13,8 +13,8 @@
 #undef CASE_RETURN_STRING
 #endif
 
-#define CASE_RETURN_STRING(str) \
-    case str:                   \
+#define CASE_RETURN_STRING(str)                                                                                        \
+    case str:                                                                                                          \
         return #str
 
 namespace FastCG
@@ -65,7 +65,8 @@ namespace FastCG
         }
     }
 
-    inline const char *GetVkDebugUtilsMessageSeverityFlagBitsString(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
+    inline const char *GetVkDebugUtilsMessageSeverityFlagBitsString(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
     {
         switch (messageSeverity)
         {
@@ -74,7 +75,9 @@ namespace FastCG
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT);
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk debug utils message severity flag bits string (messageSeverity: %d)", (int)messageSeverity);
+            FASTCG_THROW_EXCEPTION(
+                Exception, "Couldn't get a Vk debug utils message severity flag bits string (messageSeverity: %d)",
+                (int)messageSeverity);
             return nullptr;
         }
     }
@@ -87,7 +90,9 @@ namespace FastCG
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
             CASE_RETURN_STRING(VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk debug utils message type flag bits string (messageType: %d)", (int)messageType);
+            FASTCG_THROW_EXCEPTION(Exception,
+                                   "Couldn't get a Vk debug utils message type flag bits string (messageType: %d)",
+                                   (int)messageType);
             return nullptr;
         }
     }
@@ -346,7 +351,8 @@ namespace FastCG
         case TextureType::TEXTURE_3D:
             return VK_IMAGE_TYPE_3D;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image type (textureType: %s)", GetTextureTypeString(type));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image type (textureType: %s)",
+                                   GetTextureTypeString(type));
             return (VkImageType)0;
         }
     }
@@ -366,7 +372,8 @@ namespace FastCG
         case TextureType::TEXTURE_3D:
             return VK_IMAGE_VIEW_TYPE_3D;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image type (textureType: %s)", GetTextureTypeString(type));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image type (textureType: %s)",
+                                   GetTextureTypeString(type));
             return (VkImageViewType)0;
         }
     }
@@ -411,7 +418,8 @@ namespace FastCG
                 return VK_IMAGE_ASPECT_DEPTH_BIT;
             }
         }
-        FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image aspect flag (textureFormat: %s)", GetTextureFormatString(format));
+        FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk image aspect flag (textureFormat: %s)",
+                               GetTextureFormatString(format));
         return (VkImageAspectFlags)0;
     }
 
@@ -566,7 +574,8 @@ namespace FastCG
         case ShaderType::COMPUTE:
             return VK_SHADER_STAGE_COMPUTE_BIT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stage flag bit (shaderType: %s)", GetShaderTypeString(shaderType));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stage flag bit (shaderType: %s)",
+                                   GetShaderTypeString(shaderType));
             return (VkShaderStageFlagBits)0;
         }
     }
@@ -584,7 +593,8 @@ namespace FastCG
         case Face::FRONT_AND_BACK:
             return VK_CULL_MODE_FRONT_BIT | VK_CULL_MODE_BACK_BIT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk cull mode flags (cullMode: %s)", GetFaceString(cullMode));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk cull mode flags (cullMode: %s)",
+                                   GetFaceString(cullMode));
             return (VkCullModeFlags)0;
         }
     }
@@ -610,7 +620,8 @@ namespace FastCG
         case CompareOp::NOT_EQUAL:
             return VK_COMPARE_OP_NOT_EQUAL;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk compare op (compareOp: %s)", GetCompareOpString(compareOp));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk compare op (compareOp: %s)",
+                                   GetCompareOpString(compareOp));
             return (VkCompareOp)0;
         }
     }
@@ -636,7 +647,8 @@ namespace FastCG
         case StencilOp::ZERO:
             return VK_STENCIL_OP_ZERO;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk stencil op (stencilOp %s)", GetStencilOpString(stencilOp));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk stencil op (stencilOp %s)",
+                                   GetStencilOpString(stencilOp));
             return (VkStencilOp)0;
         }
     }
@@ -650,7 +662,8 @@ namespace FastCG
         case BlendFunc::ADD:
             return VK_BLEND_OP_ADD;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend op (blendFunc: %s)", GetBlendFuncString(blendFunc));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend op (blendFunc: %s)",
+                                   GetBlendFuncString(blendFunc));
             return (VkBlendOp)0;
         }
     }
@@ -676,7 +689,8 @@ namespace FastCG
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend factor (blendFactor: %s)", GetBlendFactorString(blendFactor));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend factor (blendFactor: %s)",
+                                   GetBlendFactorString(blendFactor));
             return (VkBlendFactor)0;
         }
     }
@@ -704,7 +718,8 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return VK_SAMPLER_ADDRESS_MODE_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk address mode (wrapMode: %s)", GetTextureWrapModeString(wrapMode));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk address mode (wrapMode: %s)",
+                                   GetTextureWrapModeString(wrapMode));
             return (VkSamplerAddressMode)0;
         }
     }
@@ -712,64 +727,60 @@ namespace FastCG
 #ifdef CONVERSION_TABLE_ENTRY
 #undef CONVERSION_TABLE_ENTRY
 #endif
-#define CONVERSION_TABLE_ENTRY(format)            \
-    {                                             \
-        TextureFormat::format, VK_FORMAT_##format \
-    }
+#define CONVERSION_TABLE_ENTRY(format) {TextureFormat::format, VK_FORMAT_##format}
 
     constexpr struct
     {
         TextureFormat format;
         VkFormat vkFormat;
-    } FORMAT_CONVERSION_TABLE[] = {
-        CONVERSION_TABLE_ENTRY(R32_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R16_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R16_UNORM),
-        CONVERSION_TABLE_ENTRY(R8_UNORM),
-        CONVERSION_TABLE_ENTRY(R32G32_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R16G16_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R16G16_UNORM),
-        CONVERSION_TABLE_ENTRY(R8G8_UNORM),
-        CONVERSION_TABLE_ENTRY(R32G32B32_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R16G16B16_UNORM),
-        CONVERSION_TABLE_ENTRY(R16G16B16_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R8G8B8_UNORM),
-        CONVERSION_TABLE_ENTRY(B8G8R8_UNORM),
-        CONVERSION_TABLE_ENTRY(B10G11R11_UFLOAT_PACK32),
-        CONVERSION_TABLE_ENTRY(R32G32B32A32_SFLOAT),
-        CONVERSION_TABLE_ENTRY(R16G16B16A16_UNORM),
-        CONVERSION_TABLE_ENTRY(A2R10G10B10_UNORM_PACK32),
-        CONVERSION_TABLE_ENTRY(R8G8B8A8_UNORM),
-        CONVERSION_TABLE_ENTRY(B8G8R8A8_UNORM),
-        CONVERSION_TABLE_ENTRY(D24_UNORM_S8_UINT),
-        CONVERSION_TABLE_ENTRY(D32_SFLOAT),
-        CONVERSION_TABLE_ENTRY(X8_D24_UNORM_PACK32),
-        CONVERSION_TABLE_ENTRY(D16_UNORM),
-        CONVERSION_TABLE_ENTRY(BC1_RGB_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC1_RGBA_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC2_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC3_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC4_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC4_SNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC5_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC5_SNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC6H_UFLOAT_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC6H_SFLOAT_BLOCK),
-        CONVERSION_TABLE_ENTRY(BC7_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_4x4_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_5x4_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_5x5_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_6x5_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_6x6_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_8x5_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_8x6_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_8x8_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_10x5_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_10x6_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_10x8_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_10x10_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_12x10_UNORM_BLOCK),
-        CONVERSION_TABLE_ENTRY(ASTC_12x12_UNORM_BLOCK)};
+    } FORMAT_CONVERSION_TABLE[] = {CONVERSION_TABLE_ENTRY(R32_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R16_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R16_UNORM),
+                                   CONVERSION_TABLE_ENTRY(R8_UNORM),
+                                   CONVERSION_TABLE_ENTRY(R32G32_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R16G16_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R16G16_UNORM),
+                                   CONVERSION_TABLE_ENTRY(R8G8_UNORM),
+                                   CONVERSION_TABLE_ENTRY(R32G32B32_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R16G16B16_UNORM),
+                                   CONVERSION_TABLE_ENTRY(R16G16B16_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R8G8B8_UNORM),
+                                   CONVERSION_TABLE_ENTRY(B8G8R8_UNORM),
+                                   CONVERSION_TABLE_ENTRY(B10G11R11_UFLOAT_PACK32),
+                                   CONVERSION_TABLE_ENTRY(R32G32B32A32_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(R16G16B16A16_UNORM),
+                                   CONVERSION_TABLE_ENTRY(A2R10G10B10_UNORM_PACK32),
+                                   CONVERSION_TABLE_ENTRY(R8G8B8A8_UNORM),
+                                   CONVERSION_TABLE_ENTRY(B8G8R8A8_UNORM),
+                                   CONVERSION_TABLE_ENTRY(D24_UNORM_S8_UINT),
+                                   CONVERSION_TABLE_ENTRY(D32_SFLOAT),
+                                   CONVERSION_TABLE_ENTRY(X8_D24_UNORM_PACK32),
+                                   CONVERSION_TABLE_ENTRY(D16_UNORM),
+                                   CONVERSION_TABLE_ENTRY(BC1_RGB_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC1_RGBA_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC2_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC3_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC4_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC4_SNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC5_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC5_SNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC6H_UFLOAT_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC6H_SFLOAT_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(BC7_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_4x4_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_5x4_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_5x5_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_6x5_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_6x6_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_8x5_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_8x6_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_8x8_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_10x5_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_10x6_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_10x8_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_10x10_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_12x10_UNORM_BLOCK),
+                                   CONVERSION_TABLE_ENTRY(ASTC_12x12_UNORM_BLOCK)};
 
 #undef CONVERSION_TABLE_ENTRY
 
@@ -777,8 +788,8 @@ namespace FastCG
     {
         const auto *pTableStart = &FORMAT_CONVERSION_TABLE[0];
         const auto *pTableEnd = FORMAT_CONVERSION_TABLE + FASTCG_ARRAYSIZE(FORMAT_CONVERSION_TABLE);
-        auto it = std::find_if(pTableStart, pTableEnd, [&](const auto &rTableEntry)
-                               { return rTableEntry.format == format; });
+        auto it =
+            std::find_if(pTableStart, pTableEnd, [&](const auto &rTableEntry) { return rTableEntry.format == format; });
         if (it == pTableEnd)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (format: %s)", GetTextureFormatString(format));
@@ -791,11 +802,12 @@ namespace FastCG
     {
         const auto *pTableStart = &FORMAT_CONVERSION_TABLE[0];
         const auto *pTableEnd = FORMAT_CONVERSION_TABLE + FASTCG_ARRAYSIZE(FORMAT_CONVERSION_TABLE);
-        auto it = std::find_if(pTableStart, pTableEnd, [&](const auto &rTableEntry)
-                               { return rTableEntry.vkFormat == vkFormat; });
+        auto it = std::find_if(pTableStart, pTableEnd,
+                               [&](const auto &rTableEntry) { return rTableEntry.vkFormat == vkFormat; });
         if (it == pTableEnd)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a texture format (vkFormat: %s)", GetVkFormatString(vkFormat));
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a texture format (vkFormat: %s)",
+                                   GetVkFormatString(vkFormat));
             return (TextureFormat)0;
         }
         return it->format;
@@ -840,7 +852,8 @@ namespace FastCG
                 return VK_FORMAT_R8G8B8A8_UNORM;
             }
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (dataType: %s, components: %d)", GetVertexDataTypeString(dataType), components);
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (dataType: %s, components: %d)",
+                                   GetVertexDataTypeString(dataType), components);
             return (VkFormat)0;
         }
     }

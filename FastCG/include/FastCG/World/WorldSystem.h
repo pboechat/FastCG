@@ -1,40 +1,40 @@
 #ifndef FASTCG_WORLD_SYSTEM
 #define FASTCG_WORLD_SYSTEM
 
-#include <FastCG/World/GameObject.h>
-#include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Core/System.h>
+#include <FastCG/Reflection/Inspectable.h>
+#include <FastCG/World/GameObject.h>
 
 #if _DEBUG
 #include <ImGuizmo.h>
 #include <glm/glm.hpp>
 #endif
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#define FASTCG_COMPONENT_TRACKING(className)       \
-public:                                            \
-    inline const className *Get##className() const \
-    {                                              \
-        return mp##className;                      \
-    }                                              \
-    inline className *Get##className()             \
-    {                                              \
-        return mp##className;                      \
-    }                                              \
-                                                   \
-private:                                           \
+#define FASTCG_COMPONENT_TRACKING(className)                                                                           \
+public:                                                                                                                \
+    inline const className *Get##className() const                                                                     \
+    {                                                                                                                  \
+        return mp##className;                                                                                          \
+    }                                                                                                                  \
+    inline className *Get##className()                                                                                 \
+    {                                                                                                                  \
+        return mp##className;                                                                                          \
+    }                                                                                                                  \
+                                                                                                                       \
+private:                                                                                                               \
     className *mp##className{nullptr};
 
-#define FASTCG_COMPONENT_COLLECTION_TRACKING(className)              \
-public:                                                              \
-    inline const std::vector<className *> &Get##className##s() const \
-    {                                                                \
-        return m##className##s;                                      \
-    }                                                                \
-                                                                     \
-private:                                                             \
+#define FASTCG_COMPONENT_COLLECTION_TRACKING(className)                                                                \
+public:                                                                                                                \
+    inline const std::vector<className *> &Get##className##s() const                                                   \
+    {                                                                                                                  \
+        return m##className##s;                                                                                        \
+    }                                                                                                                  \
+                                                                                                                       \
+private:                                                                                                               \
     std::vector<className *> m##className##s;
 
 namespace FastCG

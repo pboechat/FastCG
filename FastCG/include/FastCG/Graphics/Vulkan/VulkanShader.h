@@ -3,15 +3,15 @@
 
 #ifdef FASTCG_VULKAN
 
+#include <FastCG/Core/Hash.h>
+#include <FastCG/Graphics/BaseShader.h>
 #include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/Vulkan/VulkanDescriptorSet.h>
-#include <FastCG/Graphics/BaseShader.h>
-#include <FastCG/Core/Hash.h>
 
-#include <vector>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <string>
+#include <vector>
 
 namespace FastCG
 {

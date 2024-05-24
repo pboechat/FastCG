@@ -3,13 +3,13 @@
 
 #include <FastCG/Graphics/GraphicsUtils.h>
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <cstring>
-#include <cstdint>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace FastCG
 {
@@ -24,15 +24,11 @@ namespace FastCG
             const void *pData;
             std::vector<VertexBindingDescriptor> vertexBindingDescriptors;
 
-            Args(const std::string &rName = "",
-                 BufferUsageFlags usage = BufferUsageFlagBit::UNIFORM,
-                 size_t dataSize = 0,
-                 const void *pData = nullptr,
-                 const std::vector<VertexBindingDescriptor> &rVertexBindingDescriptors = {}) : name(rName),
-                                                                                               usage(usage),
-                                                                                               dataSize(dataSize),
-                                                                                               pData(pData),
-                                                                                               vertexBindingDescriptors(rVertexBindingDescriptors)
+            Args(const std::string &rName = "", BufferUsageFlags usage = BufferUsageFlagBit::UNIFORM,
+                 size_t dataSize = 0, const void *pData = nullptr,
+                 const std::vector<VertexBindingDescriptor> &rVertexBindingDescriptors = {})
+                : name(rName), usage(usage), dataSize(dataSize), pData(pData),
+                  vertexBindingDescriptors(rVertexBindingDescriptors)
             {
             }
         };
@@ -69,13 +65,13 @@ namespace FastCG
         std::unique_ptr<uint8_t[]> mpData;
         const std::vector<VertexBindingDescriptor> mVertexBindingDescriptors;
 
-        BaseBuffer(const Args &rArgs) : mName(rArgs.name),
-                                        mUsage(rArgs.usage),
-                                        mDataSize(rArgs.dataSize),
-                                        mVertexBindingDescriptors(rArgs.vertexBindingDescriptors)
+        BaseBuffer(const Args &rArgs)
+            : mName(rArgs.name), mUsage(rArgs.usage), mDataSize(rArgs.dataSize),
+              mVertexBindingDescriptors(rArgs.vertexBindingDescriptors)
         {
-            assert((mUsage & BufferUsageFlagBit::VERTEX_BUFFER) == 0 || std::all_of(mVertexBindingDescriptors.cbegin(), mVertexBindingDescriptors.cend(), [](const auto &vbDesc)
-                                                                                    { return vbDesc.IsValid(); }));
+            assert((mUsage & BufferUsageFlagBit::VERTEX_BUFFER) == 0 ||
+                   std::all_of(mVertexBindingDescriptors.cbegin(), mVertexBindingDescriptors.cend(),
+                               [](const auto &vbDesc) { return vbDesc.IsValid(); }));
             if (mDataSize > 0)
             {
                 mpData = std::make_unique<uint8_t[]>(mDataSize);

@@ -3,8 +3,9 @@
 
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/Vulkan.h>
 #include <FastCG/Graphics/BaseBuffer.h>
+#include <FastCG/Graphics/Vulkan/Vulkan.h>
+#include <FastCG/Graphics/Vulkan/VulkanUtils.h>
 
 namespace FastCG
 {
@@ -19,19 +20,12 @@ namespace FastCG
             bool forceSingleFrameDataCount;
             VulkanGraphicsContext *pGraphicsContext;
 
-            Args(const std::string &rName = "",
-                 BufferUsageFlags usage = BufferUsageFlagBit::UNIFORM,
-                 size_t dataSize = 0,
-                 const void *pData = nullptr,
+            Args(const std::string &rName = "", BufferUsageFlags usage = BufferUsageFlagBit::UNIFORM,
+                 size_t dataSize = 0, const void *pData = nullptr,
                  const std::vector<VertexBindingDescriptor> &rVertexBindingDescriptors = {},
-                 bool forceSingleFrameDataCount = false,
-                 VulkanGraphicsContext *pGraphicsContext = nullptr) : BaseBuffer::Args(rName,
-                                                                                       usage,
-                                                                                       dataSize,
-                                                                                       pData,
-                                                                                       rVertexBindingDescriptors),
-                                                                      forceSingleFrameDataCount(forceSingleFrameDataCount),
-                                                                      pGraphicsContext(pGraphicsContext)
+                 bool forceSingleFrameDataCount = false, VulkanGraphicsContext *pGraphicsContext = nullptr)
+                : BaseBuffer::Args(rName, usage, dataSize, pData, rVertexBindingDescriptors),
+                  forceSingleFrameDataCount(forceSingleFrameDataCount), pGraphicsContext(pGraphicsContext)
             {
             }
         };

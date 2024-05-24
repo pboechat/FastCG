@@ -1,0 +1,39 @@
+name: Format C++ Code
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install clang-format
+      run: sudo apt-get install -y clang-format
+
+    - name: Run clang-format
+      run: |
+        chmod +x ./format_sources.sh
+        ./format_sources.sh
+
+    - name: Check for code format changes
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add .
+        if ! git diff --cached --exit-code; then
+          git commit -m "Applied format changes."
+          git push
+          echo "Applied format changes."
+        else
+          echo "No formatting changes required."
+        fi

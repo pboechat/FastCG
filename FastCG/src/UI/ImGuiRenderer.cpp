@@ -2,8 +2,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 
 namespace FastCG
 {
@@ -28,17 +28,10 @@ namespace FastCG
         rStyle.ScaleAllSizes(SCALE_FACTOR);
 #endif
 
-        mpImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture({"ImGui Texture",
-                                                                       (uint32_t)width,
-                                                                       (uint32_t)height,
-                                                                       1,
-                                                                       1,
-                                                                       TextureType::TEXTURE_2D,
-                                                                       TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET,
-                                                                       TextureFormat::R8G8B8A8_UNORM,
-                                                                       TextureFilter::LINEAR_FILTER,
-                                                                       TextureWrapMode::CLAMP,
-                                                                       pPixels});
+        mpImGuiTexture = GraphicsSystem::GetInstance()->CreateTexture(
+            {"ImGui Texture", (uint32_t)width, (uint32_t)height, 1, 1, TextureType::TEXTURE_2D,
+             TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, TextureFormat::R8G8B8A8_UNORM,
+             TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP, pPixels});
         rIo.Fonts->SetTexID((void *)mpImGuiTexture);
 
         mpImGuiShader = GraphicsSystem::GetInstance()->FindShader("ImGui");
@@ -46,20 +39,20 @@ namespace FastCG
         size_t verticesDataSize = MAX_NUM_VERTICES * sizeof(ImDrawVert);
         uint32_t indicesCount = MAX_NUM_VERTICES * 3;
 
-        mpImGuiMesh = std::make_unique<Mesh>(MeshArgs{"ImGui Mesh",
-                                                      {{"ImGui Mesh Vertices",
-                                                        BufferUsageFlagBit::DYNAMIC,
-                                                        verticesDataSize,
-                                                        nullptr,
-                                                        {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert::pos), offsetof(ImDrawVert, pos)},
-                                                         {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert::uv), offsetof(ImDrawVert, uv)},
-                                                         {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert::col), offsetof(ImDrawVert, col)}}}},
-                                                      {BufferUsageFlagBit::DYNAMIC, indicesCount, nullptr}});
+        mpImGuiMesh = std::make_unique<Mesh>(MeshArgs{
+            "ImGui Mesh",
+            {{"ImGui Mesh Vertices",
+              BufferUsageFlagBit::DYNAMIC,
+              verticesDataSize,
+              nullptr,
+              {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert::pos), offsetof(ImDrawVert, pos)},
+               {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert::uv), offsetof(ImDrawVert, uv)},
+               {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert::col), offsetof(ImDrawVert, col)}}}},
+            {BufferUsageFlagBit::DYNAMIC, indicesCount, nullptr}});
 
-        mpImGuiConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer({"ImGui Constants",
-                                                                              BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC,
-                                                                              sizeof(ImGuiConstants),
-                                                                              &mImGuiConstants});
+        mpImGuiConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer(
+            {"ImGui Constants", BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(ImGuiConstants),
+             &mImGuiConstants});
 
         mpVerticesData = std::make_unique<uint8_t[]>(verticesDataSize);
         mpIndicesData = std::make_unique<uint8_t[]>(indicesCount * sizeof(ImDrawIdx));
@@ -71,7 +64,8 @@ namespace FastCG
         {
             pGraphicsContext->SetBlend(true);
             pGraphicsContext->SetBlendFunc(BlendFunc::ADD, BlendFunc::ADD);
-            pGraphicsContext->SetBlendFactors(BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA, BlendFactor::ONE, BlendFactor::ZERO);
+            pGraphicsContext->SetBlendFactors(BlendFactor::SRC_ALPHA, BlendFactor::ONE_MINUS_SRC_ALPHA,
+                                              BlendFactor::ONE, BlendFactor::ZERO);
             pGraphicsContext->SetCullMode(Face::NONE);
             pGraphicsContext->SetDepthTest(false);
             pGraphicsContext->SetDepthWrite(false);
@@ -81,21 +75,26 @@ namespace FastCG
             pGraphicsContext->SetRenderTargets(&pBackbuffer, 1, nullptr);
 
             auto displayScale = pImDrawData->FramebufferScale;
-            auto displayPos = ImVec2(pImDrawData->DisplayPos.x * displayScale.x, pImDrawData->DisplayPos.y * displayScale.y);
-            auto displaySize = ImVec2(pImDrawData->DisplaySize.x * displayScale.x, pImDrawData->DisplaySize.y * displayScale.y);
+            auto displayPos =
+                ImVec2(pImDrawData->DisplayPos.x * displayScale.x, pImDrawData->DisplayPos.y * displayScale.y);
+            auto displaySize =
+                ImVec2(pImDrawData->DisplaySize.x * displayScale.x, pImDrawData->DisplaySize.y * displayScale.y);
 
-            pGraphicsContext->SetViewport((int32_t)displayPos.x, (int32_t)displayPos.y, (uint32_t)displaySize.x, (uint32_t)displaySize.y);
+            pGraphicsContext->SetViewport((int32_t)displayPos.x, (int32_t)displayPos.y, (uint32_t)displaySize.x,
+                                          (uint32_t)displaySize.y);
 
             pGraphicsContext->PushDebugMarker("ImGui Passes");
             {
-                mImGuiConstants.projection = glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
+                mImGuiConstants.projection =
+                    glm::ortho(displayPos.x, displayPos.x + displaySize.x, displayPos.y + displaySize.y, displayPos.y);
                 pGraphicsContext->Copy(mpImGuiConstantsBuffer, &mImGuiConstants, sizeof(ImGuiConstants));
 
                 pGraphicsContext->BindShader(mpImGuiShader);
 
                 pGraphicsContext->BindResource(mpImGuiConstantsBuffer, "ImGuiConstants");
 
-                pGraphicsContext->SetVertexBuffers(mpImGuiMesh->GetVertexBuffers(), mpImGuiMesh->GetVertexBufferCount());
+                pGraphicsContext->SetVertexBuffers(mpImGuiMesh->GetVertexBuffers(),
+                                                   mpImGuiMesh->GetVertexBufferCount());
                 pGraphicsContext->SetIndexBuffer(mpImGuiMesh->GetIndexBuffer());
 
                 auto *pVerticesDataStart = mpVerticesData.get();
@@ -111,8 +110,10 @@ namespace FastCG
                     pIndicesDataEnd += pCmdList->IdxBuffer.size_in_bytes();
                 }
 
-                pGraphicsContext->Copy(mpImGuiMesh->GetVertexBuffers()[0], pVerticesDataStart, (pVerticesDataEnd - pVerticesDataStart));
-                pGraphicsContext->Copy(mpImGuiMesh->GetIndexBuffer(), pIndicesDataStart, (pIndicesDataEnd - pIndicesDataStart));
+                pGraphicsContext->Copy(mpImGuiMesh->GetVertexBuffers()[0], pVerticesDataStart,
+                                       (pVerticesDataEnd - pVerticesDataStart));
+                pGraphicsContext->Copy(mpImGuiMesh->GetIndexBuffer(), pIndicesDataStart,
+                                       (pIndicesDataEnd - pIndicesDataStart));
 
                 uint32_t idxOffset = 0;
                 uint32_t vtxOffset = 0;
@@ -129,8 +130,10 @@ namespace FastCG
                         }
                         else
                         {
-                            ImVec2 clipMin((pCmd->ClipRect.x - displayPos.x) * displayScale.x, (pCmd->ClipRect.y - displayPos.y) * displayScale.y);
-                            ImVec2 clipMax((pCmd->ClipRect.z - displayPos.x) * displayScale.x, (pCmd->ClipRect.w - displayPos.y) * displayScale.y);
+                            ImVec2 clipMin((pCmd->ClipRect.x - displayPos.x) * displayScale.x,
+                                           (pCmd->ClipRect.y - displayPos.y) * displayScale.y);
+                            ImVec2 clipMax((pCmd->ClipRect.z - displayPos.x) * displayScale.x,
+                                           (pCmd->ClipRect.w - displayPos.y) * displayScale.y);
                             if (clipMin.x < 0.0f)
                             {
                                 clipMin.x = 0.0f;
@@ -166,7 +169,9 @@ namespace FastCG
                             pGraphicsContext->SetBlend(pTexture == nullptr || pTexture == mpImGuiTexture);
                             pGraphicsContext->BindResource(pTexture, "uColorMap");
 
-                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, pCmd->IdxOffset + idxOffset, (uint32_t)pCmd->ElemCount, (int32_t)pCmd->VtxOffset + vtxOffset);
+                            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, pCmd->IdxOffset + idxOffset,
+                                                          (uint32_t)pCmd->ElemCount,
+                                                          (int32_t)pCmd->VtxOffset + vtxOffset);
                         }
                     }
 

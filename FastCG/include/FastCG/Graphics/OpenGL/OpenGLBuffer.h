@@ -3,8 +3,8 @@
 
 #ifdef FASTCG_OPENGL
 
-#include <FastCG/Graphics/OpenGL/OpenGL.h>
 #include <FastCG/Graphics/BaseBuffer.h>
+#include <FastCG/Graphics/OpenGL/OpenGL.h>
 
 namespace FastCG
 {

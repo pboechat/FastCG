@@ -1,10 +1,10 @@
-#include <FastCG/Platform/FileReader.h>
-#include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Exception.h>
+#include <FastCG/Core/Macros.h>
+#include <FastCG/Graphics/TextureLoader.h>
+#include <FastCG/Platform/FileReader.h>
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 // adapted from: https://learn.microsoft.com/en-us/windows/uwp/gaming/complete-code-for-ddstextureloader
 
@@ -59,9 +59,9 @@
 #define DDS_REQ_TEXTURECUBE_DIMENSION 16384
 
 #ifndef MAKEFOURCC
-#define MAKEFOURCC(ch0, ch1, ch2, ch3)                            \
-    ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) | \
-     ((uint32_t)(uint8_t)(ch2) << 16) | ((uint32_t)(uint8_t)(ch3) << 24))
+#define MAKEFOURCC(ch0, ch1, ch2, ch3)                                                                                 \
+    ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) | ((uint32_t)(uint8_t)(ch2) << 16) |                   \
+     ((uint32_t)(uint8_t)(ch3) << 24))
 #endif /* defined(MAKEFOURCC) */
 
 #define DDS_MAGIC 0x20534444 // "DDS "
@@ -97,9 +97,9 @@ FASTCG_PACKED_PREFIX struct DDS_PIXELFORMAT
 #define DDS_CUBEMAP_POSITIVEZ 0x00004200 // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEZ
 #define DDS_CUBEMAP_NEGATIVEZ 0x00008200 // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_NEGATIVEZ
 
-#define DDS_CUBEMAP_ALLFACES (DDS_CUBEMAP_POSITIVEX | DDS_CUBEMAP_NEGATIVEX | \
-                              DDS_CUBEMAP_POSITIVEY | DDS_CUBEMAP_NEGATIVEY | \
-                              DDS_CUBEMAP_POSITIVEZ | DDS_CUBEMAP_NEGATIVEZ)
+#define DDS_CUBEMAP_ALLFACES                                                                                           \
+    (DDS_CUBEMAP_POSITIVEX | DDS_CUBEMAP_NEGATIVEX | DDS_CUBEMAP_POSITIVEY | DDS_CUBEMAP_NEGATIVEY |                   \
+     DDS_CUBEMAP_POSITIVEZ | DDS_CUBEMAP_NEGATIVEZ)
 
 #define DDS_CUBEMAP 0x00000200 // DDSCAPS2_CUBEMAP
 
@@ -304,8 +304,8 @@ FastCG::TextureFormat GetTextureFormat(uint32_t ddsFormat)
 #undef CASE_RETURN
 #endif
 
-#define CASE_RETURN(format)   \
-    case DDS_FORMAT_##format: \
+#define CASE_RETURN(format)                                                                                            \
+    case DDS_FORMAT_##format:                                                                                          \
         return FastCG::TextureFormat::format
 
     switch (ddsFormat)
@@ -381,7 +381,8 @@ namespace FastCG
             // must be long enough for both headers and magic value
             if (ddsDataSize < (sizeof(DDS_HEADER) + sizeof(uint32_t) + sizeof(DDS_HEADER_DXT10)))
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS DX10 header (texture: %s)", rFilePath.c_str());
+                FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS DX10 header (texture: %s)",
+                                       rFilePath.c_str());
             }
 
             bDXT10Header = true;
@@ -406,7 +407,8 @@ namespace FastCG
 
         if ((header->ddspf.flags & DDS_FOURCC) && header->ddspf.fourCC == MAKEFOURCC('D', 'X', '1', '0'))
         {
-            const auto *d3d10Header = reinterpret_cast<const DDS_HEADER_DXT10 *>((const char *)header + sizeof(DDS_HEADER));
+            const auto *d3d10Header =
+                reinterpret_cast<const DDS_HEADER_DXT10 *>((const char *)header + sizeof(DDS_HEADER));
 
             depthOrSlices = d3d10Header->arraySize;
             if (depthOrSlices == 0)
@@ -440,12 +442,14 @@ namespace FastCG
             case DDS_RESOURCE_DIMENSION_TEXTURE3D:
                 if ((header->flags & DDS_HEADER_FLAGS_VOLUME) == 0)
                 {
-                    FASTCG_THROW_EXCEPTION(Exception, "Missing volume flag in 3D texture flags (texture: %s)", rFilePath.c_str());
+                    FASTCG_THROW_EXCEPTION(Exception, "Missing volume flag in 3D texture flags (texture: %s)",
+                                           rFilePath.c_str());
                 }
                 depthOrSlices = header->depth;
                 break;
             default:
-                FASTCG_THROW_EXCEPTION(Exception, "Invalid resource dimension (texture: %s, resDim: %d)", rFilePath.c_str(), resDim);
+                FASTCG_THROW_EXCEPTION(Exception, "Invalid resource dimension (texture: %s, resDim: %d)",
+                                       rFilePath.c_str(), resDim);
                 return nullptr;
             }
 
@@ -471,7 +475,8 @@ namespace FastCG
                     // we require all six faces to be defined
                     if ((header->caps2 & DDS_CUBEMAP_ALLFACES) != DDS_CUBEMAP_ALLFACES)
                     {
-                        FASTCG_THROW_EXCEPTION(Exception, "Missing faces in cubemap texture (texture: %s)", rFilePath.c_str());
+                        FASTCG_THROW_EXCEPTION(Exception, "Missing faces in cubemap texture (texture: %s)",
+                                               rFilePath.c_str());
                         return nullptr;
                     }
 
@@ -487,10 +492,12 @@ namespace FastCG
 
         auto format = ::GetTextureFormat(ddsFormat);
 
-        // bound sizes (for security purposes, we don't trust DDS file metadata larger than the D3D 11.x hardware requirements)
+        // bound sizes (for security purposes, we don't trust DDS file metadata larger than the D3D 11.x hardware
+        // requirements)
         if (mipCount > DDS_REQ_MIP_LEVELS)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Invalid number of mips (texture: %s, mipCount: %d)", rFilePath.c_str(), mipCount);
+            FASTCG_THROW_EXCEPTION(Exception, "Invalid number of mips (texture: %s, mipCount: %d)", rFilePath.c_str(),
+                                   mipCount);
             return nullptr;
         }
 
@@ -533,7 +540,8 @@ namespace FastCG
             }
             break;
         case DDS_RESOURCE_DIMENSION_TEXTURE3D:
-            if (width > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION || height > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION || depthOrSlices > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION)
+            if (width > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION || height > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION ||
+                depthOrSlices > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION)
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Invalid 3D textures dimensions (texture: %s)", rFilePath.c_str());
                 return nullptr;
@@ -542,16 +550,8 @@ namespace FastCG
             break;
         }
 
-        return GraphicsSystem::GetInstance()->CreateTexture({rFilePath,
-                                                             width,
-                                                             height,
-                                                             depthOrSlices,
-                                                             mipCount,
-                                                             type,
-                                                             settings.usage,
-                                                             format,
-                                                             settings.filter,
-                                                             settings.wrapMode,
+        return GraphicsSystem::GetInstance()->CreateTexture({rFilePath, width, height, depthOrSlices, mipCount, type,
+                                                             settings.usage, format, settings.filter, settings.wrapMode,
                                                              pData});
     }
 }

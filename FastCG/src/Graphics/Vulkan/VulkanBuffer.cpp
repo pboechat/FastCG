@@ -1,16 +1,19 @@
 #ifdef FASTCG_VULKAN
 
-#include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
-#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
 #include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
+#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 
 #include <cstring>
 
 namespace FastCG
 {
-    VulkanBuffer::VulkanBuffer(const Args &rArgs) : BaseBuffer(rArgs), mForceSingleFrameDataCount(rArgs.forceSingleFrameDataCount)
+    VulkanBuffer::VulkanBuffer(const Args &rArgs)
+        : BaseBuffer(rArgs), mForceSingleFrameDataCount(rArgs.forceSingleFrameDataCount)
     {
-        CreateBuffer(rArgs.pGraphicsContext != nullptr ? rArgs.pGraphicsContext : VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext());
+        CreateBuffer(rArgs.pGraphicsContext != nullptr
+                         ? rArgs.pGraphicsContext
+                         : VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext());
     }
 
     VulkanBuffer::~VulkanBuffer()
@@ -52,11 +55,8 @@ namespace FastCG
             allocationCreateInfo.pUserData = nullptr;
 
             FASTCG_CHECK_VK_RESULT(vmaCreateBuffer(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-                                                   &bufferCreateInfo,
-                                                   &allocationCreateInfo,
-                                                   &mFrameData[i].buffer,
-                                                   &mFrameData[i].allocation,
-                                                   &mFrameData[i].allocationInfo));
+                                                   &bufferCreateInfo, &allocationCreateInfo, &mFrameData[i].buffer,
+                                                   &mFrameData[i].allocation, &mFrameData[i].allocationInfo));
 
             if (GetData() != nullptr)
             {
@@ -64,7 +64,9 @@ namespace FastCG
             }
 
 #if _DEBUG
-            VulkanGraphicsSystem::GetInstance()->SetObjectName((GetName() + (frameDataCount > 1 ? " (" + std::to_string(i) + ")" : "") + " (VkBuffer)").c_str(), VK_OBJECT_TYPE_BUFFER, (uint64_t)mFrameData[i].buffer);
+            VulkanGraphicsSystem::GetInstance()->SetObjectName(
+                (GetName() + (frameDataCount > 1 ? " (" + std::to_string(i) + ")" : "") + " (VkBuffer)").c_str(),
+                VK_OBJECT_TYPE_BUFFER, (uint64_t)mFrameData[i].buffer);
 #endif
         }
     }
@@ -77,8 +79,7 @@ namespace FastCG
             {
                 continue;
             }
-            vmaDestroyBuffer(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
-                             frameData.buffer,
+            vmaDestroyBuffer(VulkanGraphicsSystem::GetInstance()->GetAllocator(), frameData.buffer,
                              frameData.allocation);
             frameData.buffer = VK_NULL_HANDLE;
             frameData.allocation = VK_NULL_HANDLE;

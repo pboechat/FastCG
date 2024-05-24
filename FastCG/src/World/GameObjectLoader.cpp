@@ -1,17 +1,17 @@
-#include <FastCG/World/Transform.h>
-#include <FastCG/World/GameObjectLoader.h>
-#include <FastCG/World/ComponentRegistry.h>
-#include <FastCG/World/Component.h>
-#include <FastCG/Rendering/ModelLoader.h>
-#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/Reflection/Inspectable.h>
-#include <FastCG/Platform/FileReader.h>
-#include <FastCG/Platform/File.h>
-#include <FastCG/Graphics/TextureLoader.h>
+#include <FastCG/Core/Base64.h>
+#include <FastCG/Core/Macros.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Core/Macros.h>
-#include <FastCG/Core/Base64.h>
+#include <FastCG/Graphics/TextureLoader.h>
+#include <FastCG/Platform/File.h>
+#include <FastCG/Platform/FileReader.h>
+#include <FastCG/Reflection/Inspectable.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
+#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/World/Component.h>
+#include <FastCG/World/ComponentRegistry.h>
+#include <FastCG/World/GameObjectLoader.h>
+#include <FastCG/World/Transform.h>
 
 #ifdef FASTCG_LINUX
 // X11 defines Bool and rapidjson uses Bool as a member-function identifier
@@ -19,17 +19,17 @@
 #undef Bool
 #endif
 #endif
-#include <rapidjson/document.h>
-#include <glm/gtc/quaternion.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <rapidjson/document.h>
 
-#include <unordered_map>
-#include <type_traits>
-#include <string>
-#include <memory>
-#include <cstring>
-#include <cassert>
 #include <array>
+#include <cassert>
+#include <cstring>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
 
 namespace
 {
@@ -48,7 +48,8 @@ namespace
     }
 
     template <typename GenericObjectT>
-    std::unique_ptr<FastCG::Material> LoadMaterial(const GenericObjectT &rGenericObj, const std::unordered_map<std::string, FastCG::Texture *> &rTextures)
+    std::unique_ptr<FastCG::Material> LoadMaterial(const GenericObjectT &rGenericObj,
+                                                   const std::unordered_map<std::string, FastCG::Texture *> &rTextures)
     {
         FastCG::MaterialArgs args{};
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
@@ -56,7 +57,8 @@ namespace
         {
             assert(rGenericObj.HasMember("materialDefinition") && rGenericObj["materialDefinition"].IsString());
             std::string materialDefinitionName = rGenericObj["materialDefinition"].GetString();
-            args.pMaterialDefinition = FastCG::MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition(materialDefinitionName);
+            args.pMaterialDefinition =
+                FastCG::MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition(materialDefinitionName);
         }
         assert(args.pMaterialDefinition != nullptr);
         std::string constantBufferData;
@@ -84,7 +86,8 @@ namespace
             }
         }
         auto pMaterial = std::make_unique<FastCG::Material>(args);
-        pMaterial->SetConstantBufferData(reinterpret_cast<const uint8_t *>(constantBufferData.data()), 0, constantBufferData.size());
+        pMaterial->SetConstantBufferData(reinterpret_cast<const uint8_t *>(constantBufferData.data()), 0,
+                                         constantBufferData.size());
         for (auto it = textures.begin(); it != textures.end(); ++it)
         {
             pMaterial->SetTexture(it->first, it->second);
@@ -140,7 +143,8 @@ namespace
                     buffersData[bufferIdx] = std::unique_ptr<uint8_t[]>(reinterpret_cast<uint8_t *>(pFloats.release()));
                 }
                 rVertexAttributeDescriptor.pData = (const void *)buffersData[bufferIdx++].get();
-                assert(vertexBufferObj.HasMember("bindingDescriptors") && vertexBufferObj["bindingDescriptors"].IsArray());
+                assert(vertexBufferObj.HasMember("bindingDescriptors") &&
+                       vertexBufferObj["bindingDescriptors"].IsArray());
                 auto bindingDescriptorsArray = vertexBufferObj["bindingDescriptors"].GetArray();
                 rVertexAttributeDescriptor.bindingDescriptors.resize((size_t)bindingDescriptorsArray.Size());
                 for (decltype(bindingDescriptorsArray.Size()) j = 0; j < bindingDescriptorsArray.Size(); ++j)
@@ -154,7 +158,8 @@ namespace
                     assert(bindingDescriptorObj.HasMember("size") && bindingDescriptorObj["size"].IsUint());
                     rBindingDescriptor.size = bindingDescriptorObj["size"].GetUint();
                     assert(bindingDescriptorObj.HasMember("type") && bindingDescriptorObj["type"].IsString());
-                    GetValue(bindingDescriptorObj["type"], rBindingDescriptor.type, FastCG::VertexDataType_STRINGS, FASTCG_ARRAYSIZE(FastCG::VertexDataType_STRINGS));
+                    GetValue(bindingDescriptorObj["type"], rBindingDescriptor.type, FastCG::VertexDataType_STRINGS,
+                             FASTCG_ARRAYSIZE(FastCG::VertexDataType_STRINGS));
                     assert(bindingDescriptorObj.HasMember("normalized") && bindingDescriptorObj["normalized"].IsBool());
                     rBindingDescriptor.normalized = bindingDescriptorObj["normalized"].GetBool();
                     assert(bindingDescriptorObj.HasMember("stride") && bindingDescriptorObj["stride"].IsUint());
@@ -218,9 +223,11 @@ namespace
             assert(rGenericObj.HasMember("usage") && rGenericObj["usage"].IsUint());
             loadSettings.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
             assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
-            GetValue(rGenericObj["filter"], loadSettings.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
+            GetValue(rGenericObj["filter"], loadSettings.filter, FastCG::TextureFilter_STRINGS,
+                     FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
             assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
-            GetValue(rGenericObj["wrapMode"], loadSettings.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
+            GetValue(rGenericObj["wrapMode"], loadSettings.wrapMode, FastCG::TextureWrapMode_STRINGS,
+                     FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
             auto filePath = FastCG::File::Join({rBasePath, rGenericObj["path"].GetString()});
             return FastCG::TextureLoader::Load(filePath, loadSettings);
         }
@@ -234,16 +241,20 @@ namespace
             assert(rGenericObj.HasMember("height") && rGenericObj["height"].IsUint());
             args.height = rGenericObj["height"].GetUint();
             assert(rGenericObj.HasMember("type") && rGenericObj["type"].IsString());
-            GetValue(rGenericObj["type"], args.type, FastCG::TextureType_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureType_STRINGS));
+            GetValue(rGenericObj["type"], args.type, FastCG::TextureType_STRINGS,
+                     FASTCG_ARRAYSIZE(FastCG::TextureType_STRINGS));
             // TODO: use strings instead of numbers
             assert(rGenericObj.HasMember("usage") && rGenericObj["usage"].IsUint());
             args.usage = (FastCG::TextureUsageFlags)rGenericObj["usage"].GetUint();
             assert(rGenericObj.HasMember("format") && rGenericObj["format"].IsString());
-            GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
+            GetValue(rGenericObj["format"], args.format, FastCG::TextureFormat_STRINGS,
+                     FASTCG_ARRAYSIZE(FastCG::TextureFormat_STRINGS));
             assert(rGenericObj.HasMember("filter") && rGenericObj["filter"].IsString());
-            GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
+            GetValue(rGenericObj["filter"], args.filter, FastCG::TextureFilter_STRINGS,
+                     FASTCG_ARRAYSIZE(FastCG::TextureFilter_STRINGS));
             assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
-            GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TextureWrapMode_STRINGS, FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
+            GetValue(rGenericObj["wrapMode"], args.wrapMode, FastCG::TextureWrapMode_STRINGS,
+                     FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
             assert(rGenericObj.HasMember("data") && rGenericObj["data"].IsString());
             auto data = FastCG::DecodeBase64(rGenericObj["data"].GetString());
             args.pData = reinterpret_cast<const uint8_t *>(data.data());
@@ -252,16 +263,13 @@ namespace
     }
 
     template <typename GenericObjectT>
-    void LoadInspectable(const GenericObjectT &,
-                         const std::string &,
+    void LoadInspectable(const GenericObjectT &, const std::string &,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &,
-                         const std::unordered_map<std::string, FastCG::Texture *> &,
-                         FastCG::Inspectable *);
+                         const std::unordered_map<std::string, FastCG::Texture *> &, FastCG::Inspectable *);
 
     template <typename GenericValueT>
-    void LoadInspectableProperty(const GenericValueT &rGenericValue,
-                                 const std::string &rBasePath,
+    void LoadInspectableProperty(const GenericValueT &rGenericValue, const std::string &rBasePath,
                                  const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
                                  const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                                  const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
@@ -269,66 +277,56 @@ namespace
     {
         switch (pInspectableProperty->GetType())
         {
-        case FastCG::InspectablePropertyType::INSPECTABLE:
-        {
+        case FastCG::InspectablePropertyType::INSPECTABLE: {
             assert(rGenericValue.IsObject());
             FastCG::Inspectable *pInspectable;
             pInspectableProperty->GetValue(&pInspectable);
             LoadInspectable(rGenericValue.GetObj(), rBasePath, rMaterials, rMeshes, rTextures, pInspectable);
         }
         break;
-        case FastCG::InspectablePropertyType::ENUM:
-        {
+        case FastCG::InspectablePropertyType::ENUM: {
             assert(rGenericValue.IsString());
             auto *pInspectableEnumProperty = static_cast<FastCG::IInspectableEnumProperty *>(pInspectableProperty);
             const auto *pValue = rGenericValue.GetString();
             pInspectableEnumProperty->SetSelectedItem(pValue);
         }
         break;
-        case FastCG::InspectablePropertyType::BOOL:
-        {
+        case FastCG::InspectablePropertyType::BOOL: {
             auto value = rGenericValue.GetBool();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::INT32:
-        {
+        case FastCG::InspectablePropertyType::INT32: {
             auto value = rGenericValue.GetInt();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::UINT32:
-        {
+        case FastCG::InspectablePropertyType::UINT32: {
             auto value = rGenericValue.GetUint();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::INT64:
-        {
+        case FastCG::InspectablePropertyType::INT64: {
             auto value = rGenericValue.GetInt64();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::UINT64:
-        {
+        case FastCG::InspectablePropertyType::UINT64: {
             auto value = rGenericValue.GetUint64();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::FLOAT:
-        {
+        case FastCG::InspectablePropertyType::FLOAT: {
             auto value = rGenericValue.GetFloat();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::DOUBLE:
-        {
+        case FastCG::InspectablePropertyType::DOUBLE: {
             auto value = rGenericValue.GetDouble();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::VEC2:
-        {
+        case FastCG::InspectablePropertyType::VEC2: {
             assert(rGenericValue.IsArray());
             auto array = rGenericValue.GetArray();
             assert(array.Size() == 2);
@@ -336,8 +334,7 @@ namespace
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::VEC3:
-        {
+        case FastCG::InspectablePropertyType::VEC3: {
             assert(rGenericValue.IsArray());
             auto array = rGenericValue.GetArray();
             assert(array.Size() == 3);
@@ -345,8 +342,7 @@ namespace
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::VEC4:
-        {
+        case FastCG::InspectablePropertyType::VEC4: {
             assert(rGenericValue.IsArray());
             auto array = rGenericValue.GetArray();
             assert(array.Size() == 4);
@@ -354,15 +350,13 @@ namespace
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::STRING:
-        {
+        case FastCG::InspectablePropertyType::STRING: {
             assert(rGenericValue.IsString());
             std::string value = rGenericValue.GetString();
             pInspectableProperty->SetValue(&value);
         }
         break;
-        case FastCG::InspectablePropertyType::MATERIAL:
-        {
+        case FastCG::InspectablePropertyType::MATERIAL: {
             assert(rGenericValue.IsString());
             std::string id = rGenericValue.GetString();
             auto it = rMaterials.find(id);
@@ -370,8 +364,7 @@ namespace
             pInspectableProperty->SetValue(&it->second);
         }
         break;
-        case FastCG::InspectablePropertyType::MESH:
-        {
+        case FastCG::InspectablePropertyType::MESH: {
             assert(rGenericValue.IsString());
             std::string id = rGenericValue.GetString();
             auto it = rMeshes.find(id);
@@ -379,8 +372,7 @@ namespace
             pInspectableProperty->SetValue(&it->second);
         }
         break;
-        case FastCG::InspectablePropertyType::TEXTURE:
-        {
+        case FastCG::InspectablePropertyType::TEXTURE: {
             assert(rGenericValue.IsString());
             std::string id = rGenericValue.GetString();
             auto it = rTextures.find(id);
@@ -394,8 +386,7 @@ namespace
     }
 
     template <typename GenericObjectT>
-    void LoadInspectable(const GenericObjectT &rInspectableObj,
-                         const std::string &rBasePath,
+    void LoadInspectable(const GenericObjectT &rInspectableObj, const std::string &rBasePath,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                          const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
@@ -408,7 +399,8 @@ namespace
             // ignore non-existing inspectable properties
             if (pInspectableProperty == nullptr)
             {
-                FASTCG_LOG_WARN(GameObjectLoader, "Ignoring non-existing inspectable property (property: %s)", propertyName.c_str());
+                FASTCG_LOG_WARN(GameObjectLoader, "Ignoring non-existing inspectable property (property: %s)",
+                                propertyName.c_str());
                 continue;
             }
             LoadInspectableProperty(it->value, rBasePath, rMaterials, rMeshes, rTextures, pInspectableProperty);
@@ -416,12 +408,11 @@ namespace
     }
 
     template <typename GenericObjectT>
-    FastCG::GameObject *LoadGameObject(const GenericObjectT &rGameObjectObj,
-                                       const std::string &rBasePath,
-                                       const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
-                                       const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
-                                       const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
-                                       FastCG::GameObject *pParent)
+    FastCG::GameObject *LoadGameObject(
+        const GenericObjectT &rGameObjectObj, const std::string &rBasePath,
+        const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
+        const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
+        const std::unordered_map<std::string, FastCG::Texture *> &rTextures, FastCG::GameObject *pParent)
     {
         assert(rGameObjectObj.HasMember("name") && rGameObjectObj["name"].IsString());
         std::string name = rGameObjectObj["name"].GetString();
@@ -456,7 +447,8 @@ namespace
                 assert(transformObj["position"].IsArray());
                 auto positionArray = transformObj["position"].GetArray();
                 assert(positionArray.Size() == 3);
-                position = glm::vec3{positionArray[0].GetFloat(), positionArray[1].GetFloat(), positionArray[2].GetFloat()};
+                position =
+                    glm::vec3{positionArray[0].GetFloat(), positionArray[1].GetFloat(), positionArray[2].GetFloat()};
             }
         }
 
@@ -485,7 +477,8 @@ namespace
                 }
                 else
                 {
-                    FASTCG_LOG_WARN(GameObjectLoader, "Ignoring non-existing component (component: %s)", componentName.c_str());
+                    FASTCG_LOG_WARN(GameObjectLoader, "Ignoring non-existing component (component: %s)",
+                                    componentName.c_str());
                 }
             }
         }
