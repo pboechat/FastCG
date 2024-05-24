@@ -3,11 +3,10 @@ name: Format C++ Code
 on:
   push:
     branches:
-      - main
-      - 'feature/**'
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   format:
