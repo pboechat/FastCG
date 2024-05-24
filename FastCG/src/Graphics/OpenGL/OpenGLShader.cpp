@@ -8,6 +8,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Platform/FileReader.h>
 
+#include <cstddef>
 #include <vector>
 
 namespace

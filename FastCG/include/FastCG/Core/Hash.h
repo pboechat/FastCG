@@ -1,6 +1,7 @@
 #ifndef FASTCG_HASH_H
 #define FASTCG_HASH_H
 
+#include <cstddef>
 #include <cstdint>
 
 namespace FastCG

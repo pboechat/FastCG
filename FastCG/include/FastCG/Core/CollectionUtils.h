@@ -1,6 +1,7 @@
 #ifndef FASTCG_COLLECTION_UTILS_H
 #define FASTCG_COLLECTION_UTILS_H
 
+#include <cstddef>
 #include <vector>
 
 namespace FastCG

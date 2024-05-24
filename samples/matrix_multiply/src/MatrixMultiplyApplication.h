@@ -13,7 +13,7 @@ using Matrix = std::unique_ptr<float[]>;
 class MatrixMultiplyApplication : public Application
 {
 protected:
-    bool ParseCommandLineArguments(int argc, char **argv);
+    bool ParseCommandLineArguments(int argc, char **argv) override;
     void OnPrintUsage() override;
     void OnStart() override;
     void OnFrameStart(double deltaTime) override;

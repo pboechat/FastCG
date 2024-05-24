@@ -136,7 +136,6 @@ namespace FastCG
             mResourceLocation[rResource.name] = {set, binding};
             if (mPipelineLayoutDescription.setLayoutCount <= set)
             {
-                auto oldCount = mPipelineLayoutDescription.setLayoutCount;
                 mPipelineLayoutDescription.setLayoutCount = set + 1;
             }
             auto &rSetLayout = mPipelineLayoutDescription.pSetLayouts[set];

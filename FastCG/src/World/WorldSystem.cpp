@@ -1039,7 +1039,7 @@ namespace
                             {
                                 if (pTexture == nullptr)
                                 {
-                                    ImGui::Text("%s: <unassigned>", name.c_str(), pTexture->GetName().c_str());
+                                    ImGui::Text("%s: <unassigned>", name.c_str());
                                 }
                                 else
                                 {
@@ -1106,14 +1106,22 @@ namespace
 
             switch (rOperation)
             {
-            case ImGuizmo::TRANSLATE:
+            case ImGuizmo::TRANSLATE_X:
+            case ImGuizmo::TRANSLATE_Y:
+            case ImGuizmo::TRANSLATE_Z:
                 ImGui::InputFloat3("Snap", &rTranslateSnap.x);
                 break;
-            case ImGuizmo::ROTATE:
+            case ImGuizmo::ROTATE_X:
+            case ImGuizmo::ROTATE_Y:
+            case ImGuizmo::ROTATE_Z:
                 ImGui::InputFloat("Snap", &rRotateSnap);
                 break;
-            case ImGuizmo::SCALE:
+            case ImGuizmo::SCALE_X:
+            case ImGuizmo::SCALE_Y:
+            case ImGuizmo::SCALE_Z:
                 ImGui::InputFloat("Snap", &rScaleSnap);
+                break;
+            default:
                 break;
             }
             ImGui::End();
@@ -1135,14 +1143,22 @@ namespace
                 const float *pSnap;
                 switch (operation)
                 {
-                case ImGuizmo::TRANSLATE:
+                case ImGuizmo::TRANSLATE_X:
+                case ImGuizmo::TRANSLATE_Y:
+                case ImGuizmo::TRANSLATE_Z:
                     pSnap = &rTranslateSnap.x;
                     break;
-                case ImGuizmo::ROTATE:
+                case ImGuizmo::ROTATE_X:
+                case ImGuizmo::ROTATE_Y:
+                case ImGuizmo::ROTATE_Z:
                     pSnap = &rotateSnap;
                     break;
-                case ImGuizmo::SCALE:
+                case ImGuizmo::SCALE_X:
+                case ImGuizmo::SCALE_Y:
+                case ImGuizmo::SCALE_Z:
                     pSnap = &scaleSnap;
+                    break;
+                default:
                     break;
                 }
                 if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,

@@ -265,9 +265,9 @@ void MatrixMultiplyApplication::ProcessResults()
     std::cout << "[GPU] " << mpGraphicsContext->GetElapsedTime() * 1000.0 << "ms" << std::endl;
     PrintCs(C_values_gpu);
 
+#if ASSERT
     auto AreEqual = [](float a, float b, float epsilon = 1e-3) { return std::fabs(a - b) < epsilon; };
 
-#if ASSERT
     bool diff = false;
     for (size_t i = 0; i < mCount; ++i)
     {

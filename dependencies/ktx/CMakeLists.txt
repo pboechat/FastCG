@@ -47,4 +47,12 @@ target_compile_definitions(
 		KTX_FEATURE_KTX2 
 		KTX_FEATURE_WRITE # enable write support
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	target_compile_options(
+		${PROJECT_NAME}
+		PUBLIC
+		-Wno-typedef-redefinition
+	)
+endif()
 target_link_libraries(${PROJECT_NAME} astcenc basisu dfdutils zlib)

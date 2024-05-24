@@ -492,10 +492,10 @@ namespace FastCG
 
         auto defaultScreen = DefaultScreen(pDisplay);
 
-        int numFbConfigs;
+        int numFbConfigs = 0;
         auto fbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
 
-        GLXFBConfig fbConfig;
+        GLXFBConfig fbConfig = nullptr;
         XVisualInfo *pVisualInfo;
         for (int i = 0; i < numFbConfigs; i++)
         {
