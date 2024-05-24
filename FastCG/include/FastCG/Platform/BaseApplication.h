@@ -95,6 +95,11 @@ namespace FastCG
 			return mSettings.rendering.path;
 		}
 
+		inline size_t GetFrameCount() const
+		{
+			return mFrameCount;
+		}
+
 		int Run();
 		int Run(int argc, char **argv);
 
@@ -140,6 +145,8 @@ namespace FastCG
 			FASTCG_UNUSED(key);
 		}
 		virtual void OnPrintUsage() {}
+		virtual void OnFrameStart(double deltaTime) {}
+		virtual void OnFrameEnd() {}
 		virtual void RunMainLoop() = 0;
 		void RunMainLoopIteration(double osTime);
 		void WindowResizeCallback(uint32_t width, uint32_t height);

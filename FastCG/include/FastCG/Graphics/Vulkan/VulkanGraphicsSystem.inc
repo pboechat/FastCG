@@ -16,10 +16,10 @@ namespace FastCG
     {
         assert(pTexture != nullptr);
         {
-            auto it = mLastImageMemoryTransitions.find(pTexture->GetImage());
-            if (it != mLastImageMemoryTransitions.end())
+            auto it = mLastImageMemoryBarriers.find(pTexture->GetImage());
+            if (it != mLastImageMemoryBarriers.end())
             {
-                mLastImageMemoryTransitions.erase(it);
+                mLastImageMemoryBarriers.erase(it);
             }
         }
         {
@@ -50,11 +50,11 @@ namespace FastCG
         mDeferredDestroyRequests.emplace_back(DeferredDestroyRequest{mCurrentFrame, frameBuffer});
     }
 
-    VulkanImageMemoryTransition VulkanGraphicsSystem::GetLastImageMemoryTransition(const VulkanTexture *pTexture) const
+    VulkanImageMemoryBarrier VulkanGraphicsSystem::GetLastImageMemoryBarrier(const VulkanTexture *pTexture) const
     {
         assert(pTexture != nullptr);
-        auto it = mLastImageMemoryTransitions.find(pTexture->GetImage());
-        if (it == mLastImageMemoryTransitions.end())
+        auto it = mLastImageMemoryBarriers.find(pTexture->GetImage());
+        if (it == mLastImageMemoryBarriers.cend())
         {
             return {VK_IMAGE_LAYOUT_UNDEFINED, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
         }
@@ -64,12 +64,31 @@ namespace FastCG
         }
     }
 
-    void VulkanGraphicsSystem::NotifyImageMemoryTransition(const VulkanTexture *pTexture, const VulkanImageMemoryTransition &rImageMemoryTransition)
+    VulkanBufferMemoryBarrier VulkanGraphicsSystem::GetLastBufferMemoryBarrier(VkBuffer buffer) const
+    {
+        auto it = mLastBufferMemoryBarriers.find(buffer);
+        if (it == mLastBufferMemoryBarriers.cend())
+        {
+            return {0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
+        }
+        else
+        {
+            return it->second;
+        }
+    }
+
+    void VulkanGraphicsSystem::NotifyImageMemoryBarrier(const VulkanTexture *pTexture, const VulkanImageMemoryBarrier &rImageMemoryBarrier)
     {
         assert(pTexture != nullptr);
         auto image = pTexture->GetImage();
         assert(image != VK_NULL_HANDLE);
-        mLastImageMemoryTransitions[image] = rImageMemoryTransition;
+        mLastImageMemoryBarriers[image] = rImageMemoryBarrier;
+    }
+
+    void VulkanGraphicsSystem::NotifyBufferMemoryBarrier(VkBuffer buffer, const VulkanBufferMemoryBarrier &rBufferMemoryBarrier)
+    {
+        assert(buffer != VK_NULL_HANDLE);
+        mLastBufferMemoryBarriers[buffer] = rBufferMemoryBarrier;
     }
 
     VkInstance VulkanGraphicsSystem::GetVulkanInstance() const

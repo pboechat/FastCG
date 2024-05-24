@@ -53,7 +53,8 @@ namespace FastCG
 #endif
         }
         void DestroyTexture(const OpenGLTexture *pTexture) override;
-        void Synchronize();
+        void Submit();
+        void WaitLastFrame();
 #if defined FASTCG_ANDROID
         void OnWindowInitialized();
         void OnWindowTerminated();
@@ -80,6 +81,7 @@ namespace FastCG
         std::unordered_map<GLint, std::vector<size_t>, IdentityHasher<GLint>> mTextureToFboHashes;
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mVaoIds;
         DeviceProperties mDeviceProperties{};
+        GLsync mFence{nullptr};
 
         void OnInitialize() override;
         void OnPostFinalize() override;

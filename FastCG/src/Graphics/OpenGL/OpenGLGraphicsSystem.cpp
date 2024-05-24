@@ -188,9 +188,30 @@ namespace FastCG
         BaseGraphicsSystem::DestroyTexture(pTexture);
     }
 
-    void OpenGLGraphicsSystem::Synchronize()
+    void OpenGLGraphicsSystem::Submit()
     {
-        glFinish();
+        auto fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+        glFlush();
+
+        glClientWaitSync(fence, 0, GL_TIMEOUT_IGNORED);
+
+        glDeleteSync(fence);
+
+#if !defined FASTCG_DISABLE_GPU_TIMING
+        for (auto *pGraphicsContext : GetGraphicsContexts())
+        {
+            pGraphicsContext->RetrieveElapsedTime();
+        }
+#endif
+    }
+
+    void OpenGLGraphicsSystem::WaitLastFrame()
+    {
+        if (mFence != nullptr)
+        {
+            glClientWaitSync(mFence, 0, GL_TIMEOUT_IGNORED);
+        }
     }
 
     GLuint OpenGLGraphicsSystem::GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount, const OpenGLTexture *pDepthStencilBuffer)
@@ -628,6 +649,11 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::Present()
     {
+        if (mFence != nullptr)
+        {
+            glDeleteSync(mFence);
+        }
+        mFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 #if defined FASTCG_WINDOWS
         SwapBuffers(mHDC);
 #elif defined FASTCG_LINUX

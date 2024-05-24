@@ -17,18 +17,21 @@ namespace FastCG
         struct Args : BaseBuffer::Args
         {
             bool forceSingleFrameDataCount;
+            VulkanGraphicsContext *pGraphicsContext;
 
             Args(const std::string &rName = "",
                  BufferUsageFlags usage = BufferUsageFlagBit::UNIFORM,
                  size_t dataSize = 0,
                  const void *pData = nullptr,
                  const std::vector<VertexBindingDescriptor> &rVertexBindingDescriptors = {},
-                 bool forceSingleFrameDataCount = false) : BaseBuffer::Args(rName,
-                                                                            usage,
-                                                                            dataSize,
-                                                                            pData,
-                                                                            rVertexBindingDescriptors),
-                                                           forceSingleFrameDataCount(forceSingleFrameDataCount)
+                 bool forceSingleFrameDataCount = false,
+                 VulkanGraphicsContext *pGraphicsContext = nullptr) : BaseBuffer::Args(rName,
+                                                                                       usage,
+                                                                                       dataSize,
+                                                                                       pData,
+                                                                                       rVertexBindingDescriptors),
+                                                                      forceSingleFrameDataCount(forceSingleFrameDataCount),
+                                                                      pGraphicsContext(pGraphicsContext)
             {
             }
         };
@@ -76,7 +79,7 @@ namespace FastCG
         {
             return IsDynamic();
         }
-        void CreateBuffer();
+        void CreateBuffer(VulkanGraphicsContext *pGraphicsContext);
         void DestroyBuffer();
 
         friend class VulkanGraphicsContext;

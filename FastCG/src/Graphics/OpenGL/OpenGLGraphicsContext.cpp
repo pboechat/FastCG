@@ -224,6 +224,12 @@ namespace FastCG
         glGetBufferSubData(target, (GLintptr)offset, (GLsizeiptr)size, pDst);
     }
 
+    void OpenGLGraphicsContext::AddMemoryBarrier()
+    {
+        // TODO: too broad?
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
     void OpenGLGraphicsContext::BindShader(const OpenGLShader *pShader)
     {
         assert(pShader != nullptr);

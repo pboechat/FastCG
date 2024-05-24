@@ -42,6 +42,7 @@ namespace FastCG
                 void Copy(const OpenGLBuffer *pDst, const void *pSrc, size_t size);
                 void Copy(const OpenGLTexture *pDst, const void *pSrc, size_t size);
                 void Copy(void *pDst, const OpenGLBuffer *pSrc, size_t offset, size_t size);
+                void AddMemoryBarrier();
                 void BindShader(const OpenGLShader *pShader);
                 void BindResource(const OpenGLBuffer *pBuffer, const char *pName);
                 void BindResource(const OpenGLTexture *pTexture, const char *pName);

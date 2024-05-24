@@ -43,9 +43,15 @@ namespace FastCG
 
 #undef FASTCG_DECL_VK_EXT_FN
 
-    struct VulkanImageMemoryTransition
+    struct VulkanImageMemoryBarrier
     {
         VkImageLayout layout;
+        VkAccessFlags accessMask;
+        VkPipelineStageFlags stageMask;
+    };
+
+    struct VulkanBufferMemoryBarrier
+    {
         VkAccessFlags accessMask;
         VkPipelineStageFlags stageMask;
     };
@@ -70,7 +76,8 @@ namespace FastCG
         {
             return mSurface == VK_NULL_HANDLE;
         }
-        void Synchronize();
+        void Submit();
+        void WaitLastFrame();
 #if defined FASTCG_ANDROID
         void OnWindowInitialized();
         void OnWindowTerminated();
@@ -117,7 +124,7 @@ namespace FastCG
 
         struct DescriptorSetLocalPool
         {
-            static constexpr size_t MAX_SET_COUNT = 64;
+            static constexpr size_t MAX_SET_COUNT = 128;
 
             VkDescriptorSet descriptorSets[MAX_SET_COUNT]{};
             size_t lastDescriptorSetIdx{0};
@@ -166,7 +173,8 @@ namespace FastCG
         std::unordered_map<size_t, VkPipelineLayout, IdentityHasher<size_t>> mPipelineLayouts;
         std::unordered_map<size_t, VkDescriptorSetLayout, IdentityHasher<size_t>> mDescriptorSetLayouts;
         std::vector<std::unordered_map<size_t, DescriptorSetLocalPool, IdentityHasher<size_t>>> mDescriptorSetLocalPools;
-        std::unordered_map<VkImage, VulkanImageMemoryTransition, IdentityHasher<VkImage>> mLastImageMemoryTransitions;
+        std::unordered_map<VkImage, VulkanImageMemoryBarrier, IdentityHasher<VkImage>> mLastImageMemoryBarriers;
+        std::unordered_map<VkBuffer, VulkanBufferMemoryBarrier, IdentityHasher<VkBuffer>> mLastBufferMemoryBarriers;
         VulkanGraphicsContext *mpImmediateGraphicsContext;
         std::deque<DeferredDestroyRequest> mDeferredDestroyRequests;
         std::unordered_map<VkImage, size_t, IdentityHasher<VkImage>> mRenderTargetToFrameBufferHash;
@@ -238,8 +246,10 @@ namespace FastCG
         std::pair<size_t, VkDescriptorSet> GetOrCreateDescriptorSet(const VulkanDescriptorSetLayout &rDescriptorSetLayout);
         void PerformDeferredDestroys();
         void FinalizeDeferredDestroys();
-        inline VulkanImageMemoryTransition GetLastImageMemoryTransition(const VulkanTexture *pTexture) const;
-        inline void NotifyImageMemoryTransition(const VulkanTexture *pTexture, const VulkanImageMemoryTransition &rImageMemoryTransition);
+        inline VulkanImageMemoryBarrier GetLastImageMemoryBarrier(const VulkanTexture *pTexture) const;
+        inline VulkanBufferMemoryBarrier GetLastBufferMemoryBarrier(VkBuffer buffer) const;
+        inline void NotifyImageMemoryBarrier(const VulkanTexture *pTexture, const VulkanImageMemoryBarrier &rImageMemoryBarrier);
+        inline void NotifyBufferMemoryBarrier(VkBuffer buffer, const VulkanBufferMemoryBarrier &rBufferMemoryBarrier);
         inline void DestroyFrameBuffer(size_t frameBufferHash);
 
         friend class VulkanBuffer;

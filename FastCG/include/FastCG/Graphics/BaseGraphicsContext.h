@@ -53,6 +53,7 @@ namespace FastCG
         void Copy(const Buffer *pDst, const void *pSrc, size_t size);
         void Copy(const Texture *pDst, const void *pSrc, size_t size);
         void Copy(void *pDst, const Buffer *pSrc, size_t offset, size_t size);
+        void AddMemoryBarrier();
         void BindShader(const Shader *pShader);
         void BindResource(const Buffer *pBuffer, const char *pName);
         void BindResource(const Texture *pTexture, const char *pName);

@@ -47,6 +47,7 @@ namespace FastCG
         void Copy(const VulkanTexture *pDst, const void *pSrc, size_t size);
         void Copy(void *pDst, const VulkanBuffer *pSrc, size_t offset, size_t size);
         void Copy(void *pDst, const VulkanBuffer *pSrc, uint32_t frameIndex, size_t offset, size_t size);
+        void AddMemoryBarrier();
         void BindShader(const VulkanShader *pShader);
         void BindResource(const VulkanBuffer *pBuffer, const char *pName);
         void BindResource(const VulkanTexture *pTexture, const char *pName);
@@ -225,6 +226,7 @@ namespace FastCG
         std::vector<InvokeCommand> mInvokeCommands;
         VkRenderPass mPrevRenderPass{VK_NULL_HANDLE};
         std::vector<VulkanClearRequest> mClearRequests;
+        bool mAddMemoryBarrier{false};
         bool mEnded{true};
 #if _DEBUG
         std::vector<MarkerCommand> mMarkerCommands;

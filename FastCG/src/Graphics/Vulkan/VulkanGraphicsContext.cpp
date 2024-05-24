@@ -313,11 +313,28 @@ namespace FastCG
 			std::memcpy(pDst, pMappedData, size);
 			vmaUnmapMemory(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
 						   rBufferFrameData.allocation);
+
+			VkMemoryPropertyFlags memPropFlags;
+			vmaGetAllocationMemoryProperties(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+											 rBufferFrameData.allocation,
+											 &memPropFlags);
+			if ((memPropFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
+			{
+				FASTCG_CHECK_VK_RESULT(vmaInvalidateAllocation(VulkanGraphicsSystem::GetInstance()->GetAllocator(),
+															   rBufferFrameData.allocation,
+															   0,
+															   VK_WHOLE_SIZE));
+			}
 		}
 		else
 		{
 			// TODO:
 		}
+	}
+
+	void VulkanGraphicsContext::AddMemoryBarrier()
+	{
+		mAddMemoryBarrier = true;
 	}
 
 	void VulkanGraphicsContext::BindShader(const VulkanShader *pShader)
@@ -841,6 +858,11 @@ namespace FastCG
 									&copyRegion);
 
 					AddBufferMemoryBarrier(rSrcBufferFrameData.buffer,
+										   0,
+										   VK_ACCESS_TRANSFER_READ_BIT,
+										   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+										   VK_PIPELINE_STAGE_TRANSFER_BIT);
+					AddBufferMemoryBarrier(rDstBufferFrameData.buffer,
 										   VK_ACCESS_TRANSFER_WRITE_BIT,
 										   rCopyCommand.args.dstBufferData.pBuffer->GetDefaultAccessFlags(),
 										   VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -1089,6 +1111,24 @@ namespace FastCG
 		size_t lastUsedPipelineBatchIdx = 0;
 		size_t lastUsedInvokeCommandIdx = 0;
 
+		auto GetVkPipelineStageFlags = [](VkShaderStageFlags stageFlags)
+		{
+			VkPipelineStageFlags flags = 0;
+			if ((stageFlags & VK_SHADER_STAGE_VERTEX_BIT) != 0)
+			{
+				flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+			}
+			if ((stageFlags & VK_SHADER_STAGE_FRAGMENT_BIT) != 0)
+			{
+				flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			}
+			if ((stageFlags & VK_SHADER_STAGE_COMPUTE_BIT) != 0)
+			{
+				flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			}
+			return flags;
+		};
+
 		FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "Iterating over passes (%zu)", mPassBatches.size());
 
 		for (size_t i = 0; i < mPassBatches.size(); ++i)
@@ -1181,34 +1221,13 @@ namespace FastCG
 								rImageInfo.imageLayout = newLayout;
 								rSetWrite.pImageInfo = &rImageInfo;
 
-								auto imageMemoryTransition = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryTransition(pTexture);
-								if (imageMemoryTransition.layout != newLayout)
-								{
-									auto GetVkPipelineStageFlags = [](VkShaderStageFlags stageFlags)
-									{
-										VkPipelineStageFlags flags = 0;
-										if ((stageFlags & VK_SHADER_STAGE_VERTEX_BIT) != 0)
-										{
-											flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-										}
-										if ((stageFlags & VK_SHADER_STAGE_FRAGMENT_BIT) != 0)
-										{
-											flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-										}
-										if ((stageFlags & VK_SHADER_STAGE_COMPUTE_BIT) != 0)
-										{
-											flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-										}
-										return flags;
-									};
-
-									AddTextureMemoryBarrier(pTexture,
-															newLayout,
-															imageMemoryTransition.accessMask,
-															VK_ACCESS_SHADER_READ_BIT,
-															imageMemoryTransition.stageMask,
-															GetVkPipelineStageFlags(rBindingLayout.stageFlags));
-								}
+								auto lastImageMemoryBarrier = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pTexture);
+								AddTextureMemoryBarrier(pTexture,
+														newLayout,
+														lastImageMemoryBarrier.accessMask,
+														VK_ACCESS_SHADER_READ_BIT,
+														lastImageMemoryBarrier.stageMask,
+														GetVkPipelineStageFlags(rBindingLayout.stageFlags));
 							}
 							else if (rBindingLayout.type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
 									 rBindingLayout.type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
@@ -1217,10 +1236,18 @@ namespace FastCG
 								assert(lastBufferInfoIdx < MAX_RESOURCES);
 								assert(pBinding != nullptr);
 								assert(pBinding->pBuffer != nullptr);
-								rBufferInfo.buffer = GetCurrentVkBuffer(pBinding->pBuffer);
+								auto buffer = GetCurrentVkBuffer(pBinding->pBuffer);
+								rBufferInfo.buffer = buffer;
 								rBufferInfo.offset = 0;
 								rBufferInfo.range = VK_WHOLE_SIZE;
 								rSetWrite.pBufferInfo = &rBufferInfo;
+
+								auto lastBufferMemoryBarrier = VulkanGraphicsSystem::GetInstance()->GetLastBufferMemoryBarrier(buffer);
+								AddBufferMemoryBarrier(buffer,
+													   lastBufferMemoryBarrier.accessMask,
+													   VK_ACCESS_SHADER_READ_BIT,
+													   lastBufferMemoryBarrier.stageMask,
+													   GetVkPipelineStageFlags(rBindingLayout.stageFlags));
 							}
 							else
 							{
@@ -1269,14 +1296,14 @@ namespace FastCG
 					dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 					dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 				}
-				auto imageMemoryTransition = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryTransition(pRenderTarget);
-				if (imageMemoryTransition.layout != newLayout)
+				auto lastImageMemoryBarrier = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pRenderTarget);
+				if (lastImageMemoryBarrier.layout != newLayout)
 				{
 					AddTextureMemoryBarrier(pRenderTarget,
 											newLayout,
-											imageMemoryTransition.accessMask,
+											lastImageMemoryBarrier.accessMask,
 											dstAccessMask,
-											imageMemoryTransition.stageMask,
+											lastImageMemoryBarrier.stageMask,
 											dstStageMask);
 				}
 			};
@@ -1470,7 +1497,7 @@ namespace FastCG
 					accessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 					stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 				}
-				VulkanGraphicsSystem::GetInstance()->NotifyImageMemoryTransition(pRenderTarget, {newLayout, accessMask, stageMask});
+				VulkanGraphicsSystem::GetInstance()->NotifyImageMemoryBarrier(pRenderTarget, {newLayout, accessMask, stageMask});
 			};
 
 			if (rPassBatch.type == PassType::RENDER)
@@ -1494,6 +1521,27 @@ namespace FastCG
 
 		EnqueueTimestampQuery(mTimeElapsedQueries[VulkanGraphicsSystem::GetInstance()->GetCurrentFrame()].end);
 #endif
+
+		if (mAddMemoryBarrier)
+		{
+			// FIXME: too broad?
+			VkMemoryBarrier barrier;
+			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+			barrier.pNext = nullptr;
+			barrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
+			vkCmdPipelineBarrier(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
+								 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+								 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+								 0,
+								 1,
+								 &barrier,
+								 0,
+								 nullptr,
+								 0,
+								 nullptr);
+			mAddMemoryBarrier = false;
+		}
 
 		mPassBatches.resize(0);
 		mPipelineBatches.resize(0);
@@ -1580,6 +1628,8 @@ namespace FastCG
 							 &bufferMemoryBarrier,
 							 0,
 							 nullptr);
+
+		VulkanGraphicsSystem::GetInstance()->NotifyBufferMemoryBarrier(buffer, {dstAccessMask, dstStageMask});
 	}
 
 	void VulkanGraphicsContext::AddTextureMemoryBarrier(const VulkanTexture *pTexture,
@@ -1594,7 +1644,7 @@ namespace FastCG
 		imageMemoryBarrier.pNext = nullptr;
 		imageMemoryBarrier.srcAccessMask = srcAccessMask;
 		imageMemoryBarrier.dstAccessMask = dstAccessMask;
-		imageMemoryBarrier.oldLayout = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryTransition(pTexture).layout;
+		imageMemoryBarrier.oldLayout = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pTexture).layout;
 		imageMemoryBarrier.newLayout = newLayout;
 		imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -1616,7 +1666,7 @@ namespace FastCG
 							 1,
 							 &imageMemoryBarrier);
 
-		VulkanGraphicsSystem::GetInstance()->NotifyImageMemoryTransition(pTexture, {newLayout, dstAccessMask, dstStageMask});
+		VulkanGraphicsSystem::GetInstance()->NotifyImageMemoryBarrier(pTexture, {newLayout, dstAccessMask, dstStageMask});
 	}
 
 	void VulkanGraphicsContext::EnqueueTimestampQuery(uint32_t query)

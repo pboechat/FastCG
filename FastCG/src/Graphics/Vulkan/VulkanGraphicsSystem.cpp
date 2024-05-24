@@ -989,14 +989,14 @@ namespace FastCG
     {
         if (!IsHeadless())
         {
-            auto imageMemoryTransition = GetLastImageMemoryTransition(GetCurrentSwapChainTexture());
-            if (imageMemoryTransition.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            auto imageMemoryBarrier = GetLastImageMemoryBarrier(GetCurrentSwapChainTexture());
+            if (imageMemoryBarrier.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
             {
                 GetImmediateGraphicsContext()->AddTextureMemoryBarrier(GetCurrentSwapChainTexture(),
                                                                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                                       imageMemoryTransition.accessMask,
+                                                                       imageMemoryBarrier.accessMask,
                                                                        0,
-                                                                       imageMemoryTransition.stageMask,
+                                                                       imageMemoryBarrier.stageMask,
                                                                        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
             }
         }
@@ -1888,7 +1888,7 @@ namespace FastCG
     }
 #endif
 
-    void VulkanGraphicsSystem::Synchronize()
+    void VulkanGraphicsSystem::Submit()
     {
         GetImmediateGraphicsContext()->End();
 
@@ -1918,9 +1918,32 @@ namespace FastCG
 
         vkDestroyFence(mDevice, fence, mAllocationCallbacks.get());
 
+#if !defined FASTCG_DISABLE_GPU_TIMING
+        for (auto *pGraphicsContext : GetGraphicsContexts())
+        {
+            pGraphicsContext->RetrieveElapsedTime();
+        }
+#endif
+
+        PerformDeferredDestroys();
+
+        for (auto &rEntry : mDescriptorSetLocalPools[mCurrentFrame])
+        {
+            rEntry.second.lastDescriptorSetIdx = 0;
+        }
+
         BeginCurrentCommandBuffer();
 
+        ResetQueryPool();
+
         GetImmediateGraphicsContext()->Begin();
+    }
+
+    void VulkanGraphicsSystem::WaitLastFrame()
+    {
+        auto lastFrame = (mCurrentFrame > 0 ? mCurrentFrame : mMaxSimultaneousFrames) - 1;
+        FASTCG_CHECK_VK_RESULT(vkWaitForFences(mDevice, 1, &mFrameFences[lastFrame], VK_TRUE, UINT64_MAX));
+        FASTCG_CHECK_VK_RESULT(vkResetFences(mDevice, 1, &mFrameFences[lastFrame]));
     }
 }
 

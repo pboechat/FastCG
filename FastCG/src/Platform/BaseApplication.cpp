@@ -238,6 +238,8 @@ namespace FastCG
 			appDeltaTime = 0;
 		}
 
+		OnFrameStart(appDeltaTime);
+
 		KeyChange keyChanges[KEY_COUNT];
 		InputSystem::GetKeyChanges(keyChanges);
 
@@ -275,6 +277,8 @@ namespace FastCG
 		mLastPresentElapsedTime = appEnd - presentationStart;
 		mLastGpuElapsedTime = GraphicsSystem::GetInstance()->GetGpuElapsedTime();
 		mLastAppStart = appStart;
+
+		OnFrameEnd();
 
 		mFrameCount++;
 

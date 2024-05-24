@@ -10,7 +10,7 @@ namespace FastCG
 {
     VulkanBuffer::VulkanBuffer(const Args &rArgs) : BaseBuffer(rArgs), mForceSingleFrameDataCount(rArgs.forceSingleFrameDataCount)
     {
-        CreateBuffer();
+        CreateBuffer(rArgs.pGraphicsContext != nullptr ? rArgs.pGraphicsContext : VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext());
     }
 
     VulkanBuffer::~VulkanBuffer()
@@ -18,7 +18,7 @@ namespace FastCG
         DestroyBuffer();
     }
 
-    void VulkanBuffer::CreateBuffer()
+    void VulkanBuffer::CreateBuffer(VulkanGraphicsContext *pGraphicsContext)
     {
         VkBufferCreateInfo bufferCreateInfo;
         bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -60,7 +60,7 @@ namespace FastCG
 
             if (GetData() != nullptr)
             {
-                VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->Copy(this, GetData(), i, GetDataSize());
+                pGraphicsContext->Copy(this, GetData(), i, GetDataSize());
             }
 
 #if _DEBUG
