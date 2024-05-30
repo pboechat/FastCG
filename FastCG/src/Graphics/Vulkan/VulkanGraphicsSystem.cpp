@@ -1486,7 +1486,7 @@ namespace FastCG
                 auto format = GetVkFormat(rVbDesc.type, rVbDesc.size);
                 vertexInputAttributeDescriptions.emplace_back(
                     VkVertexInputAttributeDescription{rVbDesc.binding, (uint32_t)i, format, rVbDesc.offset});
-                stride += rVbDesc.stride == 0 ? GetVkStride(format) : rVbDesc.stride;
+                stride += GetVkStride(format);
             }
             vertexInputBindingDescriptions.emplace_back(
                 VkVertexInputBindingDescription{(uint32_t)i, stride, VK_VERTEX_INPUT_RATE_VERTEX});

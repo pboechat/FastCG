@@ -870,6 +870,8 @@ namespace FastCG
             return 12;
         case VK_FORMAT_R32G32B32A32_SFLOAT:
             return 16;
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return 4;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stride (vkFormat: %s)", GetVkFormatString(vkFormat));
             return 0;
