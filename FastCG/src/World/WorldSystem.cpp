@@ -1140,31 +1140,26 @@ namespace
             {
                 auto view = pCamera->GetView();
                 auto projection = pCamera->GetProjection();
-                const float *pSnap;
-                switch (operation)
+                const float *pSnap = nullptr;
+                if ((operation & ImGuizmo::TRANSLATE) != 0)
                 {
-                case ImGuizmo::TRANSLATE_X:
-                case ImGuizmo::TRANSLATE_Y:
-                case ImGuizmo::TRANSLATE_Z:
                     pSnap = &rTranslateSnap.x;
-                    break;
-                case ImGuizmo::ROTATE_X:
-                case ImGuizmo::ROTATE_Y:
-                case ImGuizmo::ROTATE_Z:
-                    pSnap = &rotateSnap;
-                    break;
-                case ImGuizmo::SCALE_X:
-                case ImGuizmo::SCALE_Y:
-                case ImGuizmo::SCALE_Z:
-                    pSnap = &scaleSnap;
-                    break;
-                default:
-                    break;
                 }
-                if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,
-                                         glm::value_ptr(model), nullptr, pSnap))
+                else if ((operation & ImGuizmo::ROTATE) != 0)
                 {
-                    pTransform->SetModel(model);
+                    pSnap = &rotateSnap;
+                }
+                else if ((operation & ImGuizmo::SCALE) != 0)
+                {
+                    pSnap = &scaleSnap;
+                }
+                if (pSnap != nullptr)
+                {
+                    if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), operation, mode,
+                                             glm::value_ptr(model), nullptr, pSnap))
+                    {
+                        pTransform->SetModel(model);
+                    }
                 }
             }
         }
