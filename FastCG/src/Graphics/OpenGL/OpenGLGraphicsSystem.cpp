@@ -418,19 +418,21 @@ namespace FastCG
     void OpenGLGraphicsSystem::CreateOpenGLContext()
     {
 #if defined FASTCG_WINDOWS
-        const int attribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
-                               4,
-                               WGL_CONTEXT_MINOR_VERSION_ARB,
-                               3,
-                               WGL_CONTEXT_PROFILE_MASK_ARB,
-                               WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                               WGL_CONTEXT_FLAGS_ARB,
-                               WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int attribs[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB,
+            4,
+            WGL_CONTEXT_MINOR_VERSION_ARB,
+            3,
+            WGL_CONTEXT_PROFILE_MASK_ARB,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB,
+            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                                   | WGL_CONTEXT_DEBUG_BIT_ARB
+                | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-                               ,
-                               0};
+            ,
+            0
+        };
 
         auto oldHGLRC = mHGLRC;
 
@@ -452,19 +454,21 @@ namespace FastCG
         auto *pDisplay = X11Application::GetInstance()->GetDisplay();
         assert(pDisplay != nullptr);
 
-        const int attribs[] = {GLX_CONTEXT_MAJOR_VERSION_ARB,
-                               4,
-                               GLX_CONTEXT_MINOR_VERSION_ARB,
-                               3,
-                               GLX_CONTEXT_PROFILE_MASK_ARB,
-                               GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-                               GLX_CONTEXT_FLAGS_ARB,
-                               GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int attribs[] = {
+            GLX_CONTEXT_MAJOR_VERSION_ARB,
+            4,
+            GLX_CONTEXT_MINOR_VERSION_ARB,
+            3,
+            GLX_CONTEXT_PROFILE_MASK_ARB,
+            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            GLX_CONTEXT_FLAGS_ARB,
+            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                                   | GLX_CONTEXT_DEBUG_BIT_ARB
+                | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-                               ,
-                               0};
+            ,
+            0
+        };
 
         int dummy;
         if (!glXQueryExtension(pDisplay, &dummy, &dummy))

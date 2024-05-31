@@ -209,7 +209,9 @@
     call(arg, 62) FASTCG_FOR_EACH_ITER_63_(FASTCG_FOR_EACH_ITER_62, (call, ##__VA_ARGS__))
 #define FASTCG_FOR_EACH_ITER_64(call, arg, ...)                                                                        \
     call(arg, 63) FASTCG_FOR_EACH_ITER_64_(FASTCG_FOR_EACH_ITER_63, (call, ##__VA_ARGS__))
-#define FASTCG_FOR_EACH_ITER_65(...) error : FASTCG_FOR_EACH only supports up to 64 arguments
+#define FASTCG_FOR_EACH_ITER_65(...)                                                                                   \
+    error:                                                                                                             \
+    FASTCG_FOR_EACH only supports up to 64 arguments
 #define FASTCG_FOR_EACH(call, ...)                                                                                     \
     FASTCG_FOR_EACH_ITER_(                                                                                             \
         FASTCG_GET_LAST_ARG(                                                                                           \

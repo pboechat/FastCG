@@ -18,17 +18,15 @@ namespace
         float textureHeight = textureWidth * (pTexture->GetHeight() / (float)pTexture->GetWidth());
         ImVec2 uv1 =
 #if defined FASTCG_OPENGL
-        // FIXME: instead of inverting the V coordinate here we could invert the Y axis of the ImGUI bitmap
-        { 0,
-          1 }
+            // FIXME: instead of inverting the V coordinate here we could invert the Y axis of the ImGUI bitmap
+            {0, 1}
 #else
             {0, 0}
 #endif
         ;
         ImVec2 uv2 =
 #if defined FASTCG_OPENGL
-        { 1,
-          0 }
+            {1, 0}
 #else
             {1, 1}
 #endif

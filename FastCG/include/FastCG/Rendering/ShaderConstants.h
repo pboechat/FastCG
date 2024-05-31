@@ -48,8 +48,9 @@ namespace FastCG
     struct PCSSData
     {
         ShadowMapData shadowMapData;
-        float uvScale{
-        // TODO: solve this in a more elegant way
+        float uvScale
+        {
+            // TODO: solve this in a more elegant way
 #if FASTCG_VULKAN
             0.001f
 #else

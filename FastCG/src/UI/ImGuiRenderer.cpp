@@ -39,16 +39,16 @@ namespace FastCG
         size_t verticesDataSize = MAX_NUM_VERTICES * sizeof(ImDrawVert);
         uint32_t indicesCount = MAX_NUM_VERTICES * 3;
 
-        mpImGuiMesh = std::make_unique<Mesh>(MeshArgs{
-            "ImGui Mesh",
-            {{"ImGui Mesh Vertices",
-              BufferUsageFlagBit::DYNAMIC,
-              verticesDataSize,
-              nullptr,
-              {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)},
-               {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)},
-               {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
-            {BufferUsageFlagBit::DYNAMIC, indicesCount, nullptr}});
+        mpImGuiMesh = std::make_unique<Mesh>(
+            MeshArgs{"ImGui Mesh",
+                     {{"ImGui Mesh Vertices",
+                       BufferUsageFlagBit::DYNAMIC,
+                       verticesDataSize,
+                       nullptr,
+                       {{0, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, pos)},
+                        {1, 2, VertexDataType::FLOAT, false, sizeof(ImDrawVert), offsetof(ImDrawVert, uv)},
+                        {2, 4, VertexDataType::UNSIGNED_BYTE, true, sizeof(ImDrawVert), offsetof(ImDrawVert, col)}}}},
+                     {BufferUsageFlagBit::DYNAMIC, indicesCount, nullptr}});
 
         mpImGuiConstantsBuffer = GraphicsSystem::GetInstance()->CreateBuffer(
             {"ImGui Constants", BufferUsageFlagBit::UNIFORM | BufferUsageFlagBit::DYNAMIC, sizeof(ImGuiConstants),

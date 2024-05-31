@@ -16,7 +16,10 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
+#define MAP_KEY(a, b)                                                                                                  \
+    {                                                                                                                  \
+        (uint64_t) a, FastCG::Key::b                                                                                   \
+    }
 
     // TODO: complete mapping
     std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {
