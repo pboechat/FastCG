@@ -17,10 +17,7 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b)                                                                                                  \
-    {                                                                                                                  \
-        (uint64_t) a, FastCG::Key::b                                                                                   \
-    }
+#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
 
     std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {MAP_KEY(XK_BackSpace, BACKSPACE),
                                                          MAP_KEY(XK_Return, RETURN),
@@ -158,46 +155,61 @@ namespace
 
 namespace FastCG
 {
-    void X11Application::OnPreInitialize()
+    void X11Application::OnPostInitialize()
     {
-        BaseApplication::OnPreInitialize();
-
-        mpDisplay = XOpenDisplay(nullptr);
-        if (mpDisplay == nullptr)
+        if (!mSettings.headless)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't connect to X server");
+            // NOTE:
+            GraphicsSystem::GetInstance()->OnPostWindowInitialize(nullptr);
         }
+
+        BaseApplication::OnPostInitialize();
     }
 
-    void X11Application::OnPostFinalize()
+    void X11Application::OnPreFinalize()
     {
-        if (mpDisplay != nullptr)
+        BaseApplication::OnPreFinalize();
+
+        if (!mSettings.headless)
         {
+            // NOTE:
+            GraphicsSystem::GetInstance()->OnPreWindowTerminate(nullptr);
             DestroyCurrentWindow();
-
-#if !defined FASTCG_VULKAN
-            // FIXME: apparently there is bug in current nvidia drivers
-            // in which closing the display after shutting down vulkan
-            // causes a segmentation fault:
-            // https://github.com/gfx-rs/wgpu/issues/318
-            XCloseDisplay(mpDisplay);
-#endif
-            mpDisplay = nullptr;
         }
-
-        BaseApplication::OnPostFinalize();
     }
 
     void X11Application::RunMainLoop()
+    {
+        if (mSettings.headless)
+        {
+            RunConsoleMainLoop();
+        }
+        else
+        {
+            RunWindowedMainLoop();
+        }
+    }
+
+    void X11Application::RunConsoleMainLoop()
+    {
+        while (mRunning)
+        {
+            auto osStart = Timer::GetTime();
+            // TODO: read key input from console
+            RunMainLoopIteration(Timer::GetTime() - osStart);
+        }
+    }
+
+    void X11Application::RunWindowedMainLoop()
     {
         XEvent event;
         while (mRunning)
         {
             auto osStart = Timer::GetTime();
 
-            while (XPending(mpDisplay))
+            while (XPending(display))
             {
-                XNextEvent(mpDisplay, &event);
+                XNextEvent(display, &event);
                 if (event.type == KeyPress || event.type == KeyRelease)
                 {
                     char buffer[128] = {0};
@@ -228,52 +240,57 @@ namespace FastCG
                     if (static_cast<Atom>(event.xclient.data.l[0]) == mDeleteWindowAtom)
                     {
                         mRunning = false;
-                        goto __exit;
+                        goto __exitMainLoop;
                     }
                 }
             }
 
             RunMainLoopIteration(Timer::GetTime() - osStart);
         }
-    __exit:
+    __exitMainLoop:
         return;
     }
 
-    Window &X11Application::CreateSimpleWindow()
+    Window &X11Application::CreateSimpleWindow(Display display)
     {
+        assert(display != nullptr);
+
         DestroyCurrentWindow();
 
-        auto defaultScreen = DefaultScreen(mpDisplay);
-        mWindow = XCreateSimpleWindow(mpDisplay, RootWindow(mpDisplay, defaultScreen), 0, 0, GetScreenWidth(),
-                                      GetScreenHeight(), 1, BlackPixel(mpDisplay, defaultScreen),
-                                      WhitePixel(mpDisplay, defaultScreen));
+        auto defaultScreen = DefaultScreen(display);
+        mWindow =
+            XCreateSimpleWindow(display, RootWindow(display, defaultScreen), 0, 0, GetScreenWidth(), GetScreenHeight(),
+                                1, BlackPixel(display, defaultScreen), WhitePixel(display, defaultScreen));
 
         SetupCurrentWindow();
 
         return mWindow;
     }
 
-    Window &X11Application::CreateWindow(XVisualInfo *pVisualInfo)
+    Window &X11Application::CreateWindow(Display display, XVisualInfo *pVisualInfo)
     {
+        assert(display != nullptr);
         assert(pVisualInfo != nullptr);
 
         DestroyCurrentWindow();
 
-        auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
+        auto defaultScreen = DefaultScreen(display);
+
+        auto root = RootWindow(display, defaultScreen);
 
         XSetWindowAttributes windowAttribs;
-        windowAttribs.colormap = XCreateColormap(mpDisplay, root, pVisualInfo->visual, AllocNone);
+        windowAttribs.colormap = XCreateColormap(display, root, pVisualInfo->visual, AllocNone);
 
-        mWindow = XCreateWindow(mpDisplay, root, 0, 0, GetScreenWidth(), GetScreenHeight(), 0, pVisualInfo->depth,
+        mWindow = XCreateWindow(display, root, 0, 0, GetScreenWidth(), GetScreenHeight(), 0, pVisualInfo->depth,
                                 InputOutput, pVisualInfo->visual, CWColormap, &windowAttribs);
         if (mWindow == None)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create a window");
+            FASTCG_THROW_EXCEPTION(Exception, "X11: Couldn't create a window");
         }
 
         if (windowAttribs.colormap != None)
         {
-            XFreeColormap(mpDisplay, windowAttribs.colormap);
+            XFreeColormap(display, windowAttribs.colormap);
         }
 
         SetupCurrentWindow();
@@ -285,23 +302,23 @@ namespace FastCG
     {
         if (mWindow != None)
         {
-            XDestroyWindow(mpDisplay, mWindow);
+            XDestroyWindow(display, mWindow);
             mWindow = None;
         }
     }
 
     void X11Application::SetupCurrentWindow()
     {
-        XSelectInput(mpDisplay, mWindow,
+        XSelectInput(display, mWindow,
                      StructureNotifyMask | ExposureMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask |
                          KeyPressMask | KeyReleaseMask);
-        XMapWindow(mpDisplay, mWindow);
-        XStoreName(mpDisplay, mWindow, GetWindowTitle().c_str());
+        XMapWindow(display, mWindow);
+        XStoreName(display, mWindow, GetWindowTitle().c_str());
         XEvent event;
-        XIfEvent(mpDisplay, &event, WaitForMapNotify, (char *)&mWindow);
-        if ((mDeleteWindowAtom = XInternAtom(mpDisplay, "WM_DELETE_WINDOW", 0)) != None)
+        XIfEvent(display, &event, WaitForMapNotify, (char *)&mWindow);
+        if ((mDeleteWindowAtom = XInternAtom(display, "WM_DELETE_WINDOW", 0)) != None)
         {
-            XSetWMProtocols(mpDisplay, mWindow, &mDeleteWindowAtom, 1);
+            XSetWMProtocols(display, mWindow, &mDeleteWindowAtom, 1);
         }
     }
 

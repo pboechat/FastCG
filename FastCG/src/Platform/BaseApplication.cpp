@@ -121,7 +121,10 @@ namespace FastCG
         catch (Exception &e)
         {
             FASTCG_LOG_ERROR(BaseApplication, "Fatal Exception: %s", e.GetFullDescription().c_str());
-            FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
+            if (!mSettings.headless)
+            {
+                FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
+            }
             return -1;
         }
     }
@@ -150,7 +153,8 @@ namespace FastCG
 #if _DEBUG
             DebugMenuSystem::Create({});
 #endif
-            GraphicsSystem::Create({mScreenWidth, mScreenHeight, mSettings.maxSimultaneousFrames, mSettings.vsync});
+            GraphicsSystem::Create(
+                {mScreenWidth, mScreenHeight, mSettings.maxSimultaneousFrames, mSettings.vsync, mSettings.headless});
             InputSystem::Create({});
             ImGuiSystem::Create({mScreenWidth, mScreenHeight});
             RenderingSystem::Create({mSettings.rendering.path, mScreenWidth, mScreenHeight,
@@ -246,12 +250,13 @@ namespace FastCG
 
         auto presentationStart = Timer::GetTime();
 
-        GraphicsSystem::GetInstance()->Present();
+        GraphicsSystem::GetInstance()->SwapFrame();
 
         auto appEnd = Timer::GetTime();
         mLastAppElapsedTime = appEnd - appStart;
         mLastPresentElapsedTime = appEnd - presentationStart;
-        mLastGpuElapsedTime = GraphicsSystem::GetInstance()->GetGpuElapsedTime();
+        mLastGpuElapsedTime =
+            GraphicsSystem::GetInstance()->GetGpuElapsedTime(GraphicsSystem::GetInstance()->GetCurrentFrame());
         mLastAppStart = appStart;
 
         OnFrameEnd();

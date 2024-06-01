@@ -139,9 +139,9 @@ namespace FastCG
         return mPhysicalDeviceProperties;
     }
 
-    VkQueryPool VulkanGraphicsSystem::GetCurrentQueryPool() const
+    VkQueryPool VulkanGraphicsSystem::GetQueryPool(uint32_t frame) const
     {
-        return mQueryPools[mCurrentFrame];
+        return mQueryPools[frame];
     }
 
     uint32_t VulkanGraphicsSystem::NextQuery()

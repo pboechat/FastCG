@@ -574,7 +574,7 @@ namespace FastCG
         case ShaderType::COMPUTE:
             return VK_SHADER_STAGE_COMPUTE_BIT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stage flag bit (shaderType: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk stage flag bit (shaderType: %s)",
                                    GetShaderTypeString(shaderType));
             return (VkShaderStageFlagBits)0;
         }
@@ -593,7 +593,7 @@ namespace FastCG
         case Face::FRONT_AND_BACK:
             return VK_CULL_MODE_FRONT_BIT | VK_CULL_MODE_BACK_BIT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk cull mode flags (cullMode: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get Vk cull mode flags (cullMode: %s)",
                                    GetFaceString(cullMode));
             return (VkCullModeFlags)0;
         }
@@ -620,7 +620,7 @@ namespace FastCG
         case CompareOp::NOT_EQUAL:
             return VK_COMPARE_OP_NOT_EQUAL;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk compare op (compareOp: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get Vk compare op (compareOp: %s)",
                                    GetCompareOpString(compareOp));
             return (VkCompareOp)0;
         }
@@ -647,7 +647,7 @@ namespace FastCG
         case StencilOp::ZERO:
             return VK_STENCIL_OP_ZERO;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get Vk stencil op (stencilOp %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get Vk stencil op (stencilOp %s)",
                                    GetStencilOpString(stencilOp));
             return (VkStencilOp)0;
         }
@@ -662,7 +662,7 @@ namespace FastCG
         case BlendFunc::ADD:
             return VK_BLEND_OP_ADD;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend op (blendFunc: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk blend op (blendFunc: %s)",
                                    GetBlendFuncString(blendFunc));
             return (VkBlendOp)0;
         }
@@ -689,7 +689,7 @@ namespace FastCG
         case BlendFactor::ONE_MINUS_SRC_ALPHA:
             return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk blend factor (blendFactor: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk blend factor (blendFactor: %s)",
                                    GetBlendFactorString(blendFactor));
             return (VkBlendFactor)0;
         }
@@ -704,7 +704,8 @@ namespace FastCG
         case TextureFilter::LINEAR_FILTER:
             return VK_FILTER_LINEAR;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk filter (filter: %s)", GetTextureFilterString(filter));
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk filter (filter: %s)",
+                                   GetTextureFilterString(filter));
             return (VkFilter)0;
         }
     }
@@ -718,7 +719,7 @@ namespace FastCG
         case TextureWrapMode::REPEAT:
             return VK_SAMPLER_ADDRESS_MODE_REPEAT;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk address mode (wrapMode: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk address mode (wrapMode: %s)",
                                    GetTextureWrapModeString(wrapMode));
             return (VkSamplerAddressMode)0;
         }
@@ -727,10 +728,7 @@ namespace FastCG
 #ifdef CONVERSION_TABLE_ENTRY
 #undef CONVERSION_TABLE_ENTRY
 #endif
-#define CONVERSION_TABLE_ENTRY(format)                                                                                 \
-    {                                                                                                                  \
-        TextureFormat::format, VK_FORMAT_##format                                                                      \
-    }
+#define CONVERSION_TABLE_ENTRY(format) {TextureFormat::format, VK_FORMAT_##format}
 
     constexpr struct
     {
@@ -795,7 +793,8 @@ namespace FastCG
             std::find_if(pTableStart, pTableEnd, [&](const auto &rTableEntry) { return rTableEntry.format == format; });
         if (it == pTableEnd)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (format: %s)", GetTextureFormatString(format));
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk format (format: %s)",
+                                   GetTextureFormatString(format));
             return (VkFormat)0;
         }
         return it->vkFormat;
@@ -809,7 +808,7 @@ namespace FastCG
                                [&](const auto &rTableEntry) { return rTableEntry.vkFormat == vkFormat; });
         if (it == pTableEnd)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a texture format (vkFormat: %s)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a texture format (vkFormat: %s)",
                                    GetVkFormatString(vkFormat));
             return (TextureFormat)0;
         }
@@ -855,7 +854,7 @@ namespace FastCG
                 return VK_FORMAT_R8G8B8A8_UNORM;
             }
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk format (dataType: %s, components: %d)",
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk format (dataType: %s, components: %d)",
                                    GetVertexDataTypeString(dataType), components);
             return (VkFormat)0;
         }
@@ -876,7 +875,8 @@ namespace FastCG
         case VK_FORMAT_R8G8B8A8_UNORM:
             return 4;
         default:
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't get a Vk stride (vkFormat: %s)", GetVkFormatString(vkFormat));
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't get a Vk stride (vkFormat: %s)",
+                                   GetVkFormatString(vkFormat));
             return 0;
         }
     }

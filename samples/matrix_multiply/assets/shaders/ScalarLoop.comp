@@ -26,8 +26,8 @@ layout (BINDING_0_4) writeonly buffer C {
 
 void main() 
 {
-    float c = 0;
-    for (uint k = 0; k < uK; ++k) 
+    float c = 0.0;
+    for (uint k = 0u; k < uK; ++k) 
     {
         float a = A_in[uM * gl_GlobalInvocationID.y + k];
         float b = B_in[uN * k + gl_GlobalInvocationID.x];

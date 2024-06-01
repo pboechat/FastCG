@@ -44,12 +44,14 @@ else()
     option(FASTCG_DISABLE_GPU_TIMING "Disable GPU timing" OFF)
 endif()
 option(FASTCG_DISABLE_GPU_VALIDATION "Disable GPU validation" OFF)
+option(FASTCG_ENABLE_GPU_PERF_HINTS "Enable GPU performance hints" OFF)
 option(FASTCG_ENABLE_VERBOSE_LOGGING "Enable verbose logging" OFF)
 
 message(STATUS "FastCG - Build samples = ${FASTCG_BUILD_SAMPLES}")
 message(STATUS "FastCG - Use text shaders = ${FASTCG_USE_TEXT_SHADERS}")
 message(STATUS "FastCG - Disable GPU timing = ${FASTCG_DISABLE_GPU_TIMING}")
 message(STATUS "FastCG - Disable GPU validation = ${FASTCG_DISABLE_GPU_VALIDATION}")
+message(STATUS "FastCG - Enable GPU performance hints = ${FASTCG_ENABLE_GPU_PERF_HINTS}")
 message(STATUS "FastCG - Enable verbose logging = ${FASTCG_ENABLE_VERBOSE_LOGGING}")
 
 # Find necessary programs

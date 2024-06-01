@@ -35,6 +35,7 @@ namespace FastCG
         uint32_t frameRate{60};
         uint32_t maxSimultaneousFrames{3};
         bool vsync{false};
+        bool headless{false};
         struct
         {
             RenderingPath path{RenderingPath::FORWARD};

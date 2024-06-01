@@ -16,10 +16,7 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b)                                                                                                  \
-    {                                                                                                                  \
-        (uint64_t) a, FastCG::Key::b                                                                                   \
-    }
+#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
 
     // TODO: complete mapping
     std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {
@@ -178,13 +175,12 @@ void onAppCmd(android_app *app, int32_t cmd)
             FastCG::AndroidApplication::GetInstance()->WindowResizeCallback(
                 (uint32_t)ANativeWindow_getWidth(app->window), (uint32_t)ANativeWindow_getHeight(app->window));
 
-            FastCG::GraphicsSystem::GetInstance()->OnWindowInitialized();
+            FastCG::AndroidApplication::GetInstance()->OnPostWindowInitialize(app->window);
         }
         break;
     case APP_CMD_TERM_WINDOW:
         FASTCG_LOG_VERBOSE(AndroidApplication, "Window Terminated");
-
-        FastCG::GraphicsSystem::GetInstance()->OnWindowTerminated();
+        FastCG::AndroidApplication::GetInstance()->OnPreWindowTerminate(app->window);
         break;
     case APP_CMD_WINDOW_RESIZED:
         // obtain the actual size of the window
@@ -294,9 +290,9 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
 
 namespace FastCG
 {
-    void AndroidApplication::SetAndroidApp(android_app *androidApp)
+    void AndroidApplication::SetAndroidApp(android_app *pAndroidApp)
     {
-        assert(androidApp != nullptr);
+        assert(pAndroidApp != nullptr);
 
         // FIXME: that call shouldn't be necessary anymore
         // https://github.com/android/ndk/issues/381
@@ -305,10 +301,26 @@ namespace FastCG
         app_dummy();
         FASTCG_COMPILER_WARN_POP
 
-        mAndroidApp = androidApp;
+        mAndroidApp = pAndroidApp;
 
         mAndroidApp->onAppCmd = ::onAppCmd;
         mAndroidApp->onInputEvent = ::onInputEvent;
+    }
+
+    void AndroidApplication::OnPostWindowInitialize(ANativeWindow *pWindow)
+    {
+        if (!mSettings.headless)
+        {
+            GraphicsSystem::GetInstance()->OnPostWindowInitialize(pWindow);
+        }
+    }
+
+    void AndroidApplication::OnPreWindowTerminate(ANativeWindow *pWindow)
+    {
+        if (!mSettings.headless)
+        {
+            GraphicsSystem::GetInstance()->OnPreWindowTerminate(pWindow);
+        }
     }
 
     void AndroidApplication::RunMainLoop()
@@ -330,13 +342,13 @@ namespace FastCG
                 if (mAndroidApp->destroyRequested != 0)
                 {
                     mRunning = false;
-                    goto __exit;
+                    goto __exitMainLoop;
                 }
             }
 
             RunMainLoopIteration(Timer::GetTime() - osStart);
         }
-    __exit:
+    __exitMainLoop:
         return;
     }
 

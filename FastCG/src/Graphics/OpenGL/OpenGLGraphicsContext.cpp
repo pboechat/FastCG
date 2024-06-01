@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <vector>
 
 namespace FastCG
@@ -17,16 +18,21 @@ namespace FastCG
     OpenGLGraphicsContext::OpenGLGraphicsContext(const Args &rArgs)
         : BaseGraphicsContext<OpenGLBuffer, OpenGLShader, OpenGLTexture>(rArgs)
     {
+    }
+
+    void OpenGLGraphicsContext::OnPostContextCreate()
+    {
 #if !defined FASTCG_DISABLE_GPU_TIMING
         glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't generate time queries");
 #endif
     }
 
-    OpenGLGraphicsContext::~OpenGLGraphicsContext()
+    void OpenGLGraphicsContext::OnPreContextDestroy()
     {
 #if !defined FASTCG_DISABLE_GPU_TIMING
         glDeleteQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
+        std::memset(mTimeElapsedQueries, 0, sizeof(mTimeElapsedQueries));
 #endif
     }
 
@@ -35,8 +41,8 @@ namespace FastCG
         assert(mEnded);
         mEnded = false;
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        mElapsedTime = 0;
-        glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[mCurrentQuery]);
+        mElapsedTimes[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()] = 0;
+        glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()]);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't begin time queries");
 #endif
     }
@@ -217,7 +223,12 @@ namespace FastCG
 
         auto target = GetOpenGLTarget(pSrc->GetUsage());
         glBindBuffer(target, *pSrc);
-        glGetBufferSubData(target, (GLintptr)offset, (GLsizeiptr)size, pDst);
+        void *pMapped = glMapBufferRange(target, (GLintptr)offset, (GLsizeiptr)size, GL_MAP_READ_BIT);
+        if (pMapped)
+        {
+            std::memcpy(pDst, pMapped, size);
+            glUnmapBuffer(target);
+        }
     }
 
     void OpenGLGraphicsContext::AddMemoryBarrier()
@@ -482,40 +493,40 @@ namespace FastCG
 #if !defined FASTCG_DISABLE_GPU_TIMING
         glEndQuery(GL_TIME_ELAPSED);
         FASTCG_CHECK_OPENGL_ERROR("Couldn't end time queries");
-        mEndedQuery[mCurrentQuery] = true;
+        mEndedQuery[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()] = true;
 #endif
         mEnded = true;
     }
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
-    void OpenGLGraphicsContext::RetrieveElapsedTime()
+    void OpenGLGraphicsContext::RetrieveElapsedTime(uint32_t frame)
     {
-        assert(mEnded);
-
-        mCurrentQuery = (mCurrentQuery + 1) % FASTCG_ARRAYSIZE(mTimeElapsedQueries);
-
         GLuint64 elapsedTime = 0;
-        if (mEndedQuery[mCurrentQuery])
+        if (mEndedQuery[frame])
         {
             // retrieves the result of the previous query
 
-            GLint done = 0;
-            while (!done)
+            GLint done;
+            do
             {
-                glGetQueryObjectiv(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT_AVAILABLE, &done);
-            }
+                glGetQueryObjectiv(mTimeElapsedQueries[frame], GL_QUERY_RESULT_AVAILABLE, &done);
+            } while (!done);
 
-            glGetQueryObjectui64v(mTimeElapsedQueries[mCurrentQuery], GL_QUERY_RESULT, &elapsedTime);
+            glGetQueryObjectui64v(mTimeElapsedQueries[frame], GL_QUERY_RESULT, &elapsedTime);
+        }
+        else
+        {
+            mElapsedTimes[frame] = 0;
         }
 
-        mElapsedTime = elapsedTime * 1e-9;
+        mElapsedTimes[frame] = elapsedTime * 1e-9;
     }
 #endif
 
-    double OpenGLGraphicsContext::GetElapsedTime() const
+    double OpenGLGraphicsContext::GetElapsedTime(uint32_t frame) const
     {
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        return mElapsedTime;
+        return mElapsedTimes[frame];
 #else
         return 0;
 #endif

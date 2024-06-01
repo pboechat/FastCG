@@ -27,7 +27,7 @@ namespace FastCG
         VkResult __vkResult;                                                                                           \
         if ((__vkResult = vkCall) != VK_SUCCESS)                                                                       \
         {                                                                                                              \
-            FASTCG_THROW_EXCEPTION(FastCG::VulkanException, "%s = %s", #vkCall,                                        \
+            FASTCG_THROW_EXCEPTION(FastCG::VulkanException, "Vulkan: %s (error: %s)", #vkCall,                         \
                                    FastCG::GetVkResultString(__vkResult));                                             \
         }                                                                                                              \
     }

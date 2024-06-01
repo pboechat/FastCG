@@ -50,7 +50,9 @@ namespace FastCG
         JNIEnv *mJniEnv{nullptr};
         bool mPaused{false};
 
-        void SetAndroidApp(android_app *androidApp);
+        void SetAndroidApp(android_app *pAndroidApp);
+        void OnPostWindowInitialize(ANativeWindow *pWindow);
+        void OnPreWindowTerminate(ANativeWindow *pWindow);
 
         inline void SetPaused(bool paused)
         {

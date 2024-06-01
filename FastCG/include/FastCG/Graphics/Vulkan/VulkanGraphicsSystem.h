@@ -66,6 +66,10 @@ namespace FastCG
         {
             return mMaxSimultaneousFrames;
         }
+        inline uint32_t GetPreviousFrame() const
+        {
+            return (mCurrentFrame > 0 ? mCurrentFrame : mMaxSimultaneousFrames) - 1;
+        }
         inline uint32_t GetCurrentFrame() const
         {
             return mCurrentFrame;
@@ -73,16 +77,10 @@ namespace FastCG
         inline void DestroyBuffer(const VulkanBuffer *pBuffer) override;
         inline void DestroyShader(const VulkanShader *pShader) override;
         inline void DestroyTexture(const VulkanTexture *pTexture) override;
-        inline bool IsHeadless() const
-        {
-            return mSurface == VK_NULL_HANDLE;
-        }
         void Submit();
-        void WaitLastFrame();
-#if defined FASTCG_ANDROID
-        void OnWindowInitialized();
-        void OnWindowTerminated();
-#endif
+        void WaitPreviousFrame();
+        void OnPostWindowInitialize(void *pWindow);
+        void OnPreWindowTerminate(void *pWindow);
 
     protected:
         using Super = BaseGraphicsSystem<VulkanBuffer, VulkanGraphicsContext, VulkanShader, VulkanTexture>;
@@ -142,6 +140,9 @@ namespace FastCG
             size_t lastDescriptorSetIdx{0};
         };
 
+#if defined FASTCG_LINUX
+        Display mDisplay{nullptr};
+#endif
         VkInstance mInstance{VK_NULL_HANDLE};
         std::vector<VkExtensionProperties> mInstanceExtensionProperties;
         std::vector<const char *> mInstanceExtensions;
@@ -160,15 +161,16 @@ namespace FastCG
         // support only one queue at the moment
         VkQueue mQueue{VK_NULL_HANDLE};
         VkPresentModeKHR mPresentMode{VK_PRESENT_MODE_IMMEDIATE_KHR};
-        VkSurfaceFormatKHR mSwapChainSurfaceFormat{};
+        VkSurfaceFormatKHR mSurfaceSwapChainFormat{};
         // FIXME: because of headless-mode, forcing max simultaneous frame to three so we don't need to write complex
-        // logic to recreate objects that depend on the number of simultaneous frames (eg, fences).
+        // logic to recreate objects (eg, fences) that depend on the number of simultaneous frames.
         uint32_t mMaxSimultaneousFrames{3};
         uint32_t mCurrentFrame{0};
+        // swapchain can be surface or surfaceless
         uint32_t mSwapChainIndex{0};
-        VkSwapchainKHR mSwapChain{VK_NULL_HANDLE};
         std::vector<const VulkanTexture *> mSwapChainTextures;
-        std::vector<VkSemaphore> mAcquireSwapChainImageSemaphores;
+        VkSwapchainKHR mSurfaceSwapChain{VK_NULL_HANDLE};
+        std::vector<VkSemaphore> mAcquireSurfaceSwapChainImageSemaphores;
         std::vector<VkSemaphore> mSubmitFinishedSemaphores;
         std::vector<VkFence> mFrameFences;
         VkCommandPool mCommandPool{VK_NULL_HANDLE};
@@ -203,17 +205,19 @@ namespace FastCG
         inline VkAllocationCallbacks *GetAllocationCallbacks() const;
         inline const VkFormatProperties *GetFormatProperties(VkFormat format) const;
         inline const VkPhysicalDeviceProperties &GetPhysicalDeviceProperties() const;
-        inline VkQueryPool GetCurrentQueryPool() const;
+        inline VkQueryPool GetQueryPool(uint32_t frame) const;
         inline uint32_t NextQuery();
         void CreateInstance();
-        void CreateSurface();
+        void CreateSurface(void *pWindow);
         void SelectPhysicalDevice();
         void CreateAllocator();
         void AcquirePhysicalDeviceProperties();
         void AcquirePhysicalDeviceSurfaceProperties();
         void CreateDeviceAndGetQueues();
-        void RecreateSwapChainAndGetImages();
-        void AcquireNextSwapChainImage();
+        void RecreateSwapChain();
+        void CreateSurfaceSwapChainAndAcquireNextImage();
+        void AcquireNextSurfaceSwapChainImage();
+        void CreateSurfacelessSwapChain();
         void CreateSynchronizationObjects();
         void CreateCommandPoolAndCommandBuffers();
         void CreateDescriptorPool();
@@ -231,7 +235,7 @@ namespace FastCG
         void DestroyDescriptorPool();
         void DestroyCommandPoolAndCommandBuffers();
         void DestroySynchronizationObjects();
-        void DestroySwapChainAndClearImages();
+        void DestroySwapChain();
         void DestroyDeviceAndClearQueues();
         void DestroyAllocator();
         void DestroySurface();
@@ -239,8 +243,8 @@ namespace FastCG
         void Resize()
         {
         }
-        void Present();
-        double GetGpuElapsedTime() const;
+        void SwapFrame();
+        double GetGpuElapsedTime(uint32_t frame) const;
 #if _DEBUG
         void PushDebugMarker(VkCommandBuffer commandBuffer, const char *pName);
         void PopDebugMarker(VkCommandBuffer commandBuffer);
