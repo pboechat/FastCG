@@ -140,9 +140,6 @@ namespace FastCG
             size_t lastDescriptorSetIdx{0};
         };
 
-#if defined FASTCG_LINUX
-        Display mDisplay{nullptr};
-#endif
         VkInstance mInstance{VK_NULL_HANDLE};
         std::vector<VkExtensionProperties> mInstanceExtensionProperties;
         std::vector<const char *> mInstanceExtensions;

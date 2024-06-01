@@ -198,13 +198,7 @@ namespace FastCG
     {
         BaseGraphicsSystem::OnInitialize();
 
-#if defined FASTCG_LINUX
-        mDisplay = XOpenDisplay(nullptr);
-        if (mDisplay == nullptr)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "X11: Couldn't open X server display");
-        }
-#elif defined FASTCG_ANDROID
+#if defined FASTCG_ANDROID
         mDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (!eglInitialize(mDisplay, 0, 0))
         {
@@ -245,14 +239,6 @@ namespace FastCG
         mVaoIds.clear();
 
         DestroyOpenGLContext(nullptr);
-
-#if defined FASTCG_LINUX
-        if (mDisplay != nullptr)
-        {
-            XCloseDisplay(mDisplay);
-            mDisplay = nullptr;
-        }
-#endif
 
         BaseGraphicsSystem::OnPostFinalize();
     }
@@ -570,33 +556,34 @@ namespace FastCG
 
         mContext = CreateWGLContextAndMakeCurrent(mDeviceContext, nullptr);
 #elif defined FASTCG_LINUX
-        assert(mDisplay != nullptr);
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
 
-        auto defaultScreen = DefaultScreen(mDisplay);
+        auto defaultScreen = DefaultScreen(pDisplay);
 
         const int fbAttribs[] = {GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, None};
 
         int numFbConfigs = 0;
-        fbConfigs = glXChooseFBConfig(mDisplay, defaultScreen, fbAttribs, &numConfigs);
+        auto *pFbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
 
         if (numFbConfigs == 0)
         {
             FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't find an appropriate framebuffer configuration");
         }
 
-        mContext = glXCreateNewContext(mDisplay, fbConfigs[0], GLX_RGBA_TYPE, nullptr, True);
+        mContext = glXCreateNewContext(pDisplay, pFbConfigs[0], GLX_RGBA_TYPE, nullptr, True);
         if (mContext == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't create a headless context");
         }
 
-        const int pbufferAttribs[] = {GLX_PBUFFER_WIDTH, mArgs.rScreenWidth, GLX_PBUFFER_HEIGHT, mArgs.rScreenHeight,
-                                      None};
-        mDrawable = glXCreatePbuffer(mDisplay, fbConfigs[0], pbufferAttribs);
+        const int pbufferAttribs[] = {GLX_PBUFFER_WIDTH, (int)mArgs.rScreenWidth, GLX_PBUFFER_HEIGHT,
+                                      (int)mArgs.rScreenHeight, None};
+        mDrawable = glXCreatePbuffer(pDisplay, pFbConfigs[0], pbufferAttribs);
 
-        if (!glXMakeContextCurrent(mDisplay, mDrawable, mDrawable, mContext))
+        if (!glXMakeContextCurrent(pDisplay, mDrawable, mDrawable, mContext))
         {
-            FASTCG_CHECK_EGL_ERROR("GLX: Couldn't make the headless context current");
+            FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't make the headless context current");
         }
 
         GLenum glewResult;
@@ -679,15 +666,16 @@ namespace FastCG
             wglSwapIntervalEXT(mArgs.vsync ? 1 : 0);
         }
 #elif defined FASTCG_LINUX
-        assert(mDisplay != nullptr);
+        auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
 
         int dummy;
-        if (!glXQueryExtension(mDisplay, &dummy, &dummy))
+        if (!glXQueryExtension(pDisplay, &dummy, &dummy))
         {
             FASTCG_THROW_EXCEPTION(Exception, "GLX: OpenGL not supported by X server");
         }
 
-        auto defaultScreen = DefaultScreen(mDisplay);
+        auto defaultScreen = DefaultScreen(pDisplay);
 
         const int fbAttribs[] = {GLX_RENDER_TYPE,
                                  GLX_RGBA_BIT,
@@ -708,19 +696,19 @@ namespace FastCG
                                  None};
 
         int numFbConfigs = 0;
-        const auto fbConfigs = glXChooseFBConfig(mDisplay, defaultScreen, fbAttribs, &numFbConfigs);
+        auto *pFbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
 
         GLXFBConfig fbConfig = nullptr;
         XVisualInfo *pVisualInfo;
         for (int i = 0; i < numFbConfigs; i++)
         {
-            auto *pCurrVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(mDisplay, fbConfigs[i]);
+            auto *pCurrVisualInfo = (XVisualInfo *)glXGetVisualFromFBConfig(pDisplay, pFbConfigs[i]);
             if (pCurrVisualInfo == nullptr)
             {
                 continue;
             }
 
-            auto *pVisualFormat = XRenderFindVisualFormat(mDisplay, pCurrVisualInfo->visual);
+            auto *pVisualFormat = XRenderFindVisualFormat(pDisplay, pCurrVisualInfo->visual);
             if (pVisualFormat == nullptr)
             {
                 continue;
@@ -728,7 +716,7 @@ namespace FastCG
 
             if (pVisualFormat->direct.alphaMask == 0)
             {
-                fbConfig = fbConfigs[i];
+                fbConfig = pFbConfigs[i];
                 pVisualInfo = pCurrVisualInfo;
                 break;
             }
@@ -741,7 +729,7 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't find an appropriate framebuffer configuration");
         }
 
-        mDrawable = X11Application::GetInstance()->CreateWindow(mDisplay, pVisualInfo);
+        mDrawable = X11Application::GetInstance()->CreateWindow(pVisualInfo);
 
         XFree(pVisualInfo);
 
@@ -767,7 +755,7 @@ namespace FastCG
                                       0};
 
         auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
-        mContext = glXCreateContextAttribsARB(mDisplay, fbConfig, oldContext, True, contextAttribs);
+        mContext = glXCreateContextAttribsARB(pDisplay, fbConfig, oldContext, True, contextAttribs);
         XSetErrorHandler(pOldErrorHandler);
 
         if (mContext == nullptr)
@@ -775,18 +763,18 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't create a headed context");
         }
 
-        XSync(mDisplay, False);
+        XSync(pDisplay, False);
 
-        if (!glXMakeContextCurrent(mDisplay, mDrawable, mDrawable, mContext))
+        if (!glXMakeContextCurrent(pDisplay, mDrawable, mDrawable, mContext))
         {
             FASTCG_THROW_EXCEPTION(Exception, "GLX: Couldn't make the headed context current");
         }
 
-        glXDestroyContext(mDisplay, oldContext);
+        glXDestroyContext(pDisplay, oldContext);
 
         if (GLXEW_EXT_swap_control)
         {
-            glXSwapIntervalEXT(mDisplay, mDrawable, mArgs.vsync ? 1 : 0);
+            glXSwapIntervalEXT(pDisplay, mDrawable, mArgs.vsync ? 1 : 0);
         }
 #elif defined FASTCG_ANDROID
         auto oldContext = mContext;
@@ -850,8 +838,10 @@ namespace FastCG
 #elif defined FASTCG_LINUX
         if (mContext != nullptr)
         {
-            glXMakeContextCurrent(mDisplay, None, None, nullptr);
-            glXDestroyContext(mDisplay, mContext);
+            auto *pDisplay = X11Application::GetInstance()->GetDisplay();
+            assert(pDisplay != nullptr);
+            glXMakeContextCurrent(pDisplay, None, None, nullptr);
+            glXDestroyContext(pDisplay, mContext);
             mContext = nullptr;
         }
 #elif defined FASTCG_ANDROID
@@ -882,7 +872,7 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "Win32: Failed to swap buffers");
         }
 #elif defined FASTCG_LINUX
-        glXSwapBuffers(mDisplay, mDrawable);
+        glXSwapBuffers(X11Application::GetInstance()->GetDisplay(), mDrawable);
 #elif defined FASTCG_ANDROID
         if (!eglSwapBuffers(mDisplay, mSurface))
         {

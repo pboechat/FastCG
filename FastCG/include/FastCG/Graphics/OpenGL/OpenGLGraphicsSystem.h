@@ -66,9 +66,8 @@ namespace FastCG
         HGLRC mContext{nullptr};
         HPBUFFERARB mPbuffer{nullptr};
 #elif defined FASTCG_LINUX
-        Display mDisplay{nullptr};
         GLXContext mContext{nullptr};
-        GLXDrawable mDrawable{nullptr};
+        GLXDrawable mDrawable{0};
 #elif defined FASTCG_ANDROID
         EGLDisplay mDisplay{nullptr};
         EGLConfig mConfig{nullptr};

@@ -62,8 +62,7 @@ namespace
                                                               void *pUserData)
     {
         std::stringstream stream;
-        stream << "[VULKAN]"
-               << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
+        stream << "[VULKAN]" << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
 
         // if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0)
         // {
@@ -213,14 +212,6 @@ namespace FastCG
     {
         BaseGraphicsSystem::OnInitialize();
 
-#if defined FASTCG_LINUX
-        mDisplay = XOpenDisplay(nullptr);
-        if (mDisplay == nullptr)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "X11: Couldn't open X server display");
-        }
-#endif
-
         CreateInstance();
         SelectPhysicalDevice();
         AcquirePhysicalDeviceProperties();
@@ -261,14 +252,6 @@ namespace FastCG
         DestroyDeviceAndClearQueues();
         DestroySurface();
         DestroyInstance();
-
-#if defined FASTCG_LINUX
-        if (mDisplay != nullptr)
-        {
-            XCloseDisplay(mDisplay);
-            mDisplay = nullptr;
-        }
-#endif
 
         BaseGraphicsSystem::OnPostFinalize();
     }
@@ -416,10 +399,10 @@ namespace FastCG
         surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
         surfaceCreateInfo.pNext = nullptr;
         surfaceCreateInfo.flags = 0;
-        surfaceCreateInfo.dpy = mDisplay;
+        surfaceCreateInfo.dpy = X11Application::GetInstance()->GetDisplay();
         assert(surfaceCreateInfo.dpy != nullptr);
         surfaceCreateInfo.window = (Window)pWindow;
-        assert(surfaceCreateInfo.window != nullptr);
+        assert(surfaceCreateInfo.window != None);
         FASTCG_CHECK_VK_RESULT(
             vkCreateXlibSurfaceKHR(mInstance, &surfaceCreateInfo, mAllocationCallbacks.get(), &mSurface));
 #elif defined FASTCG_ANDROID
