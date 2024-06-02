@@ -9,6 +9,7 @@
 #include <FastCG/Graphics/OpenGL/OpenGLShader.h>
 #include <FastCG/Graphics/OpenGL/OpenGLTexture.h>
 
+#include <cstdint>
 #include <unordered_set>
 #include <vector>
 
@@ -20,7 +21,6 @@ namespace FastCG
     {
     public:
         OpenGLGraphicsContext(const Args &rArgs);
-        virtual ~OpenGLGraphicsContext();
 
         void Begin();
         void PushDebugMarker(const char *pName);
@@ -60,7 +60,7 @@ namespace FastCG
                                   uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void End();
-        double GetElapsedTime() const;
+        double GetElapsedTime(uint32_t frame) const;
 
     private:
         const OpenGLShader *mpBoundShader{nullptr};
@@ -69,17 +69,17 @@ namespace FastCG
         const OpenGLTexture *mpDepthStencilBuffer;
         bool mEnded{true};
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        GLuint mTimeElapsedQueries[2]{}; // double buffered
-        size_t mCurrentQuery{0};
-        double mElapsedTime{0};
-        bool mEndedQuery[2]{false, false};
+        GLuint mTimeElapsedQueries[2]{0, 0}; // double-buffered
+        double mElapsedTimes[2]{0, 0};       // double-buffered
+        bool mEndedQuery[2]{false, false};   // double-buffered
 #endif
 
-        void SetupFbo();
+        void OnPostContextCreate();
+        void OnPreContextDestroy();
         void SetupDraw();
         void BindResource(const OpenGLTexture *pTexture, const OpenGLResourceInfo &rResourceInfo);
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        void RetrieveElapsedTime();
+        void RetrieveElapsedTime(uint32_t frame);
 #endif
 
         friend class OpenGLGraphicsSystem;

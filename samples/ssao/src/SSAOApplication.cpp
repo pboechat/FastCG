@@ -55,7 +55,7 @@ namespace
 
 }
 
-SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, 3, false, {RenderingPath::DEFERRED}})
+SSAOApplication::SSAOApplication() : Application({"ssao", 1024, 768, 60, 3, false, false, {RenderingPath::DEFERRED}})
 {
 }
 

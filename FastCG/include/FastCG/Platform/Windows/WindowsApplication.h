@@ -22,25 +22,21 @@ namespace FastCG
         {
             return static_cast<WindowsApplication *>(BaseApplication::GetInstance());
         }
-        inline HINSTANCE GetModule() const
-        {
-            return mInstance;
-        }
-        inline HWND GetWindow() const
-        {
-            return mHWnd;
-        }
 
         friend LRESULT(::WndProc)(HWND, UINT, WPARAM, LPARAM);
 
     protected:
-        void OnPreInitialize() override;
-        void OnPostFinalize() override;
+        void OnPostInitialize() override;
+        void OnPreFinalize() override;
         void RunMainLoop() override;
 
     private:
-        HINSTANCE mInstance{0};
-        HWND mHWnd{0};
+        HWND mHWnd{nullptr};
+
+        void InitializeWindow();
+        void TerminateWindow();
+        void RunWindowedMainLoop();
+        void RunConsoleMainLoop();
     };
 
 }

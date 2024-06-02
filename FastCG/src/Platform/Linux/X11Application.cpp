@@ -148,9 +148,9 @@ namespace
         return true;
     }
 
-    Bool WaitForMapNotify(Display *display, XEvent *event, char *arg)
+    Bool WaitForMapNotify(Display *mpDisplay, XEvent *event, char *arg)
     {
-        return display != nullptr && event != nullptr && arg != nullptr && (event->type == MapNotify) &&
+        return mpDisplay != nullptr && event != nullptr && arg != nullptr && (event->type == MapNotify) &&
                (event->xmap.window == *(Window *)arg);
     }
 
@@ -160,35 +160,65 @@ namespace FastCG
 {
     void X11Application::OnPreInitialize()
     {
-        BaseApplication::OnPreInitialize();
-
         mpDisplay = XOpenDisplay(nullptr);
         if (mpDisplay == nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't connect to X server");
+            FASTCG_THROW_EXCEPTION(Exception, "X11: Couldn't open X server display");
         }
     }
 
-    void X11Application::OnPostFinalize()
+    void X11Application::OnPostInitialize()
     {
-        if (mpDisplay != nullptr)
+        if (!mSettings.headless)
         {
-            DestroyCurrentWindow();
-
-#if !defined FASTCG_VULKAN
-            // FIXME: apparently there is bug in current nvidia drivers
-            // in which closing the display after shutting down vulkan
-            // causes a segmentation fault:
-            // https://github.com/gfx-rs/wgpu/issues/318
-            XCloseDisplay(mpDisplay);
-#endif
-            mpDisplay = nullptr;
+            // NOTE:
+            GraphicsSystem::GetInstance()->OnPostWindowInitialize(nullptr);
         }
 
-        BaseApplication::OnPostFinalize();
+        BaseApplication::OnPostInitialize();
+    }
+
+    void X11Application::OnPreFinalize()
+    {
+        BaseApplication::OnPreFinalize();
+
+        if (!mSettings.headless)
+        {
+            // NOTE:
+            GraphicsSystem::GetInstance()->OnPreWindowTerminate(nullptr);
+            DestroyCurrentWindow();
+        }
+
+        if (mpDisplay != nullptr)
+        {
+            XCloseDisplay(mpDisplay);
+            mpDisplay = nullptr;
+        }
     }
 
     void X11Application::RunMainLoop()
+    {
+        if (mSettings.headless)
+        {
+            RunConsoleMainLoop();
+        }
+        else
+        {
+            RunWindowedMainLoop();
+        }
+    }
+
+    void X11Application::RunConsoleMainLoop()
+    {
+        while (mRunning)
+        {
+            auto osStart = Timer::GetTime();
+            // TODO: read key input from console
+            RunMainLoopIteration(Timer::GetTime() - osStart);
+        }
+    }
+
+    void X11Application::RunWindowedMainLoop()
     {
         XEvent event;
         while (mRunning)
@@ -228,19 +258,21 @@ namespace FastCG
                     if (static_cast<Atom>(event.xclient.data.l[0]) == mDeleteWindowAtom)
                     {
                         mRunning = false;
-                        goto __exit;
+                        goto __exitMainLoop;
                     }
                 }
             }
 
             RunMainLoopIteration(Timer::GetTime() - osStart);
         }
-    __exit:
+    __exitMainLoop:
         return;
     }
 
     Window &X11Application::CreateSimpleWindow()
     {
+        assert(mpDisplay != nullptr);
+
         DestroyCurrentWindow();
 
         auto defaultScreen = DefaultScreen(mpDisplay);
@@ -255,11 +287,14 @@ namespace FastCG
 
     Window &X11Application::CreateWindow(XVisualInfo *pVisualInfo)
     {
+        assert(mpDisplay != nullptr);
         assert(pVisualInfo != nullptr);
 
         DestroyCurrentWindow();
 
-        auto root = RootWindow(mpDisplay, DefaultScreen(mpDisplay));
+        auto defaultScreen = DefaultScreen(mpDisplay);
+
+        auto root = RootWindow(mpDisplay, defaultScreen);
 
         XSetWindowAttributes windowAttribs;
         windowAttribs.colormap = XCreateColormap(mpDisplay, root, pVisualInfo->visual, AllocNone);
@@ -268,7 +303,7 @@ namespace FastCG
                                 InputOutput, pVisualInfo->visual, CWColormap, &windowAttribs);
         if (mWindow == None)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create a window");
+            FASTCG_THROW_EXCEPTION(Exception, "X11: Couldn't create a window");
         }
 
         if (windowAttribs.colormap != None)

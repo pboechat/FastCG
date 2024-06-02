@@ -72,7 +72,7 @@ namespace FastCG
                                   uint32_t firstIndex, uint32_t indexCount, int32_t vertexOffset);
         void Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
         void End();
-        double GetElapsedTime() const;
+        double GetElapsedTime(uint32_t frame) const;
 
     protected:
         const Args mArgs;

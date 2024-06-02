@@ -35,71 +35,69 @@ namespace FastCG
 
         inline uint32_t GetMaxSimultaneousFrames() const
         {
-            return 1;
+            return 2; // double-buffering
+        }
+        inline uint32_t GetPreviousFrame() const
+        {
+            return mCurrentFrame ^ 1;
         }
         inline uint32_t GetCurrentFrame() const
         {
-            return 0;
+            return mCurrentFrame;
         }
         inline const DeviceProperties &GetDeviceProperties() const
         {
             return mDeviceProperties;
         }
-        inline bool IsHeadless() const
-        {
-#if defined FASTCG_ANDROID
-            return mHeadedContext == EGL_NO_CONTEXT;
-#else
-            return false;
-#endif
-        }
+        OpenGLGraphicsContext *CreateGraphicsContext(const typename OpenGLGraphicsContext::Args &rArgs) override;
         void DestroyTexture(const OpenGLTexture *pTexture) override;
         void Submit();
-        void WaitLastFrame();
-#if defined FASTCG_ANDROID
-        void OnWindowInitialized();
-        void OnWindowTerminated();
-#endif
+        void WaitPreviousFrame();
+        void OnPostWindowInitialize(void *pWindow);
+        void OnPreWindowTerminate(void *pWindow);
+
     protected:
         OpenGLGraphicsSystem(const GraphicsSystemArgs &rArgs);
         virtual ~OpenGLGraphicsSystem();
 
     private:
 #if defined FASTCG_WINDOWS
-        HDC mHDC{0};
-        HGLRC mHGLRC{0};
+        HDC mDeviceContext{nullptr};
+        HGLRC mContext{nullptr};
+        HPBUFFERARB mPbuffer{nullptr};
 #elif defined FASTCG_LINUX
-        GLXContext mpRenderContext{nullptr};
+        GLXContext mContext{nullptr};
+        GLXDrawable mDrawable{0};
 #elif defined FASTCG_ANDROID
         EGLDisplay mDisplay{nullptr};
         EGLConfig mConfig{nullptr};
-        EGLContext mHeadlessContext{EGL_NO_CONTEXT};
-        EGLSurface mPbufferSurface{EGL_NO_SURFACE};
-        EGLContext mHeadedContext{EGL_NO_CONTEXT};
-        EGLSurface mWindowSurface{EGL_NO_SURFACE};
+        EGLContext mContext{EGL_NO_CONTEXT};
+        EGLSurface mSurface{EGL_NO_SURFACE};
 #endif
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mFboIds;
         std::unordered_map<GLint, std::vector<size_t>, IdentityHasher<GLint>> mTextureToFboHashes;
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mVaoIds;
         DeviceProperties mDeviceProperties{};
-        GLsync mFence{nullptr};
+        GLsync mFrameFences[2]{nullptr, nullptr}; // double-buffered
+        uint32_t mCurrentFrame{0};                // 0 or 1 (double-buffering)
 
         void OnInitialize() override;
         void OnPostFinalize() override;
         void Resize()
         {
         }
-        void Present();
-        double GetGpuElapsedTime() const;
-#if !defined FASTCG_ANDROID
-        void InitializeGlew();
-#endif
-        void CreateOpenGLContext();
+        void SwapBuffers() const;
+        void SwapFrame();
+        double GetGpuElapsedTime(uint32_t frame) const;
+        void CreateOpenGLHeadlessContext(void *pWindow = nullptr);
+        void CreateOpenGLHeadedContext(void *pWindow);
+        void DestroyOpenGLContext(void *pWindow);
         void QueryDeviceProperties();
-        void DestroyOpenGLContext();
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount,
                                       const OpenGLTexture *pDepthStencilBuffer);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
+        void NotifyPostContextCreate();
+        void NotifyPreContextDestroy();
 
         friend class OpenGLGraphicsContext;
     };

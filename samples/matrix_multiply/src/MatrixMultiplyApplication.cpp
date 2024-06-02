@@ -34,6 +34,11 @@ namespace
     }
 }
 
+MatrixMultiplyApplication::MatrixMultiplyApplication()
+    : Application({"matrix_multiplication", 1, 1, 60, 1, false, true})
+{
+}
+
 bool MatrixMultiplyApplication::ParseCommandLineArguments(int argc, char **argv)
 {
     struct Arg
@@ -43,7 +48,8 @@ bool MatrixMultiplyApplication::ParseCommandLineArguments(int argc, char **argv)
     };
     for (int i = 1; i < argc; i += 2)
     {
-        for (const auto &rArg : {Arg{"--count", &mCount}, Arg{"--M", &mM}, Arg{"--N", &mN}, Arg{"--K", &mK}})
+        for (const auto &rArg : {Arg{"--count", &mCount}, Arg{"--M", &mM}, Arg{"--N", &mN}, Arg{"--K", &mK},
+                                 Arg{"--exit-on-end", &mExitOnEnd}})
         {
             if (std::strcmp(argv[i], rArg.name) == 0)
             {
@@ -71,6 +77,7 @@ void MatrixMultiplyApplication::OnPrintUsage()
               << "\t--M <int>" << std::endl
               << "\t--N <int>" << std::endl
               << "\t--K <int>" << std::endl
+              << "\t[--exit-on-end 0|1]" << std::endl
               << std::endl;
 }
 
@@ -79,33 +86,30 @@ void MatrixMultiplyApplication::OnStart()
 #if !FRAME_BASED
     RecordCommands();
     GraphicsSystem::GetInstance()->Submit();
-    ProcessResults();
-    Exit();
+    ProcessResults(GraphicsSystem::GetInstance()->GetCurrentFrame());
+    if (mExitOnEnd)
+    {
+        Exit();
+    }
 #endif
 }
-
-static size_t sFramesElapsed = 0;
 
 void MatrixMultiplyApplication::OnFrameStart(double deltaTime)
 {
 #if FRAME_BASED
-    if (sFramesElapsed == 1)
-    {
-        RecordCommands();
-    }
+    RecordCommands();
 #endif
 }
 
 void MatrixMultiplyApplication::OnFrameEnd()
 {
 #if FRAME_BASED
-    if (sFramesElapsed == 1)
+    GraphicsSystem::GetInstance()->WaitPreviousFrame();
+    ProcessResults(GraphicsSystem::GetInstance()->GetPreviousFrame());
+    if (mExitOnEnd)
     {
-        GraphicsSystem::GetInstance()->WaitLastFrame();
-        ProcessResults();
         Exit();
     }
-    sFramesElapsed++;
 #endif
 }
 
@@ -212,7 +216,7 @@ void MatrixMultiplyApplication::RecordCommands()
     mpGraphicsContext->End();
 }
 
-void MatrixMultiplyApplication::ProcessResults()
+void MatrixMultiplyApplication::ProcessResults(uint32_t frame)
 {
     const auto PrintCs = [&](const std::vector<Matrix> &rCs) {
 #if PRINT_RESULTS
@@ -246,7 +250,7 @@ void MatrixMultiplyApplication::ProcessResults()
         mpGraphicsContext->Copy(&C_values_gpu[i][0], mC_buffers[i], 0, C_length * sizeof(float));
     }
 
-    std::cout << "[GPU] " << mpGraphicsContext->GetElapsedTime() * 1000.0 << "ms" << std::endl;
+    std::cout << "[GPU] " << mpGraphicsContext->GetElapsedTime(frame) * 1000.0 << "ms" << std::endl;
     PrintCs(C_values_gpu);
 
 #if ASSERT

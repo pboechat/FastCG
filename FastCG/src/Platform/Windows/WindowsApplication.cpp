@@ -154,11 +154,43 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 namespace FastCG
 {
-    void WindowsApplication::OnPreInitialize()
+    void WindowsApplication::OnPostInitialize()
     {
-        BaseApplication::OnPreInitialize();
+        if (!mSettings.headless)
+        {
+            InitializeWindow();
+            GraphicsSystem::GetInstance()->OnPostWindowInitialize(mHWnd);
+        }
 
-        mInstance = GetModuleHandle(NULL);
+        BaseApplication::OnPostInitialize();
+    }
+
+    void WindowsApplication::OnPreFinalize()
+    {
+        BaseApplication::OnPreFinalize();
+
+        if (!mSettings.headless && IsWindow(mHWnd))
+        {
+            GraphicsSystem::GetInstance()->OnPreWindowTerminate(mHWnd);
+            TerminateWindow();
+        }
+    }
+
+    void WindowsApplication::RunMainLoop()
+    {
+        if (mSettings.headless)
+        {
+            RunConsoleMainLoop();
+        }
+        else
+        {
+            RunWindowedMainLoop();
+        }
+    }
+
+    void WindowsApplication::InitializeWindow()
+    {
+        auto instance = GetModuleHandle(nullptr);
 
         RECT windowRect;
         windowRect.left = (LONG)0;
@@ -172,59 +204,57 @@ namespace FastCG
         windowClass.lpfnWndProc = WndProc;
         windowClass.cbClsExtra = 0;
         windowClass.cbWndExtra = 0;
-        windowClass.hInstance = mInstance;
-        windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-        windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-        windowClass.hbrBackground = NULL;
-        windowClass.lpszMenuName = NULL;
+        windowClass.hInstance = instance;
+        windowClass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+        windowClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        windowClass.hbrBackground = nullptr;
+        windowClass.lpszMenuName = nullptr;
         windowClass.lpszClassName = "FastCG_Window";
-        windowClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
+        windowClass.hIconSm = LoadIcon(nullptr, IDI_WINLOGO);
 
         if (!RegisterClassEx(&windowClass))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't register window class");
+            FASTCG_THROW_EXCEPTION(Exception, "Win32: Couldn't register window class");
         }
 
         auto dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
         auto dwStyle = WS_OVERLAPPEDWINDOW;
         AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
-        mHWnd = CreateWindowEx(NULL, "FastCG_Window", GetWindowTitle().c_str(),
+        mHWnd = CreateWindowEx(0, "FastCG_Window", GetWindowTitle().c_str(),
                                dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, windowRect.right - windowRect.left,
-                               windowRect.bottom - windowRect.top, NULL, NULL, mInstance, NULL);
+                               windowRect.bottom - windowRect.top, nullptr, nullptr, instance, nullptr);
 
-        if (mHWnd == 0)
+        if (mHWnd == nullptr)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create window");
+            FASTCG_THROW_EXCEPTION(Exception, "Win32: Couldn't create window");
         }
 
         ShowWindow(mHWnd, SW_SHOW);
         UpdateWindow(mHWnd);
     }
 
-    void WindowsApplication::OnPostFinalize()
+    void WindowsApplication::TerminateWindow()
     {
-        if (mHWnd != 0)
+        if (mHWnd != nullptr)
         {
             DestroyWindow(mHWnd);
-            mHWnd = 0;
+            mHWnd = nullptr;
         }
-
-        BaseApplication::OnPostFinalize();
     }
 
-    void WindowsApplication::RunMainLoop()
+    void WindowsApplication::RunWindowedMainLoop()
     {
         MSG msg;
         while (mRunning)
         {
             auto osStart = Timer::GetTime();
 
-            while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE))
             {
-                if (!GetMessage(&msg, NULL, 0, 0))
+                if (!GetMessage(&msg, nullptr, 0, 0))
                 {
                     mRunning = false;
-                    goto __exit;
+                    goto __exitMainLoop;
                 }
 
                 TranslateMessage(&msg);
@@ -233,8 +263,18 @@ namespace FastCG
 
             RunMainLoopIteration(Timer::GetTime() - osStart);
         }
-    __exit:
+    __exitMainLoop:
         return;
+    }
+
+    void WindowsApplication::RunConsoleMainLoop()
+    {
+        while (mRunning)
+        {
+            auto osStart = Timer::GetTime();
+            // TODO: read key input from console
+            RunMainLoopIteration(Timer::GetTime() - osStart);
+        }
     }
 
 }

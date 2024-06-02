@@ -9,6 +9,7 @@
 
 #include <glm/glm.hpp>
 
+#include <cstdint>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -24,6 +25,7 @@ namespace FastCG
         const uint32_t &rScreenHeight;
         uint32_t maxSimultaneousFrames;
         bool vsync;
+        bool headless;
     };
 
     template <class BufferT, class GraphicsContextT, class ShaderT, class TextureT>
@@ -83,23 +85,21 @@ namespace FastCG
 #endif
         // Template interface methods
         inline uint32_t GetMaxSimultaneousFrames() const;
+        inline uint32_t GetPreviousFrame() const;
         inline uint32_t GetCurrentFrame() const;
-        inline Buffer *CreateBuffer(const typename Buffer::Args &rArgs);
-        inline GraphicsContext *CreateGraphicsContext(const typename GraphicsContext::Args &rArgs);
-        inline Shader *CreateShader(const typename Shader::Args &rArgs);
-        inline Texture *CreateTexture(const typename Texture::Args &rArgs);
+        inline virtual Buffer *CreateBuffer(const typename Buffer::Args &rArgs);
+        inline virtual GraphicsContext *CreateGraphicsContext(const typename GraphicsContext::Args &rArgs);
+        inline virtual Shader *CreateShader(const typename Shader::Args &rArgs);
+        inline virtual Texture *CreateTexture(const typename Texture::Args &rArgs);
         inline virtual void DestroyBuffer(const Buffer *pBuffer);
         inline virtual void DestroyGraphicsContext(const GraphicsContext *pGraphicsContext);
         inline virtual void DestroyShader(const Shader *pShader);
         inline virtual void DestroyTexture(const Texture *pTexture);
         inline const Shader *FindShader(const std::string &rName) const;
         inline const Texture *GetMissingTexture(TextureType textureType) const;
-        inline bool IsHeadless() const;
         inline void Synchronize();
-#if defined FASTCG_ANDROID
-        inline void OnWindowInitialized();
-        inline void OnWindowTerminated();
-#endif
+        inline void OnPostWindowInitialize();
+        inline void OnPreWindowTerminate();
 
     protected:
         const GraphicsSystemArgs mArgs;
@@ -126,7 +126,7 @@ namespace FastCG
         // Template interface methods
         void Resize();
         void Present();
-        double GetGpuElapsedTime() const;
+        double GetGpuElapsedTime(uint32_t frame) const;
 
     private:
         bool mInitialized{false};
