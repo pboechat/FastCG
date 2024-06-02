@@ -728,7 +728,10 @@ namespace FastCG
 #ifdef CONVERSION_TABLE_ENTRY
 #undef CONVERSION_TABLE_ENTRY
 #endif
-#define CONVERSION_TABLE_ENTRY(format) {TextureFormat::format, VK_FORMAT_##format}
+#define CONVERSION_TABLE_ENTRY(format)                                                                                 \
+    {                                                                                                                  \
+        TextureFormat::format, VK_FORMAT_##format                                                                      \
+    }
 
     constexpr struct
     {

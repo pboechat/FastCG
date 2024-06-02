@@ -140,19 +140,21 @@ namespace
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "WGL: WGL_ARB_create_context extension not supported");
         }
 
-        const int contextAttribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
-                                      4,
-                                      WGL_CONTEXT_MINOR_VERSION_ARB,
-                                      3,
-                                      WGL_CONTEXT_PROFILE_MASK_ARB,
-                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                      WGL_CONTEXT_FLAGS_ARB,
-                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB,
+            4,
+            WGL_CONTEXT_MINOR_VERSION_ARB,
+            3,
+            WGL_CONTEXT_PROFILE_MASK_ARB,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB,
+            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                                          | WGL_CONTEXT_DEBUG_BIT_ARB
+                | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-                                      ,
-                                      0};
+            ,
+            0
+        };
 
         auto context = wglCreateContextAttribsARB(deviceContext, parentContext, contextAttribs);
         if (context == nullptr)
@@ -740,19 +742,21 @@ namespace FastCG
 
         auto oldContext = mContext;
 
-        const int contextAttribs[] = {GLX_CONTEXT_MAJOR_VERSION_ARB,
-                                      4,
-                                      GLX_CONTEXT_MINOR_VERSION_ARB,
-                                      3,
-                                      GLX_CONTEXT_PROFILE_MASK_ARB,
-                                      GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                      GLX_CONTEXT_FLAGS_ARB,
-                                      GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {
+            GLX_CONTEXT_MAJOR_VERSION_ARB,
+            4,
+            GLX_CONTEXT_MINOR_VERSION_ARB,
+            3,
+            GLX_CONTEXT_PROFILE_MASK_ARB,
+            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            GLX_CONTEXT_FLAGS_ARB,
+            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                                          | GLX_CONTEXT_DEBUG_BIT_ARB
+                | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-                                      ,
-                                      0};
+            ,
+            0
+        };
 
         auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
         mContext = glXCreateContextAttribsARB(pDisplay, fbConfig, oldContext, True, contextAttribs);

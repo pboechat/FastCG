@@ -525,11 +525,12 @@ namespace FastCG
 
     void VulkanGraphicsContext::EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs)
     {
-        mCopyCommands.emplace_back(CopyCommand{
+        mCopyCommands.emplace_back(CopyCommand {
 #if _DEBUG
             mMarkerCommands.size(),
 #endif
-            type, rArgs});
+                type, rArgs
+        });
     }
 
     void VulkanGraphicsContext::EnqueueDrawCommand(DrawCommandType type, PrimitiveType primitiveType,

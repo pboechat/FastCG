@@ -62,7 +62,8 @@ namespace
                                                               void *pUserData)
     {
         std::stringstream stream;
-        stream << "[VULKAN]" << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
+        stream << "[VULKAN]"
+               << " - " << FastCG::GetVkDebugUtilsMessageSeverityFlagBitsString(messageSeverity);
 
         // if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0)
         // {
