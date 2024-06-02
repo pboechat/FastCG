@@ -58,23 +58,19 @@ jobs:
       with:
         ref: ${{ github.head_ref }}
 
-    - name: Install gcc
+    - name: Install compiler
       if: matrix.compiler == 'gcc'
       run: | 
         sudo apt-get install -y gcc-12 g++-12
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
         sudo update-alternatives --set gcc /usr/bin/gcc-12
-        echo "CC=gcc" >> $GITHUB_ENV
-        echo "CXX=g++" >> $GITHUB_ENV
 
-    - name: Install clang
+    - name: Install compiler
       if: matrix.compiler == 'clang'
       run: | 
         sudo apt-get install -y clang-15
         sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 100
         sudo update-alternatives --set clang /usr/bin/clang-15
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
 
     - name: Install build tools
       run: |
@@ -87,6 +83,13 @@ jobs:
         sudo dpkg -i ./KTX-Software-4.3.2-Linux-x86_64.deb
 
     - name: Build
+      if: matrix.compiler == 'gcc'
       run: |
-        cmake -B build -S . -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        CC=gcc CXX=g++ cmake -B build -S . -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake --build build
+
+    - name: Build
+      if: matrix.compiler == 'clang'
+      run: |
+        CC=clang CXX=clang++ cmake -B build -S . -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build build
