@@ -61,10 +61,18 @@ jobs:
         graphics_system: ['OpenGL', 'Vulkan']
 
     steps:
+    - name: Determine ref
+      run: |
+        if [ -z "${{ github.head_ref }}" ]; then
+          echo "ref=${{ github.ref }}" >> $GITHUB_ENV
+        else
+          echo "ref=${{ github.head_ref }}" >> $GITHUB_ENV
+        fi
+
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        ref: ${{ github.head_ref }}
+        ref: ${{ env.ref }}
 
     - name: Install compiler
       if: matrix.compiler == 'gcc'
