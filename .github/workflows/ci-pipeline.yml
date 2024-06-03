@@ -13,10 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Determine ref
+      run: |
+        if [ -z "${{ github.head_ref }}" ]; then
+          echo "ref=${{ github.ref }}" >> $GITHUB_ENV
+        else
+          echo "ref=${{ github.head_ref }}" >> $GITHUB_ENV
+        fi
+
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        ref: ${{ github.head_ref }}
+        ref: ${{ env.ref }}
 
     - name: Install clang-format
       run: | 
@@ -36,7 +44,7 @@ jobs:
         git add .
         if ! git diff --cached --exit-code; then
           git commit -m "Applied format changes."
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:${{ env.ref }}
           echo "Applied format changes."
         else
           echo "No formatting changes."
