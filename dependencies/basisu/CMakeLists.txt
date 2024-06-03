@@ -19,4 +19,11 @@ target_compile_definitions(
 		BASISU_SUPPORT_SSE=0 # TODO:
 		BASISU_SUPPORT_OPENCL=0
 )
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	target_compile_options(
+		${PROJECT_NAME}
+		PUBLIC 
+			-Wno-stringop-overflow
+	)
+endif()
 target_link_libraries(${PROJECT_NAME} zlib)
