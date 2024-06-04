@@ -56,7 +56,7 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc', 'clang']
+        compiler: ['gcc', 'clang', 'android-clang']
         build_type: ['Debug', 'Release']
         graphics_system: ['OpenGL', 'Vulkan']
 
@@ -92,6 +92,18 @@ jobs:
         sudo update-alternatives --set clang /usr/bin/clang-15
         sudo update-alternatives --set clang++ /usr/bin/clang++-15
 
+    - name: Install Android SDK
+      if: matrix.compiler == 'android-clang'
+      run: |
+        sudo apt-get install -y openjdk-11-jdk wget unzip
+        wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O commandlinetools.zip
+        unzip commandlinetools.zip -d ~/android-sdk
+        export ANDROID_HOME=$HOME/android-sdk
+        export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
+        export PATH=$ANDROID_HOME/platform-tools:$PATH
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-33" "ndk;26.1.10909125" "build-tools;34.0.0"
+
     - name: Install build tools
       run: |
         sudo apt-get install -y cmake ninja-build
@@ -105,11 +117,31 @@ jobs:
     - name: Build
       if: matrix.compiler == 'gcc'
       run: |
-        CC=gcc CXX=g++ cmake -B build -S . -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        CC=gcc CXX=g++ cmake -B build -S . \
+        -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build build
 
     - name: Build
       if: matrix.compiler == 'clang'
       run: |
-        CC=clang CXX=clang++ cmake -B build -S . -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        CC=clang CXX=clang++ cmake -B build -S . \
+        -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake --build build
+
+    - name: Build
+      if: matrix.compiler == 'android-clang'
+      run: |
+        export ANDROID_HOME=$HOME/android-sdk
+        export NDKROOT=$ANDROID_HOME/ndk/26.1.10909125
+        export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
+        export PATH=$ANDROID_HOME/platform-tools:$PATH
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$NDKROOT/build/cmake/android.toolchain.cmake \
+        -DANDROID_PLATFORM=android-33 \
+        -DANDROID_TOOLCHAIN=clang \
+        -DANDROID_ABI=arm64-v8a \
+        -DANDROID_STL=c++_static \
+        -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         cmake --build build
