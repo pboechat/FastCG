@@ -133,6 +133,13 @@ void MatrixMultiplyApplication::RecordCommands()
     }
     else if (mMethod == 1)
     {
+        if (mM != mN || mM != mK || mN != mK)
+        {
+            std::cerr << "Tiled method requires square matrices" << std::endl;
+            Exit();
+            return;
+        }
+
         pShader = GraphicsSystem::GetInstance()->FindShader("Tiled");
         groupX = mM / 8u;
         groupY = mN / 8u;
@@ -161,30 +168,42 @@ void MatrixMultiplyApplication::RecordCommands()
         A_values[i] = MakeRandomMatrix(A_length);
         B_values[i] = MakeRandomMatrix(B_length);
 
-        A_buffers[i] = GraphicsSystem::GetInstance()->CreateBuffer({
-            "A_" + std::to_string(i), BufferUsageFlagBit::SHADER_STORAGE, A_length * sizeof(float), &A_values[i][0]
+        A_buffers[i] = GraphicsSystem::GetInstance()->CreateBuffer({"A_" + std::to_string(i),
+                                                                    BufferUsageFlagBit::SHADER_STORAGE,
+                                                                    A_length * sizeof(float),
+                                                                    &A_values[i][0]
 #if FASTCG_VULKAN
-                ,
-                {}, true, mpGraphicsContext
+                                                                    ,
+                                                                    {},
+                                                                    true,
+                                                                    mpGraphicsContext
 #endif
         });
 
-        B_buffers[i] = GraphicsSystem::GetInstance()->CreateBuffer({
-            "B_" + std::to_string(i), BufferUsageFlagBit::SHADER_STORAGE, B_length * sizeof(float), &B_values[i][0]
+        B_buffers[i] = GraphicsSystem::GetInstance()->CreateBuffer({"B_" + std::to_string(i),
+                                                                    BufferUsageFlagBit::SHADER_STORAGE,
+                                                                    B_length * sizeof(float),
+                                                                    &B_values[i][0]
 #if FASTCG_VULKAN
-                ,
-                {}, true, mpGraphicsContext
+                                                                    ,
+                                                                    {},
+                                                                    true,
+                                                                    mpGraphicsContext
 #endif
         });
 
-        mC_buffers[i] = GraphicsSystem::GetInstance()->CreateBuffer({
-            "C_" + std::to_string(i), BufferUsageFlagBit::SHADER_STORAGE | BufferUsageFlagBit::DYNAMIC,
-                C_length * sizeof(float), nullptr
+        mC_buffers[i] = GraphicsSystem::GetInstance()->CreateBuffer(
+            {"C_" + std::to_string(i),
+             BufferUsageFlagBit::SHADER_STORAGE | BufferUsageFlagBit::DYNAMIC,
+             C_length * sizeof(float),
+             nullptr
 #if FASTCG_VULKAN
-                ,
-                {}, true, mpGraphicsContext
+             ,
+             {},
+             true,
+             mpGraphicsContext
 #endif
-        });
+            });
 
         mC_values_cpu[i] = MakeZeroMatrix(C_length);
     }
@@ -215,11 +234,15 @@ void MatrixMultiplyApplication::RecordCommands()
     {
         unsigned int mM, mN, mK;
     } sizes{(unsigned int)mM, (unsigned int)mN, (unsigned int)mK};
-    const Buffer *pSizesBuffer = GraphicsSystem::GetInstance()->CreateBuffer({
-        "Sizes", BufferUsageFlagBit::UNIFORM, sizeof(sizes), &sizes
+    const Buffer *pSizesBuffer = GraphicsSystem::GetInstance()->CreateBuffer({"Sizes",
+                                                                              BufferUsageFlagBit::UNIFORM,
+                                                                              sizeof(sizes),
+                                                                              &sizes
 #if FASTCG_VULKAN
-            ,
-            {}, true, mpGraphicsContext
+                                                                              ,
+                                                                              {},
+                                                                              true,
+                                                                              mpGraphicsContext
 #endif
     });
 
@@ -251,10 +274,10 @@ void MatrixMultiplyApplication::ProcessResults(uint32_t frame)
             for (int i = 0; i < mCount; ++i)
             {
                 std::cout << "\t\t[" << i << "]" << std::endl;
-                for (size_t m = 0, c = 0; m < mM; ++m)
+                for (int m = 0, c = 0; m < mM; ++m)
                 {
                     std::cout << "\t\t\t";
-                    for (size_t n = 0; n < mN; ++n, ++c)
+                    for (int n = 0; n < mN; ++n, ++c)
                     {
                         std::cout << rCs[i][c] << ' ';
                     }
@@ -286,11 +309,11 @@ void MatrixMultiplyApplication::ProcessResults(uint32_t frame)
         auto AreEqual = [](float a, float b, float epsilon = 1e-3) { return std::fabs(a - b) < epsilon; };
 
         bool diff = false;
-        for (size_t i = 0; i < mCount; ++i)
+        for (int i = 0; i < mCount; ++i)
         {
-            for (size_t m = 0, c = 0; m < mM; ++m)
+            for (int m = 0, c = 0; m < mM; ++m)
             {
-                for (size_t n = 0; n < mN; ++n, ++c)
+                for (int n = 0; n < mN; ++n, ++c)
                 {
                     if (!AreEqual(mC_values_cpu[i][c], C_values_gpu[i][c]))
                     {
