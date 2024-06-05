@@ -24,11 +24,15 @@ protected:
     void OnFrameEnd() override;
 
 private:
-    int mCount{16};
-    int mM{128};
-    int mN{128};
-    int mK{128};
+    int mMethod{0};
+    int mCount{1};
+    int mM{8};
+    int mN{8};
+    int mK{8};
     int mExitOnEnd{1};
+    int mFrameBased{0};
+    int mPrint{0};
+    int mValidate{0};
     GraphicsContext *mpGraphicsContext;
     std::vector<const Buffer *> mC_buffers;
     std::vector<Matrix> mC_values_cpu;
