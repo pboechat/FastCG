@@ -32,10 +32,10 @@ void main()
     uint bx = gl_WorkGroupID.x; uint by = gl_WorkGroupID.y;
     uint tx = gl_LocalInvocationID.x; uint ty = gl_LocalInvocationID.y;
 
-    uint Row = by * 8 + ty;
-    uint Col = bx * 8 + tx;
+    uint Row = by * 8u + ty;
+    uint Col = bx * 8u + tx;
 
-    float Pvalue = 0;
+    float Pvalue = 0.0;
     for (uint m = 0u; m < (uM / 8u); ++m)
     {
         Ads[ty][tx] = A_in[Row * uM + m * 8u + tx];
