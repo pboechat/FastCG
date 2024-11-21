@@ -169,7 +169,7 @@ namespace FastCG
 
     void X11Application::OnPostInitialize()
     {
-        if (!mSettings.headless)
+        if (!mSettings.graphics.headless)
         {
             // NOTE:
             GraphicsSystem::GetInstance()->OnPostWindowInitialize(nullptr);
@@ -182,7 +182,7 @@ namespace FastCG
     {
         BaseApplication::OnPreFinalize();
 
-        if (!mSettings.headless)
+        if (!mSettings.graphics.headless)
         {
             // NOTE:
             GraphicsSystem::GetInstance()->OnPreWindowTerminate(nullptr);
@@ -198,7 +198,7 @@ namespace FastCG
 
     void X11Application::RunMainLoop()
     {
-        if (mSettings.headless)
+        if (mSettings.graphics.headless)
         {
             RunConsoleMainLoop();
         }

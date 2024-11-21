@@ -312,7 +312,7 @@ namespace FastCG
 
     void AndroidApplication::OnPostWindowInitialize(ANativeWindow *pWindow)
     {
-        if (!mSettings.headless)
+        if (!mSettings.graphics.headless)
         {
             GraphicsSystem::GetInstance()->OnPostWindowInitialize(pWindow);
         }
@@ -320,7 +320,7 @@ namespace FastCG
 
     void AndroidApplication::OnPreWindowTerminate(ANativeWindow *pWindow)
     {
-        if (!mSettings.headless)
+        if (!mSettings.graphics.headless)
         {
             GraphicsSystem::GetInstance()->OnPreWindowTerminate(pWindow);
         }
