@@ -12,7 +12,6 @@ namespace
     template <size_t N>
     void GenerateRandomSamplesInAHemisphere(glm::vec4 randomSamples[N])
     {
-        FastCG::Random::SeedWithTime();
         for (uint32_t i = 0; i < N; i++)
         {
             glm::vec3 randomSample{FastCG::Random::NextFloat() * 2 - 1, FastCG::Random::NextFloat() * 2 - 1,
@@ -74,7 +73,6 @@ namespace FastCG
         GenerateRandomSamplesInAHemisphere<NUMBER_OF_RANDOM_SAMPLES>(mSSAOHighFrequencyPassConstants.randomSamples);
 
         {
-            Random::SeedWithTime();
             auto pData = std::make_unique<uint8_t[]>(NOISE_TEXTURE_WIDTH * NOISE_TEXTURE_HEIGHT * 4);
             auto *pNoise = pData.get();
             for (uint32_t i = 0; i < NOISE_TEXTURE_HEIGHT; i++)

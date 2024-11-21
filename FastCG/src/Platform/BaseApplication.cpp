@@ -1,6 +1,7 @@
 #include <FastCG/Assets/AssetSystem.h>
 #include <FastCG/Core/Exception.h>
 #include <FastCG/Core/MsgBox.h>
+#include <FastCG/Core/Random.h>
 #include <FastCG/Core/System.h>
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
@@ -77,10 +78,11 @@ namespace FastCG
     FASTCG_IMPLEMENT_SYSTEM(WorldSystem, WorldSystemArgs);
 
     BaseApplication::BaseApplication(const ApplicationSettings &settings)
-        : mSettings(settings), mFrameRate(settings.frameRate),
+        : mSettings(settings), mFrameRate(settings.graphics.frameRate),
           mWindowTitle(settings.windowTitle.empty() ? APPLICATION_NAME : settings.windowTitle),
-          mScreenWidth(settings.screenWidth), mScreenHeight(settings.screenHeight),
-          mSecondsPerFrame(settings.frameRate == UNLOCKED_FRAMERATE ? 0 : 1 / (double)settings.frameRate)
+          mScreenWidth(settings.graphics.screenWidth), mScreenHeight(settings.graphics.screenHeight),
+          mSecondsPerFrame(settings.graphics.frameRate == UNLOCKED_FRAMERATE ? 0
+                                                                             : 1 / (double)settings.graphics.frameRate)
     {
         if (smpInstance != nullptr)
         {
@@ -88,6 +90,10 @@ namespace FastCG
         }
 
         smpInstance = this;
+
+        // in attempts to promote semi-deterministic behavior, at least during application startup,
+        // PRNG is always seeded with zero
+        Random::Seed(0);
 
         ComponentRegistry::RegisterComponent<Camera>();
         ComponentRegistry::RegisterComponent<DirectionalLight>();
@@ -121,7 +127,7 @@ namespace FastCG
         catch (Exception &e)
         {
             FASTCG_LOG_ERROR(BaseApplication, "Fatal Exception: %s", e.GetFullDescription().c_str());
-            if (!mSettings.headless)
+            if (!mSettings.graphics.headless)
             {
                 FASTCG_MSG_BOX("Error", "Fatal Exception: %s", e.GetFullDescription().c_str());
             }
@@ -153,11 +159,11 @@ namespace FastCG
 #if _DEBUG
             DebugMenuSystem::Create({});
 #endif
-            GraphicsSystem::Create(
-                {mScreenWidth, mScreenHeight, mSettings.maxSimultaneousFrames, mSettings.vsync, mSettings.headless});
+            GraphicsSystem::Create({mScreenWidth, mScreenHeight, mSettings.graphics.maxSimultaneousFrames,
+                                    mSettings.graphics.vsync, mSettings.graphics.headless});
             InputSystem::Create({});
             ImGuiSystem::Create({mScreenWidth, mScreenHeight});
-            RenderingSystem::Create({mSettings.rendering.path, mScreenWidth, mScreenHeight,
+            RenderingSystem::Create({mSettings.rendering.path, mSettings.rendering.hdr, mScreenWidth, mScreenHeight,
                                      mSettings.rendering.clearColor, mSettings.rendering.ambientLight,
                                      mRenderingStatistics});
             WorldSystem::Create({mScreenWidth, mScreenHeight});

@@ -30,24 +30,28 @@ namespace FastCG
     struct ApplicationSettings
     {
         std::string windowTitle{};
-        uint32_t screenWidth{1024};
-        uint32_t screenHeight{768};
-        uint32_t frameRate{60};
-        uint32_t maxSimultaneousFrames{3};
-        bool vsync{false};
-        bool headless{false};
         struct
         {
-            RenderingPath path{RenderingPath::FORWARD};
+            uint32_t screenWidth{1024};
+            uint32_t screenHeight{768};
+            uint32_t frameRate{60};
+            uint32_t maxSimultaneousFrames{3};
+            bool vsync{false};
+            bool headless{false};
+        } graphics;
+        struct
+        {
+            RenderingPath path{RenderingPath::DEFERRED};
             glm::vec4 clearColor{Colors::BLACK};
             glm::vec4 ambientLight{Colors::BLACK};
-        } rendering{};
+            bool hdr{false};
+        } rendering;
         struct
         {
             std::vector<std::string> bundles{};
             std::vector<ImportCallback> importCallbacks{
                 DEFAULT_IMPORT_CALLBACKS, DEFAULT_IMPORT_CALLBACKS + FASTCG_ARRAYSIZE(DEFAULT_IMPORT_CALLBACKS)};
-        } assets{};
+        } assets;
     };
 
     class BaseApplication

@@ -13,10 +13,7 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b)                                                                                                  \
-    {                                                                                                                  \
-        (uint64_t) a, FastCG::Key::b                                                                                   \
-    }
+#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
 
     const std::unordered_map<uint64_t, FastCG::Key> VIRTUAL_KEY_LUT = {MAP_KEY(VK_LEFT, LEFT_ARROW),
                                                                        MAP_KEY(VK_UP, UP_ARROW),
@@ -156,7 +153,7 @@ namespace FastCG
 {
     void WindowsApplication::OnPostInitialize()
     {
-        if (!mSettings.headless)
+        if (!mSettings.graphics.headless)
         {
             InitializeWindow();
             GraphicsSystem::GetInstance()->OnPostWindowInitialize(mHWnd);
@@ -169,7 +166,7 @@ namespace FastCG
     {
         BaseApplication::OnPreFinalize();
 
-        if (!mSettings.headless && IsWindow(mHWnd))
+        if (!mSettings.graphics.headless && IsWindow(mHWnd))
         {
             GraphicsSystem::GetInstance()->OnPreWindowTerminate(mHWnd);
             TerminateWindow();
@@ -178,7 +175,7 @@ namespace FastCG
 
     void WindowsApplication::RunMainLoop()
     {
-        if (mSettings.headless)
+        if (mSettings.graphics.headless)
         {
             RunConsoleMainLoop();
         }

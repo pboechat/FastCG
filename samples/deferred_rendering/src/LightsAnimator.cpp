@@ -33,7 +33,6 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
     if (!mInitialized)
     {
         mDirections.clear();
-        Random::SeedWithTime();
         for (size_t i = 0; i < pointLights.size(); ++i)
         {
             mDirections.emplace_back(

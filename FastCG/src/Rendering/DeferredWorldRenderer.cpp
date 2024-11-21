@@ -36,6 +36,9 @@ namespace FastCG
 
     void DeferredWorldRenderer::CreateGBuffers()
     {
+        TextureFormat lightingBufferFormat =
+            mArgs.hdr ? TextureFormat::B10G11R11_UFLOAT_PACK32 : TextureFormat::R8G8B8A8_UNORM;
+
         mGBuffers.resize(GraphicsSystem::GetInstance()->GetMaxSimultaneousFrames());
         for (size_t i = 0; i < mGBuffers.size(); ++i)
         {
@@ -43,7 +46,7 @@ namespace FastCG
             auto prefix = "G-Buffer " + std::to_string(i);
             rGBuffer[0] = GraphicsSystem::GetInstance()->CreateTexture(
                 {prefix + " Diffuse", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
-                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, TextureFormat::R8G8B8A8_UNORM,
+                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, lightingBufferFormat,
                  TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
             rGBuffer[1] = GraphicsSystem::GetInstance()->CreateTexture(
                 {prefix + " Normal", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
@@ -51,7 +54,7 @@ namespace FastCG
                  TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
             rGBuffer[2] = GraphicsSystem::GetInstance()->CreateTexture(
                 {prefix + " Specular", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
-                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, TextureFormat::R8G8B8A8_UNORM,
+                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, lightingBufferFormat,
                  TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
             rGBuffer[3] = GraphicsSystem::GetInstance()->CreateTexture(
                 {prefix + " Tangent", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
@@ -63,7 +66,7 @@ namespace FastCG
                  TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
             rGBuffer[5] = GraphicsSystem::GetInstance()->CreateTexture(
                 {prefix + " Final", mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1, TextureType::TEXTURE_2D,
-                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, TextureFormat::R8G8B8A8_UNORM,
+                 TextureUsageFlagBit::SAMPLED | TextureUsageFlagBit::RENDER_TARGET, lightingBufferFormat,
                  TextureFilter::LINEAR_FILTER, TextureWrapMode::CLAMP});
         }
 

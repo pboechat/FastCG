@@ -23,12 +23,12 @@ namespace FastCG
         {
         case RenderingPath::FORWARD:
             mpWorldRenderer = std::unique_ptr<IWorldRenderer>(
-                new ForwardWorldRenderer({mArgs.rScreenWidth, mArgs.rScreenHeight, mArgs.rClearColor,
+                new ForwardWorldRenderer({mArgs.hdr, mArgs.rScreenWidth, mArgs.rScreenHeight, mArgs.rClearColor,
                                           mArgs.rAmbientLight, mRenderBatchStrategy, mArgs.rRenderingStatistics}));
             break;
         case RenderingPath::DEFERRED:
             mpWorldRenderer = std::unique_ptr<IWorldRenderer>(
-                new DeferredWorldRenderer({mArgs.rScreenWidth, mArgs.rScreenHeight, mArgs.rClearColor,
+                new DeferredWorldRenderer({mArgs.hdr, mArgs.rScreenWidth, mArgs.rScreenHeight, mArgs.rClearColor,
                                            mArgs.rAmbientLight, mRenderBatchStrategy, mArgs.rRenderingStatistics}));
             break;
         default:

@@ -18,6 +18,7 @@ namespace FastCG
     struct RenderingSystemArgs
     {
         RenderingPath renderingPath;
+        bool hdr;
         const uint32_t &rScreenWidth;
         const uint32_t &rScreenHeight;
         const glm::vec4 &rClearColor;
