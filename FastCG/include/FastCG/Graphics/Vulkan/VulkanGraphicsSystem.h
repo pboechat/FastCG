@@ -154,6 +154,7 @@ namespace FastCG
         std::unique_ptr<VkAllocationCallbacks> mAllocationCallbacks{nullptr};
         VkDevice mDevice{VK_NULL_HANDLE};
         uint32_t mQueueFamilyIdx{~0u};
+        bool mQueueSupportsPresentation{false};
         bool mQueueSupportsCompute{false};
         // support only one queue at the moment
         VkQueue mQueue{VK_NULL_HANDLE};

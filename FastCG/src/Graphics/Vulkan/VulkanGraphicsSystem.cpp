@@ -55,6 +55,33 @@ namespace
                }) != vector.end();
     }
 
+    bool SupportsPresentation(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIdx)
+    {
+#if defined FASTCG_WINDOWS
+        return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIdx);
+#elif defined FASTCG_LINUX
+        auto *pDisplay = FastCG::X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
+        // uses visual ID from default visual. Only works because we're using a "simple window".
+        auto visualId = XVisualIDFromVisual(DefaultVisual(pDisplay, DefaultScreen(pDisplay)));
+        return vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIdx, pDisplay, visualId);
+#elif defined FASTCG_ANDROID
+        // TODO: apparently, there's no need for checking whether a queue family supports presentation on Android
+        return true;
+#else
+#error "FastCG::SupportsPresentation(): Don't know how to check presentation support"
+#endif
+        return false;
+    }
+
+    bool SupportsPresentationToSurface(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIdx, VkSurfaceKHR surface)
+    {
+        VkBool32 supportsPresentationToSurface;
+        FASTCG_CHECK_VK_RESULT(vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIdx, surface,
+                                                                    &supportsPresentationToSurface));
+        return supportsPresentationToSurface;
+    }
+
 #if _DEBUG
     static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                               VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -416,8 +443,13 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(
             vkCreateAndroidSurfaceKHR(mInstance, &surfaceCreateInfo, mAllocationCallbacks.get(), &mSurface));
 #else
-#error "FastCG::VulkanGraphicsSystem::CreateHeadedSurface(): Don't know how to create a headed surface"
+#error "FastCG::VulkanGraphicsSystem::CreateSurface(): Don't know how to create a surface"
 #endif
+
+        if (!SupportsPresentationToSurface(mPhysicalDevice, mQueueFamilyIdx, mSurface))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Cannot present to surface");
+        }
     }
 
     void VulkanGraphicsSystem::SelectPhysicalDevice()
@@ -461,6 +493,7 @@ namespace FastCG
                     // FIXME: checking invariants
                     assert((rQueueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0);
 
+                    mQueueSupportsPresentation = SupportsPresentation(rPhysicalDevice, queueFamilyIdx);
                     mQueueSupportsCompute = (rQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0;
                     mQueueFamilyIdx = queueFamilyIdx;
                     mPhysicalDevice = rPhysicalDevice;
