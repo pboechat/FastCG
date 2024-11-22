@@ -148,7 +148,7 @@ namespace FastCG
                 mDepthStencilBuffers[GraphicsSystem::GetInstance()->GetCurrentFrame()];
 
             glm::mat4 projection;
-            bool isSSAOEnabled;
+            auto isSSAOEnabled = false;
 
             if (pCamera != nullptr)
             {
