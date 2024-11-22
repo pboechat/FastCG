@@ -13,6 +13,88 @@
 #include <cstring>
 #include <vector>
 
+namespace
+{
+    struct TemporaryDepthWriteStateChanger
+    {
+        TemporaryDepthWriteStateChanger(GLboolean newDepthWrite, FastCG::OpenGLGraphicsContext &rContext)
+            : mrContext(rContext)
+        {
+            glGetBooleanv(GL_DEPTH_WRITEMASK, &mOldDepthWrite);
+            if (mOldDepthWrite != newDepthWrite)
+            {
+                mrContext.SetDepthWrite(newDepthWrite);
+                mChangedDepthWrite = true;
+            }
+        }
+        ~TemporaryDepthWriteStateChanger()
+        {
+            if (mChangedDepthWrite)
+            {
+                mrContext.SetDepthWrite(mOldDepthWrite);
+            }
+        }
+
+    private:
+        GLboolean mOldDepthWrite;
+        FastCG::OpenGLGraphicsContext &mrContext;
+        bool mChangedDepthWrite{false};
+    };
+
+    struct TemporaryFragmentTestStateChanger
+    {
+        static constexpr uint8_t DEPTH_TEST_MASK = 1 << 0;
+        static constexpr uint8_t STENCIL_TEST_MASK = 1 << 1;
+        static constexpr uint8_t SCISSOR_TEST_MASK = 1 << 2;
+
+        TemporaryFragmentTestStateChanger(GLboolean newDepthTest, GLboolean newStencilTest, GLboolean newScissorTest,
+                                          FastCG::OpenGLGraphicsContext &rContext)
+            : mrContext(rContext)
+        {
+            glGetBooleanv(GL_DEPTH_TEST, &mOldDepthTest);
+            if (newDepthTest != mOldDepthTest)
+            {
+                mrContext.SetDepthTest(newDepthTest);
+                mChangeMask |= DEPTH_TEST_MASK;
+            }
+            glGetBooleanv(GL_STENCIL_TEST, &mOldStencilTest);
+            if (newStencilTest != mOldStencilTest)
+            {
+                mrContext.SetStencilTest(newStencilTest);
+                mChangeMask |= STENCIL_TEST_MASK;
+            }
+            glGetBooleanv(GL_SCISSOR_TEST, &mOldScissorTest);
+            if (newScissorTest != mOldScissorTest)
+            {
+                mrContext.SetScissorTest(newScissorTest);
+                mChangeMask |= SCISSOR_TEST_MASK;
+            }
+        }
+        ~TemporaryFragmentTestStateChanger()
+        {
+            if ((mChangeMask & SCISSOR_TEST_MASK) != 0)
+            {
+                mrContext.SetScissorTest(mOldScissorTest);
+            }
+            if ((mChangeMask & STENCIL_TEST_MASK) != 0)
+            {
+                mrContext.SetStencilTest(mOldStencilTest);
+            }
+            if ((mChangeMask & DEPTH_TEST_MASK) != 0)
+            {
+                mrContext.SetDepthTest(mOldDepthTest);
+            }
+        }
+
+    private:
+        GLboolean mOldDepthTest;
+        GLboolean mOldStencilTest;
+        GLboolean mOldScissorTest;
+        FastCG::OpenGLGraphicsContext &mrContext;
+        uint8_t mChangeMask{0};
+    };
+}
+
 namespace FastCG
 {
     OpenGLGraphicsContext::OpenGLGraphicsContext(const Args &rArgs)
@@ -294,6 +376,7 @@ namespace FastCG
 
     void OpenGLGraphicsContext::Blit(const OpenGLTexture *pSrc, const OpenGLTexture *pDst)
     {
+        TemporaryFragmentTestStateChanger testStateChanger(false, false, false, *this);
         const auto *pBackbuffer = OpenGLGraphicsSystem::GetInstance()->GetBackbuffer();
         GLint srcWidth, srcHeight;
         if (pSrc == pBackbuffer)
@@ -347,38 +430,29 @@ namespace FastCG
 
     void OpenGLGraphicsContext::ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor)
     {
+        TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
         glClearBufferfv(GL_COLOR, (GLint)renderTargetIndex, (const GLfloat *)&rClearColor[0]);
     }
 
     void OpenGLGraphicsContext::ClearDepthStencilBuffer(float depth, int32_t stencil)
     {
-        GLboolean oldDepthWrite;
-        glGetBooleanv(GL_DEPTH_WRITEMASK, &oldDepthWrite);
-        GLint oldStencilWriteMask;
-        glGetIntegerv(GL_STENCIL_WRITEMASK, &oldStencilWriteMask);
-        SetDepthWrite(true);
-        SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
+        TemporaryDepthWriteStateChanger tempDepthWriteState(true, *this);
+        TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
         glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
-        SetDepthWrite(oldDepthWrite);
-        SetStencilWriteMask(Face::FRONT_AND_BACK, oldStencilWriteMask);
     }
 
     void OpenGLGraphicsContext::ClearDepthBuffer(float depth)
     {
-        GLboolean oldDepthTest;
-        glGetBooleanv(GL_DEPTH_TEST, &oldDepthTest);
-        SetDepthTest(true);
+        TemporaryDepthWriteStateChanger tempDepthWriteState(true, *this);
+        TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
         glClearBufferfv(GL_DEPTH, 0, &depth);
-        SetDepthTest(oldDepthTest);
     }
 
     void OpenGLGraphicsContext::ClearStencilBuffer(int32_t stencil)
     {
-        GLint oldStencilMask;
-        glGetIntegerv(GL_STENCIL_WRITEMASK, &oldStencilMask);
-        SetStencilWriteMask(Face::FRONT_AND_BACK, 0xff);
+        TemporaryDepthWriteStateChanger tempDepthWriteState(true, *this);
+        TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
         glClearBufferiv(GL_STENCIL, 0, &stencil);
-        SetStencilWriteMask(Face::FRONT_AND_BACK, oldStencilMask);
     }
 
     void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *ppRenderTargets,

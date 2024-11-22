@@ -3,6 +3,10 @@
 
 #include <FastCG/Core/Macros.h>
 
+#define FASTCG_DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...)                                         \
+    constexpr arrayType array[] = {__VA_ARGS__};                                                                       \
+    static_assert((size_t) enum ::LAST == FASTCG_ARRAYSIZE(array), "Missing element in " #array)
+
 #define FASTCG_EXPAND_TO_ENUM_STRING(item, idx) "::" #item,
 
 #define FASTCG_DECLARE_ENUM_FUNCTIONS_(enumName, type, ...)                                                            \

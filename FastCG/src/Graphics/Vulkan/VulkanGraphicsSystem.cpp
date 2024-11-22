@@ -169,7 +169,7 @@ namespace
         const FastCG::VulkanTexture *pTexture;
         VkAttachmentLoadOp colorOrDepth;
         VkAttachmentLoadOp stencil;
-        bool write;
+        uint8_t write : 2; // 0=no write, 1=write depth/colour, 2=write stencil, 3=write depth&stencil
     } FASTCG_PACKED_SUFFIX;
 
     size_t GetRenderPassHash(const std::vector<AttachmentDefinition> &rAttachmentDefinitions)
@@ -582,7 +582,25 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(
             vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mSurface, &surfaceFormatsCount, &surfaceFormats[0]));
 
-        mSurfaceSwapChainFormat = surfaceFormats[0];
+        const auto acceptableSurfaceFormats = std::vector<VkFormat>{
+            VK_FORMAT_B8G8R8A8_UNORM,
+            VK_FORMAT_R8G8B8A8_UNORM,
+        };
+        const auto *pFirstSurfaceFormat = &surfaceFormats[0];
+        const auto *pLastSurfaceFormat = pFirstSurfaceFormat + surfaceFormatsCount;
+        auto it = std::find_if(pFirstSurfaceFormat, pLastSurfaceFormat,
+                               [&acceptableSurfaceFormats](const auto &rSurfaceFormat) {
+                                   return std::any_of(acceptableSurfaceFormats.begin(), acceptableSurfaceFormats.end(),
+                                                      [&rSurfaceFormat](const auto &rAcceptableSurfaceFormat) {
+                                                          return rSurfaceFormat.format == rAcceptableSurfaceFormat;
+                                                      });
+                               });
+        if (it == pLastSurfaceFormat)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "Vulkan: Couldn't find required surface format");
+        }
+
+        mSurfaceSwapChainFormat = *it;
 
         {
             uint32_t presentModesCount;
@@ -760,7 +778,6 @@ namespace FastCG
     {
         for (size_t i = 0; i < mMaxSimultaneousFrames; ++i)
         {
-            // TODO:
             mSwapChainTextures.emplace_back(CreateTexture(
                 {"Surfaceless SwapChain Image " + std::to_string(i), mArgs.rScreenWidth, mArgs.rScreenHeight, 1, 1,
                  TextureType::TEXTURE_2D, TextureUsageFlagBit::RENDER_TARGET | TextureUsageFlagBit::SAMPLED,
@@ -820,15 +837,20 @@ namespace FastCG
     void VulkanGraphicsSystem::CreateDescriptorPool()
     {
         // TODO: make this less brittle and possibly dynamic
-        const VkDescriptorPoolSize DESCRIPTOR_POOL_SIZES[] = {{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096},
-                                                              {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4096},
-                                                              {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 4096}};
+        const size_t MAX_LOCAL_POOL_COUNT = 16;
+        const size_t DESCRIPTOR_TYPE_COUNT = 16;
+        const VkDescriptorPoolSize DESCRIPTOR_POOL_SIZES[] = {
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+             VulkanDescriptorSetLocalPool::MAX_SET_COUNT * DESCRIPTOR_TYPE_COUNT},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VulkanDescriptorSetLocalPool::MAX_SET_COUNT * DESCRIPTOR_TYPE_COUNT},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VulkanDescriptorSetLocalPool::MAX_SET_COUNT * DESCRIPTOR_TYPE_COUNT}};
 
         VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
         descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         descriptorPoolCreateInfo.pNext = nullptr;
         descriptorPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        descriptorPoolCreateInfo.maxSets = 2048;
+        descriptorPoolCreateInfo.maxSets =
+            VulkanDescriptorSetLocalPool::MAX_SET_COUNT * MAX_LOCAL_POOL_COUNT * mMaxSimultaneousFrames;
         descriptorPoolCreateInfo.poolSizeCount = (uint32_t)FASTCG_ARRAYSIZE(DESCRIPTOR_POOL_SIZES);
         descriptorPoolCreateInfo.pPoolSizes = DESCRIPTOR_POOL_SIZES;
         FASTCG_CHECK_VK_RESULT(
@@ -1169,50 +1191,41 @@ namespace FastCG
     }
 
     std::pair<size_t, VkRenderPass> VulkanGraphicsSystem::GetOrCreateRenderPass(
-        const VulkanRenderPassDescription &rRenderPassDescription,
-        const std::vector<VulkanClearRequest> &rClearRequests, bool depthStencilWrite)
+        const VulkanRenderPassDescription &rRenderPassDescription, bool depthWrite, bool stencilWrite)
     {
         std::vector<AttachmentDefinition> attachmentDefinitions;
-        std::for_each(rRenderPassDescription.ppRenderTargets,
-                      rRenderPassDescription.ppRenderTargets + rRenderPassDescription.renderTargetCount,
-                      [&](const auto *pRenderTarget) {
-                          if (pRenderTarget == nullptr)
-                          {
-                              return;
-                          }
+        for (size_t i = 0; i < rRenderPassDescription.renderTargetCount; ++i)
+        {
+            const auto *pRenderTarget = rRenderPassDescription.ppRenderTargets[i];
+            if (pRenderTarget == nullptr)
+            {
+                continue;
+            }
 
-                          attachmentDefinitions.emplace_back();
-                          auto &rAttachmentDefinition = attachmentDefinitions.back();
-                          rAttachmentDefinition.pTexture = pRenderTarget;
-                          auto it = std::find_if(rClearRequests.begin(), rClearRequests.end(),
-                                                 [pRenderTarget](const auto &rClearRequest) {
-                                                     return rClearRequest.pTexture == pRenderTarget;
-                                                 });
+            attachmentDefinitions.emplace_back();
+            auto &rAttachmentDefinition = attachmentDefinitions.back();
+            rAttachmentDefinition.pTexture = pRenderTarget;
 
-                          if (it != rClearRequests.end() &&
-                              (it->flags & VulkanClearRequestFlagBit::COLOR_OR_DEPTH) != 0)
-                          {
-                              rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                          }
-                          else
-                          {
-                              rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_LOAD;
-                          }
-                          rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                          rAttachmentDefinition.write = true;
-                      });
+            if ((rRenderPassDescription.colorClearRequests[i].flags & VulkanClearRequestFlagBit::COLOR_OR_DEPTH) != 0)
+            {
+                rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            }
+            else
+            {
+                rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_LOAD;
+            }
+            rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            rAttachmentDefinition.write = 1; // write color
+        }
 
         if (rRenderPassDescription.pDepthStencilBuffer != nullptr)
         {
             attachmentDefinitions.emplace_back();
             auto &rAttachmentDefinition = attachmentDefinitions.back();
             rAttachmentDefinition.pTexture = rRenderPassDescription.pDepthStencilBuffer;
-            auto it = std::find_if(rClearRequests.begin(), rClearRequests.end(),
-                                   [&rRenderPassDescription](const auto &rClearRequest) {
-                                       return rClearRequest.pTexture == rRenderPassDescription.pDepthStencilBuffer;
-                                   });
 
-            if (it != rClearRequests.end() && (it->flags & VulkanClearRequestFlagBit::COLOR_OR_DEPTH) != 0)
+            if ((rRenderPassDescription.depthStencilClearRequest.flags & VulkanClearRequestFlagBit::COLOR_OR_DEPTH) !=
+                0)
             {
                 rAttachmentDefinition.colorOrDepth = VK_ATTACHMENT_LOAD_OP_CLEAR;
             }
@@ -1223,7 +1236,7 @@ namespace FastCG
 
             if (HasStencil(rRenderPassDescription.pDepthStencilBuffer->GetFormat()))
             {
-                if (it != rClearRequests.end() && (it->flags & VulkanClearRequestFlagBit::STENCIL) != 0)
+                if ((rRenderPassDescription.depthStencilClearRequest.flags & VulkanClearRequestFlagBit::STENCIL) != 0)
                 {
                     rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 }
@@ -1236,7 +1249,8 @@ namespace FastCG
             {
                 rAttachmentDefinition.stencil = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             }
-            rAttachmentDefinition.write = depthStencilWrite;
+            rAttachmentDefinition.write =
+                (depthWrite) + (stencilWrite << 1); // no write, write depth or write depth&stencil
         }
 
         auto renderPassHash = GetRenderPassHash(attachmentDefinitions);
@@ -1328,7 +1342,7 @@ namespace FastCG
             rAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
             VkImageLayout initialLayout, finalLayout;
-            if (depthStencilWrite)
+            if (depthWrite || stencilWrite)
             {
                 initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 finalLayout = rRenderPassDescription.pDepthStencilBuffer->GetRestingLayout();
@@ -1346,7 +1360,7 @@ namespace FastCG
             depthAttachmentReference.aspectMask = rRenderPassDescription.pDepthStencilBuffer->GetAspectFlags();
 
             rAttachmentDescription.stencilLoadOp = rAttachmentDefinition.stencil;
-            if (HasStencil(rRenderPassDescription.pDepthStencilBuffer->GetFormat()))
+            if (stencilWrite)
             {
                 rAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
             }
@@ -1377,10 +1391,9 @@ namespace FastCG
     }
 
     std::pair<size_t, VkFramebuffer> VulkanGraphicsSystem::GetOrCreateFrameBuffer(
-        const VulkanRenderPassDescription &rRenderPassDescription,
-        const std::vector<VulkanClearRequest> &rClearRequests, bool depthStencilWrite)
+        const VulkanRenderPassDescription &rRenderPassDescription, bool depthWrite, bool stencilWrite)
     {
-        auto result = GetOrCreateRenderPass(rRenderPassDescription, rClearRequests, depthStencilWrite);
+        auto result = GetOrCreateRenderPass(rRenderPassDescription, depthWrite, stencilWrite);
 
         auto it = mFrameBuffers.find(result.first);
         if (it != mFrameBuffers.end())
@@ -1808,7 +1821,7 @@ namespace FastCG
         {
             auto &rDescriptorSetLocalPool = it->second;
             auto descriptorSet = rDescriptorSetLocalPool.descriptorSets[rDescriptorSetLocalPool.lastDescriptorSetIdx++];
-            assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SET_COUNT);
+            assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < VulkanDescriptorSetLocalPool::MAX_SET_COUNT);
             return {it->first, descriptorSet};
         }
 
@@ -1816,7 +1829,7 @@ namespace FastCG
 
         auto &rDescriptorSetLocalPool = rDescriptorSetLocalPools[setLayoutHash];
 
-        for (size_t i = 0; i < DescriptorSetLocalPool::MAX_SET_COUNT; ++i)
+        for (size_t i = 0; i < VulkanDescriptorSetLocalPool::MAX_SET_COUNT; ++i)
         {
             auto &rDescriptorSet = rDescriptorSetLocalPool.descriptorSets[i];
 
@@ -1831,7 +1844,7 @@ namespace FastCG
         }
 
         auto descriptorSet = rDescriptorSetLocalPool.descriptorSets[rDescriptorSetLocalPool.lastDescriptorSetIdx++];
-        assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < DescriptorSetLocalPool::MAX_SET_COUNT);
+        assert(rDescriptorSetLocalPool.lastDescriptorSetIdx < VulkanDescriptorSetLocalPool::MAX_SET_COUNT);
         return {setLayoutHash, descriptorSet};
     }
 

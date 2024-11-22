@@ -22,7 +22,6 @@ namespace FastCG
 
     struct VulkanClearRequest
     {
-        const VulkanTexture *pTexture;
         VkClearValue value;
         VulkanClearRequestFlags flags;
     };
@@ -34,6 +33,8 @@ namespace FastCG
         uint32_t renderTargetCount;
         const VulkanTexture *ppRenderTargets[MAX_RENDER_TARGET_COUNT];
         const VulkanTexture *pDepthStencilBuffer;
+        VulkanClearRequest colorClearRequests[MAX_RENDER_TARGET_COUNT];
+        VulkanClearRequest depthStencilClearRequest;
     };
 
 }

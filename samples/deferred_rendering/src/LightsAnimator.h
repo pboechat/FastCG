@@ -14,14 +14,21 @@ class LightsAnimator : public FastCG::Behaviour
 
 public:
     void ChangeColors();
+    bool IsEnabled() const { return mEnabled; }
+    void SetEnabled(bool value) { mEnabled = value; }
 
 protected:
     void OnUpdate(float time, float deltaTime) override;
+    void OnRegisterInspectableProperties() override
+    {
+        RegisterInspectableProperty(this, "Enabled", &LightsAnimator::IsEnabled, &LightsAnimator::SetEnabled);
+    }
 
 private:
     std::vector<glm::vec3> mDirections;
     float mLastDirectionChangeTime{0};
     bool mInitialized{false};
+    bool mEnabled{false};
 
     void ChangeColors(const std::vector<FastCG::PointLight *> &rPointLights);
 };

@@ -1,4 +1,5 @@
 #include <FastCG/Assets/AssetSystem.h>
+#include <FastCG/Core/Enums.h>
 #include <FastCG/Core/Log.h>
 #include <FastCG/Core/Macros.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
@@ -12,19 +13,16 @@
 #include <algorithm>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
 namespace
 {
-#define DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(enum, arrayType, array, ...)                                                \
-    constexpr arrayType array[] = {__VA_ARGS__};                                                                       \
-    static_assert((size_t) enum ::LAST == FASTCG_ARRAYSIZE(array), "Missing element in " #array)
-
-    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS, ".vert",
-                                       ".frag", ".comp");
-    DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS,
-                                       ".vert_spv", ".frag_spv", ".comp_spv");
+    FASTCG_DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_TEXT_FILE_EXTENSIONS,
+                                              ".vert", ".frag", ".comp");
+    FASTCG_DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(FastCG::ShaderType, const char *, SHADER_TYPE_BINARY_FILE_EXTENSIONS,
+                                              ".vert_spv", ".frag_spv", ".comp_spv");
 
     FastCG::RenderingPathMask GetSuitableRenderingPathMask(const std::string &rFileName)
     {

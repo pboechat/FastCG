@@ -132,7 +132,7 @@ namespace FastCG
             }
         };
 
-        struct DescriptorSetLocalPool
+        struct VulkanDescriptorSetLocalPool
         {
             static constexpr size_t MAX_SET_COUNT = 128;
 
@@ -184,7 +184,7 @@ namespace FastCG
         std::unordered_map<size_t, VkPipeline, IdentityHasher<size_t>> mPipelines;
         std::unordered_map<size_t, VkPipelineLayout, IdentityHasher<size_t>> mPipelineLayouts;
         std::unordered_map<size_t, VkDescriptorSetLayout, IdentityHasher<size_t>> mDescriptorSetLayouts;
-        std::vector<std::unordered_map<size_t, DescriptorSetLocalPool, IdentityHasher<size_t>>>
+        std::vector<std::unordered_map<size_t, VulkanDescriptorSetLocalPool, IdentityHasher<size_t>>>
             mDescriptorSetLocalPools;
         std::unordered_map<VkImage, VulkanImageMemoryBarrier, IdentityHasher<VkImage>> mLastImageMemoryBarriers;
         std::unordered_map<VkBuffer, VulkanBufferMemoryBarrier, IdentityHasher<VkBuffer>> mLastBufferMemoryBarriers;
@@ -249,11 +249,9 @@ namespace FastCG
         void SetObjectName(const char *pObjectName, VkObjectType objectType, uint64_t objectHandle);
 #endif
         std::pair<size_t, VkRenderPass> GetOrCreateRenderPass(const VulkanRenderPassDescription &rRenderPassDescription,
-                                                              const std::vector<VulkanClearRequest> &rClearRequests,
-                                                              bool depthStencilWrite);
+                                                              bool depthWrite, bool stencilWrite);
         std::pair<size_t, VkFramebuffer> GetOrCreateFrameBuffer(
-            const VulkanRenderPassDescription &rRenderPassDescription,
-            const std::vector<VulkanClearRequest> &rClearRequests, bool depthStencilWrite);
+            const VulkanRenderPassDescription &rRenderPassDescription, bool depthWrite, bool stencilWrite);
         std::pair<size_t, VulkanPipeline> GetOrCreateGraphicsPipeline(
             const VulkanPipelineDescription &rPipelineDescription, VkRenderPass renderPass, uint32_t renderTargetCount);
         std::pair<size_t, VulkanPipeline> GetOrCreateComputePipeline(

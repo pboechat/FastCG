@@ -8,29 +8,35 @@ Originally developed during my M.Sc. realtime rendering course.
 
 Features:
 
-- Platform Support:
+- Platforms:
     - Windows
     - Linux
     - Android
-- Rendering Backend Support:
+- Graphics Backends:
     - OpenGL 4.3 (core profile)
     - OpenGL ES 3.2
     - Vulkan 1.1/1.2/1.3
-- Material System:
-    - Basic shaders including diffuse, specular, bump, and more.
+- Materials:
+    - Basic shaders like solid color, textured, bump mapping, and more.
 - Rendering Paths:
     - Forward
-    - Forward+ (Upcoming)
     - Deferred
+- Shading Models:
+    - Blinn/Phong
 - Rendering Techniques:
     - SSAO
     - PCSS
-    - HDR/Tonemap (Upcoming)
-- Asset Management:
-    - Supports various image formats (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
-    - Support to KTX (via [KTX-Software](https://github.com/KhronosGroup/KTX-Software)) and DDS.
-    - Supports OBJ models (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
-- Immediate-Mode GUI Support (via [Dear ImGUI](https://github.com/ocornut/imgui))
+    - HDR/Tonemap
+- Scene Loaders:
+    - Proprietary JSON-based format (.scene)
+- Image Loaders:
+    - JPEG, PNG, TGA, BMP and more (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
+    - DDS ([Microsoft code](https://learn.microsoft.com/en-us/windows/uwp/gaming/complete-code-for-ddstextureloader))
+    - KTX (via [KTX-Software](https://github.com/KhronosGroup/KTX-Software))
+- Model Loaders:
+    - OBJ (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
+- Editor Mode:
+    - Immediate-Mode GUI (via [Dear ImGUI](https://github.com/ocornut/imgui))
 - Compute Shader Support.
 - API Design:
-    - Component-oriented API.
+    - Component-oriented.

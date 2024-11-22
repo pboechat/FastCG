@@ -84,55 +84,6 @@ namespace
     const EGLint EGL_CONTEXT_ATTRIBS[] = {EGL_CONTEXT_MAJOR_VERSION, 3, EGL_CONTEXT_MINOR_VERSION, 2, EGL_NONE};
 
 #elif defined FASTCG_WINDOWS
-    void SetPixelFormat(HDC deviceContext)
-    {
-        PIXELFORMATDESCRIPTOR pixelFormatDescr = {
-            sizeof(PIXELFORMATDESCRIPTOR),
-            1,
-            PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-            PFD_TYPE_RGBA,
-            32,             // color bits
-            8,              // R color bits
-            0,              // R shift bits
-            8,              // G color bits
-            0,              // G shift bits
-            8,              // B color bits
-            0,              // B shift bits
-            8,              // A color bits
-            0,              // A shift bits
-            0,              // accum bits
-            0,              // R accum bits
-            0,              // G accum bits
-            0,              // B accum bits
-            0,              // A accum bits
-            24,             // depth bits
-            8,              // stencil bits
-            0,              // auxiliary buffers
-            PFD_MAIN_PLANE, // layer type
-            0,              // reserved
-            0,              // layer mask
-            0,              // visible mask
-            0,              // damage mask
-        };
-
-        auto pixelFormat = ChoosePixelFormat(deviceContext, &pixelFormatDescr);
-        if (pixelFormat == 0)
-        {
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't choose a pixel format");
-        }
-
-        if (!DescribePixelFormat(deviceContext, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pixelFormatDescr))
-        {
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't describe pixel format");
-        }
-
-        if (!::SetPixelFormat(deviceContext, pixelFormat, &pixelFormatDescr))
-        {
-            auto a = GetLastError();
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't set the current pixel format");
-        }
-    }
-
     HGLRC CreateWGLContextAndMakeCurrent(HDC deviceContext, HGLRC parentContext)
     {
         if (!WGLEW_ARB_create_context)
@@ -140,21 +91,19 @@ namespace
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "WGL: WGL_ARB_create_context extension not supported");
         }
 
-        const int contextAttribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            WGL_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
+                                      4,
+                                      WGL_CONTEXT_MINOR_VERSION_ARB,
+                                      3,
+                                      WGL_CONTEXT_PROFILE_MASK_ARB,
+                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      WGL_CONTEXT_FLAGS_ARB,
+                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | WGL_CONTEXT_DEBUG_BIT_ARB
+                                          | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                                      ,
+                                      0};
 
         auto context = wglCreateContextAttribsARB(deviceContext, parentContext, contextAttribs);
         if (context == nullptr)
@@ -488,7 +437,45 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "Win32: Couldn't get a temporary device context");
         }
 
-        SetPixelFormat(tempDeviceContext);
+        PIXELFORMATDESCRIPTOR pixelFormatDescr = {
+            sizeof(PIXELFORMATDESCRIPTOR),
+            1,
+            PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+            PFD_TYPE_RGBA,
+            32,             // color bits
+            8,              // R color bits
+            0,              // R shift bits
+            8,              // G color bits
+            0,              // G shift bits
+            8,              // B color bits
+            0,              // B shift bits
+            8,              // A color bits
+            0,              // A shift bits
+            0,              // accum bits
+            0,              // R accum bits
+            0,              // G accum bits
+            0,              // B accum bits
+            0,              // A accum bits
+            24,             // depth bits
+            8,              // stencil bits
+            0,              // auxiliary buffers
+            PFD_MAIN_PLANE, // layer type
+            0,              // reserved
+            0,              // layer mask
+            0,              // visible mask
+            0,              // damage mask
+        };
+
+        auto pixelFormat = ChoosePixelFormat(tempDeviceContext, &pixelFormatDescr);
+        if (pixelFormat == 0)
+        {
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't choose a pixel format");
+        }
+
+        if (!::SetPixelFormat(tempDeviceContext, pixelFormat, &pixelFormatDescr))
+        {
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't set the current pixel format");
+        }
 
         auto tempContext = wglCreateContext(tempDeviceContext);
         if (tempContext == nullptr)
@@ -512,6 +499,11 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(Exception, "WGL: WGL_ARB_pbuffer extension not supported");
         }
 
+        if (!WGLEW_EXT_colorspace)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: WGL_EXT_colorspace extension not supported");
+        }
+
         const int pixelAttribs[] = {WGL_DRAW_TO_PBUFFER_ARB,
                                     GL_TRUE,
                                     WGL_SUPPORT_OPENGL_ARB,
@@ -532,13 +524,15 @@ namespace FastCG
                                     24,
                                     WGL_STENCIL_BITS_ARB,
                                     8,
+                                    WGL_COLORSPACE_EXT,
+                                    WGL_COLORSPACE_LINEAR_EXT,
                                     0};
 
-        auto fullScreenDeviceContext = GetDC(NULL);
-
-        int pixelFormat;
         UINT numFormats;
-        wglChoosePixelFormatARB(tempDeviceContext, pixelAttribs, NULL, 1, &pixelFormat, &numFormats);
+        if (!wglChoosePixelFormatARB(tempDeviceContext, pixelAttribs, NULL, 1, &pixelFormat, &numFormats))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: Couldn't choose a pixel format");
+        }
 
         int pbufferAttribs[] = {WGL_PBUFFER_LARGEST_ARB, 1, 0};
 
@@ -563,7 +557,13 @@ namespace FastCG
 
         auto defaultScreen = DefaultScreen(pDisplay);
 
-        const int fbAttribs[] = {GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, None};
+        const int fbAttribs[] = {GLX_RENDER_TYPE,
+                                 GLX_RGBA_BIT,
+                                 GLX_DRAWABLE_TYPE,
+                                 GLX_PBUFFER_BIT,
+                                 GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB,
+                                 False,
+                                 None};
 
         int numFbConfigs = 0;
         auto *pFbConfigs = glXChooseFBConfig(pDisplay, defaultScreen, fbAttribs, &numFbConfigs);
@@ -600,14 +600,16 @@ namespace FastCG
                                          EGL_WINDOW_BIT,
                                          EGL_RENDERABLE_TYPE,
                                          EGL_OPENGL_ES2_BIT,
-                                         EGL_BLUE_SIZE,
+                                         EGL_RED_SIZE,
                                          8,
                                          EGL_GREEN_SIZE,
                                          8,
-                                         EGL_RED_SIZE,
+                                         EGL_BLUE_SIZE,
                                          8,
                                          EGL_ALPHA_SIZE,
                                          8,
+                                         EGL_GL_COLORSPACE,
+                                         EGL_GL_COLORSPACE_LINEAR,
                                          EGL_NONE};
 
         EGLint numConfigs;
@@ -654,7 +656,53 @@ namespace FastCG
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't get the device context for a given window");
         }
 
-        SetPixelFormat(mDeviceContext);
+        if (!WGLEW_ARB_pbuffer)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: WGL_ARB_pbuffer extension not supported");
+        }
+
+        if (!WGLEW_EXT_colorspace)
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: WGL_EXT_colorspace extension not supported");
+        }
+
+        const int pixelAttribs[] = {WGL_DRAW_TO_WINDOW_ARB,
+                                    GL_TRUE,
+                                    WGL_SUPPORT_OPENGL_ARB,
+                                    GL_TRUE,
+                                    WGL_DOUBLE_BUFFER_ARB,
+                                    GL_TRUE,
+                                    WGL_PIXEL_TYPE_ARB,
+                                    WGL_TYPE_RGBA_ARB,
+                                    WGL_RED_BITS_ARB,
+                                    8,
+                                    WGL_GREEN_BITS_ARB,
+                                    8,
+                                    WGL_BLUE_BITS_ARB,
+                                    8,
+                                    WGL_ALPHA_BITS_ARB,
+                                    8,
+                                    WGL_DEPTH_BITS_ARB,
+                                    24,
+                                    WGL_STENCIL_BITS_ARB,
+                                    8,
+                                    WGL_COLORSPACE_EXT,
+                                    WGL_COLORSPACE_LINEAR_EXT,
+                                    0};
+
+        int pixelFormat;
+        UINT numFormats;
+        if (!wglChoosePixelFormatARB(mDeviceContext, pixelAttribs, NULL, 1, &pixelFormat, &numFormats))
+        {
+            FASTCG_THROW_EXCEPTION(Exception, "WGL: Couldn't choose a pixel format");
+        }
+
+        assert(numFormats > 0);
+        PIXELFORMATDESCRIPTOR pixelFormatDescr;
+        if (!::SetPixelFormat(mDeviceContext, pixelFormat, &pixelFormatDescr))
+        {
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Win32: Couldn't set the current pixel format");
+        }
 
         mContext = CreateWGLContextAndMakeCurrent(mDeviceContext, oldContext);
 
@@ -694,7 +742,11 @@ namespace FastCG
                                  GLX_ALPHA_SIZE,
                                  8,
                                  GLX_DEPTH_SIZE,
-                                 0,
+                                 24,
+                                 GLX_STENCIL_SIZE,
+                                 8,
+                                 GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB,
+                                 False,
                                  None};
 
         int numFbConfigs = 0;
@@ -742,21 +794,19 @@ namespace FastCG
 
         auto oldContext = mContext;
 
-        const int contextAttribs[] = {
-            GLX_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            GLX_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            GLX_CONTEXT_PROFILE_MASK_ARB,
-            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-            GLX_CONTEXT_FLAGS_ARB,
-            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {GLX_CONTEXT_MAJOR_VERSION_ARB,
+                                      4,
+                                      GLX_CONTEXT_MINOR_VERSION_ARB,
+                                      3,
+                                      GLX_CONTEXT_PROFILE_MASK_ARB,
+                                      GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      GLX_CONTEXT_FLAGS_ARB,
+                                      GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | GLX_CONTEXT_DEBUG_BIT_ARB
+                                          | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                                      ,
+                                      0};
 
         auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
         mContext = glXCreateContextAttribsARB(pDisplay, fbConfig, oldContext, True, contextAttribs);

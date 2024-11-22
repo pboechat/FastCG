@@ -24,6 +24,11 @@ void Controls::OnUpdate(float time, float deltaTime)
         {
             mpLightsAnimator->ChangeColors();
         }
+
+        if (ImGui::Button("Toggle Animation"))
+        {
+            mpLightsAnimator->SetEnabled(!mpLightsAnimator->IsEnabled());
+        }
     }
     ImGui::End();
 }

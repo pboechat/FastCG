@@ -103,8 +103,16 @@ namespace FastCG
         mpSSAOBlurPassShader = GraphicsSystem::GetInstance()->FindShader("SSAOBlurPass");
         assert(mpSSAOBlurPassShader != nullptr);
 
-        mpTonemapShader = GraphicsSystem::GetInstance()->FindShader("TonemapPass");
-        assert(mpTonemapShader != nullptr);
+        FASTCG_DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(Tonemapper, const char *, TONEMAPPER_SHADER_NAMES, "None",
+                                                  "CheapReinhard", "Reinhard", "ACES");
+
+        for (TonemapperInt i = (TonemapperInt)Tonemapper::CHEAP_REINHARD, j = 0; i < (TonemapperInt)Tonemapper::LAST;
+             ++i, ++j)
+        {
+            mTonemapperShaders[j] =
+                GraphicsSystem::GetInstance()->FindShader(std::string(TONEMAPPER_SHADER_NAMES[i]) + "Pass");
+            assert(mTonemapperShaders[j] != nullptr);
+        }
 
         mpQuadMesh = StandardGeometries::CreateXYPlane("Fullscreen Quad", 2, 2, 1, 1, glm::vec3(0, 0, 0));
     }
@@ -114,11 +122,6 @@ namespace FastCG
         const Camera *pCamera, GraphicsContext *pGraphicsContext)
     {
         assert(pGraphicsContext != nullptr);
-
-        if (pCamera == nullptr)
-        {
-            return;
-        }
 
         OnRender(pCamera, pGraphicsContext);
 
@@ -343,7 +346,7 @@ namespace FastCG
             mpSSAOHighFrequencyPassConstantsBuffer = nullptr;
         }
 
-        mpTonemapShader = nullptr;
+        mTonemapperShaders = {};
     }
 
 #if _DEBUG
@@ -363,6 +366,19 @@ namespace FastCG
             ImGui::Checkbox("Blur enabled", &mSSAOBlurEnabled);
             ImGui::DragFloat("Radius", &mSSAOHighFrequencyPassConstants.radius, 0.005f, 0.01f, 10.0f);
             ImGui::DragFloat("Bias", &mSSAOHighFrequencyPassConstants.bias, 0.0001f, 0.0001f, 1.0f);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Tonemap"))
+        {
+            FASTCG_DECLARE_ENUM_BASED_CONSTEXPR_ARRAY(Tonemapper, const char *, TONEMAPPER_DISPLAY_NAMES, "None",
+                                                      "Cheap Reinhard", "Reinhard", "ACES");
+
+            int selectedTonemapper = (int)mTonemapper;
+            if (ImGui::Combo("Tonemapper", &selectedTonemapper, TONEMAPPER_DISPLAY_NAMES,
+                             FASTCG_ARRAYSIZE(TONEMAPPER_DISPLAY_NAMES)))
+            {
+                mTonemapper = (Tonemapper)selectedTonemapper;
+            }
             ImGui::EndMenu();
         }
     }
@@ -577,27 +593,35 @@ namespace FastCG
     void BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::Tonemap(
         const Texture *pSourceRenderTarget, const Texture *pDestinationRenderTarget, GraphicsContext *pGraphicsContext)
     {
-        pGraphicsContext->PushDebugMarker("Tonemapping");
+        auto tonemapDebugMarker = std::string("Tonemapping with ") + Tonemapper_STRINGS[(TonemapperInt)mTonemapper];
+        pGraphicsContext->PushDebugMarker(tonemapDebugMarker.c_str());
         {
-            pGraphicsContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
-            pGraphicsContext->SetDepthTest(false);
-            pGraphicsContext->SetDepthWrite(false);
-            pGraphicsContext->SetScissorTest(false);
-            pGraphicsContext->SetStencilTest(false);
-            pGraphicsContext->SetCullMode(Face::NONE);
-            pGraphicsContext->SetBlend(false);
-            pGraphicsContext->SetRenderTargets(&pDestinationRenderTarget, 1, nullptr);
+            if (mTonemapper == Tonemapper::NONE)
+            {
+                pGraphicsContext->Blit(pSourceRenderTarget, pDestinationRenderTarget);
+            }
+            else
+            {
+                pGraphicsContext->SetViewport(0, 0, mArgs.rScreenWidth, mArgs.rScreenHeight);
+                pGraphicsContext->SetDepthTest(false);
+                pGraphicsContext->SetDepthWrite(false);
+                pGraphicsContext->SetScissorTest(false);
+                pGraphicsContext->SetStencilTest(false);
+                pGraphicsContext->SetCullMode(Face::NONE);
+                pGraphicsContext->SetBlend(false);
+                pGraphicsContext->SetRenderTargets(&pDestinationRenderTarget, 1, nullptr);
 
-            pGraphicsContext->BindShader(mpTonemapShader);
+                pGraphicsContext->BindShader(mTonemapperShaders[(TonemapperInt)mTonemapper - 1]);
 
-            pGraphicsContext->BindResource(pSourceRenderTarget, "uSource");
+                pGraphicsContext->BindResource(pSourceRenderTarget, "uSource");
 
-            pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
-            pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
+                pGraphicsContext->SetVertexBuffers(mpQuadMesh->GetVertexBuffers(), mpQuadMesh->GetVertexBufferCount());
+                pGraphicsContext->SetIndexBuffer(mpQuadMesh->GetIndexBuffer());
 
-            pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
+                pGraphicsContext->DrawIndexed(PrimitiveType::TRIANGLES, 0, mpQuadMesh->GetIndexCount(), 0);
 
-            mArgs.rRenderingStatistics.drawCalls++;
+                mArgs.rRenderingStatistics.drawCalls++;
+            }
         }
         pGraphicsContext->PopDebugMarker();
     }

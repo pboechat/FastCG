@@ -11,7 +11,8 @@
 
 using namespace FastCG;
 
-DeferredRenderingApplication::DeferredRenderingApplication() : Application({"deferred_rendering"})
+DeferredRenderingApplication::DeferredRenderingApplication()
+    : Application({"deferred_rendering", {}, {RenderingPath::DEFERRED, Colors::BLACK, Colors::BLACK, true}})
 {
     ComponentRegistry::RegisterComponent<Controls>();
     ComponentRegistry::RegisterComponent<LightsAnimator>();

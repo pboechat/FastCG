@@ -28,10 +28,13 @@ void LightsAnimator::ChangeColors(const std::vector<PointLight *> &rPointLights)
 void LightsAnimator::OnUpdate(float time, float deltaTime)
 {
     std::vector<PointLight *> pointLights;
-    WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
+    bool triedFindPointLights = false;
 
     if (!mInitialized)
     {
+        WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
+        triedFindPointLights = true;
+
         mDirections.clear();
         for (size_t i = 0; i < pointLights.size(); ++i)
         {
@@ -40,6 +43,16 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
         }
         ChangeColors(pointLights);
         mInitialized = true;
+    }
+
+    if (!mEnabled)
+    {
+        return;
+    }
+
+    if (!triedFindPointLights)
+    {
+        WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
     }
 
     if (time - mLastDirectionChangeTime > 5.0f)

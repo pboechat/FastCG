@@ -73,6 +73,15 @@ namespace FastCG
             INSTANCED_INDEXED
         };
 
+        struct ClearCommand
+        {
+#if _DEBUG
+            size_t lastMarkerCommandIdx;
+#endif
+            const VulkanTexture *pTexture;
+            VulkanClearRequest clearRequest;
+        };
+
         enum class CopyCommandType : uint8_t
         {
             BUFFER_TO_BUFFER,
@@ -194,6 +203,7 @@ namespace FastCG
 
         struct PassBatch
         {
+            size_t lastClearCommandIdx;
             size_t lastCopyCommandIdx;
             size_t lastPipelineBatchIdx;
             PassType type;
@@ -209,7 +219,8 @@ namespace FastCG
                     const VulkanTexture *pDepthStencilBuffer;
                     uint32_t clearValueCount;
                     VkClearValue pClearValues[VulkanRenderPassDescription::MAX_RENDER_TARGET_COUNT + 1];
-                    bool depthStencilWrite;
+                    bool depthWrite;
+                    bool stencilWrite;
                 } renderInfo;
                 struct
                 {
@@ -222,10 +233,10 @@ namespace FastCG
         VulkanPipelineLayout mPipelineLayout;
         std::vector<PassBatch> mPassBatches;
         std::vector<PipelineBatch> mPipelineBatches;
+        std::vector<ClearCommand> mClearCommands;
         std::vector<CopyCommand> mCopyCommands;
         std::vector<InvokeCommand> mInvokeCommands;
-        VkRenderPass mPrevRenderPass{VK_NULL_HANDLE};
-        std::vector<VulkanClearRequest> mClearRequests;
+        bool mNoDrawSinceLastRenderTargetsSet{true};
         bool mAddMemoryBarrier{false};
         bool mEnded{true};
 #if _DEBUG

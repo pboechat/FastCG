@@ -16,8 +16,10 @@
 
 #include <glm/glm.hpp>
 
+#include <array>
 #include <memory>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -33,6 +35,10 @@ namespace FastCG
         RenderBatchStrategy &rRenderBatchStrategy;
         RenderingStatistics &rRenderingStatistics;
     };
+
+    FASTCG_DECLARE_SCOPED_ENUM(Tonemapper, uint8_t, NONE, CHEAP_REINHARD, REINHARD, ACES);
+
+    using TonemapperInt = std::underlying_type_t<Tonemapper>;
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     class BaseWorldRenderer : public IWorldRenderer
@@ -105,6 +111,16 @@ namespace FastCG
         inline void SetSSAOBlurEnabled(bool ssaoBlurEnabled) override
         {
             mSSAOBlurEnabled = ssaoBlurEnabled;
+        }
+
+        inline Tonemapper GetTonemapper() const
+        {
+            return mTonemapper;
+        }
+
+        inline void SetTonemapper(Tonemapper tonemapper)
+        {
+            mTonemapper = tonemapper;
         }
 
         inline void Initialize() override;
@@ -230,7 +246,8 @@ namespace FastCG
         const Texture *mpNoiseTexture{nullptr};
         const Texture *mpEmptySSAOTexture{nullptr};
         bool mSSAOBlurEnabled{true};
-        const Shader *mpTonemapShader{nullptr};
+        Tonemapper mTonemapper{Tonemapper::CHEAP_REINHARD};
+        std::array<const Shader *, (TonemapperInt)Tonemapper::LAST - 1> mTonemapperShaders{};
 
         inline const Buffer *GetShadowMapPassConstantsBuffer();
         inline const Buffer *GetInstanceConstantsBuffer();
