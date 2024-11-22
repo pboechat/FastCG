@@ -461,21 +461,23 @@ namespace FastCG
                         pRenderTarget = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
                     }
 
-                    mClearCommands.emplace_back(ClearCommand{
+                    mClearCommands.emplace_back(ClearCommand {
 #if _DEBUG
                         mMarkerCommands.size(),
 #endif
-                        pRenderTarget, rClearRequest});
+                            pRenderTarget, rClearRequest
+                    });
                 }
             }
             if (mRenderPassDescription.pDepthStencilBuffer != nullptr &&
                 mRenderPassDescription.depthStencilClearRequest.flags != VulkanClearRequestFlagBit::NONE)
             {
-                mClearCommands.emplace_back(ClearCommand{
+                mClearCommands.emplace_back(ClearCommand {
 #if _DEBUG
                     mMarkerCommands.size(),
 #endif
-                    mRenderPassDescription.pDepthStencilBuffer, mRenderPassDescription.depthStencilClearRequest});
+                        mRenderPassDescription.pDepthStencilBuffer, mRenderPassDescription.depthStencilClearRequest
+                });
             }
         }
         mRenderPassDescription.renderTargetCount = renderTargetCount;
@@ -531,11 +533,12 @@ namespace FastCG
 
     void VulkanGraphicsContext::EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs)
     {
-        mCopyCommands.emplace_back(CopyCommand{
+        mCopyCommands.emplace_back(CopyCommand {
 #if _DEBUG
             mMarkerCommands.size(),
 #endif
-            type, rArgs});
+                type, rArgs
+        });
     }
 
     void VulkanGraphicsContext::EnqueueDrawCommand(DrawCommandType type, PrimitiveType primitiveType,

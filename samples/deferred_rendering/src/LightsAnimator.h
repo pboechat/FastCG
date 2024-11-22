@@ -14,8 +14,14 @@ class LightsAnimator : public FastCG::Behaviour
 
 public:
     void ChangeColors();
-    bool IsEnabled() const { return mEnabled; }
-    void SetEnabled(bool value) { mEnabled = value; }
+    bool IsEnabled() const
+    {
+        return mEnabled;
+    }
+    void SetEnabled(bool value)
+    {
+        mEnabled = value;
+    }
 
 protected:
     void OnUpdate(float time, float deltaTime) override;
