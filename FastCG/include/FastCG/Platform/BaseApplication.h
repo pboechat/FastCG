@@ -14,6 +14,10 @@
 
 #include <glm/glm.hpp>
 
+#ifdef FASTCG_ANDROID
+#include <signal.h>
+#endif
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -213,12 +217,39 @@ namespace FastCG
 
 #if defined FASTCG_ANDROID
 #define FASTCG_MAIN(appType)                                                                                           \
-    void android_main(android_app *androidApp)                                                                         \
+    void handleSigtrap(int signal, siginfo_t *info, void *context)                                                     \
     {                                                                                                                  \
+        FASTCG_LOG_INFO(main, "Caught a SIGTRAP signal");                                                              \
+        ucontext_t *ucontext = (ucontext_t *)context;                                                                  \
+        ucontext->uc_mcontext.pc += 4;                                                                                 \
+    }                                                                                                                  \
+    void setupSignalHandlers()                                                                                         \
+    {                                                                                                                  \
+        struct sigaction action;                                                                                       \
+        action.sa_sigaction = handleSigtrap;                                                                           \
+        sigemptyset(&action.sa_mask);                                                                                  \
+        action.sa_flags = SA_SIGINFO;                                                                                  \
+        sigaction(SIGTRAP, &action, NULL);                                                                             \
+    }                                                                                                                  \
+    void finish(android_app *pAndroidApp, JNIEnv *pJniEnv)                                                             \
+    {                                                                                                                  \
+        jobject activity = pAndroidApp->activity->clazz;                                                               \
+        jclass activityClass = pJniEnv->GetObjectClass(activity);                                                      \
+        jmethodID safeFinishMethod = pJniEnv->GetMethodID(activityClass, "finish", "()V");                             \
+        pJniEnv->CallVoidMethod(activity, safeFinishMethod);                                                           \
+    }                                                                                                                  \
+    void android_main(android_app *pAndroidApp)                                                                        \
+    {                                                                                                                  \
+        setupSignalHandlers();                                                                                         \
+        JNIEnv *pJniEnv;                                                                                               \
+        pAndroidApp->activity->vm->AttachCurrentThread(&pJniEnv, NULL);                                                \
         FASTCG_LOG_BUILD_PROPERTIES();                                                                                 \
         appType app;                                                                                                   \
-        app.SetAndroidApp(androidApp);                                                                                 \
+        app.SetJNIEnv(pJniEnv);                                                                                        \
+        app.SetAndroidApp(pAndroidApp);                                                                                \
         app.Run();                                                                                                     \
+        finish(pAndroidApp, pJniEnv);                                                                                  \
+        pAndroidApp->activity->vm->DetachCurrentThread();                                                              \
     }
 #else
 #define FASTCG_MAIN(appType)                                                                                           \

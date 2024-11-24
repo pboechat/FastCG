@@ -293,6 +293,12 @@ int32_t onInputEvent(android_app *app, AInputEvent *event)
 
 namespace FastCG
 {
+    void AndroidApplication::SetJNIEnv(JNIEnv *pJniEnv)
+    {
+        assert(pJniEnv != nullptr);
+        mJniEnv = pJniEnv;
+    }
+
     void AndroidApplication::SetAndroidApp(android_app *pAndroidApp)
     {
         assert(pAndroidApp != nullptr);
@@ -353,32 +359,6 @@ namespace FastCG
         }
     __exitMainLoop:
         return;
-    }
-
-    void AndroidApplication::OnPreInitialize()
-    {
-        BaseApplication::OnPreInitialize();
-
-        if (mAndroidApp->activity->vm->AttachCurrentThread(&mJniEnv, NULL) != JNI_OK)
-        {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't obtain the JNI environment for the current thread");
-        }
-    }
-
-    void AndroidApplication::OnPostFinalize()
-    {
-        // since ending the current thread doesn't make the Android application to end,
-        // we need to call the main activity's finish() method explicitly
-
-        jobject activity = mAndroidApp->activity->clazz;
-        jclass activityClass = mJniEnv->GetObjectClass(activity);
-
-        jmethodID safeFinishMethod = mJniEnv->GetMethodID(activityClass, "finish", "()V");
-        mJniEnv->CallVoidMethod(activity, safeFinishMethod);
-
-        mAndroidApp->activity->vm->DetachCurrentThread();
-
-        BaseApplication::OnPostFinalize();
     }
 
 }

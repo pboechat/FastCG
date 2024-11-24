@@ -42,14 +42,13 @@ namespace FastCG
 
     protected:
         void RunMainLoop() override;
-        void OnPreInitialize() override;
-        void OnPostFinalize() override;
 
     private:
         android_app *mAndroidApp{nullptr};
         JNIEnv *mJniEnv{nullptr};
         bool mPaused{false};
 
+        void SetJNIEnv(JNIEnv *pJniEnv);
         void SetAndroidApp(android_app *pAndroidApp);
         void OnPostWindowInitialize(ANativeWindow *pWindow);
         void OnPreWindowTerminate(ANativeWindow *pWindow);
