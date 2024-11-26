@@ -4,7 +4,7 @@
 #include <FastCG/Core/Log.h>
 #include <FastCG/Core/Macros.h>
 #include <FastCG/Core/Version.h>
-#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Graphics/Vulkan/VulkanErrorHandling.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Graphics/Vulkan/VulkanUtils.h>
 #include <FastCG/Platform/Application.h>
@@ -836,9 +836,14 @@ namespace FastCG
 
     void VulkanGraphicsSystem::CreateDescriptorPool()
     {
-        // TODO: make this less brittle and possibly dynamic
+// TODO: make this less brittle and possibly dynamic
+#if defined FASTCG_ANDROID
+        const size_t MAX_LOCAL_POOL_COUNT = 64;
+        const size_t DESCRIPTOR_TYPE_COUNT = 64;
+#else
         const size_t MAX_LOCAL_POOL_COUNT = 16;
         const size_t DESCRIPTOR_TYPE_COUNT = 16;
+#endif
         const VkDescriptorPoolSize DESCRIPTOR_POOL_SIZES[] = {
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
              VulkanDescriptorSetLocalPool::MAX_SET_COUNT * DESCRIPTOR_TYPE_COUNT},

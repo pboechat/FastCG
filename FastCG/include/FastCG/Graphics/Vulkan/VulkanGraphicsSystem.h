@@ -134,7 +134,11 @@ namespace FastCG
 
         struct VulkanDescriptorSetLocalPool
         {
+#if defined FASTCG_ANDROID
+            static constexpr size_t MAX_SET_COUNT = 512;
+#else
             static constexpr size_t MAX_SET_COUNT = 128;
+#endif
 
             VkDescriptorSet descriptorSets[MAX_SET_COUNT]{};
             size_t lastDescriptorSetIdx{0};

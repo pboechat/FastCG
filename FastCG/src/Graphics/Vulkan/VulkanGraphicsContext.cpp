@@ -1,7 +1,7 @@
 #ifdef FASTCG_VULKAN
 
 #include <FastCG/Core/Log.h>
-#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Graphics/Vulkan/VulkanErrorHandling.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsContext.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 #include <FastCG/Platform/Application.h>

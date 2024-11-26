@@ -1,7 +1,7 @@
 #ifdef FASTCG_VULKAN
 
 #include <FastCG/Graphics/Vulkan/VulkanBuffer.h>
-#include <FastCG/Graphics/Vulkan/VulkanExceptions.h>
+#include <FastCG/Graphics/Vulkan/VulkanErrorHandling.h>
 #include <FastCG/Graphics/Vulkan/VulkanGraphicsSystem.h>
 
 #include <cstring>
