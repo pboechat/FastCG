@@ -169,7 +169,7 @@ namespace FastCG
     {
         if (mTextureId != ~0u)
         {
-            FASTCG_CHECK_OPENGL_CALL(glDeleteTextures(1, &mTextureId));
+            glDeleteTextures(1, &mTextureId);
         }
     }
 }

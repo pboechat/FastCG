@@ -256,13 +256,13 @@ namespace FastCG
         {
             if (shaderId != ~0u)
             {
-                FASTCG_CHECK_OPENGL_CALL(glDeleteShader(shaderId));
+                glDeleteShader(shaderId);
             }
         }
 
         if (mProgramId != ~0u)
         {
-            FASTCG_CHECK_OPENGL_CALL(glDeleteProgram(mProgramId));
+            glDeleteProgram(mProgramId);
         }
     }
 

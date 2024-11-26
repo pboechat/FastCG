@@ -40,7 +40,7 @@ namespace FastCG
     {
         if (mBufferId != ~0u)
         {
-            FASTCG_CHECK_OPENGL_CALL(glDeleteBuffers(1, &mBufferId));
+            glDeleteBuffers(1, &mBufferId);
         }
     }
 
