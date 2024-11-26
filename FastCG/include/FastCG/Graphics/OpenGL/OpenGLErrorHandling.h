@@ -66,7 +66,7 @@ inline const char *glGetErrorString(GLenum error)
         }                                                                                                              \
     }
 #else
-#define FASTCG_CHECK_OPENGL_CALL(...)
+#define FASTCG_CHECK_OPENGL_CALL(glCall) glCall
 #define FASTCG_CHECK_OPENGL_ERROR(...)
 #endif
 
