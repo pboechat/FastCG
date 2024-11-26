@@ -96,8 +96,8 @@ namespace FastCG
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount,
                                       const OpenGLTexture *pDepthStencilBuffer);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
+        void NotifyPreContextCreate();
         void NotifyPostContextCreate();
-        void NotifyPreContextDestroy();
 
         friend class OpenGLGraphicsContext;
     };

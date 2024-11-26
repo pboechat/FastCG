@@ -3,7 +3,7 @@
 #include <FastCG/Assets/AssetSystem.h>
 #include <FastCG/Core/Exception.h>
 #include <FastCG/Core/Macros.h>
-#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLErrorHandling.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
 #include <FastCG/Platform/Application.h>
@@ -73,7 +73,7 @@ namespace
             FASTCG_COMPILER_WARN_IGNORE_FORMAT_TRUNCATION                                                              \
             sprintf(__eglErrorBuffer, fmt, ##__VA_ARGS__);                                                             \
             FASTCG_COMPILER_WARN_POP                                                                                   \
-            FASTCG_THROW_EXCEPTION(FastCG::Exception, "GL: %s (error: %s)", __eglErrorBuffer,                          \
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "EGL: %s (error: %s)", __eglErrorBuffer,                         \
                                    eglGetErrorString(__error));                                                        \
         }                                                                                                              \
     }
@@ -91,21 +91,19 @@ namespace
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "WGL: WGL_ARB_create_context extension not supported");
         }
 
-        const int contextAttribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            WGL_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
+                                      4,
+                                      WGL_CONTEXT_MINOR_VERSION_ARB,
+                                      3,
+                                      WGL_CONTEXT_PROFILE_MASK_ARB,
+                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      WGL_CONTEXT_FLAGS_ARB,
+                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | WGL_CONTEXT_DEBUG_BIT_ARB
+                                          | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                                      ,
+                                      0};
 
         auto context = wglCreateContextAttribsARB(deviceContext, parentContext, contextAttribs);
         if (context == nullptr)
@@ -162,15 +160,17 @@ namespace FastCG
         CreateOpenGLHeadlessContext();
 
 #if _DEBUG
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(OpenGLDebugCallback, nullptr);
-        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0,
-                              nullptr, false);
-        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0,
-                              nullptr, false);
-        glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, 0, nullptr, false);
+        FASTCG_CHECK_OPENGL_CALL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
+        FASTCG_CHECK_OPENGL_CALL(glDebugMessageCallback(OpenGLDebugCallback, nullptr));
+        FASTCG_CHECK_OPENGL_CALL(glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP,
+                                                       GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false));
+        FASTCG_CHECK_OPENGL_CALL(glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP,
+                                                       GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false));
+        FASTCG_CHECK_OPENGL_CALL(
+            glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, 0, nullptr, false));
 #if !defined FASTCG_ENABLE_GPU_PERF_HINTS
-        glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, 0, nullptr, false);
+        FASTCG_CHECK_OPENGL_CALL(
+            glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, 0, nullptr, false));
 #endif
 #endif
 
@@ -179,18 +179,6 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::OnPostFinalize()
     {
-        for (const auto &rKvp : mFboIds)
-        {
-            glDeleteFramebuffers(1, &rKvp.second);
-        }
-        mFboIds.clear();
-
-        for (const auto &rKvp : mVaoIds)
-        {
-            glDeleteVertexArrays(1, &rKvp.second);
-        }
-        mVaoIds.clear();
-
         DestroyOpenGLContext(nullptr);
 
         BaseGraphicsSystem::OnPostFinalize();
@@ -208,7 +196,7 @@ namespace FastCG
         }                                                                                                              \
         else                                                                                                           \
         {                                                                                                              \
-            FASTCG_THROW_EXCEPTION(Exception, "GL: Couldn't destroy " #className " '%s'",                              \
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Couldn't destroy " #className " '%s'",                          \
                                    p##className->GetName().c_str());                                                   \
         }                                                                                                              \
     }
@@ -233,7 +221,7 @@ namespace FastCG
                 {
                     if (mFboIds.find(fboHash) != mFboIds.end())
                     {
-                        glDeleteFramebuffers(1, &mFboIds[fboHash]);
+                        FASTCG_CHECK_OPENGL_CALL(glDeleteFramebuffers(1, &mFboIds[fboHash]));
                         mFboIds.erase(fboHash);
                     }
                 }
@@ -245,13 +233,16 @@ namespace FastCG
     void OpenGLGraphicsSystem::Submit()
     {
         auto fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        glFlush();
+        FASTCG_CHECK_OPENGL_ERROR("Failed to create fence");
+        assert(fence != 0);
+        FASTCG_CHECK_OPENGL_CALL(glFlush());
         auto result = glClientWaitSync(fence, 0, GL_TIMEOUT_IGNORED);
+        FASTCG_CHECK_OPENGL_ERROR("Failed to wait for fence");
         if (result != GL_ALREADY_SIGNALED && result != GL_CONDITION_SATISFIED)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "GL: Failed to wait for fence");
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Failed to wait for fence");
         }
-        glDeleteSync(fence);
+        FASTCG_CHECK_OPENGL_CALL(glDeleteSync(fence));
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
         for (auto *pGraphicsContext : GetGraphicsContexts())
@@ -272,11 +263,12 @@ namespace FastCG
         }
 
         auto result = glClientWaitSync(mFrameFences[previousFrame], 0, GL_TIMEOUT_IGNORED);
+        FASTCG_CHECK_OPENGL_ERROR("Failed to wait for fence");
         if (result != GL_ALREADY_SIGNALED && result != GL_CONDITION_SATISFIED)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "GL: Failed to wait for fence");
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Failed to wait for fence");
         }
-        glDeleteSync(mFrameFences[previousFrame]);
+        FASTCG_CHECK_OPENGL_CALL(glDeleteSync(mFrameFences[previousFrame]));
         mFrameFences[previousFrame] = nullptr;
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
@@ -309,20 +301,22 @@ namespace FastCG
         }
 
         GLint oldFboId;
-        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFboId);
+        FASTCG_CHECK_OPENGL_CALL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFboId));
 
         GLuint fboId;
-        glGenFramebuffers(1, &fboId);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboId);
+        FASTCG_CHECK_OPENGL_CALL(glGenFramebuffers(1, &fboId));
+        FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboId));
 #if _DEBUG
         {
             auto framebufferLabel = std::string("FBO ") + std::to_string(mFboIds.size()) + " (GL_FRAMEBUFFER)";
-            glObjectLabel(GL_FRAMEBUFFER, fboId, (GLsizei)framebufferLabel.size(), framebufferLabel.c_str());
+            FASTCG_CHECK_OPENGL_CALL(
+                glObjectLabel(GL_FRAMEBUFFER, fboId, (GLsizei)framebufferLabel.size(), framebufferLabel.c_str()));
         }
 #endif
         std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [i = 0](const auto *pRenderTarget) mutable {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (i++),
-                                   GetOpenGLTarget(pRenderTarget->GetType()), *pRenderTarget, 0);
+            FASTCG_CHECK_OPENGL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (i++),
+                                                            GetOpenGLTarget(pRenderTarget->GetType()), *pRenderTarget,
+                                                            0));
         });
 
         if (pDepthStencilBuffer != nullptr)
@@ -336,14 +330,14 @@ namespace FastCG
             {
                 attachment = GL_DEPTH_ATTACHMENT;
             }
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()),
-                                   *pDepthStencilBuffer, 0);
+            FASTCG_CHECK_OPENGL_CALL(glFramebufferTexture2D(
+                GL_FRAMEBUFFER, attachment, GetOpenGLTarget(pDepthStencilBuffer->GetType()), *pDepthStencilBuffer, 0));
         }
 
         auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE)
         {
-            FASTCG_THROW_EXCEPTION(OpenGLException, "GL: Couldn't create FBO: 0x%x\n", status);
+            FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Couldn't create FBO: 0x%x\n", status);
         }
 
         mFboIds.emplace(fboHash, fboId);
@@ -356,7 +350,7 @@ namespace FastCG
             mTextureToFboHashes[*pDepthStencilBuffer].emplace_back(fboHash);
         }
 
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId);
+        FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId));
 
         return fboId;
     }
@@ -381,23 +375,25 @@ namespace FastCG
         }
 
         GLuint vaoId;
-        glGenVertexArrays(1, &vaoId);
-        glBindVertexArray(vaoId);
+        FASTCG_CHECK_OPENGL_CALL(glGenVertexArrays(1, &vaoId));
+        FASTCG_CHECK_OPENGL_CALL(glBindVertexArray(vaoId));
 #if _DEBUG
         {
             auto vertexArrayLabel = std::string("VAO ") + std::to_string(mVaoIds.size()) + " (GL_VERTEX_ARRAY)";
-            glObjectLabel(GL_VERTEX_ARRAY, vaoId, (GLsizei)vertexArrayLabel.size(), vertexArrayLabel.c_str());
+            FASTCG_CHECK_OPENGL_CALL(
+                glObjectLabel(GL_VERTEX_ARRAY, vaoId, (GLsizei)vertexArrayLabel.size(), vertexArrayLabel.c_str()));
         }
 #endif
 
         std::for_each(pBuffers, pBuffers + bufferCount, [](const auto *pBuffer) {
-            glBindBuffer(GetOpenGLTarget(pBuffer->GetUsage()), *pBuffer);
+            FASTCG_CHECK_OPENGL_CALL(glBindBuffer(GetOpenGLTarget(pBuffer->GetUsage()), *pBuffer));
             for (const auto &rVbDesc : pBuffer->GetVertexBindingDescriptors())
             {
-                glEnableVertexAttribArray(rVbDesc.binding);
-                glVertexAttribPointer(rVbDesc.binding, rVbDesc.size, GetOpenGLType(rVbDesc.type),
-                                      (GLboolean)rVbDesc.normalized, rVbDesc.stride,
-                                      (const GLvoid *)(uintptr_t)rVbDesc.offset);
+                assert(rVbDesc.size > 0);
+                FASTCG_CHECK_OPENGL_CALL(glEnableVertexAttribArray(rVbDesc.binding));
+                FASTCG_CHECK_OPENGL_CALL(glVertexAttribPointer(
+                    rVbDesc.binding, rVbDesc.size, GetOpenGLType(rVbDesc.type), (GLboolean)rVbDesc.normalized,
+                    rVbDesc.stride, (const GLvoid *)(uintptr_t)rVbDesc.offset));
             }
         });
 
@@ -408,6 +404,8 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::CreateOpenGLHeadlessContext(void *pWindow /* = nullptr*/)
     {
+        NotifyPreContextCreate();
+
 #if defined FASTCG_WINDOWS
         auto instance = GetModuleHandle(nullptr);
 
@@ -594,29 +592,16 @@ namespace FastCG
 #elif defined FASTCG_ANDROID
         assert(mDisplay != nullptr);
 
-        const EGLint contextAttribs[] = {EGL_SURFACE_TYPE,
-                                         EGL_WINDOW_BIT,
-                                         EGL_RENDERABLE_TYPE,
-                                         EGL_OPENGL_ES2_BIT,
-                                         EGL_RED_SIZE,
-                                         8,
-                                         EGL_GREEN_SIZE,
-                                         8,
-                                         EGL_BLUE_SIZE,
-                                         8,
-                                         EGL_ALPHA_SIZE,
-                                         8,
-                                         EGL_GL_COLORSPACE,
-                                         EGL_GL_COLORSPACE_LINEAR,
+        const EGLint contextAttribs[] = {EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
                                          EGL_NONE};
 
         EGLint numConfigs;
         if (!eglChooseConfig(mDisplay, contextAttribs, &mConfig, 1, &numConfigs))
         {
-            FASTCG_CHECK_EGL_ERROR("EGL: Couldn't find an appropriate configuration");
+            FASTCG_CHECK_EGL_ERROR("EGL: Couldn't find an appropriate context configuration");
         }
 
-        mContext = eglCreateContext(mDisplay, mConfig, EGL_NO_CONTEXT, EGL_CONTEXT_ATTRIBS);
+        mContext = eglCreateContext(mDisplay, mConfig, mContext, EGL_CONTEXT_ATTRIBS);
         if (mContext == EGL_NO_CONTEXT)
         {
             FASTCG_THROW_EXCEPTION(Exception, "EGL: Couldn't create a headless context");
@@ -644,6 +629,8 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::CreateOpenGLHeadedContext(void *pWindow)
     {
+        NotifyPreContextCreate();
+
 #if defined FASTCG_WINDOWS
         auto oldDeviceContext = mDeviceContext;
         auto oldContext = mContext;
@@ -792,21 +779,19 @@ namespace FastCG
 
         auto oldContext = mContext;
 
-        const int contextAttribs[] = {
-            GLX_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            GLX_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            GLX_CONTEXT_PROFILE_MASK_ARB,
-            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-            GLX_CONTEXT_FLAGS_ARB,
-            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {GLX_CONTEXT_MAJOR_VERSION_ARB,
+                                      4,
+                                      GLX_CONTEXT_MINOR_VERSION_ARB,
+                                      3,
+                                      GLX_CONTEXT_PROFILE_MASK_ARB,
+                                      GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      GLX_CONTEXT_FLAGS_ARB,
+                                      GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | GLX_CONTEXT_DEBUG_BIT_ARB
+                                          | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                                      ,
+                                      0};
 
         auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
         mContext = glXCreateContextAttribsARB(pDisplay, fbConfig, oldContext, True, contextAttribs);
@@ -832,6 +817,30 @@ namespace FastCG
         }
 #elif defined FASTCG_ANDROID
         auto oldContext = mContext;
+
+        const EGLint contextAttribs[] = {EGL_SURFACE_TYPE,
+                                         EGL_WINDOW_BIT,
+                                         EGL_RENDERABLE_TYPE,
+                                         EGL_OPENGL_ES2_BIT,
+                                         EGL_RED_SIZE,
+                                         8,
+                                         EGL_GREEN_SIZE,
+                                         8,
+                                         EGL_BLUE_SIZE,
+                                         8,
+                                         EGL_ALPHA_SIZE,
+                                         8,
+                                         EGL_DEPTH_SIZE,
+                                         24,
+                                         EGL_STENCIL_SIZE,
+                                         8,
+                                         EGL_NONE};
+
+        EGLint numConfigs;
+        if (!eglChooseConfig(mDisplay, contextAttribs, &mConfig, 1, &numConfigs))
+        {
+            FASTCG_CHECK_EGL_ERROR("EGL: Couldn't find an appropriate context configuration");
+        }
 
         mContext = eglCreateContext(mDisplay, mConfig, mContext, EGL_CONTEXT_ATTRIBS);
         if (mContext == EGL_NO_CONTEXT)
@@ -863,15 +872,14 @@ namespace FastCG
 
     void OpenGLGraphicsSystem::QueryDeviceProperties()
     {
-        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &mDeviceProperties.maxColorAttachments);
-        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &mDeviceProperties.maxDrawBuffers);
-        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &mDeviceProperties.maxTextureUnits);
+        FASTCG_CHECK_OPENGL_CALL(glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &mDeviceProperties.maxColorAttachments));
+        FASTCG_CHECK_OPENGL_CALL(glGetIntegerv(GL_MAX_DRAW_BUFFERS, &mDeviceProperties.maxDrawBuffers));
+        FASTCG_CHECK_OPENGL_CALL(
+            glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &mDeviceProperties.maxTextureUnits));
     }
 
     void OpenGLGraphicsSystem::DestroyOpenGLContext(void *pWindow)
     {
-        NotifyPreContextDestroy();
-
 #if defined FASTCG_WINDOWS
         if (mPbuffer != nullptr)
         {
@@ -941,20 +949,23 @@ namespace FastCG
     {
         if (mFrameFences[mCurrentFrame] != nullptr)
         {
-            glDeleteSync(mFrameFences[mCurrentFrame]);
+            FASTCG_CHECK_OPENGL_CALL(glDeleteSync(mFrameFences[mCurrentFrame]));
         }
         mFrameFences[mCurrentFrame] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        FASTCG_CHECK_OPENGL_ERROR("Failed to create fence");
+        assert(mFrameFences[mCurrentFrame] != 0);
         SwapBuffers();
         mCurrentFrame ^= 1;
 
         if (mFrameFences[mCurrentFrame] != nullptr)
         {
             auto result = glClientWaitSync(mFrameFences[mCurrentFrame], 0, GL_TIMEOUT_IGNORED);
+            FASTCG_CHECK_OPENGL_ERROR("Failed to wait for fence");
             if (result != GL_ALREADY_SIGNALED && result != GL_CONDITION_SATISFIED)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "GL: Failed to wait for fence");
+                FASTCG_THROW_EXCEPTION(Exception, "OpenGL: Failed to wait for fence");
             }
-            glDeleteSync(mFrameFences[mCurrentFrame]);
+            FASTCG_CHECK_OPENGL_CALL(glDeleteSync(mFrameFences[mCurrentFrame]));
             mFrameFences[mCurrentFrame] = nullptr;
         }
 
@@ -991,19 +1002,32 @@ namespace FastCG
         CreateOpenGLHeadlessContext(pWindow);
     }
 
+    void OpenGLGraphicsSystem::NotifyPreContextCreate()
+    {
+        // destroy all container objects
+        for (const auto &rKvp : mFboIds)
+        {
+            FASTCG_CHECK_OPENGL_CALL(glDeleteFramebuffers(1, &rKvp.second));
+        }
+        mFboIds.clear();
+
+        for (const auto &rKvp : mVaoIds)
+        {
+            FASTCG_CHECK_OPENGL_CALL(glDeleteVertexArrays(1, &rKvp.second));
+        }
+        mVaoIds.clear();
+
+        for (auto *pGraphicsContext : GetGraphicsContexts())
+        {
+            pGraphicsContext->OnPreContextCreate();
+        }
+    }
+
     void OpenGLGraphicsSystem::NotifyPostContextCreate()
     {
         for (auto *pGraphicsContext : GetGraphicsContexts())
         {
             pGraphicsContext->OnPostContextCreate();
-        }
-    }
-
-    void OpenGLGraphicsSystem::NotifyPreContextDestroy()
-    {
-        for (auto *pGraphicsContext : GetGraphicsContexts())
-        {
-            pGraphicsContext->OnPreContextDestroy();
         }
     }
 }

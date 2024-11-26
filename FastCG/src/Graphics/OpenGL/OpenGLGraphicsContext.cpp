@@ -2,7 +2,7 @@
 
 #include <FastCG/Core/Exception.h>
 #include <FastCG/Core/Macros.h>
-#include <FastCG/Graphics/OpenGL/OpenGLExceptions.h>
+#include <FastCG/Graphics/OpenGL/OpenGLErrorHandling.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsContext.h>
 #include <FastCG/Graphics/OpenGL/OpenGLGraphicsSystem.h>
 #include <FastCG/Graphics/OpenGL/OpenGLUtils.h>
@@ -20,7 +20,7 @@ namespace
         TemporaryDepthWriteStateChanger(GLboolean newDepthWrite, FastCG::OpenGLGraphicsContext &rContext)
             : mrContext(rContext)
         {
-            glGetBooleanv(GL_DEPTH_WRITEMASK, &mOldDepthWrite);
+            FASTCG_CHECK_OPENGL_CALL(glGetBooleanv(GL_DEPTH_WRITEMASK, &mOldDepthWrite));
             if (mOldDepthWrite != newDepthWrite)
             {
                 mrContext.SetDepthWrite(newDepthWrite);
@@ -51,19 +51,19 @@ namespace
                                           FastCG::OpenGLGraphicsContext &rContext)
             : mrContext(rContext)
         {
-            glGetBooleanv(GL_DEPTH_TEST, &mOldDepthTest);
+            FASTCG_CHECK_OPENGL_CALL(glGetBooleanv(GL_DEPTH_TEST, &mOldDepthTest));
             if (newDepthTest != mOldDepthTest)
             {
                 mrContext.SetDepthTest(newDepthTest);
                 mChangeMask |= DEPTH_TEST_MASK;
             }
-            glGetBooleanv(GL_STENCIL_TEST, &mOldStencilTest);
+            FASTCG_CHECK_OPENGL_CALL(glGetBooleanv(GL_STENCIL_TEST, &mOldStencilTest));
             if (newStencilTest != mOldStencilTest)
             {
                 mrContext.SetStencilTest(newStencilTest);
                 mChangeMask |= STENCIL_TEST_MASK;
             }
-            glGetBooleanv(GL_SCISSOR_TEST, &mOldScissorTest);
+            FASTCG_CHECK_OPENGL_CALL(glGetBooleanv(GL_SCISSOR_TEST, &mOldScissorTest));
             if (newScissorTest != mOldScissorTest)
             {
                 mrContext.SetScissorTest(newScissorTest);
@@ -105,15 +105,16 @@ namespace FastCG
     void OpenGLGraphicsContext::OnPostContextCreate()
     {
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't generate time queries");
+        // create query objects
+        FASTCG_CHECK_OPENGL_CALL(glGenQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries));
 #endif
     }
 
-    void OpenGLGraphicsContext::OnPreContextDestroy()
+    void OpenGLGraphicsContext::OnPreContextCreate()
     {
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        glDeleteQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries);
+        // clear query objects
+        FASTCG_CHECK_OPENGL_CALL(glDeleteQueries(FASTCG_ARRAYSIZE(mTimeElapsedQueries), mTimeElapsedQueries));
         std::memset(mTimeElapsedQueries, 0, sizeof(mTimeElapsedQueries));
 #endif
     }
@@ -124,8 +125,8 @@ namespace FastCG
         mEnded = false;
 #if !defined FASTCG_DISABLE_GPU_TIMING
         mElapsedTimes[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()] = 0;
-        glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()]);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't begin time queries");
+        FASTCG_CHECK_OPENGL_CALL(
+            glBeginQuery(GL_TIME_ELAPSED, mTimeElapsedQueries[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()]));
 #endif
     }
 
@@ -133,36 +134,36 @@ namespace FastCG
     {
         FASTCG_UNUSED(pName);
 #if _DEBUG
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, pName);
+        FASTCG_CHECK_OPENGL_CALL(glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, pName));
 #endif
     }
 
     void OpenGLGraphicsContext::PopDebugMarker()
     {
 #if _DEBUG
-        glPopDebugGroup();
+        FASTCG_CHECK_OPENGL_CALL(glPopDebugGroup());
 #endif
     }
 
     void OpenGLGraphicsContext::SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height)
     {
-        glViewport((GLint)x, (GLint)y, (GLsizei)width, (GLsizei)height);
+        FASTCG_CHECK_OPENGL_CALL(glViewport((GLint)x, (GLint)y, (GLsizei)width, (GLsizei)height));
     }
 
     void OpenGLGraphicsContext::SetScissor(int32_t x, int32_t y, uint32_t width, uint32_t height)
     {
-        glScissor((GLint)x, (GLint)y, (GLsizei)width, (GLsizei)height);
+        FASTCG_CHECK_OPENGL_CALL(glScissor((GLint)x, (GLint)y, (GLsizei)width, (GLsizei)height));
     }
 
     void OpenGLGraphicsContext::SetBlend(bool blend)
     {
         if (blend)
         {
-            glEnable(GL_BLEND);
+            FASTCG_CHECK_OPENGL_CALL(glEnable(GL_BLEND));
         }
         else
         {
-            glDisable(GL_BLEND);
+            FASTCG_CHECK_OPENGL_CALL(glDisable(GL_BLEND));
         }
     }
 
@@ -171,30 +172,30 @@ namespace FastCG
         assert(color != BlendFunc::NONE);
         if (alpha == BlendFunc::NONE)
         {
-            glBlendEquation(GetOpenGLBlendFunc(color));
+            FASTCG_CHECK_OPENGL_CALL(glBlendEquation(GetOpenGLBlendFunc(color)));
         }
         else
         {
-            glBlendEquationSeparate(GetOpenGLBlendFunc(color), GetOpenGLBlendFunc(alpha));
+            FASTCG_CHECK_OPENGL_CALL(glBlendEquationSeparate(GetOpenGLBlendFunc(color), GetOpenGLBlendFunc(alpha)));
         }
     }
 
     void OpenGLGraphicsContext::SetBlendFactors(BlendFactor srcColor, BlendFactor dstColor, BlendFactor srcAlpha,
                                                 BlendFactor dstAlpha)
     {
-        glBlendFuncSeparate(GetOpenGLBlendFactor(srcColor), GetOpenGLBlendFactor(dstColor),
-                            GetOpenGLBlendFactor(srcAlpha), GetOpenGLBlendFactor(dstAlpha));
+        FASTCG_CHECK_OPENGL_CALL(glBlendFuncSeparate(GetOpenGLBlendFactor(srcColor), GetOpenGLBlendFactor(dstColor),
+                                                     GetOpenGLBlendFactor(srcAlpha), GetOpenGLBlendFactor(dstAlpha)));
     }
 
     void OpenGLGraphicsContext::SetStencilTest(bool stencilTest)
     {
         if (stencilTest)
         {
-            glEnable(GL_STENCIL_TEST);
+            FASTCG_CHECK_OPENGL_CALL(glEnable(GL_STENCIL_TEST));
         }
         else
         {
-            glDisable(GL_STENCIL_TEST);
+            FASTCG_CHECK_OPENGL_CALL(glDisable(GL_STENCIL_TEST));
         }
     }
 
@@ -204,36 +205,36 @@ namespace FastCG
         auto compareOp = GetOpenGLCompareOp(stencilFunc);
         if (face == Face::BACK || face == Face::FRONT)
         {
-            glStencilFuncSeparate(GetOpenGLFace(face), compareOp, (GLint)ref, (GLuint)mask);
+            FASTCG_CHECK_OPENGL_CALL(glStencilFuncSeparate(GetOpenGLFace(face), compareOp, (GLint)ref, (GLuint)mask));
         }
         else
         {
-            glStencilFunc(compareOp, (GLint)ref, (GLuint)mask);
+            FASTCG_CHECK_OPENGL_CALL(glStencilFunc(compareOp, (GLint)ref, (GLuint)mask));
         }
     }
 
     void OpenGLGraphicsContext::SetStencilOp(Face face, StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass)
     {
         assert(face != Face::NONE);
-        glStencilOpSeparate(GetOpenGLFace(face), GetOpenGLStencilFunc(stencilFail), GetOpenGLStencilFunc(depthFail),
-                            GetOpenGLStencilFunc(depthPass));
+        FASTCG_CHECK_OPENGL_CALL(glStencilOpSeparate(GetOpenGLFace(face), GetOpenGLStencilFunc(stencilFail),
+                                                     GetOpenGLStencilFunc(depthFail), GetOpenGLStencilFunc(depthPass)));
     }
 
     void OpenGLGraphicsContext::SetStencilWriteMask(Face face, uint32_t mask)
     {
         assert(face != Face::NONE);
-        glStencilMaskSeparate(GetOpenGLFace(face), mask);
+        FASTCG_CHECK_OPENGL_CALL(glStencilMaskSeparate(GetOpenGLFace(face), mask));
     }
 
     void OpenGLGraphicsContext::SetDepthTest(bool depthTest)
     {
         if (depthTest)
         {
-            glEnable(GL_DEPTH_TEST);
+            FASTCG_CHECK_OPENGL_CALL(glEnable(GL_DEPTH_TEST));
         }
         else
         {
-            glDisable(GL_DEPTH_TEST);
+            FASTCG_CHECK_OPENGL_CALL(glDisable(GL_DEPTH_TEST));
         }
     }
 
@@ -241,28 +242,28 @@ namespace FastCG
     {
         if (depthWrite)
         {
-            glDepthMask(GL_TRUE);
+            FASTCG_CHECK_OPENGL_CALL(glDepthMask(GL_TRUE));
         }
         else
         {
-            glDepthMask(GL_FALSE);
+            FASTCG_CHECK_OPENGL_CALL(glDepthMask(GL_FALSE));
         }
     }
 
     void OpenGLGraphicsContext::SetDepthFunc(CompareOp depthFunc)
     {
-        glDepthFunc(GetOpenGLCompareOp(depthFunc));
+        FASTCG_CHECK_OPENGL_CALL(glDepthFunc(GetOpenGLCompareOp(depthFunc)));
     }
 
     void OpenGLGraphicsContext::SetScissorTest(bool scissorTest)
     {
         if (scissorTest)
         {
-            glEnable(GL_SCISSOR_TEST);
+            FASTCG_CHECK_OPENGL_CALL(glEnable(GL_SCISSOR_TEST));
         }
         else
         {
-            glDisable(GL_SCISSOR_TEST);
+            FASTCG_CHECK_OPENGL_CALL(glDisable(GL_SCISSOR_TEST));
         }
     }
 
@@ -270,12 +271,12 @@ namespace FastCG
     {
         if (face == Face::NONE)
         {
-            glDisable(GL_CULL_FACE);
+            FASTCG_CHECK_OPENGL_CALL(glDisable(GL_CULL_FACE));
         }
         else
         {
-            glEnable(GL_CULL_FACE);
-            glCullFace(GetOpenGLFace(face));
+            FASTCG_CHECK_OPENGL_CALL(glEnable(GL_CULL_FACE));
+            FASTCG_CHECK_OPENGL_CALL(glCullFace(GetOpenGLFace(face)));
         }
     }
 
@@ -283,8 +284,8 @@ namespace FastCG
     {
         assert(pDst != nullptr);
         auto target = GetOpenGLTarget(pDst->GetUsage());
-        glBindBuffer(target, *pDst);
-        glBufferSubData(target, 0, (GLsizeiptr)size, (const GLvoid *)pSrc);
+        FASTCG_CHECK_OPENGL_CALL(glBindBuffer(target, *pDst));
+        FASTCG_CHECK_OPENGL_CALL(glBufferSubData(target, 0, (GLsizeiptr)size, (const GLvoid *)pSrc));
     }
 
     void OpenGLGraphicsContext::Copy(const OpenGLTexture *pDst, const void *pSrc, size_t size)
@@ -292,9 +293,10 @@ namespace FastCG
         FASTCG_UNUSED(size);
         assert(pDst != nullptr);
         auto target = GetOpenGLTarget(pDst->GetType());
-        glBindTexture(target, *pDst);
-        glTexSubImage2D(target, 0, 0, 0, (GLsizei)pDst->GetWidth(), (GLsizei)pDst->GetHeight(),
-                        GetOpenGLFormat(pDst->GetFormat()), GetOpenGLDataType(pDst->GetFormat()), (const GLvoid *)pSrc);
+        FASTCG_CHECK_OPENGL_CALL(glBindTexture(target, *pDst));
+        FASTCG_CHECK_OPENGL_CALL(glTexSubImage2D(target, 0, 0, 0, (GLsizei)pDst->GetWidth(), (GLsizei)pDst->GetHeight(),
+                                                 GetOpenGLFormat(pDst->GetFormat()),
+                                                 GetOpenGLDataType(pDst->GetFormat()), (const GLvoid *)pSrc));
     }
 
     void OpenGLGraphicsContext::Copy(void *pDst, const OpenGLBuffer *pSrc, size_t offset, size_t size)
@@ -304,19 +306,20 @@ namespace FastCG
         assert(size > 0);
 
         auto target = GetOpenGLTarget(pSrc->GetUsage());
-        glBindBuffer(target, *pSrc);
+        FASTCG_CHECK_OPENGL_CALL(glBindBuffer(target, *pSrc));
         void *pMapped = glMapBufferRange(target, (GLintptr)offset, (GLsizeiptr)size, GL_MAP_READ_BIT);
+        FASTCG_CHECK_OPENGL_ERROR("TODO");
         if (pMapped)
         {
             std::memcpy(pDst, pMapped, size);
-            glUnmapBuffer(target);
+            FASTCG_CHECK_OPENGL_CALL(glUnmapBuffer(target));
         }
     }
 
     void OpenGLGraphicsContext::AddMemoryBarrier()
     {
         // TODO: too broad?
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        FASTCG_CHECK_OPENGL_CALL(glMemoryBarrier(GL_ALL_BARRIER_BITS));
     }
 
     void OpenGLGraphicsContext::BindShader(const OpenGLShader *pShader)
@@ -326,7 +329,7 @@ namespace FastCG
         {
             return;
         }
-        glUseProgram(pShader->GetProgramId());
+        FASTCG_CHECK_OPENGL_CALL(glUseProgram(pShader->GetProgramId()));
         mpBoundShader = pShader;
         mResourceUsage.clear();
     }
@@ -341,9 +344,8 @@ namespace FastCG
         {
             return;
         }
-        glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), rResourceInfo.binding, *pBuffer);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't bind buffer to resource (buffer: %s, resource: %s, binding: %d)",
-                                  pBuffer->GetName().c_str(), pName, rResourceInfo.binding);
+        FASTCG_CHECK_OPENGL_CALL(
+            glBindBufferBase(GetOpenGLTarget(pBuffer->GetUsage()), rResourceInfo.binding, *pBuffer));
         mResourceUsage.emplace(pName);
     }
 
@@ -362,14 +364,14 @@ namespace FastCG
         {
             return;
         }
-        glActiveTexture(GL_TEXTURE0 + rResourceInfo.binding);
+        FASTCG_CHECK_OPENGL_CALL(glActiveTexture(GL_TEXTURE0 + rResourceInfo.binding));
         if (pTexture == nullptr)
         {
             // TODO: check the texture type from shader reflection
             pTexture = OpenGLGraphicsSystem::GetInstance()->GetMissingTexture(TextureType::TEXTURE_2D);
         }
-        glBindTexture(GetOpenGLTarget(pTexture->GetType()), *pTexture);
-        glUniform1i(rResourceInfo.location, rResourceInfo.binding);
+        FASTCG_CHECK_OPENGL_CALL(glBindTexture(GetOpenGLTarget(pTexture->GetType()), *pTexture));
+        FASTCG_CHECK_OPENGL_CALL(glUniform1i(rResourceInfo.location, rResourceInfo.binding));
         FASTCG_CHECK_OPENGL_ERROR("Couldn't bind texture to resource (texture: %s, location: %d, binding: %d)",
                                   pTexture->GetName().c_str(), rResourceInfo.location, rResourceInfo.binding);
     }
@@ -381,31 +383,31 @@ namespace FastCG
         GLint srcWidth, srcHeight;
         if (pSrc == pBackbuffer)
         {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+            FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
             srcWidth = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenWidth();
             srcHeight = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenHeight();
         }
         else
         {
             auto readFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pSrc, 1, nullptr);
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
-            glReadBuffer(GL_COLOR_ATTACHMENT0);
+            FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo));
+            FASTCG_CHECK_OPENGL_CALL(glReadBuffer(GL_COLOR_ATTACHMENT0));
             srcWidth = (GLint)pSrc->GetWidth();
             srcHeight = (GLint)pSrc->GetHeight();
         }
         GLint dstWidth, dstHeight;
         if (pDst == pBackbuffer)
         {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+            FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
             dstWidth = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenWidth();
             dstHeight = (GLint)OpenGLGraphicsSystem::GetInstance()->GetScreenHeight();
         }
         else
         {
             auto drawFbo = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(&pDst, 1, nullptr);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFbo);
+            FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFbo));
             GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-            glDrawBuffers(1, drawBuffers);
+            FASTCG_CHECK_OPENGL_CALL(glDrawBuffers(1, drawBuffers));
             dstWidth = (GLint)pDst->GetWidth();
             dstHeight = (GLint)pDst->GetHeight();
         }
@@ -425,34 +427,35 @@ namespace FastCG
         {
             mask = GL_COLOR_BUFFER_BIT;
         }
-        glBlitFramebuffer(0, 0, srcWidth, srcHeight, 0, 0, dstWidth, dstHeight, mask, GL_LINEAR);
+        FASTCG_CHECK_OPENGL_CALL(
+            glBlitFramebuffer(0, 0, srcWidth, srcHeight, 0, 0, dstWidth, dstHeight, mask, GL_LINEAR));
     }
 
     void OpenGLGraphicsContext::ClearRenderTarget(uint32_t renderTargetIndex, const glm::vec4 &rClearColor)
     {
         TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
-        glClearBufferfv(GL_COLOR, (GLint)renderTargetIndex, (const GLfloat *)&rClearColor[0]);
+        FASTCG_CHECK_OPENGL_CALL(glClearBufferfv(GL_COLOR, (GLint)renderTargetIndex, (const GLfloat *)&rClearColor[0]));
     }
 
     void OpenGLGraphicsContext::ClearDepthStencilBuffer(float depth, int32_t stencil)
     {
         TemporaryDepthWriteStateChanger tempDepthWriteState(true, *this);
         TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
-        glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+        FASTCG_CHECK_OPENGL_CALL(glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil));
     }
 
     void OpenGLGraphicsContext::ClearDepthBuffer(float depth)
     {
         TemporaryDepthWriteStateChanger tempDepthWriteState(true, *this);
         TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
-        glClearBufferfv(GL_DEPTH, 0, &depth);
+        FASTCG_CHECK_OPENGL_CALL(glClearBufferfv(GL_DEPTH, 0, &depth));
     }
 
     void OpenGLGraphicsContext::ClearStencilBuffer(int32_t stencil)
     {
         TemporaryDepthWriteStateChanger tempDepthWriteState(true, *this);
         TemporaryFragmentTestStateChanger tempFragTestState(false, false, false, *this);
-        glClearBufferiv(GL_STENCIL, 0, &stencil);
+        FASTCG_CHECK_OPENGL_CALL(glClearBufferiv(GL_STENCIL, 0, &stencil));
     }
 
     void OpenGLGraphicsContext::SetRenderTargets(const OpenGLTexture *const *ppRenderTargets,
@@ -461,14 +464,14 @@ namespace FastCG
         if (renderTargetCount == 1 && ppRenderTargets[0] == OpenGLGraphicsSystem::GetInstance()->GetBackbuffer() &&
             pDepthStencilBuffer == nullptr)
         {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+            FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
             return;
         }
 
         auto fbId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateFramebuffer(ppRenderTargets, renderTargetCount,
                                                                                 pDepthStencilBuffer);
         assert(fbId != ~0u);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbId);
+        FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbId));
 
         std::vector<GLenum> attachments;
         attachments.reserve(renderTargetCount);
@@ -480,7 +483,7 @@ namespace FastCG
         assert(attachments.size() <= (size_t)OpenGLGraphicsSystem::GetInstance()->GetDeviceProperties().maxDrawBuffers);
         if (!attachments.empty())
         {
-            glDrawBuffers((GLsizei)attachments.size(), &attachments[0]);
+            FASTCG_CHECK_OPENGL_CALL(glDrawBuffers((GLsizei)attachments.size(), &attachments[0]));
         }
     }
 
@@ -491,7 +494,7 @@ namespace FastCG
         assert(bufferCount > 0);
         auto vaoId = OpenGLGraphicsSystem::GetInstance()->GetOrCreateVertexArray(pBuffers, bufferCount);
         assert(vaoId != ~0u);
-        glBindVertexArray(vaoId);
+        FASTCG_CHECK_OPENGL_CALL(glBindVertexArray(vaoId));
     }
 
     void OpenGLGraphicsContext::SetIndexBuffer(const OpenGLBuffer *pBuffer)
@@ -500,7 +503,7 @@ namespace FastCG
         assert(mpBoundShader != nullptr);
         auto target = GetOpenGLTarget(pBuffer->GetUsage());
         assert(target == GL_ELEMENT_ARRAY_BUFFER);
-        glBindBuffer(target, *pBuffer);
+        FASTCG_CHECK_OPENGL_CALL(glBindBuffer(target, *pBuffer));
     }
 
     void OpenGLGraphicsContext::SetupDraw()
@@ -530,10 +533,11 @@ namespace FastCG
     void OpenGLGraphicsContext::DrawIndexed(PrimitiveType primitiveType, uint32_t firstIndex, uint32_t indexCount,
                                             int32_t vertexOffset)
     {
+        assert(indexCount > 0);
         SetupDraw();
-        glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT,
-                                 (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't draw");
+        FASTCG_CHECK_OPENGL_CALL(
+            glDrawElementsBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT,
+                                     (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLint)vertexOffset));
     }
 
     void OpenGLGraphicsContext::DrawInstancedIndexed(PrimitiveType primitiveType, uint32_t firstInstance,
@@ -542,11 +546,12 @@ namespace FastCG
     {
         FASTCG_UNUSED(firstInstance);
         assert(firstInstance == 0);
+        assert(indexCount > 0);
+        assert(instanceCount > 0);
         SetupDraw();
-        glDrawElementsInstancedBaseVertex(GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT,
-                                          (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount,
-                                          (GLint)vertexOffset);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't draw instanced");
+        FASTCG_CHECK_OPENGL_CALL(glDrawElementsInstancedBaseVertex(
+            GetOpenGLPrimitiveType(primitiveType), (GLsizei)indexCount, GL_UNSIGNED_INT,
+            (GLvoid *)(uintptr_t)(firstIndex * sizeof(uint32_t)), (GLsizei)instanceCount, (GLint)vertexOffset));
     }
 
     void OpenGLGraphicsContext::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
@@ -554,19 +559,16 @@ namespace FastCG
         assert(groupCountX > 0);
         assert(groupCountY > 0);
         assert(groupCountZ > 0);
-        glDispatchCompute(groupCountX, groupCountY, groupCountZ);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't dispatch");
+        FASTCG_CHECK_OPENGL_CALL(glDispatchCompute(groupCountX, groupCountY, groupCountZ));
     }
 
     void OpenGLGraphicsContext::End()
     {
         assert(!mEnded);
         mpBoundShader = nullptr;
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't end graphics context");
 
 #if !defined FASTCG_DISABLE_GPU_TIMING
-        glEndQuery(GL_TIME_ELAPSED);
-        FASTCG_CHECK_OPENGL_ERROR("Couldn't end time queries");
+        FASTCG_CHECK_OPENGL_CALL(glEndQuery(GL_TIME_ELAPSED));
         mEndedQuery[OpenGLGraphicsSystem::GetInstance()->GetCurrentFrame()] = true;
 #endif
         mEnded = true;
@@ -583,10 +585,11 @@ namespace FastCG
             GLint done;
             do
             {
-                glGetQueryObjectiv(mTimeElapsedQueries[frame], GL_QUERY_RESULT_AVAILABLE, &done);
+                FASTCG_CHECK_OPENGL_CALL(
+                    glGetQueryObjectiv(mTimeElapsedQueries[frame], GL_QUERY_RESULT_AVAILABLE, &done));
             } while (!done);
 
-            glGetQueryObjectui64v(mTimeElapsedQueries[frame], GL_QUERY_RESULT, &elapsedTime);
+            FASTCG_CHECK_OPENGL_CALL(glGetQueryObjectui64v(mTimeElapsedQueries[frame], GL_QUERY_RESULT, &elapsedTime));
         }
         else
         {

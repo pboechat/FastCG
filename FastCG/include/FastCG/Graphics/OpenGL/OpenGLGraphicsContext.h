@@ -74,8 +74,8 @@ namespace FastCG
         bool mEndedQuery[2]{false, false};   // double-buffered
 #endif
 
+        void OnPreContextCreate();
         void OnPostContextCreate();
-        void OnPreContextDestroy();
         void SetupDraw();
         void BindResource(const OpenGLTexture *pTexture, const OpenGLResourceInfo &rResourceInfo);
 #if !defined FASTCG_DISABLE_GPU_TIMING
