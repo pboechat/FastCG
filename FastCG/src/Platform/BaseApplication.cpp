@@ -14,7 +14,6 @@
 #include <FastCG/Platform/Timer.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Rendering/Fog.h>
-#include <FastCG/Rendering/ModelLoader.h>
 #include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/RenderingSystem.h>

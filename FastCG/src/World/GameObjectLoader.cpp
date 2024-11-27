@@ -7,7 +7,6 @@
 #include <FastCG/Platform/FileReader.h>
 #include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/Rendering/ModelLoader.h>
 #include <FastCG/World/Component.h>
 #include <FastCG/World/ComponentRegistry.h>
 #include <FastCG/World/GameObjectLoader.h>

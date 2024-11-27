@@ -9,7 +9,7 @@
 #include <FastCG/Rendering/Camera.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/OBJLoader.h>
 #include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/StandardGeometries.h>
@@ -96,23 +96,23 @@ namespace
             "Missing Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
         pMissingMaterial->SetConstant("uDiffuseColor", Colors::PURPLE);
 
-        auto *pModelGameObject =
-            ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/stanford_dragon.obj"), pMissingMaterial);
-        if (pModelGameObject == nullptr)
+        auto *pModel =
+            OBJLoader::Load(AssetSystem::GetInstance()->Resolve("objs/stanford_dragon.obj"), pMissingMaterial);
+        if (pModel == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't find model");
         }
 
-        const auto &bounds = pModelGameObject->GetBounds();
-        auto *pTransform = pModelGameObject->GetTransform();
+        const auto &rBounds = pModel->GetBounds();
+        auto *pTransform = pModel->GetTransform();
         float scale = 0;
-        scale = bounds.max.x - bounds.min.x;
-        scale = MathF::Max(bounds.max.y - bounds.min.y, scale);
-        scale = MathF::Max(bounds.max.z - bounds.min.z, scale);
+        scale = rBounds.max.x - rBounds.min.x;
+        scale = MathF::Max(rBounds.max.y - rBounds.min.y, scale);
+        scale = MathF::Max(rBounds.max.z - rBounds.min.z, scale);
         scale = 1.0f / scale;
 
         pTransform->SetScale(glm::vec3(scale, scale, scale));
-        auto center = bounds.getCenter();
+        auto center = rBounds.getCenter();
         pTransform->SetPosition(glm::vec3(-center.x * scale, 0.333f, -center.z * scale));
 
         pTransform->SetParent(pParent);
@@ -136,7 +136,7 @@ void BumpMappingApplication::OnStart()
     pTransform->SetPosition(glm::vec3(0, 0.333f, 1));
     pTransform->SetParent(pParent);
 
-    Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, 1024 / (float)768},
+    Camera::Instantiate(pMainCameraGameObject, CameraSetupArgs{0.3f, 1000, 60, GetAspectRatio()},
                         ProjectionMode::PERSPECTIVE);
 
     auto *pFlyController = FlyController::Instantiate(pMainCameraGameObject);

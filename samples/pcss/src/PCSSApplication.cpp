@@ -9,7 +9,7 @@
 #include <FastCG/Rendering/Camera.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
-#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/OBJLoader.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/StandardGeometries.h>
 #include <FastCG/World/FlyController.h>
@@ -27,23 +27,23 @@ namespace
         auto pDefaultMaterial = std::make_shared<Material>(MaterialArgs{
             "Default Material", MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition("OpaqueSolidColor")});
 
-        auto *pModel = ModelLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial,
-                                         (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER);
+        auto *pModel = OBJLoader::Load(AssetSystem::GetInstance()->Resolve("objs/bunny.obj"), pDefaultMaterial,
+                                       (OBJLoaderOptionMaskType)OBJLoaderOption::IS_SHADOW_CASTER);
         if (pModel == nullptr)
         {
             FASTCG_THROW_EXCEPTION(Exception, "Couldn't find bunny model");
         }
 
-        const auto &bounds = pModel->GetBounds();
+        const auto &rBounds = pModel->GetBounds();
         auto *pTransform = pModel->GetTransform();
         float scale = 0;
-        scale = bounds.max.x - bounds.min.x;
-        scale = MathF::Max(bounds.max.y - bounds.min.y, scale);
-        scale = MathF::Max(bounds.max.z - bounds.min.z, scale);
+        scale = rBounds.max.x - rBounds.min.x;
+        scale = MathF::Max(rBounds.max.y - rBounds.min.y, scale);
+        scale = MathF::Max(rBounds.max.z - rBounds.min.z, scale);
         scale = 1.0f / scale;
 
         pTransform->SetScale(glm::vec3(scale, scale, scale));
-        auto center = bounds.getCenter();
+        auto center = rBounds.getCenter();
         pTransform->SetPosition(glm::vec3(-center.x * scale, center.y * scale, -center.z * scale));
     }
 

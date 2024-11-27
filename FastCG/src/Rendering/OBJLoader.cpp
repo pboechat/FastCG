@@ -10,7 +10,7 @@
 #include <FastCG/Platform/FileWriter.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
 #include <FastCG/Rendering/MeshUtils.h>
-#include <FastCG/Rendering/ModelLoader.h>
+#include <FastCG/Rendering/OBJLoader.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/Rendering/ShaderConstants.h>
 #include <FastCG/World/Transform.h>
@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace FastCG
+namespace
 {
     struct LoadContext
     {
@@ -37,13 +37,18 @@ namespace FastCG
         FASTCG_UNUSED(pObjFilename);
 
         auto *pLoadContext = (LoadContext *)pContext;
-        auto data = FileReader::ReadText(File::Join({pLoadContext->basePath, pFilename}), *pLength);
+        auto data = FastCG::FileReader::ReadText(FastCG::File::Join({pLoadContext->basePath, pFilename}), *pLength);
         *pBuffer = data.get();
         pLoadContext->fileData.emplace_back(std::move(data));
     }
 
-    using MeshCatalog = std::unordered_map<size_t, std::shared_ptr<Mesh>>;
+    using MeshCatalog = std::unordered_map<size_t, std::shared_ptr<FastCG::Mesh>>;
+    using MaterialCatalog = std::unordered_map<uint32_t, std::shared_ptr<FastCG::Material>>;
+    using MaterialDefinitions = std::vector<std::shared_ptr<FastCG::Material>>;
+}
 
+namespace FastCG
+{
     void BuildMeshCatalog(const std::string &rFilePath, const tinyobj_attrib_t &attributes,
                           const tinyobj_shape_t *pShapes, size_t numShapes, MeshCatalog &rMeshCatalog)
     {
@@ -137,9 +142,6 @@ namespace FastCG
         }
     }
 
-    using MaterialCatalog = std::unordered_map<uint32_t, std::shared_ptr<Material>>;
-    using MaterialDefinitions = std::vector<std::shared_ptr<Material>>;
-
     void BuildMaterialCatalog(const std::string &rFilePath, const tinyobj_material_t *pMaterials, size_t numMaterials,
                               MaterialCatalog &rMaterialCatalog)
     {
@@ -222,7 +224,7 @@ namespace FastCG
                                        const tinyobj_shape_t *pShapes, size_t numShapes,
                                        const MaterialCatalog &rMaterialCatalog, const MeshCatalog &rMeshCatalog,
                                        const std::shared_ptr<Material> &pDefaultMaterial,
-                                       ModelLoaderOptionMaskType options)
+                                       OBJLoaderOptionMaskType options)
     {
         FASTCG_UNUSED(pShapes);
 
@@ -260,14 +262,13 @@ namespace FastCG
             }
 
             Renderable::Instantiate(pShapeGameObject, pMaterial, pMesh,
-                                    (options & (ModelLoaderOptionMaskType)ModelLoaderOption::IS_SHADOW_CASTER) != 0);
+                                    (options & (OBJLoaderOptionMaskType)OBJLoaderOption::IS_SHADOW_CASTER) != 0);
         }
         return pModelGameObject;
     }
 
-    GameObject *ModelLoader::Load(
-        const std::string &rFilePath, const std::shared_ptr<Material> &pDefaultMaterial,
-        ModelLoaderOptionMaskType options /* = (ModelLoaderOptionMaskType)ModelLoaderOption::NONE*/)
+    GameObject *OBJLoader::Load(const std::string &rFilePath, const std::shared_ptr<Material> &pDefaultMaterial,
+                                OBJLoaderOptionMaskType options /* = (OBJLoaderOptionMaskType)OBJLoaderOption::NONE*/)
     {
         tinyobj_attrib_t attributes;
         tinyobj_shape_t *pShapes;
