@@ -17,10 +17,7 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b)                                                                                                  \
-    {                                                                                                                  \
-        (uint64_t) a, FastCG::Key::b                                                                                   \
-    }
+#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
 
     std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {MAP_KEY(XK_BackSpace, BACKSPACE),
                                                          MAP_KEY(XK_Return, RETURN),
@@ -148,10 +145,10 @@ namespace
         return true;
     }
 
-    Bool WaitForMapNotify(Display *mpDisplay, XEvent *event, char *arg)
+    Bool WaitForMapNotify(Display *mpDisplay, XEvent *pEvent, char *pArg)
     {
-        return mpDisplay != nullptr && event != nullptr && arg != nullptr && (event->type == MapNotify) &&
-               (event->xmap.window == *(Window *)arg);
+        return mpDisplay != nullptr && pEvent != nullptr && pArg != nullptr && (pEvent->type == MapNotify) &&
+               (pEvent->xmap.window == *(Window *)pArg);
     }
 
 }
@@ -171,7 +168,7 @@ namespace FastCG
     {
         if (!mSettings.graphics.headless)
         {
-            // NOTE:
+            // NOTE: on X11 the graphics system is responsible for creating the window
             GraphicsSystem::GetInstance()->OnPostWindowInitialize(nullptr);
         }
 
@@ -184,7 +181,7 @@ namespace FastCG
 
         if (!mSettings.graphics.headless)
         {
-            // NOTE:
+            // NOTE: on X11 the graphics system is responsible for creating the window
             GraphicsSystem::GetInstance()->OnPreWindowTerminate(nullptr);
             DestroyCurrentWindow();
         }
@@ -298,9 +295,10 @@ namespace FastCG
 
         XSetWindowAttributes windowAttribs;
         windowAttribs.colormap = XCreateColormap(mpDisplay, root, pVisualInfo->visual, AllocNone);
+        windowAttribs.event_mask = StructureNotifyMask;
 
         mWindow = XCreateWindow(mpDisplay, root, 0, 0, GetScreenWidth(), GetScreenHeight(), 0, pVisualInfo->depth,
-                                InputOutput, pVisualInfo->visual, CWColormap, &windowAttribs);
+                                InputOutput, pVisualInfo->visual, CWColormap | CWEventMask, &windowAttribs);
         if (mWindow == None)
         {
             FASTCG_THROW_EXCEPTION(Exception, "X11: Couldn't create a window");

@@ -19,7 +19,14 @@ namespace FastCG
         auto &rIo = ImGui::GetIO();
         rIo.Fonts->GetTexDataAsRGBA32(&pPixels, &width, &height);
 
-#if defined FASTCG_ANDROID
+#if defined FASTCG_LINUX
+        // applying a hard-coded scale factor to ImGUI on Linux!
+        // TODO: make this less brittle and possibly dynamic
+        const float SCALE_FACTOR = 2;
+        rIo.FontGlobalScale = SCALE_FACTOR;
+        auto &rStyle = ImGui::GetStyle();
+        rStyle.ScaleAllSizes(SCALE_FACTOR);
+#elif defined FASTCG_ANDROID
         // applying a hard-coded scale factor to ImGUI on Android!
         // TODO: make this less brittle and possibly dynamic
         const float SCALE_FACTOR = 3;

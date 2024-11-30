@@ -82,14 +82,13 @@ namespace FastCG
         uint32_t mCurrentFrame{0};                // 0 or 1 (double-buffering)
 
         void OnInitialize() override;
-        void OnPostFinalize() override;
         void Resize()
         {
         }
         void SwapBuffers() const;
         void SwapFrame();
         double GetGpuElapsedTime(uint32_t frame) const;
-        void CreateOpenGLHeadlessContext(void *pWindow = nullptr);
+        void CreateOpenGLHeadlessContext();
         void CreateOpenGLHeadedContext(void *pWindow);
         void DestroyOpenGLContext(void *pWindow);
         void QueryDeviceProperties();

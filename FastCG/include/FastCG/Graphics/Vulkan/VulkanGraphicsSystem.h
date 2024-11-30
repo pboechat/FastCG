@@ -197,6 +197,9 @@ namespace FastCG
         std::unordered_map<VkImage, size_t, IdentityHasher<VkImage>> mRenderTargetToFrameBufferHash;
         std::unordered_map<size_t, std::vector<VkImage>, IdentityHasher<size_t>> mFrameBufferHashToRenderTargets;
         std::vector<uint32_t> mNextQueries;
+#if defined FASTCG_LINUX
+        XVisualInfo *mpVisualInfo{nullptr};
+#endif
 
         inline VkInstance GetVulkanInstance() const;
         inline VkDevice GetDevice() const;

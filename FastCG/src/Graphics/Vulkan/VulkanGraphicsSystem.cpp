@@ -55,15 +55,16 @@ namespace
                }) != vector.end();
     }
 
-    bool SupportsPresentation(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIdx)
+    bool SupportsPresentation(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIdx
+#if defined FASTCG_LINUX
+                              ,
+                              Display *pDisplay, VisualID visualId
+#endif
+    )
     {
 #if defined FASTCG_WINDOWS
         return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIdx);
 #elif defined FASTCG_LINUX
-        auto *pDisplay = FastCG::X11Application::GetInstance()->GetDisplay();
-        assert(pDisplay != nullptr);
-        // uses visual ID from default visual. Only works because we're using a "simple window".
-        auto visualId = XVisualIDFromVisual(DefaultVisual(pDisplay, DefaultScreen(pDisplay)));
         return vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIdx, pDisplay, visualId);
 #elif defined FASTCG_ANDROID
         // TODO: apparently, there's no need for checking whether a queue family supports presentation on Android
@@ -202,6 +203,49 @@ namespace
                                          sizeof(rDescriptorSetLayout.pBindingLayouts[0]));
     }
 
+#if defined FASTCG_LINUX
+    XVisualInfo *GetVisualInfo(Display *pDisplay)
+    {
+        XVisualInfo visualInfoTemplate;
+        visualInfoTemplate.screen = DefaultScreen(pDisplay);
+
+        int visualInfoCount;
+        auto *pVisualInfos = XGetVisualInfo(pDisplay, VisualScreenMask, &visualInfoTemplate, &visualInfoCount);
+
+        if (visualInfoCount == 0)
+        {
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "X11: Failed to get visual infos");
+        }
+
+        XVisualInfo *pVisualInfo = nullptr;
+        for (int i = 0; i < visualInfoCount; ++i)
+        {
+            auto &rVisualInfo = pVisualInfos[i];
+
+            /*if (rVisualInfo.bits_per_rgb != 8 || rVisualInfo.red_mask != 0xFF0000 ||
+                rVisualInfo.green_mask != 0x00FF00 || rVisualInfo.blue_mask != 0x0000FF)
+            {
+                continue;
+            }*/
+
+            if (rVisualInfo.depth != 24)
+            {
+                continue;
+            }
+
+            pVisualInfo = &rVisualInfo;
+            break;
+        }
+
+        if (pVisualInfo == nullptr)
+        {
+            FASTCG_THROW_EXCEPTION(FastCG::Exception, "Vulkan: Couldn't find an appropriate visual info");
+        }
+
+        return pVisualInfo;
+    }
+#endif
+
 }
 
 // defined in the application's Config.cpp
@@ -241,6 +285,12 @@ namespace FastCG
         BaseGraphicsSystem::OnInitialize();
 
         CreateInstance();
+#if defined FASTCG_LINUX
+        auto *pDisplay = FastCG::X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
+
+        mpVisualInfo = GetVisualInfo(pDisplay);
+#endif
         SelectPhysicalDevice();
         AcquirePhysicalDeviceProperties();
         CreateDeviceAndGetQueues();
@@ -409,6 +459,8 @@ namespace FastCG
 
     void VulkanGraphicsSystem::CreateSurface(void *pWindow)
     {
+        assert(pWindow != nullptr);
+
         DestroySurface();
 
 #if defined FASTCG_WINDOWS
@@ -454,12 +506,20 @@ namespace FastCG
 
     void VulkanGraphicsSystem::SelectPhysicalDevice()
     {
-        uint32_t numPhysicalDevices;
-        FASTCG_CHECK_VK_RESULT(vkEnumeratePhysicalDevices(mInstance, &numPhysicalDevices, nullptr));
+#if defined FASTCG_LINUX
+        assert(mpVisualInfo != nullptr);
+
+        auto *pDisplay = FastCG::X11Application::GetInstance()->GetDisplay();
+        assert(pDisplay != nullptr);
+#endif
+
+        uint32_t physicalDevicesCount = 0;
+        FASTCG_CHECK_VK_RESULT(vkEnumeratePhysicalDevices(mInstance, &physicalDevicesCount, nullptr));
+        assert(physicalDevicesCount > 0);
 
         std::vector<VkPhysicalDevice> physicalDevices;
-        physicalDevices.resize(numPhysicalDevices);
-        FASTCG_CHECK_VK_RESULT(vkEnumeratePhysicalDevices(mInstance, &numPhysicalDevices, &physicalDevices[0]));
+        physicalDevices.resize(physicalDevicesCount);
+        FASTCG_CHECK_VK_RESULT(vkEnumeratePhysicalDevices(mInstance, &physicalDevicesCount, &physicalDevices[0]));
 
 #if _DEBUG
         FASTCG_LOG_DEBUG(VulkanGraphicsSystem, "Devices:");
@@ -493,7 +553,12 @@ namespace FastCG
                     // FIXME: checking invariants
                     assert((rQueueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0);
 
-                    mQueueSupportsPresentation = SupportsPresentation(rPhysicalDevice, queueFamilyIdx);
+                    mQueueSupportsPresentation = SupportsPresentation(rPhysicalDevice, queueFamilyIdx
+#if defined FASTCG_LINUX
+                                                                      ,
+                                                                      pDisplay, mpVisualInfo->visualid
+#endif
+                    );
                     mQueueSupportsCompute = (rQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0;
                     mQueueFamilyIdx = queueFamilyIdx;
                     mPhysicalDevice = rPhysicalDevice;
@@ -1958,6 +2023,13 @@ namespace FastCG
 
     void VulkanGraphicsSystem::OnPostWindowInitialize(void *pWindow)
     {
+#if defined FASTCG_LINUX
+        assert(mpVisualInfo != nullptr);
+        assert(pWindow == nullptr);
+
+        auto &rWindow = X11Application::GetInstance()->CreateWindow(mpVisualInfo);
+        pWindow = (void *)rWindow;
+#endif
         CreateSurface(pWindow);
         AcquirePhysicalDeviceSurfaceProperties();
         RecreateSwapChain();
