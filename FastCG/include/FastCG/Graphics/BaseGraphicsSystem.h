@@ -98,8 +98,7 @@ namespace FastCG
         inline const Shader *FindShader(const std::string &rName) const;
         inline const Texture *GetMissingTexture(TextureType textureType) const;
         inline void Synchronize();
-        inline void OnPostWindowInitialize();
-        inline void OnPreWindowTerminate();
+        inline void OnPostWindowInitialize(void *pWindow);
 
     protected:
         const GraphicsSystemArgs mArgs;

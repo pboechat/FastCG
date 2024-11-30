@@ -42,21 +42,19 @@ namespace
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "GLX: GLX_ARB_create_context extension not supported");
         }
 
-        const int contextAttribs[] = {
-            GLX_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            GLX_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            GLX_CONTEXT_PROFILE_MASK_ARB,
-            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-            GLX_CONTEXT_FLAGS_ARB,
-            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {GLX_CONTEXT_MAJOR_VERSION_ARB,
+                                      4,
+                                      GLX_CONTEXT_MINOR_VERSION_ARB,
+                                      3,
+                                      GLX_CONTEXT_PROFILE_MASK_ARB,
+                                      GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      GLX_CONTEXT_FLAGS_ARB,
+                                      GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | GLX_CONTEXT_DEBUG_BIT_ARB
+                                          | GLX_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                                      ,
+                                      0};
 
         auto *pOldErrorHandler = XSetErrorHandler(&GLXContextErrorHandler);
         auto context = glXCreateContextAttribsARB(pDisplay, fbConfig, oldContext, True, contextAttribs);
@@ -139,21 +137,19 @@ namespace
             FASTCG_THROW_EXCEPTION(FastCG::Exception, "WGL: WGL_ARB_create_context extension not supported");
         }
 
-        const int contextAttribs[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB,
-            4,
-            WGL_CONTEXT_MINOR_VERSION_ARB,
-            3,
-            WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+        const int contextAttribs[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
+                                      4,
+                                      WGL_CONTEXT_MINOR_VERSION_ARB,
+                                      3,
+                                      WGL_CONTEXT_PROFILE_MASK_ARB,
+                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      WGL_CONTEXT_FLAGS_ARB,
+                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 #if _DEBUG
-                | WGL_CONTEXT_DEBUG_BIT_ARB
+                                          | WGL_CONTEXT_DEBUG_BIT_ARB
 #endif
-            ,
-            0
-        };
+                                      ,
+                                      0};
 
         auto context = wglCreateContextAttribsARB(deviceContext, parentContext, contextAttribs);
         if (context == nullptr)
@@ -257,16 +253,13 @@ namespace FastCG
         assert(pTexture != nullptr);
         // delete fbos that reference the texture to be deleted
         {
-            auto it = mTextureToFboHashes.find(*pTexture);
-            if (it != mTextureToFboHashes.end())
+            auto it1 = mTextureIdToFbos.find(*pTexture);
+            if (it1 != mTextureIdToFbos.end())
             {
-                for (auto fboHash : it->second)
+                auto fbos = it1->second;
+                for (auto &rFbo : fbos)
                 {
-                    if (mFboIds.find(fboHash) != mFboIds.end())
-                    {
-                        FASTCG_CHECK_OPENGL_CALL(glDeleteFramebuffers(1, &mFboIds[fboHash]));
-                        mFboIds.erase(fboHash);
-                    }
+                    DeleteFbo(rFbo);
                 }
             }
         }
@@ -385,12 +378,17 @@ namespace FastCG
 
         mFboIds.emplace(fboHash, fboId);
 
-        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount,
-                      [&](const auto *pRenderTarget) { mTextureToFboHashes[*pRenderTarget].emplace_back(fboHash); });
+        std::for_each(pRenderTargets, pRenderTargets + renderTargetCount, [&](const auto *pRenderTarget) {
+            auto renderTargetId = (GLint)(*pRenderTarget);
+            mTextureIdToFbos[renderTargetId].emplace_back(fboHash, fboId);
+            mFboIdToTextureIds[fboId].emplace_back(renderTargetId);
+        });
 
         if (pDepthStencilBuffer != nullptr)
         {
-            mTextureToFboHashes[*pDepthStencilBuffer].emplace_back(fboHash);
+            auto depthStencilBufferId = (GLint)(*pDepthStencilBuffer);
+            mTextureIdToFbos[depthStencilBufferId].emplace_back(fboHash, fboId);
+            mFboIdToTextureIds[fboId].emplace_back(depthStencilBufferId);
         }
 
         FASTCG_CHECK_OPENGL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFboId));
@@ -443,6 +441,35 @@ namespace FastCG
         mVaoIds.emplace(vaoHash, vaoId);
 
         return vaoId;
+    }
+
+    void OpenGLGraphicsSystem::DeleteFbo(const Fbo &rFbo)
+    {
+        assert(rFbo.second > 0);
+        FASTCG_CHECK_OPENGL_CALL(glDeleteFramebuffers(1, &rFbo.second));
+        auto it1 = mFboIdToTextureIds.find(rFbo.second);
+        if (it1 != mFboIdToTextureIds.end())
+        {
+            for (auto textureId : it1->second)
+            {
+                auto it2 = mTextureIdToFbos.find(textureId);
+                assert(it2 != mTextureIdToFbos.end());
+                auto &rFbos = it2->second;
+                auto it3 = std::find_if(rFbos.begin(), rFbos.end(), [&rFbo](const Fbo &rOtherFbo) {
+                    return rOtherFbo.first == rFbo.first && rOtherFbo.second == rFbo.second;
+                });
+                assert(it3 != rFbos.end());
+                rFbos.erase(it3);
+                if (rFbos.empty())
+                {
+                    mTextureIdToFbos.erase(it2);
+                }
+            }
+            mFboIdToTextureIds.erase(it1);
+        }
+        auto it4 = mFboIds.find(rFbo.first);
+        assert(it4 != mFboIds.end());
+        mFboIds.erase(it4);
     }
 
     void OpenGLGraphicsSystem::CreateOpenGLHeadlessContext()
@@ -1088,6 +1115,8 @@ namespace FastCG
             FASTCG_CHECK_OPENGL_CALL(glDeleteFramebuffers(1, &rKvp.second));
         }
         mFboIds.clear();
+        mTextureIdToFbos.clear();
+        mFboIdToTextureIds.clear();
 
         for (const auto &rKvp : mVaoIds)
         {

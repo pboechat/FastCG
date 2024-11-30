@@ -31,7 +31,7 @@ namespace FastCG
     protected:
         void OnPreInitialize() override;
         void OnPostInitialize() override;
-        void OnPreFinalize() override;
+        void OnPostFinalize() override;
         void RunMainLoop() override;
         void RunConsoleMainLoop();
         void RunWindowedMainLoop();

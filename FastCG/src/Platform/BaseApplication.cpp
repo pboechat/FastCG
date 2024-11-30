@@ -148,9 +148,6 @@ namespace FastCG
 
     void BaseApplication::Initialize()
     {
-        FASTCG_LOG_DEBUG(BaseApplication, "Pre-initializing application");
-        OnPreInitialize();
-
         {
             FASTCG_LOG_DEBUG(BaseApplication, "Creating systems");
 
@@ -167,6 +164,9 @@ namespace FastCG
                                      mRenderingStatistics});
             WorldSystem::Create({mScreenWidth, mScreenHeight});
         }
+
+        FASTCG_LOG_DEBUG(BaseApplication, "Pre-initializing application");
+        OnPreInitialize();
 
         {
             FASTCG_LOG_DEBUG(BaseApplication, "Initializing systems");
@@ -200,6 +200,9 @@ namespace FastCG
             GraphicsSystem::GetInstance()->Finalize();
         }
 
+        FASTCG_LOG_DEBUG(BaseApplication, "Post-finalizing application");
+        OnPostFinalize();
+
         {
             FASTCG_LOG_DEBUG(BaseApplication, "Destroying systems");
             WorldSystem::Destroy();
@@ -212,9 +215,6 @@ namespace FastCG
 #endif
             AssetSystem::Destroy();
         }
-
-        FASTCG_LOG_DEBUG(BaseApplication, "Post-finalizing application");
-        OnPostFinalize();
     }
 
     void BaseApplication::RunMainLoopIteration(double osTime)

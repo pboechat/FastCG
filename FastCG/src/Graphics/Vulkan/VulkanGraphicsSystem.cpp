@@ -331,6 +331,10 @@ namespace FastCG
         DestroySurface();
         DestroyInstance();
 
+        mSurfaceCapabilities = {};
+        mPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+        mSurfaceSwapChainFormat = {};
+
         BaseGraphicsSystem::OnPostFinalize();
     }
 
@@ -2033,16 +2037,6 @@ namespace FastCG
         CreateSurface(pWindow);
         AcquirePhysicalDeviceSurfaceProperties();
         RecreateSwapChain();
-    }
-
-    void VulkanGraphicsSystem::OnPreWindowTerminate(void *pWindow)
-    {
-        mSurfaceCapabilities = {};
-        mPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-        mSurfaceSwapChainFormat = {};
-        DestroySwapChain();
-        DestroySurface();
-        CreateSurfacelessSwapChain();
     }
 
     void VulkanGraphicsSystem::Submit()

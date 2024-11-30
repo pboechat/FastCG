@@ -16,6 +16,7 @@
 #include <cstring>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace FastCG
@@ -74,8 +75,10 @@ namespace FastCG
         EGLContext mContext{EGL_NO_CONTEXT};
         EGLSurface mSurface{EGL_NO_SURFACE};
 #endif
+        using Fbo = std::pair<size_t, GLuint>;
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mFboIds;
-        std::unordered_map<GLint, std::vector<size_t>, IdentityHasher<GLint>> mTextureToFboHashes;
+        std::unordered_map<GLint, std::vector<Fbo>, IdentityHasher<GLint>> mTextureIdToFbos;
+        std::unordered_map<GLuint, std::vector<GLint>, IdentityHasher<GLuint>> mFboIdToTextureIds;
         std::unordered_map<size_t, GLuint, IdentityHasher<size_t>> mVaoIds;
         DeviceProperties mDeviceProperties{};
         GLsync mFrameFences[2]{nullptr, nullptr}; // double-buffered
@@ -95,6 +98,7 @@ namespace FastCG
         GLuint GetOrCreateFramebuffer(const OpenGLTexture *const *pRenderTargets, uint32_t renderTargetCount,
                                       const OpenGLTexture *pDepthStencilBuffer);
         GLuint GetOrCreateVertexArray(const OpenGLBuffer *const *pBuffers, uint32_t bufferCount);
+        void DeleteFbo(const Fbo &rFbo);
         void NotifyPreContextCreate();
         void NotifyPostContextCreate();
 

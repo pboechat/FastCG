@@ -27,7 +27,7 @@ namespace FastCG
 
     protected:
         void OnPostInitialize() override;
-        void OnPreFinalize() override;
+        void OnPostFinalize() override;
         void RunMainLoop() override;
 
     private:

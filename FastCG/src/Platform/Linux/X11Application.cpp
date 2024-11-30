@@ -17,10 +17,7 @@ namespace
 #undef MAP_KEY
 #endif
 
-#define MAP_KEY(a, b)                                                                                                  \
-    {                                                                                                                  \
-        (uint64_t) a, FastCG::Key::b                                                                                   \
-    }
+#define MAP_KEY(a, b) {(uint64_t)a, FastCG::Key::b}
 
     std::unordered_map<uint64_t, FastCG::Key> KEY_LUT = {MAP_KEY(XK_BackSpace, BACKSPACE),
                                                          MAP_KEY(XK_Return, RETURN),
@@ -178,10 +175,8 @@ namespace FastCG
         BaseApplication::OnPostInitialize();
     }
 
-    void X11Application::OnPreFinalize()
+    void X11Application::OnPostFinalize()
     {
-        BaseApplication::OnPreFinalize();
-
         if (!mSettings.graphics.headless)
         {
             // NOTE: on X11 the graphics system is responsible for creating the window
@@ -194,6 +189,8 @@ namespace FastCG
             XCloseDisplay(mpDisplay);
             mpDisplay = nullptr;
         }
+
+        BaseApplication::OnPostFinalize();
     }
 
     void X11Application::RunMainLoop()

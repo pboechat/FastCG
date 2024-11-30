@@ -80,7 +80,9 @@ namespace FastCG
         void Submit();
         void WaitPreviousFrame();
         void OnPostWindowInitialize(void *pWindow);
-        void OnPreWindowTerminate(void *pWindow);
+        void OnPreWindowTerminate(void *pWindow)
+        {
+        }
 
     protected:
         using Super = BaseGraphicsSystem<VulkanBuffer, VulkanGraphicsContext, VulkanShader, VulkanTexture>;
