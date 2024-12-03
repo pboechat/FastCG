@@ -265,7 +265,8 @@ namespace
     void LoadInspectable(const GenericObjectT &, const std::string &,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &,
-                         const std::unordered_map<std::string, FastCG::Texture *> &, FastCG::Inspectable *);
+                         const std::unordered_map<std::string, FastCG::Texture *> &, FastCG::Inspectable *,
+                         const std::vector<std::string> &);
 
     template <typename GenericValueT>
     void LoadInspectableProperty(const GenericValueT &rGenericValue, const std::string &rBasePath,
@@ -389,11 +390,16 @@ namespace
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                          const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
-                         FastCG::Inspectable *pInspectable)
+                         FastCG::Inspectable *pInspectable, const std::vector<std::string> &rPropertiesToIgnore = {})
     {
         for (auto it = rInspectableObj.MemberBegin(); it != rInspectableObj.MemberEnd(); ++it)
         {
             std::string propertyName = it->name.GetString();
+            if (std::find(rPropertiesToIgnore.begin(), rPropertiesToIgnore.end(), propertyName) !=
+                rPropertiesToIgnore.end())
+            {
+                continue;
+            }
             auto *pInspectableProperty = pInspectable->GetInspectableProperty(propertyName);
             // ignore non-existing inspectable properties
             if (pInspectableProperty == nullptr)
@@ -472,7 +478,7 @@ namespace
                 if (pComponentRegistry != nullptr)
                 {
                     auto *pComponent = pComponentRegistry->Instantiate(pGameObject);
-                    LoadInspectable(componentObj, rBasePath, rMaterials, rMeshes, rTextures, pComponent);
+                    LoadInspectable(componentObj, rBasePath, rMaterials, rMeshes, rTextures, pComponent, {"name"});
                 }
                 else
                 {
