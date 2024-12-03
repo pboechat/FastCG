@@ -28,15 +28,14 @@ Features:
     - PCSS
     - HDR/Tonemap
 - Scene Loaders:
-    - Proprietary JSON-based format (.scene)
+    - JSON-based format (.scene)
 - Image Loaders:
     - JPEG, PNG, TGA, BMP and more (via [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h))
     - DDS ([Microsoft code](https://learn.microsoft.com/en-us/windows/uwp/gaming/complete-code-for-ddstextureloader))
     - KTX (via [KTX-Software](https://github.com/KhronosGroup/KTX-Software))
 - Model Loaders:
     - OBJ (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
-- Editor Mode:
-    - Immediate-Mode GUI (via [Dear ImGUI](https://github.com/ocornut/imgui))
-- Compute Shader Support.
+- Immediate-Mode GUI (via [Dear ImGUI](https://github.com/ocornut/imgui))
+- Compute Shader Support
 - API Design:
-    - Component-oriented.
+    - Component-oriented
