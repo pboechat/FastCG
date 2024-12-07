@@ -37,5 +37,4 @@ Features:
     - OBJ (via [tinyobjloader-c](https://github.com/syoyo/tinyobjloader-c))
 - Immediate-Mode GUI (via [Dear ImGUI](https://github.com/ocornut/imgui))
 - Compute Shader Support
-- API Design:
-    - Component-oriented
+- Component-oriented API
