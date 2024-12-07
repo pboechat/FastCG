@@ -662,12 +662,10 @@ namespace FastCG
     {
         auto &rInstanceData = mInstanceConstants.instanceData[0];
 
-        auto modelView = rView * rModel;
-
         rInstanceData.model = rModel;
         rInstanceData.modelInverseTranspose = glm::transpose(glm::inverse(rModel));
-        rInstanceData.modelView = modelView;
-        rInstanceData.modelViewProjection = rProjection * modelView;
+        rInstanceData.viewProjection = rProjection * rView;
+        rInstanceData.modelViewProjection = rInstanceData.viewProjection * rModel;
 
         const auto *pInstanceConstantsBuffer = GetInstanceConstantsBuffer();
         pGraphicsContext->Copy(pInstanceConstantsBuffer, &mInstanceConstants,
@@ -691,12 +689,11 @@ namespace FastCG
             auto &rInstanceData = mInstanceConstants.instanceData[instanceCount++];
 
             auto model = pRenderable->GetGameObject()->GetTransform()->GetModel();
-            auto modelView = rView * model;
 
             rInstanceData.model = model;
             rInstanceData.modelInverseTranspose = glm::transpose(glm::inverse(model));
-            rInstanceData.modelView = modelView;
-            rInstanceData.modelViewProjection = rProjection * modelView;
+            rInstanceData.viewProjection = rProjection * rView;
+            rInstanceData.modelViewProjection = rInstanceData.viewProjection * model;
         }
 
         assert(instanceCount < MAX_NUM_INSTANCES);

@@ -84,7 +84,7 @@ namespace FastCG
         {
             glm::mat4 model;
             glm::mat4 modelInverseTranspose;
-            glm::mat4 modelView;
+            glm::mat4 viewProjection;
             glm::mat4 modelViewProjection;
         };
 
