@@ -13,7 +13,7 @@ struct VertexData
     vec2 uv;
 };
 
-#ifdef GL_VERTEX_SHADER
+#ifdef FASTCG_VERTEX_SHADER
 VertexData ComputeVertexData(vec3 position, vec3 normal, vec2 uv, vec4 tangent)
 {
     VertexData vertexData;

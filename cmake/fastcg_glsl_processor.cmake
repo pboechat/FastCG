@@ -16,8 +16,15 @@ file(READ ${input_file} file_content)
 
 set(glsl_prefix "#version ${glsl_version}")
 set(glsl_prefix "${glsl_prefix}\n#extension GL_GOOGLE_include_directive : enable")
-if(platform STREQUAL "Android" AND input_file MATCHES "\\.frag$")
-    set(glsl_prefix "${glsl_prefix}\nprecision mediump float;")
+if(input_file MATCHES "\\.frag$")
+    set(glsl_prefix "${glsl_prefix}\n#define FASTCG_FRAGMENT_SHADER")
+elseif(input_file MATCHES "\\.vert$")
+    set(glsl_prefix "${glsl_prefix}\n#define FASTCG_VERTEX_SHADER")
+endif()
+if(platform STREQUAL "Android") 
+    if(input_file MATCHES "\\.frag$")
+        set(glsl_prefix "${glsl_prefix}\nprecision mediump float;")
+    endif()
 endif()
 
 
