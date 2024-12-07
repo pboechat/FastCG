@@ -5,7 +5,6 @@
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/TextureLoader.h>
 #include <FastCG/Platform/BinaryStream.h>
-#include <FastCG/Platform/File.h>
 #include <FastCG/Platform/FileReader.h>
 #include <FastCG/Platform/FileWriter.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
@@ -26,7 +25,7 @@ namespace
 {
     struct LoadContext
     {
-        std::string basePath;
+        std::filesystem::path basePath;
         std::vector<std::unique_ptr<char[]>> fileData;
     };
 
@@ -37,7 +36,7 @@ namespace
         FASTCG_UNUSED(pObjFilename);
 
         auto *pLoadContext = (LoadContext *)pContext;
-        auto data = FastCG::FileReader::ReadText(FastCG::File::Join({pLoadContext->basePath, pFilename}), *pLength);
+        auto data = FastCG::FileReader::ReadText(pLoadContext->basePath / pFilename, *pLength);
         *pBuffer = data.get();
         pLoadContext->fileData.emplace_back(std::move(data));
     }
@@ -49,10 +48,10 @@ namespace
 
 namespace FastCG
 {
-    void BuildMeshCatalog(const std::string &rFilePath, const tinyobj_attrib_t &attributes,
+    void BuildMeshCatalog(const std::filesystem::path &rFilePath, const tinyobj_attrib_t &attributes,
                           const tinyobj_shape_t *pShapes, size_t numShapes, MeshCatalog &rMeshCatalog)
     {
-        auto name = File::GetFileNameWithoutExtension(rFilePath);
+        auto name = rFilePath.stem().string();
         for (size_t shapeIdx = 0; shapeIdx < numShapes; shapeIdx++)
         {
             auto &shape = pShapes[shapeIdx];
@@ -142,11 +141,11 @@ namespace FastCG
         }
     }
 
-    void BuildMaterialCatalog(const std::string &rFilePath, const tinyobj_material_t *pMaterials, size_t numMaterials,
-                              MaterialCatalog &rMaterialCatalog)
+    void BuildMaterialCatalog(const std::filesystem::path &rFilePath, const tinyobj_material_t *pMaterials,
+                              size_t numMaterials, MaterialCatalog &rMaterialCatalog)
     {
-        auto name = File::GetFileNameWithoutExtension(rFilePath);
-        auto basePath = File::GetBasePath(rFilePath);
+        auto name = rFilePath.stem().string();
+        auto basePath = rFilePath.parent_path();
         for (size_t materialIdx = 0; materialIdx < numMaterials; materialIdx++)
         {
             auto &rMaterial = pMaterials[materialIdx];
@@ -158,13 +157,13 @@ namespace FastCG
             Texture *pColorMapTexture = nullptr;
             if (rMaterial.diffuse_texname != nullptr)
             {
-                pColorMapTexture = TextureLoader::Load(File::Join({basePath, rMaterial.diffuse_texname}));
+                pColorMapTexture = TextureLoader::Load(basePath / rMaterial.diffuse_texname);
             }
 
             Texture *pBumpMapTexture = nullptr;
             if (rMaterial.bump_texname != nullptr)
             {
-                pBumpMapTexture = TextureLoader::Load(File::Join({basePath, rMaterial.bump_texname}));
+                pBumpMapTexture = TextureLoader::Load(basePath / rMaterial.bump_texname);
             }
 
             std::shared_ptr<MaterialDefinition> pMaterialDefinition;
@@ -267,7 +266,8 @@ namespace FastCG
         return pModelGameObject;
     }
 
-    GameObject *OBJLoader::Load(const std::string &rFilePath, const std::shared_ptr<Material> &pDefaultMaterial,
+    GameObject *OBJLoader::Load(const std::filesystem::path &rFilePath,
+                                const std::shared_ptr<Material> &pDefaultMaterial,
                                 OBJLoaderOptionMaskType options /* = (OBJLoaderOptionMaskType)OBJLoaderOption::NONE*/)
     {
         tinyobj_attrib_t attributes;
@@ -275,10 +275,10 @@ namespace FastCG
         tinyobj_material_t *pMaterials;
         size_t numShapes, numMaterials;
 
-        LoadContext loadContext{File::GetBasePath(rFilePath)};
+        LoadContext loadContext{rFilePath.parent_path()};
 
         if (tinyobj_parse_obj(&attributes, &pShapes, &numShapes, &pMaterials, &numMaterials,
-                              File::GetFileName(rFilePath).c_str(), &FileReaderCallback, (void *)&loadContext,
+                              rFilePath.filename().string().c_str(), &FileReaderCallback, (void *)&loadContext,
                               TINYOBJ_FLAG_TRIANGULATE) != TINYOBJ_SUCCESS)
         {
             return nullptr;
@@ -290,7 +290,7 @@ namespace FastCG
         MeshCatalog meshCatalog;
         BuildMeshCatalog(rFilePath, attributes, pShapes, numShapes, meshCatalog);
 
-        auto modelName = File::GetFileNameWithoutExtension(rFilePath);
+        auto modelName = rFilePath.stem().string();
         auto *pModelGameObject = BuildGameObjectFromObj(modelName, attributes, pShapes, numShapes, materialCatalog,
                                                         meshCatalog, pDefaultMaterial, options);
 

@@ -2,7 +2,6 @@
 #include <FastCG/Core/Macros.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
-#include <FastCG/Platform/File.h>
 #include <FastCG/Platform/FileWriter.h>
 #include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/World/Component.h>
@@ -240,11 +239,11 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpTexture(const FastCG::Texture *, const std::string &, FastCG::GameObjectDumperOptionMaskType, AllocatorT &,
-                     GenericObjectT &);
+    void DumpTexture(const FastCG::Texture *, const std::filesystem::path &, FastCG::GameObjectDumperOptionMaskType,
+                     AllocatorT &, GenericObjectT &);
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMaterial(const std::shared_ptr<FastCG::Material> &rpMaterial, const std::string &rBasePath,
+    void DumpMaterial(const std::shared_ptr<FastCG::Material> &rpMaterial, const std::filesystem::path &rBasePath,
                       FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc, GenericObjectT &rMaterialObj,
                       std::unordered_map<std::string, rapidjson::Value> &rTextures)
     {
@@ -284,7 +283,7 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpMesh(const std::shared_ptr<FastCG::Mesh> &pMesh, const std::string &rBasePath,
+    void DumpMesh(const std::shared_ptr<FastCG::Mesh> &pMesh, const std::filesystem::path &rBasePath,
                   FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc, GenericObjectT &rMeshObj)
     {
         AddValueMember(rAlloc, rMeshObj, "name", pMesh->GetName());
@@ -356,7 +355,7 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpTexture(const FastCG::Texture *pTexture, const std::string &rBasePath,
+    void DumpTexture(const FastCG::Texture *pTexture, const std::filesystem::path &rBasePath,
                      FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc, GenericObjectT &rTextureObj)
     {
         AddValueMember(rAlloc, rTextureObj, "name", pTexture->GetName());
@@ -373,15 +372,16 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpInspectable(const FastCG::Inspectable *, const std::string &, FastCG::GameObjectDumperOptionMaskType,
-                         AllocatorT &, GenericObjectT &, std::unordered_map<std::string, rapidjson::Value> &,
+    void DumpInspectable(const FastCG::Inspectable *, const std::filesystem::path &,
+                         FastCG::GameObjectDumperOptionMaskType, AllocatorT &, GenericObjectT &,
+                         std::unordered_map<std::string, rapidjson::Value> &,
                          std::unordered_map<std::string, rapidjson::Value> &,
                          std::unordered_map<std::string, rapidjson::Value> &);
 
     template <typename AllocatorT, typename GenericValueT>
-    void DumpInspectableProperty(const FastCG::IInspectableProperty *pInspectableProperty, const std::string &rBasePath,
-                                 FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc,
-                                 GenericValueT &rInspectableObj,
+    void DumpInspectableProperty(const FastCG::IInspectableProperty *pInspectableProperty,
+                                 const std::filesystem::path &rBasePath, FastCG::GameObjectDumperOptionMaskType options,
+                                 AllocatorT &rAlloc, GenericValueT &rInspectableObj,
                                  std::unordered_map<std::string, rapidjson::Value> &rMaterials,
                                  std::unordered_map<std::string, rapidjson::Value> &rMeshes,
                                  std::unordered_map<std::string, rapidjson::Value> &rTextures)
@@ -527,7 +527,7 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpInspectable(const FastCG::Inspectable *pInspectable, const std::string &rBasePath,
+    void DumpInspectable(const FastCG::Inspectable *pInspectable, const std::filesystem::path &rBasePath,
                          FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc,
                          GenericObjectT &rInspectableObj, std::unordered_map<std::string, rapidjson::Value> &rMaterials,
                          std::unordered_map<std::string, rapidjson::Value> &rMeshes,
@@ -542,7 +542,7 @@ namespace
     }
 
     template <typename AllocatorT, typename GenericObjectT>
-    void DumpGameObject(const FastCG::GameObject *pGameObject, const std::string &rBasePath,
+    void DumpGameObject(const FastCG::GameObject *pGameObject, const std::filesystem::path &rBasePath,
                         FastCG::GameObjectDumperOptionMaskType options, AllocatorT &rAlloc,
                         GenericObjectT &rGameObjectObj, std::unordered_map<std::string, rapidjson::Value> &rMaterials,
                         std::unordered_map<std::string, rapidjson::Value> &rMeshes,
@@ -588,7 +588,7 @@ namespace
 
 namespace FastCG
 {
-    void GameObjectDumper::Dump(const std::string &rFilePath, GameObject *pRootGameObject,
+    void GameObjectDumper::Dump(const std::filesystem::path &rFilePath, GameObject *pRoot,
                                 GameObjectDumperOptionMaskType options)
     {
         rapidjson::Document document;
@@ -601,10 +601,10 @@ namespace FastCG
         std::unordered_map<std::string, rapidjson::Value> meshes;
         std::unordered_map<std::string, rapidjson::Value> textures;
 
-        auto basePath = File::GetBasePath(rFilePath);
+        auto basePath = rFilePath.parent_path();
 
         rapidjson::Value rootObj(rapidjson::kObjectType);
-        DumpGameObject(pRootGameObject, basePath, options, rAlloc, rootObj, materials, meshes, textures);
+        DumpGameObject(pRoot, basePath, options, rAlloc, rootObj, materials, meshes, textures);
 
         rapidjson::Value resourcesObj(rapidjson::kObjectType);
 

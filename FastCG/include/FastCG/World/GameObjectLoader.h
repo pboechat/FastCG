@@ -4,7 +4,7 @@
 #include <FastCG/World/GameObject.h>
 
 #include <cstdint>
-#include <string>
+#include <filesystem>
 #include <type_traits>
 
 namespace FastCG
@@ -17,10 +17,10 @@ namespace FastCG
     using GameObjectLoaderOptionIntType = std::underlying_type<GameObjectLoaderOption>::type;
     using GameObjectoaderOptionMaskType = uint8_t;
 
-    class GameObjectLoader
+    class GameObjectLoader final
     {
     public:
-        static GameObject *Load(const std::string &rFilePath,
+        static GameObject *Load(const std::filesystem::path &rFilePath,
                                 GameObjectoaderOptionMaskType options = (GameObjectoaderOptionMaskType)
                                     GameObjectLoaderOption::NONE);
 

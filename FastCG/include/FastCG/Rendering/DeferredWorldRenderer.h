@@ -28,7 +28,7 @@ namespace FastCG
         void CreateGBuffers();
         void DestroyGBuffers();
         void BindGBuffer(GraphicsContext *pGraphicsContext) const;
-        const Buffer *UpdateLightingConstants(const PointLight *pPointLight, const glm::mat4 &rInverseView,
+        const Buffer *UpdateLightingConstants(const PointLight *pPointLight,
                                               GraphicsContext *pGraphicsContext) override;
         const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight,
                                               const glm::vec3 &rViewDirection,

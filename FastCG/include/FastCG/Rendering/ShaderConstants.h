@@ -48,9 +48,8 @@ namespace FastCG
     struct PCSSData
     {
         ShadowMapData shadowMapData;
-        float uvScale
-        {
-            // TODO: solve this in a more elegant way
+        float uvScale{
+        // TODO: solve this in a more elegant way
 #if FASTCG_VULKAN
             0.001f
 #else
@@ -84,8 +83,8 @@ namespace FastCG
         struct InstanceData
         {
             glm::mat4 model;
+            glm::mat4 modelInverseTranspose;
             glm::mat4 modelView;
-            glm::mat4 modelViewInverseTranspose;
             glm::mat4 modelViewProjection;
         };
 
@@ -97,7 +96,6 @@ namespace FastCG
         struct LightingConstants
         {
             glm::vec4 light0Position;
-            glm::vec4 light0ViewPosition;
             glm::vec4 light0DiffuseColor;
             glm::vec4 light0SpecularColor;
             float light0Intensity;

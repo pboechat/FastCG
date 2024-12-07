@@ -349,7 +349,7 @@ FastCG::TextureFormat GetTextureFormat(uint32_t ddsFormat)
 
 namespace FastCG
 {
-    Texture *TextureLoader::LoadDDS(const std::string &rFilePath, TextureLoadSettings settings)
+    Texture *TextureLoader::LoadDDS(const std::filesystem::path &rFilePath, TextureLoadSettings settings)
     {
         size_t ddsDataSize;
         auto ddsData = FileReader::ReadBinary(rFilePath, ddsDataSize);
@@ -357,13 +357,14 @@ namespace FastCG
         // validate DDS file in memory
         if (ddsDataSize < (sizeof(uint32_t) + sizeof(DDS_HEADER)))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS data (texture: %s)", rFilePath.c_str());
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS data (texture: %s)", rFilePath.string().c_str());
         }
 
         uint32_t dwMagicNumber = *(const uint32_t *)(&ddsData[0]);
         if (dwMagicNumber != DDS_MAGIC)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't verify DDS magic number (texture: %s)", rFilePath.c_str());
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't verify DDS magic number (texture: %s)",
+                                   rFilePath.string().c_str());
         }
 
         const auto *header = reinterpret_cast<const DDS_HEADER *>(&ddsData[0] + sizeof(uint32_t));
@@ -371,7 +372,8 @@ namespace FastCG
         // verify the header to validate the DDS file
         if (header->size != sizeof(DDS_HEADER) || header->ddspf.size != sizeof(DDS_PIXELFORMAT))
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS header (texture: %s)", rFilePath.c_str());
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS header (texture: %s)",
+                                   rFilePath.string().c_str());
         }
 
         // check for the DX10 extension
@@ -382,7 +384,7 @@ namespace FastCG
             if (ddsDataSize < (sizeof(DDS_HEADER) + sizeof(uint32_t) + sizeof(DDS_HEADER_DXT10)))
             {
                 FASTCG_THROW_EXCEPTION(Exception, "Couldn't parse the DDS DX10 header (texture: %s)",
-                                       rFilePath.c_str());
+                                       rFilePath.string().c_str());
             }
 
             bDXT10Header = true;
@@ -413,7 +415,7 @@ namespace FastCG
             depthOrSlices = d3d10Header->arraySize;
             if (depthOrSlices == 0)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Invalid array size (texture: %s)", rFilePath.c_str());
+                FASTCG_THROW_EXCEPTION(Exception, "Invalid array size (texture: %s)", rFilePath.string().c_str());
             }
 
             ddsFormat = d3d10Header->ddsFormat;
@@ -424,7 +426,8 @@ namespace FastCG
                 // D3DX writes 1D textures with a fixed height of 1
                 if ((header->flags & DDS_HEIGHT) != 0 && height != 1)
                 {
-                    FASTCG_THROW_EXCEPTION(Exception, "Invalid 1D texture height (texture: %s)", rFilePath.c_str());
+                    FASTCG_THROW_EXCEPTION(Exception, "Invalid 1D texture height (texture: %s)",
+                                           rFilePath.string().c_str());
                 }
                 height = depthOrSlices = 1;
                 break;
@@ -443,13 +446,13 @@ namespace FastCG
                 if ((header->flags & DDS_HEADER_FLAGS_VOLUME) == 0)
                 {
                     FASTCG_THROW_EXCEPTION(Exception, "Missing volume flag in 3D texture flags (texture: %s)",
-                                           rFilePath.c_str());
+                                           rFilePath.string().c_str());
                 }
                 depthOrSlices = header->depth;
                 break;
             default:
                 FASTCG_THROW_EXCEPTION(Exception, "Invalid resource dimension (texture: %s, resDim: %d)",
-                                       rFilePath.c_str(), resDim);
+                                       rFilePath.string().c_str(), resDim);
                 return nullptr;
             }
 
@@ -461,7 +464,7 @@ namespace FastCG
 
             if (ddsFormat == DDS_FORMAT_UNKNOWN)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Unknown DDS format (texture %s)", rFilePath.c_str());
+                FASTCG_THROW_EXCEPTION(Exception, "Unknown DDS format (texture %s)", rFilePath.string().c_str());
                 return nullptr;
             }
             else if (header->flags & DDS_HEADER_FLAGS_VOLUME)
@@ -476,7 +479,7 @@ namespace FastCG
                     if ((header->caps2 & DDS_CUBEMAP_ALLFACES) != DDS_CUBEMAP_ALLFACES)
                     {
                         FASTCG_THROW_EXCEPTION(Exception, "Missing faces in cubemap texture (texture: %s)",
-                                               rFilePath.c_str());
+                                               rFilePath.string().c_str());
                         return nullptr;
                     }
 
@@ -496,8 +499,8 @@ namespace FastCG
         // requirements)
         if (mipCount > DDS_REQ_MIP_LEVELS)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Invalid number of mips (texture: %s, mipCount: %d)", rFilePath.c_str(),
-                                   mipCount);
+            FASTCG_THROW_EXCEPTION(Exception, "Invalid number of mips (texture: %s, mipCount: %d)",
+                                   rFilePath.string().c_str(), mipCount);
             return nullptr;
         }
 
@@ -507,7 +510,8 @@ namespace FastCG
         case DDS_RESOURCE_DIMENSION_TEXTURE1D:
             if (width > DDS_REQ_TEXTURE1D_U_DIMENSION)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Invalid 1D texture dimensions (texture: %s)", rFilePath.c_str());
+                FASTCG_THROW_EXCEPTION(Exception, "Invalid 1D texture dimensions (texture: %s)",
+                                       rFilePath.string().c_str());
                 return nullptr;
             }
             type = TextureType::TEXTURE_1D;
@@ -517,7 +521,8 @@ namespace FastCG
             {
                 if (width > DDS_REQ_TEXTURECUBE_DIMENSION || height > DDS_REQ_TEXTURECUBE_DIMENSION)
                 {
-                    FASTCG_THROW_EXCEPTION(Exception, "Invalid cubemap dimensions (texture: %s)", rFilePath.c_str());
+                    FASTCG_THROW_EXCEPTION(Exception, "Invalid cubemap dimensions (texture: %s)",
+                                           rFilePath.string().c_str());
                     return nullptr;
                 }
                 type = TextureType::TEXTURE_CUBE_MAP;
@@ -526,7 +531,8 @@ namespace FastCG
             {
                 if (width > DDS_REQ_TEXTURE2D_U_OR_V_DIMENSION || height > DDS_REQ_TEXTURE2D_U_OR_V_DIMENSION)
                 {
-                    FASTCG_THROW_EXCEPTION(Exception, "Invalid 2D texture dimensions (texture: %s)", rFilePath.c_str());
+                    FASTCG_THROW_EXCEPTION(Exception, "Invalid 2D texture dimensions (texture: %s)",
+                                           rFilePath.string().c_str());
                     return nullptr;
                 }
                 if (depthOrSlices > 1)
@@ -543,15 +549,16 @@ namespace FastCG
             if (width > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION || height > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION ||
                 depthOrSlices > DDS_REQ_TEXTURE3D_U_V_OR_W_DIMENSION)
             {
-                FASTCG_THROW_EXCEPTION(Exception, "Invalid 3D textures dimensions (texture: %s)", rFilePath.c_str());
+                FASTCG_THROW_EXCEPTION(Exception, "Invalid 3D textures dimensions (texture: %s)",
+                                       rFilePath.string().c_str());
                 return nullptr;
             }
             type = TextureType::TEXTURE_3D;
             break;
         }
 
-        return GraphicsSystem::GetInstance()->CreateTexture({rFilePath, width, height, depthOrSlices, mipCount, type,
-                                                             settings.usage, format, settings.filter, settings.wrapMode,
-                                                             pData});
+        return GraphicsSystem::GetInstance()->CreateTexture({rFilePath.stem().string(), width, height, depthOrSlices,
+                                                             mipCount, type, settings.usage, format, settings.filter,
+                                                             settings.wrapMode, pData});
     }
 }

@@ -292,7 +292,7 @@ namespace FastCG
                                             }
 
                                             const auto *pLightingConstantsBuffer =
-                                                UpdateLightingConstants(rPointLights[i], view, pGraphicsContext);
+                                                UpdateLightingConstants(rPointLights[i], pGraphicsContext);
                                             pGraphicsContext->BindResource(pLightingConstantsBuffer,
                                                                            LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
                                             const auto *pPCSSConstantsBuffer =

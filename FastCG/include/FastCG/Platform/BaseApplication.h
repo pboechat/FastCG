@@ -19,6 +19,7 @@
 #endif
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -52,7 +53,7 @@ namespace FastCG
         } rendering;
         struct
         {
-            std::vector<std::string> bundles{};
+            std::vector<std::filesystem::path> bundles{};
             std::vector<ImportCallback> importCallbacks{
                 DEFAULT_IMPORT_CALLBACKS, DEFAULT_IMPORT_CALLBACKS + FASTCG_ARRAYSIZE(DEFAULT_IMPORT_CALLBACKS)};
         } assets;

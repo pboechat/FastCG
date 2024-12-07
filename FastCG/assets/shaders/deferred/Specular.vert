@@ -10,7 +10,7 @@ layout(location = 1) out vec2 vUV;
 
 void main()
 {
-	vNormal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
+	vNormal = normalize(mat3(GetInstanceData().modelInverseTranspose) * iNormal);
 	vUV = iUV;
-	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);
+	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1.0);
 }

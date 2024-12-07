@@ -13,8 +13,8 @@ namespace FastCG
     using RenderingPathInt = std::underlying_type_t<RenderingPath>;
     using RenderingPathMask = uint8_t;
 
-    constexpr const char *const FORWARD_RENDERING_PATH_PATTERN = "forward/";
-    constexpr const char *const DEFERRED_RENDERING_PATH_PATTERN = "deferred/";
+    constexpr const char *const FORWARD_RENDERING_PATH_PATTERN = "forward";
+    constexpr const char *const DEFERRED_RENDERING_PATH_PATTERN = "deferred";
     constexpr const char *const RENDERING_PATH_PATH_PATTERNS[] = {FORWARD_RENDERING_PATH_PATTERN,
                                                                   DEFERRED_RENDERING_PATH_PATTERN};
 

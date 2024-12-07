@@ -10,14 +10,7 @@ FASTCG_IMPLEMENT_COMPONENT(LightsAnimator, Behaviour);
 
 void LightsAnimator::ChangeColors()
 {
-    std::vector<PointLight *> pointLights;
-    WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
-    ChangeColors(pointLights);
-}
-
-void LightsAnimator::ChangeColors(const std::vector<PointLight *> &rPointLights)
-{
-    for (auto *pPointLight : rPointLights)
+    for (auto *pPointLight : mPointLights)
     {
         auto color = Random::NextColor();
         pPointLight->SetDiffuseColor(color);
@@ -27,21 +20,16 @@ void LightsAnimator::ChangeColors(const std::vector<PointLight *> &rPointLights)
 
 void LightsAnimator::OnUpdate(float time, float deltaTime)
 {
-    std::vector<PointLight *> pointLights;
-    bool triedFindPointLights = false;
-
     if (!mInitialized)
     {
-        WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
-        triedFindPointLights = true;
+        WorldSystem::GetInstance()->FindComponents<PointLight>(mPointLights);
 
-        mDirections.clear();
-        for (size_t i = 0; i < pointLights.size(); ++i)
+        mDirections.resize(mPointLights.size());
+        for (size_t i = 0; i < mPointLights.size(); ++i)
         {
-            mDirections.emplace_back(
-                glm::normalize(glm::vec3(Random::NextFloat() - 0.5f, 0, Random::NextFloat() - 0.5f)));
+            mDirections[i] = glm::normalize(glm::vec3(Random::NextFloat() - 0.5f, 0, Random::NextFloat() - 0.5f));
         }
-        ChangeColors(pointLights);
+        ChangeColors();
         mInitialized = true;
     }
 
@@ -50,14 +38,9 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
         return;
     }
 
-    if (!triedFindPointLights)
-    {
-        WorldSystem::GetInstance()->FindComponents<PointLight>(pointLights);
-    }
-
     if (time - mLastDirectionChangeTime > 5.0f)
     {
-        for (size_t i = 0; i < pointLights.size(); i++)
+        for (size_t i = 0; i < mDirections.size(); i++)
         {
             mDirections[i] = mDirections[i] * -1.0f;
         }
@@ -65,9 +48,9 @@ void LightsAnimator::OnUpdate(float time, float deltaTime)
     }
     else
     {
-        for (size_t i = 0; i < pointLights.size(); i++)
+        for (size_t i = 0; i < mPointLights.size(); i++)
         {
-            auto *pPointLight = pointLights[i];
+            auto *pPointLight = mPointLights[i];
             auto move = mDirections[i] * deltaTime;
             auto position = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
             pPointLight->GetGameObject()->GetTransform()->SetPosition(position + move);

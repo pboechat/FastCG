@@ -3,7 +3,7 @@
 
 #include <FastCG/Graphics/GraphicsSystem.h>
 
-#include <string>
+#include <filesystem>
 
 namespace FastCG
 {
@@ -17,10 +17,10 @@ namespace FastCG
     class TextureLoader final
     {
     public:
-        static Texture *LoadKTX(const std::string &rFilePath, TextureLoadSettings settings = {});
-        static Texture *LoadDDS(const std::string &rFilePath, TextureLoadSettings settings = {});
-        static Texture *LoadPlain(const std::string &rFilePath, TextureLoadSettings settings = {});
-        static Texture *Load(const std::string &rFilePath, TextureLoadSettings settings = {});
+        static Texture *LoadKTX(const std::filesystem::path &rFilePath, TextureLoadSettings settings = {});
+        static Texture *LoadDDS(const std::filesystem::path &rFilePath, TextureLoadSettings settings = {});
+        static Texture *LoadPlain(const std::filesystem::path &rFilePath, TextureLoadSettings settings = {});
+        static Texture *Load(const std::filesystem::path &rFilePath, TextureLoadSettings settings = {});
 
     private:
         TextureLoader() = delete;

@@ -1,12 +1,11 @@
 #include <FastCG/Core/StringUtils.h>
-#include <FastCG/Platform/File.h>
 #include <FastCG/Platform/FileReader.h>
 
 namespace FastCG
 {
-    std::string ShaderSource::ParseFile(const std::string &rFilePath)
+    std::string ShaderSource::ParseFile(const std::filesystem::path &rFilePath)
     {
-        auto includePath = File::GetBasePath(rFilePath);
+        auto includePath = rFilePath.parent_path();
         size_t fileSize;
         auto data = FileReader::ReadText(rFilePath, fileSize);
         std::string source(data.get(), data.get() + fileSize);
@@ -14,7 +13,7 @@ namespace FastCG
         return source;
     }
 
-    void ShaderSource::ParseSource(std::string &rSource, const std::string &rIncludePath)
+    void ShaderSource::ParseSource(std::string &rSource, const std::filesystem::path &rIncludePath)
     {
         size_t includePosition = 0;
         while ((includePosition = rSource.find("#include ", includePosition)) != std::string::npos)
@@ -28,7 +27,7 @@ namespace FastCG
             StringUtils::Replace(includeFileName, "<", "");
             StringUtils::Replace(includeFileName, ">", "");
             StringUtils::Trim(includeFileName);
-            auto rSourceToInclude = ParseFile(rIncludePath + includeFileName);
+            auto rSourceToInclude = ParseFile(rIncludePath / includeFileName);
             StringUtils::Replace(rSource, includeStatement, rSourceToInclude);
         }
     }

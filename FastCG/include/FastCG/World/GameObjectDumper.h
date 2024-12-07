@@ -4,7 +4,7 @@
 #include <FastCG/World/GameObject.h>
 
 #include <cstdint>
-#include <string>
+#include <filesystem>
 #include <type_traits>
 
 namespace FastCG
@@ -18,10 +18,10 @@ namespace FastCG
     using GameObjectDumperOptionIntType = std::underlying_type<GameObjectDumperOption>::type;
     using GameObjectDumperOptionMaskType = uint8_t;
 
-    class GameObjectDumper
+    class GameObjectDumper final
     {
     public:
-        static void Dump(const std::string &rFilePath, GameObject *pWorld,
+        static void Dump(const std::filesystem::path &rFilePath, GameObject *pRoot,
                          GameObjectDumperOptionMaskType options = (GameObjectDumperOptionMaskType)
                              GameObjectDumperOption::NONE);
 

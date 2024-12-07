@@ -9,7 +9,8 @@
 #include <FastCG/Platform/Application.h>
 
 #if defined FASTCG_WINDOWS
-#include <windows.h>
+#define NOMINMAX
+#include <Windows.h>
 #elif defined FASTCG_LINUX
 #include <X11/extensions/Xrender.h>
 #endif

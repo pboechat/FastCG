@@ -7,5 +7,5 @@ layout(location = 2) in vec2 iUV;
 
 void main()
 {
-	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);
+	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1.0);
 }

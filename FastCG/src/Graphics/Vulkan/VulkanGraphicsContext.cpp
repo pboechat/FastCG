@@ -448,7 +448,8 @@ namespace FastCG
     {
         assert(renderTargetCount <= VulkanRenderPassDescription::MAX_RENDER_TARGET_COUNT);
         // TODO: find a smarter way to check if we need to issue clean commands
-        if (mNoDrawSinceLastRenderTargetsSet && mRenderPassDescription.renderTargetCount > 0)
+        if (mNoDrawSinceLastRenderTargetsSet &&
+            (mRenderPassDescription.renderTargetCount > 0 || mRenderPassDescription.pDepthStencilBuffer != nullptr))
         {
             for (uint32_t i = 0; i < mRenderPassDescription.renderTargetCount; ++i)
             {
@@ -461,23 +462,21 @@ namespace FastCG
                         pRenderTarget = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
                     }
 
-                    mClearCommands.emplace_back(ClearCommand {
+                    mClearCommands.emplace_back(ClearCommand{
 #if _DEBUG
                         mMarkerCommands.size(),
 #endif
-                            pRenderTarget, rClearRequest
-                    });
+                        pRenderTarget, rClearRequest});
                 }
             }
             if (mRenderPassDescription.pDepthStencilBuffer != nullptr &&
                 mRenderPassDescription.depthStencilClearRequest.flags != VulkanClearRequestFlagBit::NONE)
             {
-                mClearCommands.emplace_back(ClearCommand {
+                mClearCommands.emplace_back(ClearCommand{
 #if _DEBUG
                     mMarkerCommands.size(),
 #endif
-                        mRenderPassDescription.pDepthStencilBuffer, mRenderPassDescription.depthStencilClearRequest
-                });
+                    mRenderPassDescription.pDepthStencilBuffer, mRenderPassDescription.depthStencilClearRequest});
             }
         }
         mRenderPassDescription.renderTargetCount = renderTargetCount;
@@ -533,12 +532,11 @@ namespace FastCG
 
     void VulkanGraphicsContext::EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs)
     {
-        mCopyCommands.emplace_back(CopyCommand {
+        mCopyCommands.emplace_back(CopyCommand{
 #if _DEBUG
             mMarkerCommands.size(),
 #endif
-                type, rArgs
-        });
+            type, rArgs});
     }
 
     void VulkanGraphicsContext::EnqueueDrawCommand(DrawCommandType type, PrimitiveType primitiveType,
@@ -573,12 +571,15 @@ namespace FastCG
                                .second;
         assert(frameBuffer != VK_NULL_HANDLE);
 
+        auto newPassBatch = false;
         PassBatch *pPassBatch;
         if (mPassBatches.empty() || mPassBatches.back().type != PassType::RENDER ||
+            mPassBatches.back().renderInfo.frameBuffer != frameBuffer ||
             mPassBatches.back().renderInfo.renderPass != renderPass)
         {
             mPassBatches.emplace_back();
             pPassBatch = &mPassBatches.back();
+            newPassBatch = true;
             pPassBatch->type = PassType::RENDER;
             pPassBatch->renderInfo.renderPass = renderPass;
             pPassBatch->renderInfo.frameBuffer = frameBuffer;
@@ -659,7 +660,7 @@ namespace FastCG
         assert(pipeline.pipeline != VK_NULL_HANDLE);
 
         PipelineBatch *pPipelineBatch;
-        if (mPipelineBatches.empty() || mPipelineBatches.back().pipeline.pipeline != pipeline.pipeline)
+        if (mPipelineBatches.empty() || newPassBatch || mPipelineBatches.back().pipeline.pipeline != pipeline.pipeline)
         {
             mPipelineBatches.emplace_back();
             pPipelineBatch = &mPipelineBatches.back();
@@ -678,6 +679,9 @@ namespace FastCG
         mInvokeCommands.emplace_back();
         auto *pInvokeCommand = &mInvokeCommands.back();
 
+#if _DEBUG
+        pPipelineBatch->pShader = mPipelineDescription.pShader;
+#endif
         pPipelineBatch->lastInvokeCommandIdx = mInvokeCommands.size();
 
 #if _DEBUG
@@ -1183,31 +1187,31 @@ namespace FastCG
                 FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\tPipeline [%zu/%zu]", jc,
                                    rPassBatch.lastPipelineBatchIdx - lastUsedPipelineBatchIdx);
 
-                auto &rPipelineBatches = mPipelineBatches[j];
+                auto &rPipelineBatch = mPipelineBatches[j];
 
                 for (size_t k = savedLastUsedInvokeCommandIdx, kc = 0;
-                     savedLastUsedInvokeCommandIdx < rPipelineBatches.lastInvokeCommandIdx;
+                     savedLastUsedInvokeCommandIdx < rPipelineBatch.lastInvokeCommandIdx;
                      ++savedLastUsedInvokeCommandIdx, ++kc)
                 {
                     FASTCG_UNUSED(k);
                     FASTCG_UNUSED(kc);
 
                     FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\tInvoke [%zu/%zu]", kc,
-                                       rPipelineBatches.lastInvokeCommandIdx - k);
+                                       rPipelineBatch.lastInvokeCommandIdx - k);
 
                     auto &rInvokeCommand = mInvokeCommands[savedLastUsedInvokeCommandIdx];
 
-                    rInvokeCommand.setCount = rPipelineBatches.layoutDescription.setLayoutCount;
+                    rInvokeCommand.setCount = rPipelineBatch.layoutDescription.setLayoutCount;
 
                     uint32_t setWritesCount = 0;
                     uint32_t lastImageInfoIdx = 0;
                     uint32_t lastBufferInfoIdx = 0;
-                    for (uint32_t l = 0; l < rPipelineBatches.layoutDescription.setLayoutCount; ++l)
+                    for (uint32_t l = 0; l < rPipelineBatch.layoutDescription.setLayoutCount; ++l)
                     {
                         FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t\tPipeline resource [%zu/%zu]", l,
-                                           rPipelineBatches.layoutDescription.size() - 1);
+                                           rPipelineBatch.layoutDescription.size() - 1);
 
-                        auto &rSetLayout = rPipelineBatches.layoutDescription.pSetLayouts[l];
+                        auto &rSetLayout = rPipelineBatch.layoutDescription.pSetLayouts[l];
                         auto &rSetUsage = rInvokeCommand.pipelineLayout.pSet[l];
                         auto &rSet = rInvokeCommand.pSets[l];
                         if (rSetLayout.bindingLayoutCount == 0)

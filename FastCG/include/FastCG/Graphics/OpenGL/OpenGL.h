@@ -14,6 +14,7 @@
 #endif
 
 #if defined FASTCG_WINDOWS
+#define NOMINMAX
 #include <GL/wglew.h>
 #elif defined FASTCG_LINUX
 #include <GL/glxew.h>

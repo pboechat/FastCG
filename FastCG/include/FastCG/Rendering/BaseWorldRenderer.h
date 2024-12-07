@@ -151,7 +151,6 @@ namespace FastCG
             GraphicsContext *pGraphicsContext);
         inline virtual const Buffer *EmptyLightingConstants(GraphicsContext *pGraphicsContext);
         inline virtual const Buffer *UpdateLightingConstants(const PointLight *pPointLight,
-                                                             const glm::mat4 &rInverseView,
                                                              GraphicsContext *pGraphicsContext);
         inline virtual const Buffer *UpdateLightingConstants(const DirectionalLight *pDirectionalLight,
                                                              const glm::vec3 &rViewDirection,

@@ -12,12 +12,9 @@
 
 namespace FastCG
 {
-    struct VulkanDescriptorSetBinding
-    {
-        union {
-            const VulkanBuffer *pBuffer;
-            const VulkanTexture *pTexture;
-        };
+    union VulkanDescriptorSetBinding {
+        const VulkanBuffer *pBuffer;
+        const VulkanTexture *pTexture;
     };
 
     struct VulkanDescriptorSet

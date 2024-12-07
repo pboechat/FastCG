@@ -5,6 +5,7 @@
 
 #include <FastCG/Platform/BaseApplication.h>
 
+#define NOMINMAX
 #include <Windows.h>
 
 LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);

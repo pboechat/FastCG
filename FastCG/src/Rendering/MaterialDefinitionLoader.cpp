@@ -2,7 +2,6 @@
 #include <FastCG/Graphics/ConstantBuffer.h>
 #include <FastCG/Graphics/GraphicsContextState.h>
 #include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Platform/File.h>
 #include <FastCG/Platform/FileReader.h>
 #include <FastCG/Rendering/MaterialDefinitionLoader.h>
 
@@ -94,9 +93,9 @@ namespace
 
 namespace FastCG
 {
-    std::unique_ptr<MaterialDefinition> MaterialDefinitionLoader::Load(const std::string &rFilePath)
+    std::unique_ptr<MaterialDefinition> MaterialDefinitionLoader::Load(const std::filesystem::path &rFilePath)
     {
-        auto basePath = File::GetBasePath(rFilePath);
+        auto basePath = rFilePath.parent_path();
 
         size_t size;
         auto data = FileReader::ReadText(rFilePath, size);
@@ -158,7 +157,7 @@ namespace FastCG
                 if (textureArray[1].IsString())
                 {
                     textures.emplace(textureArray[0].GetString(),
-                                     TextureLoader::Load(File::Join({basePath, textureArray[1].GetString()})));
+                                     TextureLoader::Load(basePath / textureArray[1].GetString()));
                 }
                 else
                 {
@@ -227,8 +226,8 @@ namespace FastCG
             }
         }
 
-        return std::make_unique<MaterialDefinition>(MaterialDefinitionArgs{
-            File::GetFileNameWithoutExtension(rFilePath), pShader, {members}, textures, graphicsContextState});
+        return std::make_unique<MaterialDefinition>(
+            MaterialDefinitionArgs{rFilePath.stem().string(), pShader, {members}, textures, graphicsContextState});
     }
 
     std::string MaterialDefinitionLoader::Dump(const std::unique_ptr<MaterialDefinition> &pMaterialDefinition)

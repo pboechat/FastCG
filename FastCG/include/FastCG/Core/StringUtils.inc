@@ -74,4 +74,15 @@ namespace FastCG
         return rString1.substr(0, size) == rString2;
     }
 
+    bool StringUtils::EndsWith(const std::string &rString1, const std::string &rString2)
+    {
+        auto size1 = rString1.size();
+        auto size2 = rString2.size();
+        if (size1 < size2)
+        {
+            return false;
+        }
+        return rString1.substr(size1 - size2, size2) == rString2;
+    }
+
 }

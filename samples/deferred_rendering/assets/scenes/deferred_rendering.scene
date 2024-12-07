@@ -182,7 +182,7 @@
             "textures": []
         },
         "root": {
-            "name": "Scene Root",
+            "name": "deferred_rendering",
             "transform": {
                 "scale": [
                     1.0,

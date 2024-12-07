@@ -32,11 +32,10 @@ protected:
 
 private:
     std::vector<glm::vec3> mDirections;
+    std::vector<FastCG::PointLight *> mPointLights;
     float mLastDirectionChangeTime{0};
     bool mInitialized{false};
     bool mEnabled{false};
-
-    void ChangeColors(const std::vector<FastCG::PointLight *> &rPointLights);
 };
 
 #endif

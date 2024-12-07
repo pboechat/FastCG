@@ -2,6 +2,7 @@
 #define FASTCG_THREAD_H
 
 #if defined FASTCG_WINDOWS
+#define NOMINMAX
 #include <Windows.h>
 #elif defined FASTCG_POSIX
 #include <unistd.h>

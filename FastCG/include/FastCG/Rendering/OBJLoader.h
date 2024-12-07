@@ -5,6 +5,7 @@
 #include <FastCG/World/GameObject.h>
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -23,7 +24,8 @@ namespace FastCG
     class OBJLoader
     {
     public:
-        static GameObject *Load(const std::string &rFileName, const std::shared_ptr<Material> &pDefaultMaterial,
+        static GameObject *Load(const std::filesystem::path &rFileName,
+                                const std::shared_ptr<Material> &pDefaultMaterial,
                                 OBJLoaderOptionMaskType options = (OBJLoaderOptionMaskType)OBJLoaderOption::NONE);
 
     private:

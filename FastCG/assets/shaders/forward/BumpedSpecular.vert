@@ -9,26 +9,25 @@ layout(location = 2) in vec2 iUV;
 layout(location = 3) in vec4 iTangent;
 
 layout(location = 0) out vec3 vLightDirection;
-layout(location = 1) out float vViewDistance;
+layout(location = 1) out float vViewerDistance;
 layout(location = 2) out vec3 vViewerDirection;
 layout(location = 3) out vec3 vWorldPosition;
-layout(location = 4) out vec2 vUV;
+layout(location = 4) out vec3 vNormal;
+layout(location = 5) out vec4 vTangent;
+layout(location = 6) out vec2 vUV;
 
 void main()
 {
-	vec3 normal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
-	vec3 tangent = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iTangent.xyz);
-	vec3 binormal = normalize(cross(normal, tangent) * iTangent.w);
-
-	mat3 tangentSpaceMatrix = transpose(mat3(tangent, binormal, normal));
-
-	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1);
+	vec4 worldPosition = GetInstanceData().model * vec4(iPosition, 1.0);
 	vec3 viewPosition = vec3(uView * worldPosition);
-	vLightDirection = tangentSpaceMatrix * normalize(GetLightType() * uLight0ViewPosition.xyz - (step(0.0, GetLightType()) * viewPosition));
-	vViewDistance = length(viewPosition);
-	vViewerDirection = tangentSpaceMatrix * (-viewPosition / vViewDistance);
+	vViewerDirection = GetViewerPosition() - worldPosition.xyz;
+	vViewerDistance = length(vViewerDirection);
+	vViewerDirection = vViewerDirection / max(vViewerDistance, 1e-8);
 	vWorldPosition = worldPosition.xyz;
+	vLightDirection = normalize(GetLightType() * uLight0Position.xyz - (step(0.0, GetLightType()) * vWorldPosition));
+	mat3 MIT = mat3(GetInstanceData().modelInverseTranspose);
+	vNormal = normalize(MIT * iNormal);
+	vTangent = vec4(normalize(MIT * iTangent.xyz), iTangent.w);
 	vUV = iUV;
-
-	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);
+	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1.0);
 }

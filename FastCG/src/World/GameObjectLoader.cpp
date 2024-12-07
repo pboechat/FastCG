@@ -3,7 +3,6 @@
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Graphics/GraphicsUtils.h>
 #include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Platform/File.h>
 #include <FastCG/Platform/FileReader.h>
 #include <FastCG/Reflection/Inspectable.h>
 #include <FastCG/Rendering/MaterialDefinitionRegistry.h>
@@ -95,7 +94,7 @@ namespace
     }
 
     template <typename GenericObjectT>
-    std::unique_ptr<FastCG::Mesh> LoadMesh(const GenericObjectT &rGenericObj, const std::string &rBasePath)
+    std::unique_ptr<FastCG::Mesh> LoadMesh(const GenericObjectT &rGenericObj, const std::filesystem::path &rBasePath)
     {
         FastCG::MeshArgs args{};
         assert(rGenericObj.HasMember("name") && rGenericObj["name"].IsString());
@@ -212,7 +211,7 @@ namespace
     }
 
     template <typename GenericObjectT>
-    FastCG::Texture *LoadTexture(const GenericObjectT &rGenericObj, const std::string &rBasePath)
+    FastCG::Texture *LoadTexture(const GenericObjectT &rGenericObj, const std::filesystem::path &rBasePath)
     {
         if (rGenericObj.HasMember("path"))
         {
@@ -227,7 +226,7 @@ namespace
             assert(rGenericObj.HasMember("wrapMode") && rGenericObj["wrapMode"].IsString());
             GetValue(rGenericObj["wrapMode"], loadSettings.wrapMode, FastCG::TextureWrapMode_STRINGS,
                      FASTCG_ARRAYSIZE(FastCG::TextureWrapMode_STRINGS));
-            auto filePath = FastCG::File::Join({rBasePath, rGenericObj["path"].GetString()});
+            auto filePath = rBasePath / rGenericObj["path"].GetString();
             return FastCG::TextureLoader::Load(filePath, loadSettings);
         }
         else
@@ -262,14 +261,14 @@ namespace
     }
 
     template <typename GenericObjectT>
-    void LoadInspectable(const GenericObjectT &, const std::string &,
+    void LoadInspectable(const GenericObjectT &, const std::filesystem::path &,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &,
                          const std::unordered_map<std::string, FastCG::Texture *> &, FastCG::Inspectable *,
-                         const std::vector<std::string> &);
+                         const std::vector<std::string> &rPropertiesToIgnore = {});
 
     template <typename GenericValueT>
-    void LoadInspectableProperty(const GenericValueT &rGenericValue, const std::string &rBasePath,
+    void LoadInspectableProperty(const GenericValueT &rGenericValue, const std::filesystem::path &rBasePath,
                                  const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
                                  const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                                  const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
@@ -386,11 +385,11 @@ namespace
     }
 
     template <typename GenericObjectT>
-    void LoadInspectable(const GenericObjectT &rInspectableObj, const std::string &rBasePath,
+    void LoadInspectable(const GenericObjectT &rInspectableObj, const std::filesystem::path &rBasePath,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
                          const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
                          const std::unordered_map<std::string, FastCG::Texture *> &rTextures,
-                         FastCG::Inspectable *pInspectable, const std::vector<std::string> &rPropertiesToIgnore = {})
+                         FastCG::Inspectable *pInspectable, const std::vector<std::string> &rPropertiesToIgnore)
     {
         for (auto it = rInspectableObj.MemberBegin(); it != rInspectableObj.MemberEnd(); ++it)
         {
@@ -414,7 +413,7 @@ namespace
 
     template <typename GenericObjectT>
     FastCG::GameObject *LoadGameObject(
-        const GenericObjectT &rGameObjectObj, const std::string &rBasePath,
+        const GenericObjectT &rGameObjectObj, const std::filesystem::path &rBasePath,
         const std::unordered_map<std::string, std::shared_ptr<FastCG::Material>> &rMaterials,
         const std::unordered_map<std::string, std::shared_ptr<FastCG::Mesh>> &rMeshes,
         const std::unordered_map<std::string, FastCG::Texture *> &rTextures, FastCG::GameObject *pParent)
@@ -506,7 +505,7 @@ namespace
 
 namespace FastCG
 {
-    GameObject *GameObjectLoader::Load(const std::string &rFilePath, GameObjectoaderOptionMaskType options)
+    GameObject *GameObjectLoader::Load(const std::filesystem::path &rFilePath, GameObjectoaderOptionMaskType options)
     {
         FASTCG_UNUSED(options); // TODO: add options
 
@@ -518,7 +517,7 @@ namespace FastCG
         }
         std::string jsonStr(data.get(), data.get() + size);
 
-        auto basePath = File::GetBasePath(rFilePath);
+        auto basePath = rFilePath.parent_path();
 
         rapidjson::Document document;
         document.Parse(jsonStr.c_str());

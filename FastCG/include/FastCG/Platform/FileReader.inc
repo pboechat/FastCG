@@ -3,15 +3,15 @@
 namespace
 {
     template <typename T>
-    std::unique_ptr<T[]> Read(const std::string &rFileName, size_t &rFileSize)
+    std::unique_ptr<T[]> Read(const std::filesystem::path &rFilePath, size_t &rFileSize)
     {
-        if (rFileName.empty())
+        if (!std::filesystem::exists(rFilePath))
         {
             rFileSize = 0;
             return nullptr;
         }
 
-        std::ifstream fileStream(rFileName, std::ios_base::in | std::ios_base::binary);
+        std::ifstream fileStream(rFilePath, std::ios_base::in | std::ios_base::binary);
         if (!fileStream.is_open())
         {
             rFileSize = 0;
@@ -38,14 +38,14 @@ namespace
 
 namespace FastCG
 {
-    std::unique_ptr<char[]> FileReader::ReadText(const std::string &rFileName, size_t &rFileSize)
+    std::unique_ptr<char[]> FileReader::ReadText(const std::filesystem::path &rFilePath, size_t &rFileSize)
     {
-        return Read<char>(rFileName, rFileSize);
+        return Read<char>(rFilePath, rFileSize);
     }
 
-    std::unique_ptr<uint8_t[]> FileReader::ReadBinary(const std::string &rFileName, size_t &rFileSize)
+    std::unique_ptr<uint8_t[]> FileReader::ReadBinary(const std::filesystem::path &rFilePath, size_t &rFileSize)
     {
-        return Read<uint8_t>(rFileName, rFileSize);
+        return Read<uint8_t>(rFilePath, rFileSize);
     }
 
 }

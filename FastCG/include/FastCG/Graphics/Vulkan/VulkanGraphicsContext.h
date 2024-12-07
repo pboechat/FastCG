@@ -190,6 +190,9 @@ namespace FastCG
 
         struct PipelineBatch
         {
+#if _DEBUG
+            const VulkanShader *pShader;
+#endif
             size_t lastInvokeCommandIdx;
             VulkanPipeline pipeline;
             VulkanPipelineLayoutDescription layoutDescription;

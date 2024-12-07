@@ -1,11 +1,15 @@
 #include <FastCG/Core/Log.h>
 #include <FastCG/Core/Math.h>
+#include <FastCG/Core/StringUtils.h>
 #include <FastCG/Debug/DebugMenuSystem.h>
 #include <FastCG/Graphics/GraphicsSystem.h>
 #include <FastCG/Platform/Application.h>
 #include <FastCG/Rendering/Camera.h>
 #include <FastCG/Rendering/DirectionalLight.h>
 #include <FastCG/Rendering/Fog.h>
+#include <FastCG/Rendering/Material.h>
+#include <FastCG/Rendering/MaterialDefinitionRegistry.h>
+#include <FastCG/Rendering/OBJLoader.h>
 #include <FastCG/Rendering/PointLight.h>
 #include <FastCG/Rendering/Renderable.h>
 #include <FastCG/World/Behaviour.h>
@@ -85,13 +89,15 @@ namespace
                 flags |= ImGuiTreeNodeFlags_Selected;
             }
 
-            auto DisplayPopup = [&pGameObject, &rpRemovedGameObject]() {
+            auto DisplayPopup = [&pGameObject, &rpSelectedGameObject, &rpRemovedGameObject]() {
                 if (ImGui::BeginPopup("SceneHierarchy_ItemContextMenu"))
                 {
                     if (ImGui::MenuItem("Add"))
                     {
                         auto *pNewChild = FastCG::GameObject::Instantiate("GameObject");
                         pNewChild->GetTransform()->SetParent(pGameObject->GetTransform());
+
+                        rpSelectedGameObject = pNewChild;
                     }
                     if (ImGui::MenuItem("Remove"))
                     {
@@ -99,10 +105,29 @@ namespace
                     }
                     if (ImGui::MenuItem("Dump"))
                     {
-                        ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File", ".json",
-                                                                ".", 1, (void *)pGameObject);
+                        ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File",
+                                                                ".json,.scene", ".", 1, (void *)pGameObject);
                     }
                     ImGui::EndPopup();
+                }
+            };
+
+            auto SetupDragAndDrop = [&pGameObject]() {
+                if (ImGui::BeginDragDropSource())
+                {
+                    ImGui::SetDragDropPayload("GameObject", pGameObject, sizeof(FastCG::GameObject));
+                    ImGui::Text("Dragging %s", pGameObject->GetName().c_str());
+                    ImGui::EndDragDropSource();
+                }
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const auto *pPayload = ImGui::AcceptDragDropPayload("GameObject"))
+                    {
+                        auto *pOtherGameObject = (FastCG::GameObject *)pPayload->Data;
+                        pOtherGameObject->GetTransform()->SetParent(pGameObject->GetTransform());
+                    }
+                    ImGui::EndDragDropTarget();
                 }
             };
             if (rChildren.empty())
@@ -119,6 +144,7 @@ namespace
                     rpSelectedGameObject = pGameObject;
                 }
                 DisplayPopup();
+                SetupDragAndDrop();
             }
             else
             {
@@ -133,6 +159,7 @@ namespace
                     rpSelectedGameObject = pGameObject;
                 }
                 DisplayPopup();
+                SetupDragAndDrop();
 
                 if (nodeOpen)
                 {
@@ -161,6 +188,16 @@ namespace
     {
         if (ImGui::Begin("Scene Hierarchy"))
         {
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const auto *pPayload = ImGui::AcceptDragDropPayload("GameObject"))
+                {
+                    auto *pGameObject = (FastCG::GameObject *)pPayload->Data;
+                    pGameObject->GetTransform()->SetParent(nullptr);
+                }
+                ImGui::EndDragDropTarget();
+            }
+
             std::unordered_set<const FastCG::GameObject *> visitedGameObjects;
 
             FastCG::GameObject *pSelectedGameObject = rpSelectedGameObject, *pRemovedGameObject = nullptr;
@@ -172,6 +209,7 @@ namespace
                 }
                 DisplaySceneHierarchy(pGameObject, pSelectedGameObject, pRemovedGameObject, visitedGameObjects);
             }
+
             if (pSelectedGameObject != rpSelectedGameObject)
             {
                 rpSelectedInspectableProperty = nullptr;
@@ -196,12 +234,12 @@ namespace
             {
                 if (ImGui::MenuItem("Add"))
                 {
-                    FastCG::GameObject::Instantiate("GameObject");
+                    rpSelectedGameObject = FastCG::GameObject::Instantiate("GameObject");
                 }
                 if (ImGui::MenuItem("Load"))
                 {
-                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File", ".json",
-                                                            ".");
+                    ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File",
+                                                            ".json,.scene,.obj", ".");
                 }
                 ImGui::EndPopup();
             }
@@ -213,7 +251,19 @@ namespace
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 auto filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-                FastCG::GameObjectLoader::Load(filePath);
+                if (FastCG::StringUtils::EndsWith(filePath, ".json") ||
+                    FastCG::StringUtils::EndsWith(filePath, ".scene"))
+                {
+                    rpSelectedGameObject = FastCG::GameObjectLoader::Load(filePath);
+                }
+                else if (FastCG::StringUtils::EndsWith(filePath, ".obj"))
+                {
+                    rpSelectedGameObject = FastCG::OBJLoader::Load(
+                        filePath,
+                        std::make_shared<FastCG::Material>(FastCG::MaterialArgs{
+                            "Default", FastCG::MaterialDefinitionRegistry::GetInstance()->GetMaterialDefinition(
+                                           "OpaqueSolidColor")}));
+                }
             }
             ImGuiFileDialog::Instance()->Close();
         }
@@ -224,7 +274,9 @@ namespace
             {
                 auto *pGameObject = (FastCG::GameObject *)ImGuiFileDialog::Instance()->GetUserDatas();
                 auto filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-                FastCG::GameObjectDumper::Dump(filePath, pGameObject);
+                FastCG::GameObjectDumper::Dump(
+                    filePath, pGameObject,
+                    (FastCG::GameObjectDumperOptionMaskType)FastCG::GameObjectDumperOption::ENCODE_DATA);
             }
             ImGuiFileDialog::Instance()->Close();
         }

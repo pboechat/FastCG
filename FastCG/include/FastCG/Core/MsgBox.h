@@ -4,6 +4,7 @@
 #include <FastCG/Core/Macros.h>
 
 #if defined FASTCG_WINDOWS
+#define NOMINMAX
 #include <Windows.h>
 #elif defined FASTCG_LINUX
 #include <messagebox.h>

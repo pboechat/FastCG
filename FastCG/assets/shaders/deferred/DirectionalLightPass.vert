@@ -12,5 +12,5 @@ void main()
 #ifdef VULKAN
 	vUV.y = 1.0 - vUV.y;
 #endif
-	gl_Position = vec4(iPosition, 1);
+	gl_Position = vec4(iPosition, 1.0);
 }

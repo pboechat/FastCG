@@ -3,6 +3,7 @@
 
 #include <FastCG/Graphics/GraphicsSystem.h>
 
+#include <filesystem>
 #include <string>
 
 namespace FastCG
@@ -10,8 +11,8 @@ namespace FastCG
     class ShaderSource final
     {
     public:
-        inline static std::string ParseFile(const std::string &rFileName);
-        inline static void ParseSource(std::string &rSource, const std::string &rIncludePath);
+        inline static std::string ParseFile(const std::filesystem::path &rFilePath);
+        inline static void ParseSource(std::string &rSource, const std::filesystem::path &rIncludePath);
 
     private:
         ShaderSource() = delete;

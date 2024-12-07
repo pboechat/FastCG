@@ -3,14 +3,14 @@
 
 #include <FastCG/Core/System.h>
 
-#include <string>
+#include <filesystem>
 #include <vector>
 
 namespace FastCG
 {
     struct AssetSystemArgs
     {
-        const std::vector<std::string> &rBundles;
+        const std::vector<std::filesystem::path> &rBundles;
     };
 
     class AssetSystem
@@ -18,15 +18,17 @@ namespace FastCG
         FASTCG_DECLARE_SYSTEM(AssetSystem, AssetSystemArgs);
 
     public:
-        inline std::vector<std::string> List(const std::string &rRelDirectoryPath, bool recursive = false) const;
-        inline bool Resolve(const std::string &rRelFilePath, std::string &rAbsFilePath) const;
-        inline std::string Resolve(const std::string &rRelFilePath) const;
-        inline void Expand(const std::string &rRelFilePath, std::vector<std::string> &rAbsFilePaths,
+        inline std::vector<std::filesystem::path> List(const std::filesystem::path &rRelDirectoryPath,
+                                                       bool recursive = false) const;
+        inline bool Resolve(const std::filesystem::path &rRelFilePath, std::filesystem::path &rAbsFilePath) const;
+        inline std::filesystem::path Resolve(const std::filesystem::path &rRelFilePath) const;
+        inline void Expand(const std::filesystem::path &rRelFilePath, std::vector<std::filesystem::path> &rAbsFilePaths,
                            bool includeNonExistant = false) const;
-        inline std::vector<std::string> Expand(const std::string &rRelFilePath, bool includeNonExistant = false) const;
+        inline std::vector<std::filesystem::path> Expand(const std::filesystem::path &rRelFilePath,
+                                                         bool includeNonExistant = false) const;
 
     private:
-        std::vector<std::string> mBundleRoots;
+        std::vector<std::filesystem::path> mBundleRoots;
 
         AssetSystem(const AssetSystemArgs &rArgs);
     };

@@ -17,6 +17,7 @@ namespace FastCG
         inline static void Trim(std::string &rString);
         inline static void Replace(std::string &rString, const std::string &rFrom, const std::string &rTo);
         inline static bool StartsWith(const std::string &rString1, const std::string &rString2);
+        inline static bool EndsWith(const std::string &rString1, const std::string &rString2);
 
     private:
         StringUtils() = delete;

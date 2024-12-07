@@ -395,7 +395,9 @@ namespace FastCG
         {
             it = mShadowMaps
                      .emplace(shadowMapKey,
-                              ShadowMap{pLight, CreateShadowMapTexture("Shadow Map", SHADOW_MAP_SIZE, SHADOW_MAP_SIZE)})
+                              ShadowMap{pLight, CreateShadowMapTexture("Shadow Map (" +
+                                                                           std::to_string(mShadowMaps.size()) + ")",
+                                                                       SHADOW_MAP_SIZE, SHADOW_MAP_SIZE)})
                      .first;
         }
         return it->second;
@@ -663,8 +665,8 @@ namespace FastCG
         auto modelView = rView * rModel;
 
         rInstanceData.model = rModel;
+        rInstanceData.modelInverseTranspose = glm::transpose(glm::inverse(rModel));
         rInstanceData.modelView = modelView;
-        rInstanceData.modelViewInverseTranspose = glm::transpose(glm::inverse(modelView));
         rInstanceData.modelViewProjection = rProjection * modelView;
 
         const auto *pInstanceConstantsBuffer = GetInstanceConstantsBuffer();
@@ -692,8 +694,8 @@ namespace FastCG
             auto modelView = rView * model;
 
             rInstanceData.model = model;
+            rInstanceData.modelInverseTranspose = glm::transpose(glm::inverse(model));
             rInstanceData.modelView = modelView;
-            rInstanceData.modelViewInverseTranspose = glm::transpose(glm::inverse(modelView));
             rInstanceData.modelViewProjection = rProjection * modelView;
         }
 
@@ -722,11 +724,10 @@ namespace FastCG
 
     template <typename InstanceConstantsT, typename LightingConstantsT, typename SceneConstantsT>
     const Buffer *BaseWorldRenderer<InstanceConstantsT, LightingConstantsT, SceneConstantsT>::UpdateLightingConstants(
-        const PointLight *pPointLight, const glm::mat4 &rView, GraphicsContext *pGraphicsContext)
+        const PointLight *pPointLight, GraphicsContext *pGraphicsContext)
     {
-        const auto &rLightPosition = pPointLight->GetGameObject()->GetTransform()->GetWorldPosition();
-        mLightingConstants.light0Position = glm::vec4(rLightPosition, 1);
-        mLightingConstants.light0ViewPosition = rView * mLightingConstants.light0Position;
+        mLightingConstants.light0Position =
+            glm::vec4(pPointLight->GetGameObject()->GetTransform()->GetWorldPosition(), 1);
         mLightingConstants.light0DiffuseColor = pPointLight->GetDiffuseColor();
         mLightingConstants.light0SpecularColor = pPointLight->GetSpecularColor();
         mLightingConstants.light0Intensity = pPointLight->GetIntensity();
@@ -745,7 +746,6 @@ namespace FastCG
         const DirectionalLight *pDirectionalLight, const glm::vec3 &rLightDirection, GraphicsContext *pGraphicsContext)
     {
         mLightingConstants.light0Position = glm::vec4(rLightDirection, -1);
-        mLightingConstants.light0ViewPosition = mLightingConstants.light0Position;
         mLightingConstants.light0DiffuseColor = pDirectionalLight->GetDiffuseColor();
         mLightingConstants.light0SpecularColor = pDirectionalLight->GetSpecularColor();
         mLightingConstants.light0Intensity = pDirectionalLight->GetIntensity();

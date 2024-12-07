@@ -9,6 +9,6 @@ layout(location = 0) out vec3 vNormal;
 
 void main()
 {
-	vNormal = normalize(mat3(GetInstanceData().modelViewInverseTranspose) * iNormal);
-	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);
+	vNormal = normalize(mat3(GetInstanceData().modelInverseTranspose) * iNormal);
+	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1.0);
 }

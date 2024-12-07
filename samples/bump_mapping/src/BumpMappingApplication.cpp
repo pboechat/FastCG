@@ -24,7 +24,8 @@ namespace
 {
     void CreateLights(Transform *pParent)
     {
-        const float SCALE = 2;
+        const float SCALE = 0.5f;
+        const float INTENSITY = 0.1f;
 
         auto *pLightsGameObject = GameObject::Instantiate("Lights");
         pLightsGameObject->GetTransform()->SetParent(pParent);
@@ -37,7 +38,7 @@ namespace
         auto *pLight = PointLight::Instantiate(pLightGameObject);
         pLight->SetDiffuseColor(Colors::RED);
         pLight->SetSpecularColor(Colors::WHITE);
-        pLight->SetIntensity(1);
+        pLight->SetIntensity(INTENSITY);
         pLight->SetQuadraticAttenuation(0.25f);
 
         pLightGameObject = GameObject::Instantiate("Light 2");
@@ -48,7 +49,7 @@ namespace
         pLight = PointLight::Instantiate(pLightGameObject);
         pLight->SetDiffuseColor(Colors::GREEN);
         pLight->SetSpecularColor(Colors::WHITE);
-        pLight->SetIntensity(1);
+        pLight->SetIntensity(INTENSITY);
         pLight->SetQuadraticAttenuation(0.25f);
 
         pLightGameObject = GameObject::Instantiate("Light 3");
@@ -59,7 +60,7 @@ namespace
         pLight = PointLight::Instantiate(pLightGameObject);
         pLight->SetDiffuseColor(Colors::BLUE);
         pLight->SetSpecularColor(Colors::WHITE);
-        pLight->SetIntensity(1);
+        pLight->SetIntensity(INTENSITY);
         pLight->SetQuadraticAttenuation(0.25f);
     }
 

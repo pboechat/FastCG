@@ -6,8 +6,8 @@
 struct InstanceData
 {
 	mat4 model;
+	mat4 modelInverseTranspose;
 	mat4 modelView;
-	mat4 modelViewInverseTranspose;
 	mat4 modelViewProjection;
 };
 

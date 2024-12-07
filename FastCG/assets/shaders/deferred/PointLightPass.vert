@@ -5,5 +5,5 @@ layout(location = 0) in vec3 iPosition;
 
 void main()
 {
-	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1);
+	gl_Position = GetInstanceData().modelViewProjection * vec4(iPosition, 1.0);
 }

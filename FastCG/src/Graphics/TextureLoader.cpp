@@ -1,12 +1,11 @@
 #include <FastCG/Graphics/TextureLoader.h>
-#include <FastCG/Platform/File.h>
 
 namespace FastCG
 {
-    Texture *TextureLoader::Load(const std::string &rFilePath, TextureLoadSettings settings)
+    Texture *TextureLoader::Load(const std::filesystem::path &rFilePath, TextureLoadSettings settings)
     {
-        std::string fileName, extension;
-        File::SplitExt(rFilePath, fileName, extension);
+        auto fileName = rFilePath.stem().string();
+        auto extension = rFilePath.extension().string();
         if (extension == ".ktx")
         {
             return LoadKTX(rFilePath, settings);

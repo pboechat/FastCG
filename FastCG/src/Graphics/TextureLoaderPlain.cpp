@@ -9,10 +9,10 @@
 
 namespace FastCG
 {
-    Texture *TextureLoader::LoadPlain(const std::string &rFilePath, TextureLoadSettings settings)
+    Texture *TextureLoader::LoadPlain(const std::filesystem::path &rFilePath, TextureLoadSettings settings)
     {
         int width, height, componentCount;
-        auto *pData = stbi_load(rFilePath.c_str(), &width, &height, &componentCount, 0);
+        auto *pData = stbi_load(rFilePath.string().c_str(), &width, &height, &componentCount, 0);
         if (pData == nullptr)
         {
             return nullptr;
@@ -52,12 +52,12 @@ namespace FastCG
             break;
         default:
             FASTCG_THROW_EXCEPTION(Exception, "Invalid component count (texture: %s, componentCount: %d)",
-                                   rFilePath.c_str(), componentCount);
+                                   rFilePath.string().c_str(), componentCount);
             return nullptr;
         }
 
         auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture(
-            {rFilePath, (uint32_t)width, (uint32_t)height, 1, 1, TextureType::TEXTURE_2D, settings.usage, format,
+            {rFilePath.stem().string(), (uint32_t)width, (uint32_t)height, 1, 1, TextureType::TEXTURE_2D, settings.usage, format,
              settings.filter, settings.wrapMode, pData});
         if (transformedData == nullptr)
         {

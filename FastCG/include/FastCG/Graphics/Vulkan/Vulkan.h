@@ -5,7 +5,7 @@
 
 #if defined FASTCG_WINDOWS
 #define NOMINMAX
-#include <windows.h>
+#include <Windows.h>
 #elif defined FASTCG_LINUX
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

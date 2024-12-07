@@ -181,6 +181,12 @@ namespace
                                      rAttachmentDefinitions.size() * sizeof(&rAttachmentDefinitions[0]));
     }
 
+    size_t GetFrameBufferHash(const std::vector<VkImageView> &rAttachments)
+    {
+        return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rAttachments[0]),
+                                     rAttachments.size() * sizeof(&rAttachments[0]));
+    }
+
     size_t GetPipelineHash(const FastCG::VulkanPipelineDescription &rPipelineDescription)
     {
         return (size_t)FastCG::FNV1a(reinterpret_cast<const uint8_t *>(&rPipelineDescription),
@@ -1469,29 +1475,15 @@ namespace FastCG
     {
         auto result = GetOrCreateRenderPass(rRenderPassDescription, depthWrite, stencilWrite);
 
-        auto it = mFrameBuffers.find(result.first);
-        if (it != mFrameBuffers.end())
-        {
-            return {it->first, it->second};
-        }
-
-        VkFramebufferCreateInfo framebufferCreateInfo;
-        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferCreateInfo.pNext = nullptr;
-        framebufferCreateInfo.flags = 0;
-        framebufferCreateInfo.renderPass = result.second;
-        framebufferCreateInfo.layers = 1;
-
         std::vector<VkImageView> attachments;
-
-        framebufferCreateInfo.width = std::numeric_limits<uint32_t>::max();
-        framebufferCreateInfo.height = std::numeric_limits<uint32_t>::max();
-        auto CalculateFramebufferDimensions = [&framebufferCreateInfo](const VulkanTexture *pRenderTarget) {
+        auto width = std::numeric_limits<uint32_t>::max();
+        auto height = std::numeric_limits<uint32_t>::max();
+        auto CalculateFramebufferDimensions = [&width, &height](const auto *pRenderTarget) {
             // according to VUID-VkFramebufferCreateInfo-flags-04533/0433, each element of pAttachments (...)
             // must have been created with a (...) width/height greater than or equal the width/height of the
             // framebuffer
-            framebufferCreateInfo.width = std::min(framebufferCreateInfo.width, pRenderTarget->GetWidth());
-            framebufferCreateInfo.height = std::min(framebufferCreateInfo.height, pRenderTarget->GetHeight());
+            width = std::min(width, pRenderTarget->GetWidth());
+            height = std::min(height, pRenderTarget->GetHeight());
         };
 
         for (uint32_t i = 0; i < rRenderPassDescription.renderTargetCount; ++i)
@@ -1503,17 +1495,32 @@ namespace FastCG
             }
 
             CalculateFramebufferDimensions(pRenderTarget);
-
             attachments.emplace_back(pRenderTarget->GetDefaultImageView());
         }
 
         if (rRenderPassDescription.pDepthStencilBuffer != nullptr)
         {
             CalculateFramebufferDimensions(rRenderPassDescription.pDepthStencilBuffer);
-
             attachments.emplace_back(rRenderPassDescription.pDepthStencilBuffer->GetDefaultImageView());
         }
 
+        // FIXME: increased risk of hash collision!
+        auto frameBufferHash = GetFrameBufferHash(attachments) + result.first;
+
+        auto it = mFrameBuffers.find(frameBufferHash);
+        if (it != mFrameBuffers.end())
+        {
+            return {it->first, it->second};
+        }
+
+        VkFramebufferCreateInfo framebufferCreateInfo;
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.pNext = nullptr;
+        framebufferCreateInfo.flags = 0;
+        framebufferCreateInfo.renderPass = result.second;
+        framebufferCreateInfo.layers = 1;
+        framebufferCreateInfo.width = width;
+        framebufferCreateInfo.height = height;
         framebufferCreateInfo.attachmentCount = (uint32_t)attachments.size();
         framebufferCreateInfo.pAttachments = &attachments[0];
 
@@ -1521,7 +1528,7 @@ namespace FastCG
         FASTCG_CHECK_VK_RESULT(
             vkCreateFramebuffer(mDevice, &framebufferCreateInfo, mAllocationCallbacks.get(), &frameBuffer));
 
-        it = mFrameBuffers.emplace(result.first, frameBuffer).first;
+        it = mFrameBuffers.emplace(frameBufferHash, frameBuffer).first;
 
         for (uint32_t i = 0; i < rRenderPassDescription.renderTargetCount; ++i)
         {
@@ -1529,8 +1536,8 @@ namespace FastCG
             if (pRenderTarget != nullptr)
             {
                 auto image = pRenderTarget->GetImage();
-                mRenderTargetToFrameBufferHash[image] = result.first;
-                mFrameBufferHashToRenderTargets[result.first].emplace_back(image);
+                mRenderTargetToFrameBufferHash[image] = frameBufferHash;
+                mFrameBufferHashToRenderTargets[frameBufferHash].emplace_back(image);
             }
         }
 

@@ -111,11 +111,10 @@ namespace FastCG
     }
 
     const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const PointLight *pPointLight,
-                                                                 const glm::mat4 &rInverseView,
                                                                  GraphicsContext *pGraphicsContext)
     {
         BindGBuffer(pGraphicsContext);
-        return BaseWorldRenderer::UpdateLightingConstants(pPointLight, rInverseView, pGraphicsContext);
+        return BaseWorldRenderer::UpdateLightingConstants(pPointLight, pGraphicsContext);
     }
 
     const Buffer *DeferredWorldRenderer::UpdateLightingConstants(const DirectionalLight *pDirectionalLight,
@@ -350,7 +349,7 @@ namespace FastCG
                                                                INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);
 
                                 const auto *pLightingConstantsBuffer =
-                                    UpdateLightingConstants(pPointLight, view, pGraphicsContext);
+                                    UpdateLightingConstants(pPointLight, pGraphicsContext);
                                 pGraphicsContext->BindResource(pLightingConstantsBuffer,
                                                                LIGHTING_CONSTANTS_SHADER_RESOURCE_NAME);
 

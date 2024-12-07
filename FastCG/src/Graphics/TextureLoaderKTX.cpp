@@ -105,14 +105,14 @@ FastCG::TextureFormat GetTextureFormat(ktxTexture2 *pKtxTexture2)
 
 namespace FastCG
 {
-    Texture *TextureLoader::LoadKTX(const std::string &rFilePath, TextureLoadSettings settings)
+    Texture *TextureLoader::LoadKTX(const std::filesystem::path &rFilePath, TextureLoadSettings settings)
     {
         ktxTexture *pKtxTexture;
 
-        if (ktxTexture_CreateFromNamedFile(rFilePath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &pKtxTexture) !=
-            KTX_SUCCESS)
+        if (ktxTexture_CreateFromNamedFile(rFilePath.string().c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                           &pKtxTexture) != KTX_SUCCESS)
         {
-            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create KTX texture (texture: %s)", rFilePath.c_str());
+            FASTCG_THROW_EXCEPTION(Exception, "Couldn't create KTX texture (texture: %s)", rFilePath.string().c_str());
             return nullptr;
         }
 
@@ -120,7 +120,7 @@ namespace FastCG
         {
             ktxTexture_Destroy(pKtxTexture);
             FASTCG_THROW_EXCEPTION(Exception, "Only KTX2 are supported at the moment (texture: %s)",
-                                   rFilePath.c_str()); // TODO:
+                                   rFilePath.string().c_str()); // TODO:
             return nullptr;
         }
         auto *pKtxTexture2 = reinterpret_cast<ktxTexture2 *>(pKtxTexture);
@@ -237,9 +237,9 @@ namespace FastCG
 
         ktxTexture_Destroy(pKtxTexture);
 
-        return GraphicsSystem::GetInstance()->CreateTexture({rFilePath, width, height, depthOrSlices, (uint8_t)mipCount,
-                                                             type, settings.usage, format, settings.filter,
-                                                             settings.wrapMode, &data[0]});
+        return GraphicsSystem::GetInstance()->CreateTexture({rFilePath.stem().string(), width, height, depthOrSlices,
+                                                             (uint8_t)mipCount, type, settings.usage, format,
+                                                             settings.filter, settings.wrapMode, &data[0]});
     }
 
 }

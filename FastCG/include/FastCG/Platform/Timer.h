@@ -4,6 +4,7 @@
 #include <FastCG/Core/Exception.h>
 
 #if defined FASTCG_WINDOWS
+#define NOMINMAX
 #include <Windows.h>
 #elif defined FASTCG_POSIX
 #include <time.h>
