@@ -57,8 +57,8 @@ namespace FastCG
         }
 
         auto *pTexture = GraphicsSystem::GetInstance()->CreateTexture(
-            {rFilePath.stem().string(), (uint32_t)width, (uint32_t)height, 1, 1, TextureType::TEXTURE_2D, settings.usage, format,
-             settings.filter, settings.wrapMode, pData});
+            {rFilePath.stem().string(), (uint32_t)width, (uint32_t)height, 1, 1, TextureType::TEXTURE_2D,
+             settings.usage, format, settings.filter, settings.wrapMode, pData});
         if (transformedData == nullptr)
         {
             stbi_image_free(pData);
