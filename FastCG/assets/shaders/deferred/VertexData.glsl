@@ -4,7 +4,6 @@
 #include "FastCG.glsl"
 #include "Scene.glsl"
 #include "Instance.glsl"
-#include "Lighting.glsl"
 
 struct VertexData
 {
