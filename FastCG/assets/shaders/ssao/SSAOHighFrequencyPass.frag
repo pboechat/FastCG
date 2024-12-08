@@ -38,13 +38,13 @@ void main()
 	// compute the sampling tangent space matrix from normal, 
 	// random vector and their cross product (gram-schmidt orthonormalization)
 	vec3 tangent = normalize(randomVector - normal * dot(randomVector, normal));
-	vec3 binormal = cross(normal, tangent);
-	mat3 tangentSpaceMatrix = mat3(tangent, binormal, normal);
+	vec3 bitangent = cross(normal, tangent);
+	mat3 TBN = mat3(tangent, bitangent, normal);
 
 	float occlusion = 0.0;
 	for (int i = 0; i < NUMBER_OF_RANDOM_SAMPLES; i++)
 	{
-		vec3 sampleViewPos = viewPos + (tangentSpaceMatrix * uRandomSamples[i].xyz) * uRadius;
+		vec3 sampleViewPos = viewPos + (TBN * uRandomSamples[i].xyz) * uRadius;
 
 		vec4 sampleClipPos = uProjection * vec4(sampleViewPos, 1.0);
 
