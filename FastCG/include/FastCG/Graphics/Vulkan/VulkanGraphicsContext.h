@@ -257,7 +257,7 @@ namespace FastCG
 
         void AddBufferMemoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
                                     VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask);
-        void AddTextureMemoryBarrier(const VulkanTexture *pTexture, VkImageLayout newLayout,
+        void AddTextureMemoryBarrier(const VulkanTexture *pTexture, VkImageLayout oldLayout, VkImageLayout newLayout,
                                      VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
                                      VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask);
         void EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs);

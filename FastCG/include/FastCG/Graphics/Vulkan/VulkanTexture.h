@@ -98,7 +98,7 @@ namespace FastCG
 
         void CreateImage();
         void DestroyImage();
-        void TransitionToRestingLayout();
+        void InitialTransitionToRestingLayout();
         void CreateDefaultImageView();
         void CreateDefaultSampler();
         void DestroyDefaultImageView();

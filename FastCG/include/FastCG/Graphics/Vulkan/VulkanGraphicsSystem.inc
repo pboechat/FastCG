@@ -56,6 +56,7 @@ namespace FastCG
         auto it = mLastImageMemoryBarriers.find(pTexture->GetImage());
         if (it == mLastImageMemoryBarriers.cend())
         {
+            // undefined layout and no waiting
             return {VK_IMAGE_LAYOUT_UNDEFINED, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
         }
         else
@@ -69,6 +70,7 @@ namespace FastCG
         auto it = mLastBufferMemoryBarriers.find(buffer);
         if (it == mLastBufferMemoryBarriers.cend())
         {
+            // no waiting
             return {0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
         }
         else

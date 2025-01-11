@@ -1140,12 +1140,14 @@ namespace FastCG
     {
         if (mSurface != VK_NULL_HANDLE)
         {
-            auto imageMemoryBarrier = GetLastImageMemoryBarrier(GetCurrentSwapChainTexture());
-            if (imageMemoryBarrier.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            auto lastImageMemoryBarrier = GetLastImageMemoryBarrier(GetCurrentSwapChainTexture());
+            if (lastImageMemoryBarrier.layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
             {
+                // wait for everything to complete
                 GetImmediateGraphicsContext()->AddTextureMemoryBarrier(
-                    GetCurrentSwapChainTexture(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, imageMemoryBarrier.accessMask, 0,
-                    imageMemoryBarrier.stageMask, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+                    GetCurrentSwapChainTexture(), lastImageMemoryBarrier.layout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    lastImageMemoryBarrier.accessMask, 0, lastImageMemoryBarrier.stageMask,
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
             }
         }
 

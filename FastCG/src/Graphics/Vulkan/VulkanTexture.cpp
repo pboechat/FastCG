@@ -23,7 +23,7 @@ namespace FastCG
         {
             CreateDefaultSampler();
         }
-        TransitionToRestingLayout();
+        InitialTransitionToRestingLayout();
     }
 
     VulkanTexture::~VulkanTexture()
@@ -108,11 +108,12 @@ namespace FastCG
         }
     }
 
-    void VulkanTexture::TransitionToRestingLayout()
+    void VulkanTexture::InitialTransitionToRestingLayout()
     {
+        // assume no wait transition is safe
         VulkanGraphicsSystem::GetInstance()->GetImmediateGraphicsContext()->AddTextureMemoryBarrier(
-            this, GetRestingLayout(), 0, VK_ACCESS_MEMORY_READ_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+            this, VK_IMAGE_LAYOUT_UNDEFINED, GetRestingLayout(), 0, VK_ACCESS_MEMORY_READ_BIT,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
     }
 
     void VulkanTexture::CreateDefaultImageView()

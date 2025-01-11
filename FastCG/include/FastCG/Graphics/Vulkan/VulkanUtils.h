@@ -728,10 +728,7 @@ namespace FastCG
 #ifdef CONVERSION_TABLE_ENTRY
 #undef CONVERSION_TABLE_ENTRY
 #endif
-#define CONVERSION_TABLE_ENTRY(format)                                                                                 \
-    {                                                                                                                  \
-        TextureFormat::format, VK_FORMAT_##format                                                                      \
-    }
+#define CONVERSION_TABLE_ENTRY(format) {TextureFormat::format, VK_FORMAT_##format}
 
     constexpr struct
     {
@@ -882,6 +879,18 @@ namespace FastCG
                                    GetVkFormatString(vkFormat));
             return 0;
         }
+    }
+
+    inline bool IsVkReadOnlyAccessFlags(VkAccessFlags accessFlags)
+    {
+        constexpr VkAccessFlags writeFlags = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT |
+                                             VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT
+            // | VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT
+            // | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR
+            // | VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV
+            ;
+        return (accessFlags & writeFlags) == 0;
     }
 }
 

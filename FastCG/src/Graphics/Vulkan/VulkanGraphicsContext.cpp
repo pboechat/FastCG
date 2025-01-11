@@ -462,23 +462,21 @@ namespace FastCG
                         pRenderTarget = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
                     }
 
-                    mClearCommands.emplace_back(ClearCommand {
+                    mClearCommands.emplace_back(ClearCommand{
 #if _DEBUG
                         mMarkerCommands.size(),
 #endif
-                            pRenderTarget, rClearRequest
-                    });
+                        pRenderTarget, rClearRequest});
                 }
             }
             if (mRenderPassDescription.pDepthStencilBuffer != nullptr &&
                 mRenderPassDescription.depthStencilClearRequest.flags != VulkanClearRequestFlagBit::NONE)
             {
-                mClearCommands.emplace_back(ClearCommand {
+                mClearCommands.emplace_back(ClearCommand{
 #if _DEBUG
                     mMarkerCommands.size(),
 #endif
-                        mRenderPassDescription.pDepthStencilBuffer, mRenderPassDescription.depthStencilClearRequest
-                });
+                    mRenderPassDescription.pDepthStencilBuffer, mRenderPassDescription.depthStencilClearRequest});
             }
         }
         mRenderPassDescription.renderTargetCount = renderTargetCount;
@@ -534,12 +532,11 @@ namespace FastCG
 
     void VulkanGraphicsContext::EnqueueCopyCommand(CopyCommandType type, const CopyCommandArgs &rArgs)
     {
-        mCopyCommands.emplace_back(CopyCommand {
+        mCopyCommands.emplace_back(CopyCommand{
 #if _DEBUG
             mMarkerCommands.size(),
 #endif
-                type, rArgs
-        });
+            type, rArgs});
     }
 
     void VulkanGraphicsContext::EnqueueDrawCommand(DrawCommandType type, PrimitiveType primitiveType,
@@ -840,8 +837,11 @@ namespace FastCG
                     pTexture = VulkanGraphicsSystem::GetInstance()->GetCurrentSwapChainTexture();
                 }
 
-                AddTextureMemoryBarrier(pTexture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+                // TODO: avoid write barriers in non-overlapping writes
+                auto lastImageMemoryBarrier = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pTexture);
+                AddTextureMemoryBarrier(pTexture, lastImageMemoryBarrier.layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                        lastImageMemoryBarrier.accessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                        lastImageMemoryBarrier.stageMask, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                 VkImageSubresourceRange subresourceRange;
                 subresourceRange.baseMipLevel = 0;
@@ -908,15 +908,23 @@ namespace FastCG
                         rCopyCommand.args.srcBufferData.frameIndex);
                     auto &rDstBufferFrameData = rCopyCommand.args.dstBufferData.pBuffer->GetFrameData(
                         rCopyCommand.args.dstBufferData.frameIndex);
+
+                    auto lastBufferMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastBufferMemoryBarrier(rSrcBufferFrameData.buffer);
+                    if (!IsVkReadOnlyAccessFlags(lastBufferMemoryBarrier.accessMask))
+                    {
+                        AddBufferMemoryBarrier(rSrcBufferFrameData.buffer, lastBufferMemoryBarrier.stageMask,
+                                               VK_ACCESS_TRANSFER_READ_BIT, lastBufferMemoryBarrier.stageMask,
+                                               VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    }
+                    // TODO: avoid write barriers in non-overlapping writes
+                    lastBufferMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastBufferMemoryBarrier(rDstBufferFrameData.buffer);
+                    AddBufferMemoryBarrier(rDstBufferFrameData.buffer, lastBufferMemoryBarrier.stageMask,
+                                           VK_ACCESS_TRANSFER_WRITE_BIT, lastBufferMemoryBarrier.stageMask,
+                                           VK_PIPELINE_STAGE_TRANSFER_BIT);
                     vkCmdCopyBuffer(VulkanGraphicsSystem::GetInstance()->GetCurrentCommandBuffer(),
                                     rSrcBufferFrameData.buffer, rDstBufferFrameData.buffer, 1, &copyRegion);
-
-                    AddBufferMemoryBarrier(rSrcBufferFrameData.buffer, 0, VK_ACCESS_TRANSFER_READ_BIT,
-                                           VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-                    AddBufferMemoryBarrier(rDstBufferFrameData.buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                           rCopyCommand.args.dstBufferData.pBuffer->GetDefaultAccessFlags(),
-                                           VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                           rCopyCommand.args.dstBufferData.pBuffer->GetDefaultStageFlags());
                 }
                 break;
                 case CopyCommandType::BUFFER_TO_IMAGE: {
@@ -930,9 +938,23 @@ namespace FastCG
                                        rCopyCommand.args.srcBufferData.pBuffer->GetName().c_str(),
                                        pDstTexture->GetName().c_str());
 
-                    AddTextureMemoryBarrier(pDstTexture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                            VK_ACCESS_TRANSFER_WRITE_BIT, pDstTexture->GetDefaultAccessFlags(),
-                                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+                    auto &rSrcBufferFrameData = rCopyCommand.args.srcBufferData.pBuffer->GetFrameData(
+                        rCopyCommand.args.srcBufferData.frameIndex);
+
+                    auto lastBufferMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastBufferMemoryBarrier(rSrcBufferFrameData.buffer);
+                    if (!IsVkReadOnlyAccessFlags(lastBufferMemoryBarrier.accessMask))
+                    {
+                        AddBufferMemoryBarrier(rSrcBufferFrameData.buffer, lastBufferMemoryBarrier.stageMask,
+                                               VK_ACCESS_TRANSFER_READ_BIT, lastBufferMemoryBarrier.stageMask,
+                                               VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    }
+                    auto lastImageMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pDstTexture);
+                    AddTextureMemoryBarrier(pDstTexture, lastImageMemoryBarrier.layout,
+                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, lastImageMemoryBarrier.accessMask,
+                                            VK_ACCESS_TRANSFER_WRITE_BIT, lastImageMemoryBarrier.stageMask,
+                                            VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                     std::vector<VkBufferImageCopy> bufferCopyRegions;
                     if (pDstTexture->GetMipCount() > 1)
@@ -1016,11 +1038,21 @@ namespace FastCG
                     FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t Image %s -> Image %s (Copy)",
                                        pSrcTexture->GetName().c_str(), pDstTexture->GetName().c_str());
 
-                    AddTextureMemoryBarrier(pSrcTexture, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0,
-                                            VK_ACCESS_TRANSFER_READ_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                            VK_PIPELINE_STAGE_TRANSFER_BIT);
-                    AddTextureMemoryBarrier(pDstTexture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0,
-                                            VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    auto lastImageMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pSrcTexture);
+                    if (!IsVkReadOnlyAccessFlags(lastImageMemoryBarrier.accessMask))
+                    {
+                        AddTextureMemoryBarrier(pSrcTexture, lastImageMemoryBarrier.layout,
+                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, lastImageMemoryBarrier.accessMask,
+                                                VK_ACCESS_TRANSFER_READ_BIT, lastImageMemoryBarrier.stageMask,
+                                                VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    }
+                    // TODO: avoid write barriers in non-overlapping writes
+                    lastImageMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pDstTexture);
+                    AddTextureMemoryBarrier(pDstTexture, lastImageMemoryBarrier.layout,
+                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, lastImageMemoryBarrier.accessMask,
+                                            VK_ACCESS_TRANSFER_WRITE_BIT, lastImageMemoryBarrier.stageMask,
                                             VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                     std::vector<VkImageCopy> imageCopyRegions;
@@ -1106,11 +1138,21 @@ namespace FastCG
                     FASTCG_LOG_VERBOSE(VulkanGraphicsContext, "\t\t\t Image %s -> Image %s (Blit)",
                                        pSrcTexture->GetName().c_str(), pDstTexture->GetName().c_str());
 
-                    AddTextureMemoryBarrier(pSrcTexture, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0,
-                                            VK_ACCESS_TRANSFER_READ_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                            VK_PIPELINE_STAGE_TRANSFER_BIT);
-                    AddTextureMemoryBarrier(pDstTexture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0,
-                                            VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    auto lastImageMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pSrcTexture);
+                    if (!IsVkReadOnlyAccessFlags(lastImageMemoryBarrier.accessMask))
+                    {
+                        AddTextureMemoryBarrier(pSrcTexture, lastImageMemoryBarrier.layout,
+                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, lastImageMemoryBarrier.accessMask,
+                                                VK_ACCESS_TRANSFER_READ_BIT, lastImageMemoryBarrier.stageMask,
+                                                VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    }
+                    lastImageMemoryBarrier =
+                        VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pDstTexture);
+                    // TODO: avoid write barriers in non-overlapping writes
+                    AddTextureMemoryBarrier(pDstTexture, lastImageMemoryBarrier.layout,
+                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, lastImageMemoryBarrier.accessMask,
+                                            VK_ACCESS_TRANSFER_WRITE_BIT, lastImageMemoryBarrier.stageMask,
                                             VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                     VkImageBlit imageBlit{};
@@ -1271,8 +1313,9 @@ namespace FastCG
 
                                 auto lastImageMemoryBarrier =
                                     VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pTexture);
-                                AddTextureMemoryBarrier(pTexture, newLayout, lastImageMemoryBarrier.accessMask,
-                                                        VK_ACCESS_SHADER_READ_BIT, lastImageMemoryBarrier.stageMask,
+                                AddTextureMemoryBarrier(pTexture, lastImageMemoryBarrier.layout, newLayout,
+                                                        lastImageMemoryBarrier.accessMask, VK_ACCESS_SHADER_READ_BIT,
+                                                        lastImageMemoryBarrier.stageMask,
                                                         GetVkPipelineStageFlags(rBindingLayout.stageFlags));
                             }
                             else if (rBindingLayout.type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
@@ -1341,9 +1384,10 @@ namespace FastCG
                 }
                 auto lastImageMemoryBarrier =
                     VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pRenderTarget);
-                if (lastImageMemoryBarrier.layout != newLayout)
+                if (!IsVkReadOnlyAccessFlags(lastImageMemoryBarrier.accessMask))
                 {
-                    AddTextureMemoryBarrier(pRenderTarget, newLayout, lastImageMemoryBarrier.accessMask, dstAccessMask,
+                    AddTextureMemoryBarrier(pRenderTarget, lastImageMemoryBarrier.layout, newLayout,
+                                            lastImageMemoryBarrier.accessMask, dstAccessMask,
                                             lastImageMemoryBarrier.stageMask, dstStageMask);
                 }
             };
@@ -1658,9 +1702,9 @@ namespace FastCG
         VulkanGraphicsSystem::GetInstance()->NotifyBufferMemoryBarrier(buffer, {dstAccessMask, dstStageMask});
     }
 
-    void VulkanGraphicsContext::AddTextureMemoryBarrier(const VulkanTexture *pTexture, VkImageLayout newLayout,
-                                                        VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
-                                                        VkPipelineStageFlags srcStageMask,
+    void VulkanGraphicsContext::AddTextureMemoryBarrier(const VulkanTexture *pTexture, VkImageLayout oldLayout,
+                                                        VkImageLayout newLayout, VkAccessFlags srcAccessMask,
+                                                        VkAccessFlags dstAccessMask, VkPipelineStageFlags srcStageMask,
                                                         VkPipelineStageFlags dstStageMask)
     {
         VkImageMemoryBarrier imageMemoryBarrier;
@@ -1668,7 +1712,7 @@ namespace FastCG
         imageMemoryBarrier.pNext = nullptr;
         imageMemoryBarrier.srcAccessMask = srcAccessMask;
         imageMemoryBarrier.dstAccessMask = dstAccessMask;
-        imageMemoryBarrier.oldLayout = VulkanGraphicsSystem::GetInstance()->GetLastImageMemoryBarrier(pTexture).layout;
+        imageMemoryBarrier.oldLayout = oldLayout;
         imageMemoryBarrier.newLayout = newLayout;
         imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
