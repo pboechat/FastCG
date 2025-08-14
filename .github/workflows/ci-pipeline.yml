@@ -55,6 +55,7 @@ jobs:
           sudo apt-get install -y ninja-build glslang-tools libx11-dev libxext-dev libxrender-dev libgl1-mesa-dev libglu1-mesa-dev libvulkan-dev libspirv-cross-c-shared-dev
           wget -q https://github.com/Kitware/CMake/releases/download/v3.29.0/cmake-3.29.0-linux-x86_64.sh
           chmod +x cmake-3.29.0-linux-x86_64.sh
+          mkdir -p "$HOME/cmake-3.29.0"
           ./cmake-3.29.0-linux-x86_64.sh --skip-license --prefix="$HOME/cmake-3.29.0"
           echo "$HOME/cmake-3.29.0/bin" >> "$GITHUB_PATH"
           wget https://github.com/KhronosGroup/KTX-Software/releases/download/v4.3.2/KTX-Software-4.3.2-Linux-x86_64.deb
