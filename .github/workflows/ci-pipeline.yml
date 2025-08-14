@@ -78,6 +78,7 @@ jobs:
           mkdir -p ~/android-sdk
           unzip commandlinetools.zip -d ~/android-sdk/cmdline-tools
           export ANDROID_HOME=$HOME/android-sdk
+          export NDKROOT=$ANDROID_HOME/ndk/26.1.10909125
           export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
           export PATH=$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --licenses
