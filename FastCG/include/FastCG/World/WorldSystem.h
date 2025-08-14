@@ -57,12 +57,12 @@ namespace FastCG
 
     class WorldSystem
     {
-        FASTCG_DECLARE_SYSTEM(WorldSystem, WorldSystemArgs);
-        FASTCG_COMPONENT_COLLECTION_TRACKING(DirectionalLight);
-        FASTCG_COMPONENT_COLLECTION_TRACKING(PointLight);
-        FASTCG_COMPONENT_TRACKING(Fog);
-        FASTCG_COMPONENT_COLLECTION_TRACKING(Camera);
-        FASTCG_COMPONENT_COLLECTION_TRACKING(Behaviour);
+        FASTCG_DECLARE_SYSTEM(WorldSystem, WorldSystemArgs)
+        FASTCG_COMPONENT_COLLECTION_TRACKING(DirectionalLight)
+        FASTCG_COMPONENT_COLLECTION_TRACKING(PointLight)
+        FASTCG_COMPONENT_TRACKING(Fog)
+        FASTCG_COMPONENT_COLLECTION_TRACKING(Camera)
+        FASTCG_COMPONENT_COLLECTION_TRACKING(Behaviour)
 
     public:
         inline const Camera *GetMainCamera() const

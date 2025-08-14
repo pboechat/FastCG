@@ -1,0 +1,54 @@
+#include "../FastCG/FastCG.glsl"
+
+layout (local_size_x = 8, local_size_y = 8) in;
+
+// A = MxK
+// B = NxK
+// C = MxN
+
+layout (std140, BINDING_0_0) uniform Sizes {
+    uint uM;
+    uint uN;
+    uint uK;
+};
+
+layout (BINDING_0_2) buffer A {
+    float A_in[];
+};
+
+layout (BINDING_0_3) buffer B {
+    float B_in[];
+};
+
+layout (BINDING_0_4) writeonly buffer C {
+    float C_out[];
+};
+
+shared float Ads[8][8];
+shared float Bds[8][8];
+
+void main() 
+{
+    uint bx = gl_WorkGroupID.x; uint by = gl_WorkGroupID.y;
+    uint tx = gl_LocalInvocationID.x; uint ty = gl_LocalInvocationID.y;
+
+    uint Row = by * 8u + ty;
+    uint Col = bx * 8u + tx;
+
+    float Pvalue = 0.0;
+    for (uint m = 0u; m < (uM / 8u); ++m)
+    {
+        Ads[ty][tx] = A_in[Row * uM + m * 8u + tx];
+        Bds[ty][tx] = B_in[(m * 8u + ty) * uM + Col];
+
+        barrier();
+
+        for (uint k = 0u; k < 8u; ++k)
+        {
+            Pvalue += Ads[ty][k] * Bds[k][tx];
+        }
+
+        barrier();
+    }
+    C_out[Row*uM + Col] = Pvalue;
+}

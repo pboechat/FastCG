@@ -2,6 +2,7 @@
 #include <FastCG/Core/Macros.h>
 #include <FastCG/Graphics/TextureLoader.h>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <cstdint>

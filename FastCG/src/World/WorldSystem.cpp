@@ -105,8 +105,9 @@ namespace
                     }
                     if (ImGui::MenuItem("Dump"))
                     {
-                        ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_DumpDialogKey", "Choose File",
-                                                                ".json,.scene", ".", 1, (void *)pGameObject);
+                        ImGuiFileDialog::Instance()->OpenDialog(
+                            "SceneHierarchy_DumpDialogKey", "Choose File", ".json,.scene",
+                            IGFD::FileDialogConfig{.path = ".", .userDatas = (void *)pGameObject});
                     }
                     ImGui::EndPopup();
                 }
@@ -239,7 +240,7 @@ namespace
                 if (ImGui::MenuItem("Load"))
                 {
                     ImGuiFileDialog::Instance()->OpenDialog("SceneHierarchy_LoadDialogKey", "Choose File",
-                                                            ".json,.scene,.obj", ".");
+                                                            ".json,.scene,.obj", IGFD::FileDialogConfig{.path = "."});
                 }
                 ImGui::EndPopup();
             }

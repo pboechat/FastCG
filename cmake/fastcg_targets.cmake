@@ -170,49 +170,71 @@ function(_fastcg_add_asset_targets)
 endfunction()
 
 function(_fastcg_target_compile_definitions)
-    target_compile_definitions(${ARGV0} PUBLIC FASTCG_PLATFORM="${FASTCG_PLATFORM}")
+    target_compile_definitions(${ARGV0} PUBLIC 
+        FASTCG_PLATFORM="${FASTCG_PLATFORM}")
     if(FASTCG_PLATFORM STREQUAL "Windows")
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_WINDOWS)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_WINDOWS 
+            _CRT_SECURE_NO_WARNINGS)
     elseif(FASTCG_PLATFORM STREQUAL "Linux")
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_LINUX FASTCG_POSIX)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_LINUX 
+            FASTCG_POSIX)
     elseif(FASTCG_PLATFORM STREQUAL "Android")
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_ANDROID FASTCG_POSIX)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_ANDROID 
+            FASTCG_POSIX)
     endif()
-    target_compile_definitions(${ARGV0} PUBLIC FASTCG_GRAPHICS_SYSTEM="${FASTCG_GRAPHICS_SYSTEM}")
+    target_compile_definitions(${ARGV0} PUBLIC 
+        FASTCG_GRAPHICS_SYSTEM="${FASTCG_GRAPHICS_SYSTEM}")
     if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_OPENGL)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_OPENGL)
     elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
         # FIXME: use [0, 1] depth!
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_VULKAN) # GLM_FORCE_DEPTH_ZERO_TO_ONE)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_VULKAN) # GLM_FORCE_DEPTH_ZERO_TO_ONE)
     endif()
     if(FASTCG_DISABLE_GPU_TIMING)
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_DISABLE_GPU_TIMING)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_DISABLE_GPU_TIMING)
     endif()
     if(FASTCG_DISABLE_GPU_VALIDATION)
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_DISABLE_GPU_VALIDATION)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_DISABLE_GPU_VALIDATION)
     endif()
     if(FASTCG_ENABLE_VERBOSE_LOGGING)
-        target_compile_definitions(${ARGV0} PUBLIC FASTCG_LOG_SEVERITY=4)
+        target_compile_definitions(${ARGV0} PUBLIC 
+            FASTCG_LOG_SEVERITY=4)
     endif()
-    target_compile_definitions(${ARGV0} PUBLIC $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
+    target_compile_definitions(${ARGV0} PUBLIC 
+        $<IF:$<CONFIG:Debug>,_DEBUG=1,>)
 endfunction()
 
 function(_fastcg_target_compile_options)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(
-            ${ARGV0} 
-            PUBLIC 
-            /W3     # FIXME: cannot use /Wall!
-            /wd4505 # FIXME: same as no-unused-function below
-            /wd4201 # nameless struct/union is pretty standard
+        target_compile_options(${ARGV0} PUBLIC 
+            /W4 
+            /permissive-
+            /WX
+            /wd4100 # unreferenced formal parameter
+            /wd4201 # nameless struct/union
+            /wd4505 # unreferenced local function has been removed
+            /wd4702 # unreachable code
         )
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_options(
-            ${ARGV0} 
-            PUBLIC 
-            -Wall 
-            -Wno-missing-braces  # https://stackoverflow.com/questions/13905200/is-it-wise-to-ignore-gcc-clangs-wmissing-braces-warning
-            -Wno-unused-function # FIXME: maybe fix stb?
+        target_compile_options(${ARGV0} PUBLIC 
+            -Wall
+            -Wextra
+            -Wpedantic
+            -Werror
+            -Wno-gnu-zero-variadic-macro-arguments
+            -Wno-implicit-fallthrough
+            -Wno-nested-anon-types
+            -Wno-missing-braces
+            -Wno-missing-field-initializers
+            -Wno-unused-function
+            -Wno-unused-parameter
         )
     endif()
 endfunction()
@@ -305,7 +327,7 @@ function(_fastcg_add_apk_targets)
     add_custom_target(
         ${ARGV0}_DEPLOY_APK
         COMMAND ${FASTCG_ADB} shell am force-stop com.fastcg.${ARGV0}
-        COMMAND ${CMAKE_SOURCE_DIR}/shell_wrapper "${FASTCG_ADB} uninstall com.fastcg.${ARGV0}"
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/shell_wrapper "${FASTCG_ADB} uninstall com.fastcg.${ARGV0}"
         COMMAND ${FASTCG_ADB} install ${DST_GRADLE_PROJECT_DIR}/app/build/outputs/apk/$<LOWER_CASE:$<CONFIG>>/${ARGV0}-$<LOWER_CASE:$<CONFIG>>.apk
         DEPENDS ${ARGV0}_BUILD_APK
     )
@@ -393,12 +415,15 @@ function(fastcg_add_executable)
     _fastcg_add_generated_sources_targets(${ARGV0})
 endfunction()
 
-function(fastcg_add_dependency_library)
-    _fastcg_add_library(${ARGN})
-endfunction()
-
 function(fastcg_add_library)
     _fastcg_add_library(${ARGN})
     _fastcg_target_compile_definitions(${ARGV0})
     _fastcg_target_compile_options(${ARGV0})
+endfunction()
+
+function(fastcg_add_tool)
+    if(NOT FASTCG_PLATFORM STREQUAL "Android")
+        add_executable(${ARGN})
+        _fastcg_set_target_properties(${ARGV0})
+    endif()
 endfunction()

@@ -28,7 +28,7 @@ namespace FastCG
 
     class InputSystem
     {
-        FASTCG_DECLARE_SYSTEM(InputSystem, InputSystemArgs);
+        FASTCG_DECLARE_SYSTEM(InputSystem, InputSystemArgs)
 
     public:
         inline static void GetKeyChanges(KeyChange keyChanges[KEY_COUNT])

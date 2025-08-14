@@ -5,7 +5,9 @@
 
 #include <FastCG/Platform/BaseApplication.h>
 
-#include <X11/Xlib.h>
+#ifndef Status
+#define Status int
+#endif
 #include <X11/Xutil.h>
 
 namespace FastCG

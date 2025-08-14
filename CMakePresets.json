@@ -1,0 +1,302 @@
+{
+	"version": 6,
+	"cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "buildPresets": [
+        {
+            "configurePreset": "android-opengl-debug",
+            "name": "build-android-opengl-debug"
+        },
+		{
+            "configurePreset": "android-vulkan-debug",
+            "name": "build-android-vulkan-debug"
+        },
+        {
+            "configurePreset": "android-opengl-relwithdebinfo",
+            "name": "build-android-opengl-relwithdebinfo"
+        },
+		{
+            "configurePreset": "android-vulkan-relwithdebinfo",
+            "name": "build-android-vulkan-relwithdebinfo"
+        },
+        {
+            "configurePreset": "android-opengl-release",
+            "name": "build-android-opengl-release"
+        },
+		{
+            "configurePreset": "android-vulkan-release",
+            "name": "build-android-vulkan-release"
+        },
+        {
+            "configurePreset": "linux-gcc-opengl-debug",
+            "name": "build-linux-gcc-opengl-debug"
+        },
+		{
+            "configurePreset": "linux-gcc-vulkan-debug",
+            "name": "build-linux-gcc-vulkan-debug"
+        },
+        {
+            "configurePreset": "linux-gcc-opengl-relwithdebinfo",
+            "name": "build-linux-gcc-opengl-relwithdebinfo"
+        },
+		{
+            "configurePreset": "linux-gcc-vulkan-relwithdebinfo",
+            "name": "build-linux-gcc-vulkan-relwithdebinfo"
+        },
+        {
+            "configurePreset": "linux-gcc-opengl-release",
+            "name": "build-linux-gcc-opengl-release"
+        },
+		{
+            "configurePreset": "linux-gcc-vulkan-release",
+            "name": "build-linux-gcc-vulkan-release"
+        },
+        {
+            "configurePreset": "linux-clang-opengl-debug",
+            "name": "build-linux-clang-opengl-debug"
+        },
+		{
+            "configurePreset": "linux-clang-vulkan-debug",
+            "name": "build-linux-clang-vulkan-debug"
+        },
+        {
+            "configurePreset": "linux-clang-opengl-relwithdebinfo",
+            "name": "build-linux-clang-opengl-relwithdebinfo"
+        },
+		{
+            "configurePreset": "linux-clang-vulkan-relwithdebinfo",
+            "name": "build-linux-clang-vulkan-relwithdebinfo"
+        },
+        {
+            "configurePreset": "linux-clang-opengl-release",
+            "name": "build-linux-clang-opengl-release"
+        },
+		{
+            "configurePreset": "linux-clang-vulkan-release",
+            "name": "build-linux-clang-vulkan-release"
+        },
+        {
+            "configurePreset": "windows-msvc-opengl-debug",
+            "name": "build-windows-msvc-opengl-debug",
+			"configuration": "Debug"
+        },
+		{
+            "configurePreset": "windows-msvc-vulkan-debug",
+            "name": "build-windows-msvc-vulkan-debug",
+			"configuration": "Debug"
+        },
+        {
+            "configurePreset": "windows-msvc-opengl-relwithdebinfo",
+            "name": "build-windows-msvc-opengl-relwithdebinfo",
+			"configuration": "RelWithDebInfo"
+        },
+		{
+            "configurePreset": "windows-msvc-vulkan-relwithdebinfo",
+            "name": "build-windows-msvc-vulkan-relwithdebinfo",
+			"configuration": "RelWithDebInfo"
+        },
+        {
+            "configurePreset": "windows-msvc-opengl-release",
+            "name": "build-windows-msvc-opengl-release",
+			"configuration": "Release"
+        },
+		{
+            "configurePreset": "windows-msvc-vulkan-release",
+            "name": "build-windows-msvc-vulkan-release",
+			"configuration": "Release"
+        }
+    ],
+    "configurePresets": [
+        {
+            "binaryDir": "${sourceDir}/build-${presetName}",
+            "hidden": true,
+            "name": "base"
+        },
+		{
+			"cacheVariables": {
+				"FASTCG_GRAPHICS_SYSTEM": "OpenGL"
+			},
+			"hidden": true,
+			"name": "opengl"
+		},
+		{
+			"cacheVariables": {
+				"FASTCG_GRAPHICS_SYSTEM": "Vulkan"
+			},
+			"hidden": true,
+			"name": "vulkan"
+		},
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			},
+			"hidden": true,
+			"name": "debug"
+		},
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
+			},
+			"hidden": true,
+			"name": "relwithdebinfo"
+		},
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			},
+			"hidden": true,
+			"name": "release"
+		},
+        {
+            "generator": "Ninja",
+            "hidden": true,
+            "inherits": "base",
+            "name": "android-base",
+            "toolchainFile": "${sourceDir}/cmake/toolchain-android.cmake"
+        },
+        {
+            "displayName": "Android OpenGL (Debug)",
+            "inherits": ["android-base", "opengl", "debug"],
+            "name": "android-opengl-debug"
+        },
+		{
+            "displayName": "Android Vulkan (Debug)",
+            "inherits": ["android-base", "vulkan", "debug"],
+            "name": "android-vulkan-debug"
+        },
+        {
+            "displayName": "Android OpenGL (RelWithDebInfo)",
+            "inherits": ["android-base", "opengl", "relwithdebinfo"],
+            "name": "android-opengl-relwithdebinfo"
+        },
+		{
+            "displayName": "Android Vulkan (RelWithDebInfo)",
+            "inherits": ["android-base", "vulkan", "relwithdebinfo"],
+            "name": "android-vulkan-relwithdebinfo"
+        },
+        {
+            "displayName": "Android OpenGL (Release)",
+            "inherits": ["android-base", "opengl", "release"],
+            "name": "android-opengl-release"
+        },
+		{
+            "displayName": "Android Vulkan (Release)",
+            "inherits": ["android-base", "opengl", "vulkan"],
+            "name": "android-vulkan-release"
+        },
+        {
+			"generator": "Ninja",
+            "hidden": true,
+            "inherits": "base",
+            "name": "linux-gcc-base",
+            "toolchainFile": "${sourceDir}/cmake/toolchain-linux-gcc.cmake"
+        },
+        {
+            "displayName": "Linux GCC OpenGL (Debug)",
+            "inherits": ["linux-gcc-base", "opengl", "debug"],
+            "name": "linux-gcc-opengl-debug"
+        },
+		{
+            "displayName": "Linux GCC Vulkan (Debug)",
+            "inherits": ["linux-gcc-base", "vulkan", "debug"],
+            "name": "linux-gcc-vulkan-debug"
+        },
+        {
+            "displayName": "Linux GCC OpenGL (RelWithDebInfo)",
+            "inherits": ["linux-gcc-base", "opengl", "relwithdebinfo"],
+            "name": "linux-gcc-opengl-relwithdebinfo"
+        },
+		{
+            "displayName": "Linux GCC Vulkan (RelWithDebInfo)",
+            "inherits": ["linux-gcc-base", "vulkan", "relwithdebinfo"],
+            "name": "linux-gcc-vulkan-relwithdebinfo"
+        },
+        {
+            "displayName": "Linux GCC OpenGL (Release)",
+            "inherits": ["linux-gcc-base", "opengl", "release"],
+            "name": "linux-gcc-opengl-release"
+        },
+		{
+            "displayName": "Linux GCC Vulkan (Release)",
+            "inherits": ["linux-gcc-base", "vulkan", "release"],
+            "name": "linux-gcc-vulkan-release"
+        },
+        {
+			"generator": "Ninja",
+            "hidden": true,
+            "inherits": "base",
+            "name": "linux-clang-base",
+            "toolchainFile": "${sourceDir}/cmake/toolchain-linux-clang.cmake"
+        },
+        {
+            "displayName": "Linux Clang OpenGL (Debug)",
+            "inherits": ["linux-clang-base", "opengl", "debug"],
+            "name": "linux-clang-opengl-debug"
+        },
+		{
+            "displayName": "Linux Clang Vulkan (Debug)",
+            "inherits": ["linux-clang-base", "vulkan", "debug"],
+            "name": "linux-clang-vulkan-debug"
+        },
+        {
+            "displayName": "Linux Clang OpenGL (RelWithDebInfo)",
+            "inherits": ["linux-clang-base", "opengl", "relwithdebinfo"],
+            "name": "linux-clang-opengl-relwithdebinfo"
+        },
+		{
+            "displayName": "Linux Clang Vulkan (RelWithDebInfo)",
+            "inherits": ["linux-clang-base", "vulkan", "relwithdebinfo"],
+            "name": "linux-clang-vulkan-relwithdebinfo"
+        },
+        {
+            "displayName": "Linux Clang OpenGL (Release)",
+            "inherits": ["linux-clang-base", "opengl", "release"],
+            "name": "linux-clang-opengl-release"
+        },
+		{
+            "displayName": "Linux Clang Vulkan (Release)",
+            "inherits": ["linux-clang-base", "vulkan", "release"],
+            "name": "linux-clang-vulkan-release"
+        },
+        {
+			"binaryDir": "${sourceDir}/build-${presetName}",
+            "generator": "Visual Studio 17 2022",
+			"hidden": true,
+            "name": "windows-msvc-base",
+            "toolchainFile": "${sourceDir}/cmake/toolchain-windows-msvc.cmake"
+        },
+        {
+            "displayName": "Windows MSVC OpenGL (Debug)",
+            "inherits": ["windows-msvc-base", "opengl"],
+            "name": "windows-msvc-opengl-debug"
+        },
+		{
+            "displayName": "Windows MSVC Vulkan (Debug)",
+            "inherits": ["windows-msvc-base", "vulkan"],
+            "name": "windows-msvc-vulkan-debug"
+        },
+        {
+            "displayName": "Windows MSVC OpenGL (RelWithDebInfo)",
+            "inherits": ["windows-msvc-base", "opengl"],
+            "name": "windows-msvc-opengl-relwithdebinfo"
+        },
+		{
+            "displayName": "Windows MSVC Vulkan (RelWithDebInfo)",
+            "inherits": ["windows-msvc-base", "vulkan"],
+            "name": "windows-msvc-vulkan-relwithdebinfo"
+        },
+        {
+            "displayName": "Windows MSVC OpenGL (Release)",
+            "inherits": ["windows-msvc-base", "opengl"],
+            "name": "windows-msvc-opengl-release"
+        },
+        {
+            "displayName": "Windows MSVC Vulkan (Release)",
+            "inherits": ["windows-msvc-base", "vulkan"],
+            "name": "windows-msvc-vulkan-release"
+        }
+    ]
+}

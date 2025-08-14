@@ -15,7 +15,7 @@ namespace FastCG
 
     class AssetSystem
     {
-        FASTCG_DECLARE_SYSTEM(AssetSystem, AssetSystemArgs);
+        FASTCG_DECLARE_SYSTEM(AssetSystem, AssetSystemArgs)
 
     public:
         inline std::vector<std::filesystem::path> List(const std::filesystem::path &rRelDirectoryPath,

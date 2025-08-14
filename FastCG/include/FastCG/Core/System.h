@@ -14,7 +14,7 @@ public:                                                                         
 private:                                                                                                               \
     static void Create(const argsClassName &rArgs);                                                                    \
     static void Destroy();                                                                                             \
-    friend class FastCG::BaseApplication
+    friend class FastCG::BaseApplication;
 
 #define FASTCG_IMPLEMENT_SYSTEM(className, argsClassName)                                                              \
     static className *sp##className = nullptr;                                                                         \

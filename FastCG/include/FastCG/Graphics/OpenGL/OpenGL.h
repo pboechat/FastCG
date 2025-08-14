@@ -17,6 +17,9 @@
 #define NOMINMAX
 #include <GL/wglew.h>
 #elif defined FASTCG_LINUX
+#ifndef Status
+#define Status int
+#endif
 #include <GL/glxew.h>
 #elif defined FASTCG_ANDROID
 #include <EGL/egl.h>

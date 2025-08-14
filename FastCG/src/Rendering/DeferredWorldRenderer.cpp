@@ -343,7 +343,7 @@ namespace FastCG
 
                                 UpdateSSAOConstants(isSSAOEnabled, pGraphicsContext);
 
-                                const auto *pInstanceConstantsBuffer =
+                                pInstanceConstantsBuffer =
                                     UpdateInstanceConstants(model, view, projection, pGraphicsContext);
                                 pGraphicsContext->BindResource(pInstanceConstantsBuffer,
                                                                INSTANCE_CONSTANTS_SHADER_RESOURCE_NAME);

@@ -22,7 +22,7 @@ namespace FastCG
 
     class DebugMenuSystem
     {
-        FASTCG_DECLARE_SYSTEM(DebugMenuSystem, DebugMenuSystemArgs);
+        FASTCG_DECLARE_SYSTEM(DebugMenuSystem, DebugMenuSystemArgs)
 
     public:
         inline void AddCallback(const std::string &rName, const DebugMenuCallback &rCallback)

@@ -34,19 +34,24 @@ list(APPEND SHADERS FORWARD_SHADERS DEFERRED_SHADERS)
 set(SHADERS ${FORWARD_SHADERS} ${DEFERRED_SHADERS} ${GENERAL_SHADERS})
 
 if(FASTCG_PLATFORM STREQUAL "Linux")
-	set(PLATFORM_LIBRARIES messagebox_x11)
+	set(PLATFORM_LIBRARIES messagebox_x11 X11::X11 X11::Xext X11::Xrender)
 elseif(FASTCG_PLATFORM STREQUAL "Android")
 	set(PLATFORM_LIBRARIES android log android_native_app_glue)
 endif()
 
 if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL")
 	if(FASTCG_PLATFORM STREQUAL "Android")
-		set(GRAPHICS_SYSTEM_LIBRARIES EGL GLESv3)
+		set(GRAPHICS_SYSTEM_LIBRARIES ${EGL_LIB} ${GLES_LIB})
 	else()
-		set(GRAPHICS_SYSTEM_LIBRARIES glew)
+		set(GRAPHICS_SYSTEM_LIBRARIES libglew_static)
+		if(TARGET OpenGL::GL)
+			list(APPEND GRAPHICS_SYSTEM_LIBRARIES OpenGL::GL)
+		elseif(TARGET OpenGL::OpenGL)
+			list(APPEND GRAPHICS_SYSTEM_LIBRARIES PUBLIC OpenGL::OpenGL)
+		endif()
 	endif()
 elseif(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
-	set(GRAPHICS_SYSTEM_LIBRARIES VulkanMemoryAllocator spirv-cross-core)
+	set(GRAPHICS_SYSTEM_LIBRARIES Vulkan::Vulkan VulkanMemoryAllocator spirv-cross-core)
 endif()
 
 source_group("include" FILES ${HEADERS})
@@ -57,4 +62,14 @@ source_group("shaders" FILES ${GENERAL_SHADERS})
 
 fastcg_add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES} ${SHADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} ${PLATFORM_LIBRARIES} ${GRAPHICS_SYSTEM_LIBRARIES} glm ImGuizmo imgui ImGuiFileDialog ktx rapidjson stb tinyobj_loader_c)
+target_link_libraries(${PROJECT_NAME} PUBLIC 
+	${PLATFORM_LIBRARIES} 
+	${GRAPHICS_SYSTEM_LIBRARIES} 
+	glm 
+	ImGuizmo 
+	imgui 
+	ImGuiFileDialog 
+	ktx 
+	rapidjson 
+	stb 
+	tinyobj_loader_c)

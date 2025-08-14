@@ -7,7 +7,9 @@
 #define NOMINMAX
 #include <Windows.h>
 #elif defined FASTCG_LINUX
-#include <X11/Xlib.h>
+#ifndef Status
+#define Status int
+#endif
 #include <X11/Xutil.h>
 #endif
 

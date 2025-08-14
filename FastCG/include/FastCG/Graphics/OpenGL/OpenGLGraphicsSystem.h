@@ -24,7 +24,7 @@ namespace FastCG
     class OpenGLGraphicsSystem
         : public BaseGraphicsSystem<OpenGLBuffer, OpenGLGraphicsContext, OpenGLShader, OpenGLTexture>
     {
-        FASTCG_DECLARE_SYSTEM(OpenGLGraphicsSystem, GraphicsSystemArgs);
+        FASTCG_DECLARE_SYSTEM(OpenGLGraphicsSystem, GraphicsSystemArgs)
 
     public:
         struct DeviceProperties

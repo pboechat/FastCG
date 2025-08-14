@@ -76,8 +76,6 @@ namespace FastCG
         }
     };
 
-#if _DEBUG
-
 #define FASTCG_THROW_EXCEPTION(exceptionType, fmt, ...)                                                                \
     {                                                                                                                  \
         char __exceptionBuffer[4106];                                                                                  \
@@ -92,9 +90,6 @@ namespace FastCG
         FASTCG_BREAK_TO_DEBUGGER();                                                                                    \
         throw __exception;                                                                                             \
     }
-#else
-#define FASTCG_THROW_EXCEPTION(exceptionType, fmt, ...)
-#endif
 }
 
 #endif

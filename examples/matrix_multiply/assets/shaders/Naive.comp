@@ -1,0 +1,37 @@
+#include "../FastCG/FastCG.glsl"
+
+layout (local_size_x = 1, local_size_y = 1) in;
+
+// A = MxK
+// B = NxK
+// C = MxN
+
+layout (std140, BINDING_0_0) uniform Sizes {
+    uint uM;
+    uint uN;
+    uint uK;
+};
+
+layout (BINDING_0_2) buffer A {
+    float A_in[];
+};
+
+layout (BINDING_0_3) buffer B {
+    float B_in[];
+};
+
+layout (BINDING_0_4) writeonly buffer C {
+    float C_out[];
+};
+
+void main() 
+{
+    float c = 0.0;
+    for (uint k = 0u; k < uK; ++k) 
+    {
+        float a = A_in[uM * gl_GlobalInvocationID.y + k];
+        float b = B_in[uN * k + gl_GlobalInvocationID.x];
+        c += a * b;
+    }
+    C_out[uM * gl_GlobalInvocationID.y + gl_GlobalInvocationID.x] = c;
+}

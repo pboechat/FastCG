@@ -6,6 +6,8 @@ A C++ Framework for Rapid 3D Application Prototyping.
 
 Originally developed during my M.Sc. realtime rendering course.
 
+[![CI](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml/badge.svg?branch=main)](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml)
+
 Features:
 
 - Platforms:

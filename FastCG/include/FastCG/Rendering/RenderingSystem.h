@@ -28,7 +28,7 @@ namespace FastCG
 
     class RenderingSystem
     {
-        FASTCG_DECLARE_SYSTEM(RenderingSystem, RenderingSystemArgs);
+        FASTCG_DECLARE_SYSTEM(RenderingSystem, RenderingSystemArgs)
 
     public:
         inline const IWorldRenderer *GetWorldRenderer() const

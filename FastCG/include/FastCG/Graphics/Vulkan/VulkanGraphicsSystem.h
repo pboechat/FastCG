@@ -59,7 +59,7 @@ namespace FastCG
     class VulkanGraphicsSystem
         : public BaseGraphicsSystem<VulkanBuffer, VulkanGraphicsContext, VulkanShader, VulkanTexture>
     {
-        FASTCG_DECLARE_SYSTEM(VulkanGraphicsSystem, GraphicsSystemArgs);
+        FASTCG_DECLARE_SYSTEM(VulkanGraphicsSystem, GraphicsSystemArgs)
 
     public:
         inline uint32_t GetMaxSimultaneousFrames() const

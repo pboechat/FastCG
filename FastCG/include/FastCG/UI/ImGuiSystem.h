@@ -16,7 +16,7 @@ namespace FastCG
 
     class ImGuiSystem
     {
-        FASTCG_DECLARE_SYSTEM(ImGuiSystem, ImGuiSystemArgs);
+        FASTCG_DECLARE_SYSTEM(ImGuiSystem, ImGuiSystemArgs)
 
     private:
         const ImGuiSystemArgs mArgs;

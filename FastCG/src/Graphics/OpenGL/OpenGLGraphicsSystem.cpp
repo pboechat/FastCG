@@ -12,6 +12,9 @@
 #define NOMINMAX
 #include <Windows.h>
 #elif defined FASTCG_LINUX
+#ifndef Status
+#define Status int
+#endif
 #include <X11/extensions/Xrender.h>
 #endif
 

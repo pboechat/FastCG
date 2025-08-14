@@ -555,6 +555,9 @@ namespace FastCG
             }
             type = TextureType::TEXTURE_3D;
             break;
+        default:
+            FASTCG_THROW_EXCEPTION(Exception, "Invalid resource dimension (texture: %s, resDim: %d)",
+                                   rFilePath.string().c_str(), resDim);
         }
 
         return GraphicsSystem::GetInstance()->CreateTexture({rFilePath.stem().string(), width, height, depthOrSlices,

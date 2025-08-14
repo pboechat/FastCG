@@ -1,6 +1,6 @@
+.deps/
 .vs/
 .vscode/
 .history/
-build/
+build*/
 deploy/
-!resources/Android/.vscode

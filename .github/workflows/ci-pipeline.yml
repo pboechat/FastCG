@@ -2,53 +2,27 @@ name: CI Pipeline
 
 on:
   push:
-    branches:
-      - '*'
+    branches: ['*']
   pull_request:
-    branches:
-      - '*'
+    branches: ['*']
 
 jobs:
   format:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Determine ref
-      run: |
-        if [ -z "${{ github.head_ref }}" ]; then
-          echo "ref=${{ github.ref }}" >> $GITHUB_ENV
-        else
-          echo "ref=${{ github.head_ref }}" >> $GITHUB_ENV
-        fi
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ env.ref }}
+      - name: Install
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-15
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-15 100
+          sudo update-alternatives --set clang-format /usr/bin/clang-format-15
 
-    - name: Install clang-format
-      run: | 
-        sudo apt-get install -y clang-format-15
-        sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-15 100
-        sudo update-alternatives --set clang-format /usr/bin/clang-format-15
-
-    - name: Run clang-format
-      run: |
-        chmod +x ./format_sources.sh
-        ./format_sources.sh
-
-    - name: Check for code format changes
-      run: |
-        git config --global user.name 'github-actions'
-        git config --global user.email 'github-actions@github.com'
-        git add .
-        if ! git diff --cached --exit-code; then
-          git commit -m "Applied format changes."
-          git push origin HEAD:${{ env.ref }}
-          echo "Applied format changes."
-        else
-          echo "No formatting changes."
-        fi
+      - name: Format
+        run: |
+          ./scripts/format_sources.sh --check
 
   build:
     runs-on: ubuntu-latest
@@ -56,93 +30,64 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc', 'clang', 'android-clang']
-        build_type: ['Debug', 'Release']
-        graphics_system: ['OpenGL', 'Vulkan']
+        platform: ['linux-gcc', 'linux-clang', 'android']
+        build_type: ['debug', 'release']
+        graphics_system: ['opengl', 'vulkan']
 
     steps:
-    - name: Determine ref
-      run: |
-        if [ -z "${{ github.head_ref }}" ]; then
-          echo "ref=${{ github.ref }}" >> $GITHUB_ENV
-        else
-          echo "ref=${{ github.head_ref }}" >> $GITHUB_ENV
-        fi
+      - name: Setup
+        run: |
+          if [ -z "${{ github.head_ref }}" ]; then
+            echo "ref=${{ github.ref }}" >> $GITHUB_ENV
+          else
+            echo "ref=${{ github.head_ref }}" >> $GITHUB_ENV
+          fi
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ env.ref }}
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.ref }}
 
-    - name: Install compiler
-      if: matrix.compiler == 'gcc'
-      run: | 
-        sudo apt-get install -y gcc-12 g++-12
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
-        sudo update-alternatives --set gcc /usr/bin/gcc-12
-        sudo update-alternatives --set g++ /usr/bin/g++-12
+      - name: Install platform dependencies
+        if: matrix.platform == 'linux-gcc'
+        run: |
+          sudo apt-get install -y gcc-12 g++-12
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
+          sudo update-alternatives --set gcc /usr/bin/gcc-12
+          sudo update-alternatives --set g++ /usr/bin/g++-12
 
-    - name: Install compiler
-      if: matrix.compiler == 'clang'
-      run: | 
-        sudo apt-get install -y clang-15
-        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 100
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 100
-        sudo update-alternatives --set clang /usr/bin/clang-15
-        sudo update-alternatives --set clang++ /usr/bin/clang++-15
+      - name: Install platform dependencies
+        if: matrix.platform == 'linux-clang'
+        run: |
+          sudo apt-get install -y clang-15
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 100
+          sudo update-alternatives --set clang /usr/bin/clang-15
+          sudo update-alternatives --set clang++ /usr/bin/clang++-15
 
-    - name: Install Android SDK
-      if: matrix.compiler == 'android-clang'
-      run: |
-        sudo apt-get install -y openjdk-11-jdk wget unzip
-        wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O commandlinetools.zip
-        mkdir -p ~/android-sdk
-        unzip commandlinetools.zip -d ~/android-sdk/cmdline-tools
-        export ANDROID_HOME=$HOME/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
-        export PATH=$ANDROID_HOME/platform-tools:$PATH
-        yes | sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-33" "ndk;26.1.10909125" "build-tools;34.0.0"
+      - name: Install platform dependencies
+        if: matrix.platform == 'android'
+        run: |
+          sudo apt-get install -y openjdk-11-jdk wget unzip
+          wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O commandlinetools.zip
+          mkdir -p ~/android-sdk
+          unzip commandlinetools.zip -d ~/android-sdk/cmdline-tools
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
+          export PATH=$ANDROID_HOME/platform-tools:$PATH
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "ndk;26.1.10909125" "build-tools;34.0.0"
 
-    - name: Install build tools
-      run: |
-        sudo apt-get install -y cmake ninja-build
+      - name: Install common dependencies
+        run: |
+          sudo apt-get install -y cmake ninja-build
+          sudo apt-get install -y glslang-tools libx11-dev libgl1-mesa-dev libglu1-mesa-dev libxrender-dev libvulkan-dev libspirv-cross-c-shared-dev
+          wget https://github.com/KhronosGroup/KTX-Software/releases/download/v4.3.2/KTX-Software-4.3.2-Linux-x86_64.deb
+          sudo dpkg -i ./KTX-Software-4.3.2-Linux-x86_64.deb
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get install -y glslang-tools libx11-dev libgl1-mesa-dev libglu1-mesa-dev libxrender-dev libvulkan-dev libspirv-cross-c-shared-dev
-        wget https://github.com/KhronosGroup/KTX-Software/releases/download/v4.3.2/KTX-Software-4.3.2-Linux-x86_64.deb
-        sudo dpkg -i ./KTX-Software-4.3.2-Linux-x86_64.deb
+      - name: Build
+        run: |
+          cmake --preset ${{ matrix.platform }}-${{ matrix.build_type }}-${{ matrix.graphics_system }}
+          cmake --build build-${{ matrix.platform }}-${{ matrix.build_type }}-${{ matrix.graphics_system }}
 
-    - name: Build
-      if: matrix.compiler == 'gcc'
-      run: |
-        CC=gcc CXX=g++ cmake -B build -S . \
-        -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} \
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        cmake --build build
-
-    - name: Build
-      if: matrix.compiler == 'clang'
-      run: |
-        CC=clang CXX=clang++ cmake -B build -S . \
-        -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} \
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        cmake --build build
-
-    - name: Build
-      if: matrix.compiler == 'android-clang'
-      run: |
-        export ANDROID_HOME=$HOME/android-sdk
-        export NDKROOT=$ANDROID_HOME/ndk/26.1.10909125
-        export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
-        export PATH=$ANDROID_HOME/platform-tools:$PATH
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$NDKROOT/build/cmake/android.toolchain.cmake \
-        -DANDROID_PLATFORM=android-33 \
-        -DANDROID_TOOLCHAIN=clang \
-        -DANDROID_ABI=arm64-v8a \
-        -DANDROID_STL=c++_static \
-        -DFASTCG_GRAPHICS_SYSTEM=${{ matrix.graphics_system }} \
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        cmake --build build
