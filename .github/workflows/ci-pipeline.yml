@@ -83,7 +83,7 @@ jobs:
           export PATH=$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-33" "ndk;26.1.10909125" "build-tools;34.0.0"
-          echo "export NDKROOT=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "NDKROOT=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
 
       - name: Install common dependencies
         run: |
