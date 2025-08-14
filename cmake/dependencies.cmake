@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(FASTCG_DEPS_CACHE  "${CMAKE_SOURCE_DIR}/.deps" CACHE PATH "Shared third-party cache")
+file(TO_CMAKE_PATH "${FASTCG_DEPS_CACHE}" FASTCG_DEPS_CACHE_NORM)
+set(FETCHCONTENT_BASE_DIR "${FASTCG_DEPS_CACHE_NORM}" CACHE PATH "" FORCE)
 
 include(FetchContent)
 
@@ -10,53 +12,38 @@ function(_fastcg_fetch_content_declare name)
     set(multiValueArgs GIT_SUBMODULES PATCH_COMMAND FIND_PACKAGE_ARGS)
     cmake_parse_arguments(F "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    file(TO_CMAKE_PATH "${FASTCG_DEPS_CACHE}" FASTCG_DEPS_CACHE_NORM)
+    string(TOUPPER "${name}" NAME_UP)
 
     set(SOURCE "${FASTCG_DEPS_CACHE_NORM}/${name}")
     set(BIN "${CMAKE_BINARY_DIR}/_deps/${name}-build")
+    set(SUB "${CMAKE_BINARY_DIR}/_deps/${name}-subbuild")
 
-    string(TOUPPER "${name}" NAME_UP)
-    if(DEFINED FETCHCONTENT_SOURCE_DIR_${NAME_UP})
-        set(SOURCE "${FETCHCONTENT_SOURCE_DIR_${NAME_UP}}")
-    endif()
-    if(DEFINED FETCHCONTENT_BINARY_DIR_${NAME_UP})
-        set(BIN "${FETCHCONTENT_BINARY_DIR_${NAME_UP}}")
-    endif()
+    unset(FETCHCONTENT_SOURCE_DIR_${NAME_UP} CACHE)
+    unset(FETCHCONTENT_BINARY_DIR_${NAME_UP} CACHE)
 
-    set(HAS_SOURCE FALSE)
-    if(EXISTS "${SOURCE}/.git")
-        set(HAS_SOURCE TRUE)
-    else()
-        file(GLOB HAS_ANY_SOURCE "${SOURCE}/*")
-        if(HAS_ANY_SOURCE)
-            set(HAS_SOURCE TRUE)
-        endif()
+    get_filename_component(_src_parent "${SOURCE}" DIRECTORY)
+    if(_src_parent)
+        file(MAKE_DIRECTORY "${_src_parent}")
     endif()
 
-    set(F_ARGS SOURCE_DIR "${SOURCE}" BINARY_DIR "${BIN}")
-    if(NOT HAS_SOURCE)
-        get_filename_component(SOURCE_PARENT "${SOURCE}" DIRECTORY)
-        if(SOURCE_PARENT)
-            file(MAKE_DIRECTORY "${SOURCE_PARENT}")
-        endif()
-
-        if(F_GIT_REPOSITORY)
-            list(APPEND F_ARGS GIT_REPOSITORY "${F_GIT_REPOSITORY}")
-        endif()
-        if(F_GIT_TAG)
-            list(APPEND F_ARGS GIT_TAG "${F_GIT_TAG}")
-        endif()
-        if(F_URL)
-            list(APPEND F_ARGS URL "${F_URL}")
-        endif()
-        list(APPEND F_ARGS GIT_SHALLOW TRUE)
-        if(F_GIT_SUBMODULES)
-            list(APPEND F_ARGS GIT_SUBMODULES ${F_GIT_SUBMODULES})
-        endif()
-    else()
-        set(FETCHCONTENT_SOURCE_DIR_${NAME_UP} "${SOURCE}" CACHE PATH "" FORCE)
+    set(F_ARGS
+        SOURCE_DIR "${SOURCE}"
+        BINARY_DIR "${BIN}"
+        SUBBUILD_DIR "${SUB}"
+        GIT_SHALLOW TRUE
+    )
+    if(F_GIT_REPOSITORY)
+        list(APPEND F_ARGS GIT_REPOSITORY "${F_GIT_REPOSITORY}")
     endif()
-
+    if(F_GIT_TAG)
+        list(APPEND F_ARGS GIT_TAG "${F_GIT_TAG}")
+    endif()
+    if(F_URL)
+        list(APPEND F_ARGS URL "${F_URL}")
+    endif()
+    if(F_GIT_SUBMODULES)
+        list(APPEND F_ARGS GIT_SUBMODULES ${F_GIT_SUBMODULES})
+    endif()
     if(F_PATCH_COMMAND)
         list(APPEND F_ARGS PATCH_COMMAND ${F_PATCH_COMMAND})
     endif()
@@ -64,8 +51,10 @@ function(_fastcg_fetch_content_declare name)
         list(APPEND F_ARGS FIND_PACKAGE_ARGS ${F_FIND_PACKAGE_ARGS})
     endif()
 
+    set(FETCHCONTENT_UPDATES_DISCONNECTED_${NAME_UP} ON CACHE BOOL "" FORCE)
+
     set(${name}_OVERRIDE_SOURCE_DIR "${SOURCE}" PARENT_SCOPE)
-    set(${name}_OVERRIDE_BINARY_DIR "${BIN}" PARENT_SCOPE)
+    set(${name}_OVERRIDE_BINARY_DIR "${BIN}"    PARENT_SCOPE)
 
     FetchContent_Declare(${name} ${F_ARGS})
 endfunction()

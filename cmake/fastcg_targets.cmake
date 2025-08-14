@@ -228,6 +228,7 @@ function(_fastcg_target_compile_options)
             -Wextra
             -Wpedantic
             -Werror
+            -Wno-array-bounds
             -Wno-gnu-zero-variadic-macro-arguments
             -Wno-implicit-fallthrough
             -Wno-nested-anon-types
