@@ -91,6 +91,6 @@ jobs:
 
       - name: Build
         run: |
-          cmake --preset ${{ matrix.platform }}-${{ matrix.build_type }}-${{ matrix.graphics_system }}
-          cmake --build build-${{ matrix.platform }}-${{ matrix.build_type }}-${{ matrix.graphics_system }}
+          cmake --preset ${{ matrix.platform }}-${{ matrix.graphics_system }}-${{ matrix.build_type }}
+          cmake --build build-${{ matrix.platform }}-${{ matrix.graphics_system }}-${{ matrix.build_type }}
 
