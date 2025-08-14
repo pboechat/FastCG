@@ -3,9 +3,12 @@ set(ANDROID_PLATFORM "android-33")
 set(ANDROID_STL "c++_static")
 set(ANDROID_TOOLCHAIN "clang")
 
-if (NOT DEFINED $ENV{NDKROOT})
+if (NOT DEFINED ENV{NDKROOT})
     message(FATAL_ERROR "NDKROOT environment variable is not set. Please set it to the path of your Android NDK.")
 endif()
+
+message(STATUS "Using NDKROOT=$ENV{NDKROOT}")
+
 if (NOT EXISTS "$ENV{NDKROOT}/build/cmake/android.toolchain.cmake")
     message(FATAL_ERROR "The Android toolchain file does not exist at $ENV{NDKROOT}/build/cmake/android.toolchain.cmake. Please check your NDK installation.")
 endif()
