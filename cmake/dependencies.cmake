@@ -324,7 +324,7 @@ if(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
         # -------- SPIRV-Cross --------
         _fastcg_fetch_content_declare(SPIRV_Cross
             GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
-            GIT_TAG c9965407c3cca05cafc350efe3b8fd86badd968f
+            GIT_TAG d8e3e2b141b8c8a167b2e3984736a6baacff316c
             GIT_SHALLOW TRUE
         )
         set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
