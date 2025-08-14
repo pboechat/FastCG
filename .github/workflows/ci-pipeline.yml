@@ -72,6 +72,7 @@ jobs:
       - name: Install platform dependencies
         if: matrix.platform == 'android'
         run: |
+          sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk wget unzip
           wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O commandlinetools.zip
           mkdir -p ~/android-sdk
@@ -85,7 +86,7 @@ jobs:
       - name: Install common dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build glslang-tools libx11-dev libgl1-mesa-dev libglu1-mesa-dev libxrender-dev libvulkan-dev libspirv-cross-c-shared-dev
+          sudo apt-get install -y cmake ninja-build glslang-tools libx11-dev libxext-dev libxrender-dev libgl1-mesa-dev libglu1-mesa-dev libvulkan-dev libspirv-cross-c-shared-dev
           wget https://github.com/KhronosGroup/KTX-Software/releases/download/v4.3.2/KTX-Software-4.3.2-Linux-x86_64.deb
           sudo dpkg -i ./KTX-Software-4.3.2-Linux-x86_64.deb
 
