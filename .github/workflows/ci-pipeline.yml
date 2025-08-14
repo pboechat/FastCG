@@ -8,7 +8,7 @@ on:
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -82,8 +82,17 @@ jobs:
 
       - name: Install common dependencies
         run: |
-          sudo apt-get install -y cmake ninja-build
-          sudo apt-get install -y glslang-tools libx11-dev libgl1-mesa-dev libglu1-mesa-dev libxrender-dev libvulkan-dev libspirv-cross-c-shared-dev
+          sudo apt-get update
+          sudo apt-get install -y \ 
+            cmake \
+            ninja-build \
+            glslang-tools \ 
+            libx11-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libxrender-dev \
+            libvulkan-dev \
+            libspirv-cross-c-shared-dev
           wget https://github.com/KhronosGroup/KTX-Software/releases/download/v4.3.2/KTX-Software-4.3.2-Linux-x86_64.deb
           sudo dpkg -i ./KTX-Software-4.3.2-Linux-x86_64.deb
 
