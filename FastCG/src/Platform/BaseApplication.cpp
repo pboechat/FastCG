@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <thread>
 
 // defined in the application's Config.cpp
 extern const char *const APPLICATION_NAME;
@@ -273,11 +274,7 @@ namespace FastCG
             mLastWaitTime = std::max(0.0, mSecondsPerFrame - mLastAppElapsedTime - 0.00034 /* wait overhead */);
             if (mLastWaitTime > 0)
             {
-                double startTime = Timer::GetTime();
-                while (Timer::GetTime() - startTime <= mLastWaitTime)
-                {
-                    // busy-waiting, do nothing.
-                }
+                std::this_thread::sleep_for(std::chrono::duration<double>(mLastWaitTime));
             }
         }
     }
@@ -324,6 +321,7 @@ namespace FastCG
         mScreenHeight = height;
         GraphicsSystem::GetInstance()->Resize();
         RenderingSystem::GetInstance()->Resize();
+        WorldSystem::GetInstance()->Resize();
         OnResize();
     }
 }

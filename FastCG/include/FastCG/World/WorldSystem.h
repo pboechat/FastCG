@@ -154,6 +154,7 @@ namespace FastCG
         void RegisterComponent(Component *pComponent);
         void UnregisterComponent(Component *pComponent);
         void Update(float time, float deltaTime);
+        void Resize();
 #if _DEBUG
         void DebugMenuCallback(int result);
         void DebugMenuItemCallback(int &result);

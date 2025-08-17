@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <bitset>
 #include <cstdint>
 
 namespace FastCG
@@ -58,19 +59,12 @@ namespace FastCG
 
         inline glm::mat4 GetProjection() const
         {
-            if (mProjectionMode == ProjectionMode::PERSPECTIVE)
-            {
-                return glm::perspective(GetFieldOfViewInRadians(), GetAspectRatio(), GetNearClip(), GetFarClip());
-            }
-            else
-            {
-                return glm::ortho(GetLeft(), GetRight(), GetBottom(), GetTop(), GetNearClip(), GetFarClip());
-            }
+            return const_cast<Camera *>(this)->InternalGetProjection();
         }
 
         inline glm::mat4 GetView() const
         {
-            return glm::inverse(GetGameObject()->GetTransform()->GetModel());
+            return const_cast<Camera *>(this)->InternalGetView();
         }
 
         inline float GetFieldOfViewInRadians() const
@@ -87,6 +81,7 @@ namespace FastCG
         {
             // store FOV in radians
             mArgs.perspective.fieldOfView = glm::radians(fieldOfView);
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetAspectRatio() const
@@ -97,6 +92,7 @@ namespace FastCG
         inline void SetAspectRatio(float aspectRatio)
         {
             mArgs.perspective.aspectRatio = aspectRatio;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetNearClip() const
@@ -107,6 +103,7 @@ namespace FastCG
         inline void SetNearClip(float nearClip)
         {
             mArgs.perspective.nearClip = nearClip;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetFarClip() const
@@ -117,6 +114,7 @@ namespace FastCG
         inline void SetFarClip(float farClip)
         {
             mArgs.perspective.farClip = farClip;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetLeft() const
@@ -127,6 +125,7 @@ namespace FastCG
         inline void SetLeft(float left)
         {
             mArgs.orthographic.left = left;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetTop() const
@@ -137,6 +136,7 @@ namespace FastCG
         inline void SetTop(float top)
         {
             mArgs.orthographic.top = top;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetRight() const
@@ -147,6 +147,7 @@ namespace FastCG
         inline void SetRight(float right)
         {
             mArgs.orthographic.right = right;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline float GetBottom() const
@@ -157,6 +158,7 @@ namespace FastCG
         inline void SetBottom(float bottom)
         {
             mArgs.orthographic.bottom = bottom;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline ProjectionMode GetProjectionMode() const
@@ -167,12 +169,14 @@ namespace FastCG
         inline void SetProjectionMode(ProjectionMode projectionMode)
         {
             mProjectionMode = projectionMode;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
         inline void operator=(const Camera &rOther)
         {
             mArgs = rOther.mArgs;
             mProjectionMode = rOther.mProjectionMode;
+            mNeedsUpdate.set(UPDATE_PROJECTION_BIT);
         }
 
     protected:
@@ -201,15 +205,48 @@ namespace FastCG
         }
 
     private:
+        constexpr static int UPDATE_VIEW_BIT = 0;
+        constexpr static int UPDATE_PROJECTION_BIT = 1;
         CameraSetupArgs mArgs;
         ProjectionMode mProjectionMode;
+        glm::mat4 mView;
+        glm::mat4 mProjection;
         bool mSSAOEnabled;
+        std::bitset<2> mNeedsUpdate{(1 << UPDATE_VIEW_BIT) | (1 << UPDATE_PROJECTION_BIT)};
 
         Camera(GameObject *pGameObject, const CameraSetupArgs &rArgs, ProjectionMode projectionMode,
                bool ssaoEnabled = false)
             : Component(pGameObject), mArgs(rArgs), mProjectionMode(projectionMode), mSSAOEnabled(ssaoEnabled)
         {
-            SetFieldOfView(rArgs.perspective.fieldOfView);
+            mArgs.perspective.fieldOfView = glm::radians(rArgs.perspective.fieldOfView);
+        }
+
+        inline glm::mat4 InternalGetView()
+        {
+            if (mNeedsUpdate.test(UPDATE_VIEW_BIT) || GetGameObject()->GetTransform()->HasUpdated())
+            {
+                mView = glm::inverse(GetGameObject()->GetTransform()->GetModel());
+                mNeedsUpdate.reset(UPDATE_VIEW_BIT);
+            }
+            return mView;
+        }
+
+        inline glm::mat4 InternalGetProjection()
+        {
+            if (mNeedsUpdate.test(UPDATE_PROJECTION_BIT))
+            {
+                if (mProjectionMode == ProjectionMode::PERSPECTIVE)
+                {
+                    mProjection =
+                        glm::perspective(GetFieldOfViewInRadians(), GetAspectRatio(), GetNearClip(), GetFarClip());
+                }
+                else
+                {
+                    mProjection = glm::ortho(GetLeft(), GetRight(), GetBottom(), GetTop(), GetNearClip(), GetFarClip());
+                }
+                mNeedsUpdate.reset(UPDATE_PROJECTION_BIT);
+            }
+            return mProjection;
         }
     };
 

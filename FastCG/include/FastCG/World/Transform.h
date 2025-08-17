@@ -34,6 +34,8 @@ namespace FastCG
             {
                 mpParent->AddChild(this);
             }
+            mNeedUpdate = true;
+
             Update();
         }
 
@@ -55,6 +57,8 @@ namespace FastCG
         inline void SetPosition(const glm::vec3 &position)
         {
             mLocalTransform.position = position;
+            mNeedUpdate = true;
+
             Update();
         }
 
@@ -71,6 +75,8 @@ namespace FastCG
         inline void SetRotation(const glm::quat &rRotation)
         {
             mLocalTransform.rotation = rRotation;
+            mNeedUpdate = true;
+
             Update();
         }
 
@@ -87,18 +93,24 @@ namespace FastCG
         inline void SetScale(const glm::vec3 &rScale)
         {
             mLocalTransform.scale = rScale;
+            mNeedUpdate = true;
+
             Update();
         }
 
         inline void Rotate(const glm::vec3 &rEulerAngles)
         {
             mLocalTransform.rotation = mLocalTransform.rotation * glm::quat(glm::radians(rEulerAngles));
+            mNeedUpdate = true;
+
             Update();
         }
 
         inline void RotateAround(float angle, const glm::vec3 &rAxis)
         {
             mLocalTransform.rotation = glm::rotate(mLocalTransform.rotation, glm::radians(angle), rAxis);
+            mNeedUpdate = true;
+
             Update();
         }
 
@@ -107,9 +119,9 @@ namespace FastCG
             auto newLocal =
                 glm::rotate(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), glm::radians(angle), rAxis);
             newLocal = glm::translate(newLocal, mLocalTransform.position);
-
             mLocalTransform.position = glm::vec3(newLocal[3][0], newLocal[3][1], newLocal[3][2]);
             mLocalTransform.rotation = glm::quat(newLocal);
+            mNeedUpdate = true;
 
             Update();
         }
@@ -152,16 +164,14 @@ namespace FastCG
         inline void SetModel(const glm::mat4 &rModel)
         {
             mLocalTransform.position = rModel[3];
-
             mLocalTransform.scale = {glm::length(glm::vec3(rModel[0])), glm::length(glm::vec3(rModel[1])),
                                      glm::length(glm::vec3(rModel[2]))};
-
             glm::mat4 normModel = rModel;
             normModel[0] /= mLocalTransform.scale.x;
             normModel[1] /= mLocalTransform.scale.y;
             normModel[2] /= mLocalTransform.scale.z;
-
             mLocalTransform.rotation = glm::quat_cast(normModel);
+            mNeedUpdate = true;
 
             Update();
         }
@@ -174,6 +184,11 @@ namespace FastCG
         inline const GameObject *GetGameObject() const
         {
             return mpGameObject;
+        }
+
+        inline bool HasUpdated() const
+        {
+            return mHasUpdated;
         }
 
         friend class GameObject;
@@ -197,7 +212,8 @@ namespace FastCG
 
             SRT operator*(const SRT &rOther) const
             {
-                return SRT(scale * rOther.scale, rotation * rOther.rotation, position + rOther.position);
+                return SRT(scale * rOther.scale, rotation * rOther.rotation,
+                           position + rotation * (rOther.position * scale));
             }
 
             SRT &operator=(const SRT &rOther)
@@ -225,27 +241,39 @@ namespace FastCG
         std::vector<Transform *> mChildren;
         SRT mLocalTransform;
         SRT mWorldTransform;
+        bool mNeedUpdate{false};
+        bool mHasUpdated{false};
 
         Transform(GameObject *pGameObject, const glm::vec3 &rScale = glm::vec3{1, 1, 1},
                   const glm::quat &rRotation = glm::quat{1, 0, 0, 0}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0})
-            : mpGameObject(pGameObject), mLocalTransform(rScale, rRotation, rPosition)
+            : mpGameObject(pGameObject), mLocalTransform(rScale, rRotation, rPosition), mWorldTransform(mLocalTransform)
         {
         }
 
-        void Update()
+        void Update(bool forceUpdate = false)
         {
-            if (mpParent != nullptr)
+            if (mHasUpdated)
             {
-                mWorldTransform = mpParent->mWorldTransform * mLocalTransform;
+                mHasUpdated = false;
             }
-            else
+
+            if (mNeedUpdate || forceUpdate)
             {
-                mWorldTransform = mLocalTransform;
+                if (mpParent != nullptr)
+                {
+                    mWorldTransform = mpParent->mWorldTransform * mLocalTransform;
+                }
+                else
+                {
+                    mWorldTransform = mLocalTransform;
+                }
+                mNeedUpdate = false;
+                mHasUpdated = true;
             }
 
             for (auto *pChild : mChildren)
             {
-                pChild->Update();
+                pChild->Update(mHasUpdated);
             }
         }
 

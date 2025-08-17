@@ -1366,13 +1366,16 @@ namespace FastCG
         mpMainCamera->SetAspectRatio(GetAspectRatio());
     }
 
-    void WorldSystem::Update(float time, float deltaTime)
+    void WorldSystem::Resize()
     {
         if (mpMainCamera != nullptr)
         {
             mpMainCamera->SetAspectRatio(GetAspectRatio());
         }
+    }
 
+    void WorldSystem::Update(float time, float deltaTime)
+    {
         for (auto *pGameObject : mGameObjects)
         {
             if (pGameObject->GetTransform()->GetParent() != nullptr)
