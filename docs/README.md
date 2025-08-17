@@ -27,7 +27,7 @@ Welcome! This is the (AI generated, human reviewed) documentation for **FastCG**
    ./deploy/Linux/OpenGL/deferred_rendering/deferred_renderingd
    ```
 
-See the [Build System](#build-system) section below for further details.
+See the [Building & Running](./building_and_running.md) section for further details.
 
 ---
 
@@ -35,18 +35,18 @@ See the [Build System](#build-system) section below for further details.
 
 - **Overview**
   - [Overview](./overview.md) - What FastCG is, key features, and why contribute.
-  - [Project Structure](./project-structure.md) - Repository layout and modules description.
+  - [Project Structure](./project_structure.md) - Repository layout and modules description.
 
 - **Core Concepts**
   - [Component System](./component_system.md) - GameObject, Transforms, Components, etc.
-  - [Asset Pipeline](./asset-pipeline.md) - Shaders, textures, 3D models, scene files.
+  - [Asset Pipeline](./asset_pipeline.md) - Shaders, textures, 3D models, scene files.
 
 - **Graphics & Rendering**
-  - [Graphics System](./graphics-system.md) — Provides a comprehensive abstraction for various graphics APIs (such as OpenGL and Vulkan).
-  - [Rendering System](./rendering-system.md) — Outlines both forward and deferred rendering pipelines.
+  - [Graphics System](./graphics_system.md) — Provides a comprehensive abstraction for various graphics APIs (such as OpenGL and Vulkan).
+  - [Rendering System](./rendering_system.md) — Outlines both forward and deferred rendering pipelines.
 
 - **Build System**
-  - [Building & Running](./building-and-running.md) — Instructions on building and running FastCG-based code.
+  - [Building & Running](./building_and_running.md) — Instructions on building and running FastCG-based code.
 
 ---
 
