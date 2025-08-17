@@ -2,9 +2,11 @@
 
 <img src="https://github.com/pboechat/FastCG/blob/master/resources/logo.png" alt="FastCG" height="256px"></img>
 
-A C++ Framework for Rapid 3D Application Prototyping.
+A C++ framework for rapid 3D application prototyping, featuring multi-platform support, multiple graphics backends (OpenGL, Vulkan), advanced rendering techniques, and an easy-to-use component-oriented API.
 
-Originally developed during my M.Sc. realtime rendering course.
+Originally developed as part of an M.Sc. real-time rendering course.
+
+You can read its documentation [here](docs/).
 
 [![CI](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml/badge.svg?branch=main)](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml)
 
