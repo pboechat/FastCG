@@ -8,18 +8,18 @@ Supported Asset Formats
 
 FastCG supports a variety of common asset file formats out-of-the-box:
 
-*   **3D Models:** **OBJ** format for static meshes (via tinyobjloader). OBJ is a simple text format that works well for static geometry. Currently, FastCG does not natively support skeleton animation or more complex formats like FBX or glTF, but those could be converted to OBJ or added via contributions.
+*   **3D Models:** **OBJ** format for static meshes (via [tinyobjloader](https://github.com/syoyo/tinyobjloader)). OBJ is a simple text format that works well for static geometry. Currently, FastCG does not natively support skeleton animation or more complex formats like FBX or glTF, but those could be converted to OBJ or added via contributions.
     
-*   **Images/Textures:** JPEG, PNG, BMP, TGA, and other common image formats are supported for textures (using the stb\_image library to load them at runtime). These are typically used for diffuse maps, normal maps, etc. In addition, FastCG can handle DDS (DirectDraw Surface) format and KTX (Khronos Texture) format, which are container formats often used for GPU-ready textures (with compression like DXT, ETC, ASTC, etc.). By supporting DDS/KTX, FastCG allows you to use pre-compressed textures that load faster and consume less memory on the GPU.
+*   **Images/Textures:** JPEG, PNG, BMP, TGA, and other common image formats are supported for textures (using the [stb_image](https://github.com/nothings/stb) library to load them at runtime). These are typically used for diffuse maps, normal maps, etc. In addition, FastCG can handle DDS (DirectDraw Surface) format and KTX (Khronos Texture) format, which are container formats often used for GPU-ready textures (with compression like DXT, ETC, ASTC, etc.). By supporting DDS/KTX, FastCG allows you to use pre-compressed textures that load faster and consume less memory on the GPU.
     
 *   **Shaders:** GLSL source files (.vert, .frag, etc.) are used for defining shaders. These are not loaded like typical assets at runtime; instead, they are processed by the build pipeline. (See the **Shader Compilation** section below.)
     
-*   **Scenes:** JSON .scene files describe a collection of game objects and their components (discussed in the Component System doc). This is a custom format specific to FastCG. It's essentially an asset that gets loaded to construct a world. Scenes allow level data to be authored externally.
+*   **Scenes:** JSON .scene files describe a collection of game objects and their components (discussed in the [Component System](./component_system.md) section). This is a custom format specific to FastCG. It's essentially an asset that gets loaded to construct a world. Scenes allow level data to be authored externally.
     
-*   **Other resources:** Any additional files (e.g., material definition files, script files if you integrate a scripting language, etc.) can be managed via the AssetSystem as well.
+*   **Other resources:** Any additional files (e.g., material definition files, script files if you integrate a scripting language, etc.) can be managed via the **AssetSystem** as well.
     
 
-At runtime, the **AssetSystem** is responsible for locating and opening asset files. It maintains a list of "bundle” directories (search paths). By default, FastCG will add the application's own assets/ directory to this search list, as well as any framework default assets. When you request an asset by a relative path (for example, "textures/wood.png"), the AssetSystem will search each known bundle directory for that file. This allows flexibility in where assets are stored (useful in development and when packaging the game). On Android, one of the bundle roots might be inside the APK's assets, whereas on desktop it might be a folder on disk.
+At runtime, the **AssetSystem** is responsible for locating and opening asset files. It maintains a list of "bundle" directories (search paths). By default, FastCG will add the application's own assets/ directory to this search list, as well as any framework default assets. When you request an asset by a relative path (for example, "textures/wood.png"), the AssetSystem will search each known bundle directory for that file. This allows flexibility in where assets are stored (useful in development and when packaging the game). On Android, one of the bundle roots might be inside the APK's assets, whereas on desktop it might be a folder on disk.
 
 Build-Time Asset Processing (aka Asset Cooking)
 -----------------------------------------------
