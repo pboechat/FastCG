@@ -8,7 +8,7 @@ on:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       src: ${{ steps.filter.outputs.src }}
     steps:
@@ -22,6 +22,7 @@ jobs:
               - 'examples/**'
               - 'cmake/**'
               - 'CMakeLists.txt'
+              - 'CMakePresets.json'
               - '**/*.c'
               - '**/*.cc'
               - '**/*.cpp'
