@@ -53,28 +53,26 @@ The way it works:
     
 *   During the build, CMake looks for any .recipe files in your assets. For each recipe, it invokes the fastcg\_asset\_cooker.cmake script in a subprocess. That CMake script uses tools like the **KTX-Software** CLI (ktx) for KTX conversion or Microsoft's **texconv** for DDS.
     
-*   If the tools are available on your system (ensure they're in PATH or specify their paths), the script will produce the output texture (e.g., a .ktx or .dds file) as specified.
+*   If the tools are available on your system (ensure they're in PATH or specify their paths), the script will produce the "cooked" asset (e.g., a .ktx or .dds file) as specified.
     
 
-A recipe file is essentially a small CMake script that sets some variables and calls a function. For example, to create a KTX cubemap from 6 images, a recipe might contain (in pseudo-code):
+A recipe file is essentially a text file with key=value pairs, one per line. For example, to create a KTX cubemap from 6 images, a recipe might contain (in pseudo-code):
 
 ```cmake
-set_property(GLOBAL PROPERTY source "px.png, nx.png, py.png, ny.png, pz.png, nz.png")  
-set_property(GLOBAL PROPERTY format "uastc")  
-set_property(GLOBAL PROPERTY cubemap ON)  
-set_property(GLOBAL PROPERTY mipmaps -1)  # -1 might mean generate full mip chain  
-_cook_ktx()  # call the function to produce the KTX
+source=resources/textures/skyboxes/sky_and_sea/right.png,resources/textures/skyboxes/sky_and_sea/left.png,resources/textures/skyboxes/sky_and_sea/top.png,resources/textures/skyboxes/sky_and_sea/bottom.png,resources/textures/skyboxes/sky_and_sea/front.png,resources/textures/skyboxes/sky_and_sea/back.png
+format=R8G8B8A8_UNORM
+cubemap=1
 ```
 
-The above is illustrative - the actual format may differ - but the idea is you specify source files, format (such as a compression format or whether to use sRGB), whether to generate mipmaps, etc., and then call \_cook\_ktx() or \_cook\_dds(). The build will produce skybox.ktx in the output assets, which the framework can load much faster than six separate PNGs.
+A recipe requires you to specify source files and properties specific to the recipe type. For example, a texture recipe might have format (such as a compression format or whether to use sRGB), whether to generate mipmaps, etc. At build time, the build system will produce the cooked asset directly into the deploy directory structure, which usually can then be loaded at runtime much faster than the source.
 
-If no recipe is provided for a texture, FastCG will simply copy the image file to the output assets as-is. You can always choose to manually compress images offline and just include the .ktx or .dds files in your assets if that's easier for you.
+If no recipe is provided for a texture, FastCG will simply copy the image file to the deploy directory structure as-is. You can always choose to manually compress images offline and just include the .ktx or .dds files in your assets if that's easier for you.
 
 ### Asset Copying
 
-For all other assets that are not explicitly cooked or compiled, the build system will copy them to the output. This includes things like model files (.obj), JSON scene files (.scene), and any images that remain in standard formats. The CMake scripts have a section that globs all files in the assets directory and copies them over, excluding those that were processed (to avoid duplicates or copying source GLSL when we already compiled SPIR-V, etc.).
+For all other assets that are not explicitly cooked or compiled, the build system will copy them to the deploy directory structure. This includes things like model files (.obj), JSON scene files (.scene), and any images that remain in standard formats. The CMake scripts have a section that globs all files in the assets directory inside the application source structure and copies them over to the deploy directory structure. Assets that are cooked are excluded from this process to avoid duplicates or copying source GLSL files when SPIR-V binaries have already been compiled.
 
-The assets folder within the deploy structure (deploy/<platform>/<graphics-system>/<project>/assets) will mirror the structure of your source assets folder. Here, `<platform>` refers to the target operating system (such as `Windows`, `Linux`, or `Android`), `<graphics-system>` specifies the graphics API in use (like `OpenGL` or `Vulkan`), and `<project>` is the name of your application or example project. At runtime, the AssetSystem is configured to look in these folders.
+The assets folder within the deploy structure (ie, deploy/<platform>/<graphics-system>/<application>/assets) will mirror the structure of the assets folder within the source structure (ie, <application>/assets). Here, `<platform>` refers to the target operating system (such as `Windows`, `Linux`, or `Android`), `<graphics-system>` specifies the graphics API in use (like `OpenGL` or `Vulkan`), and `<application>` is the name of your application or example project. At runtime, the AssetSystem is configured to look in these folders.
 
 Using AssetSystem at Runtime
 ----------------------------

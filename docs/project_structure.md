@@ -65,7 +65,7 @@ Each module is relatively self-contained, communicating with others through well
 Examples
 --------
 
-The **examples/** directory contains sample applications that demonstrate how to use FastCG. Each example is a small program (with its own main or equivalent via the FASTCG\_MAIN macro) that sets up a scene and showcases certain features:
+The **examples/** directory contains applications that demonstrate how to use FastCG. Each example is a small application (with its own main or equivalent via the FASTCG\_MAIN macro) that sets up a scene and showcases certain features:
 
 *   **deferred\_rendering:** Demonstrates the deferred rendering pipeline with multiple lights, SSAO, shadows, etc.
     

@@ -3,7 +3,7 @@ Rendering System
 ================
 
 
-In this section, we introduce FastCG's rendering system - a core component designed to manage how scenes are drawn on screen. The system provides two distinct rendering paths tailored for different lighting and performance needs. Its design is modular, supporting both forward and deferred rendering, ensuring efficient use of modern graphics APIs like OpenGL and Vulkan.
+In this section, we introduce FastCG's rendering system - a core component designed to manage how scenes are drawn on screen. The system provides two distinct rendering paths tailored for different lighting and performance needs. Its design is modular, supporting both forward and deferred rendering, ensuring efficient use of modern graphics APIs like OpenGL and Vulkan. Additionally, FastCG employs an advanced material sorting and draw call batching strategy. This strategy groups similar rendering commands together and minimizes costly state changes, which optimizes resource usage and maintains high performance, even in complex scenes.
 
 Rendering Paths
 ---------------
