@@ -246,7 +246,8 @@ namespace FastCG
 
         Transform(GameObject *pGameObject, const glm::vec3 &rScale = glm::vec3{1, 1, 1},
                   const glm::quat &rRotation = glm::quat{1, 0, 0, 0}, const glm::vec3 &rPosition = glm::vec3{0, 0, 0})
-            : mpGameObject(pGameObject), mLocalTransform(rScale, rRotation, rPosition), mWorldTransform(mLocalTransform)
+            : mpGameObject(pGameObject), mLocalTransform(rScale, rRotation, rPosition),
+              mWorldTransform(rScale, rRotation, rPosition)
         {
         }
 

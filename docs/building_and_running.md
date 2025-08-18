@@ -1,7 +1,7 @@
 Building & Running
 ==================
 
-FastCG is designed to run on multiple platforms, and its build system (based on CMake) makes it straightforward to compile the framework and examples on each supported OS. This guide covers how to get set up and build FastCG, as well as platform-specific considerations at runtime.
+FastCG is designed to run on multiple platforms. Its build system (based on CMake) makes it straightforward to compile the framework and user applications on each supported OS. This guide covers setup, building, and running FastCG-based applications.
 
 Prerequisites
 -------------
@@ -21,7 +21,7 @@ Prerequisites
 *   **Android:** Android NDK (r21 or later). You will also need Android SDK if you plan to run on a device/emulator, and CMake should be aware of the NDK toolchain.
     
 
-**Third-party dependencies:** FastCG relies on some libraries (like stb\_image, tinyobjloader, Dear ImGui, etc.), which are automatically fetched via CMake. For Vulkan support, you should have the Vulkan SDK installed (to get libraries and glslangValidator compiler). If Vulkan SDK is not installed and you choose Vulkan backend, ensure to set VULKAN\_SDK environment or provide paths so CMake can find Vulkan.
+**Third-party dependencies:** FastCG relies on some libraries (like [stb_image](https://github.com/nothings/stb), [tinyobjloader](https://github.com/syoyo/tinyobjloader), [Dear ImGui](https://github.com/ocornut/imgui), etc.), which are automatically fetched via CMake. For Vulkan support, you should have the Vulkan SDK installed (to get libraries and glslangValidator compiler). If Vulkan SDK is not installed and you choose Vulkan backend, ensure to set VULKAN\_SDK environment or provide paths so CMake can find Vulkan.
 
 ### CMake Presets
 
@@ -41,27 +41,27 @@ cmake --preset windows-msvc-opengl-debug
 | linux-gcc-opengl-release            | Linux    | Unix Makefiles (GCC)         | Release         | OpenGL          | Build FastCG on Linux using GCC and OpenGL in Release mode                           |
 | linux-gcc-vulkan-debug              | Linux    | Unix Makefiles (GCC)         | Debug           | Vulkan          | Build FastCG on Linux using GCC and Vulkan in Debug mode                             |
 | linux-gcc-vulkan-release            | Linux    | Unix Makefiles (GCC)         | Release         | Vulkan          | Build FastCG on Linux using GCC and Vulkan in Release mode                           |
-| linux-clang-opengl-relwithdebinfo   | Linux    | Unix Makefiles (Clang)       | RelWithDebInfo  | OpenGL          | Build FastCG on Linux using Clang and OpenGL in RelWithDebInfo mode                    |
-| linux-clang-vulkan-relwithdebinfo   | Linux    | Unix Makefiles (Clang)       | RelWithDebInfo  | Vulkan          | Build FastCG on Linux using Clang and Vulkan in RelWithDebInfo mode                    |
-| windows-msvc-opengl-debug           | Windows  | Visual Studio 16 2019        | Debug           | OpenGL          | Build FastCG on Windows using MSVC and OpenGL in Debug mode                           |
-| windows-msvc-opengl-release         | Windows  | Visual Studio 16 2019        | Release         | OpenGL          | Build FastCG on Windows using MSVC and OpenGL in Release mode                         |
-| windows-msvc-vulkan-debug           | Windows  | Visual Studio 16 2019        | Debug           | Vulkan          | Build FastCG on Windows using MSVC and Vulkan in Debug mode                           |
-| windows-msvc-vulkan-release         | Windows  | Visual Studio 16 2019        | Release         | Vulkan          | Build FastCG on Windows using MSVC and Vulkan in Release mode                         |
-| windows-msvc-opengl-relwithdebinfo  | Windows  | Visual Studio 16 2019        | RelWithDebInfo  | OpenGL          | Build FastCG on Windows using MSVC and OpenGL in RelWithDebInfo mode                    |
-| windows-msvc-vulkan-relwithdebinfo  | Windows  | Visual Studio 16 2019        | RelWithDebInfo  | Vulkan          | Build FastCG on Windows using MSVC and Vulkan in RelWithDebInfo mode                    |
-| android-opengl-debug                | Android  | Android NDK (Clang)          | Debug           | OpenGL ES 3.2   | Build FastCG for Android using the NDK with OpenGL ES in Debug mode                     |
-| android-opengl-release              | Android  | Android NDK (Clang)          | Release         | OpenGL ES 3.2   | Build FastCG for Android using the NDK with OpenGL ES in Release mode                   |
-| android-vulkan-debug                | Android  | Android NDK (Clang)          | Debug           | Vulkan          | Build FastCG for Android using the NDK with Vulkan in Debug mode                        |
-| android-vulkan-release              | Android  | Android NDK (Clang)          | Release         | Vulkan          | Build FastCG for Android using the NDK with Vulkan in Release mode                      |
-| android-opengl-relwithdebinfo       | Android  | Android NDK (Clang)          | RelWithDebInfo  | OpenGL ES 3.2   | Build FastCG for Android using the NDK with OpenGL ES in RelWithDebInfo mode            |
-| android-vulkan-relwithdebinfo       | Android  | Android NDK (Clang)          | RelWithDebInfo  | Vulkan          | Build FastCG for Android using the NDK with Vulkan in RelWithDebInfo mode               |
+| linux-clang-opengl-relwithdebinfo   | Linux    | Unix Makefiles (Clang)       | RelWithDebInfo  | OpenGL          | Build FastCG on Linux using Clang and OpenGL in RelWithDebInfo mode                  |
+| linux-clang-vulkan-relwithdebinfo   | Linux    | Unix Makefiles (Clang)       | RelWithDebInfo  | Vulkan          | Build FastCG on Linux using Clang and Vulkan in RelWithDebInfo mode                  |
+| windows-msvc-opengl-debug           | Windows  | Visual Studio 16 2019        | Debug           | OpenGL          | Build FastCG on Windows using MSVC and OpenGL in Debug mode                          |
+| windows-msvc-opengl-release         | Windows  | Visual Studio 16 2019        | Release         | OpenGL          | Build FastCG on Windows using MSVC and OpenGL in Release mode                        |
+| windows-msvc-vulkan-debug           | Windows  | Visual Studio 16 2019        | Debug           | Vulkan          | Build FastCG on Windows using MSVC and Vulkan in Debug mode                          |
+| windows-msvc-vulkan-release         | Windows  | Visual Studio 16 2019        | Release         | Vulkan          | Build FastCG on Windows using MSVC and Vulkan in Release mode                        |
+| windows-msvc-opengl-relwithdebinfo  | Windows  | Visual Studio 16 2019        | RelWithDebInfo  | OpenGL          | Build FastCG on Windows using MSVC and OpenGL in RelWithDebInfo mode                 |
+| windows-msvc-vulkan-relwithdebinfo  | Windows  | Visual Studio 16 2019        | RelWithDebInfo  | Vulkan          | Build FastCG on Windows using MSVC and Vulkan in RelWithDebInfo mode                 |
+| android-opengl-debug                | Android  | Android NDK (Clang)          | Debug           | OpenGL ES 3.2   | Build FastCG for Android using the NDK with OpenGL ES in Debug mode                  |
+| android-opengl-release              | Android  | Android NDK (Clang)          | Release         | OpenGL ES 3.2   | Build FastCG for Android using the NDK with OpenGL ES in Release mode                |
+| android-vulkan-debug                | Android  | Android NDK (Clang)          | Debug           | Vulkan          | Build FastCG for Android using the NDK with Vulkan in Debug mode                     |
+| android-vulkan-release              | Android  | Android NDK (Clang)          | Release         | Vulkan          | Build FastCG for Android using the NDK with Vulkan in Release mode                   |
+| android-opengl-relwithdebinfo       | Android  | Android NDK (Clang)          | RelWithDebInfo  | OpenGL ES 3.2   | Build FastCG for Android using the NDK with OpenGL ES in RelWithDebInfo mode         |
+| android-vulkan-relwithdebinfo       | Android  | Android NDK (Clang)          | RelWithDebInfo  | Vulkan          | Build FastCG for Android using the NDK with Vulkan in RelWithDebInfo mode            |
 
 After configuration, build the project, again, using one of the existing presets. The build presets are named exactly the same as the configuration presets prefixed with _build-_, e.g., `build-android-vulkan-release`.
     
 *   CMake will produce the binaries and also process ("cook") assets for the framework library and any FastCG targets-this means converting, preparing, and copying necessary resource files to the deploy directory.
     
 
-**Note:** The build scripts will compile shader files and process assets automatically (see Asset Pipeline). For example, if an example's assets include GLSL shader source, the build will run glslangValidator to compile them. Ensure that the **Vulkan SDK's bin directory (for glslangValidator)** is in your PATH or specify FASTCG\_GLSLANGVALIDATOR CMake variable to point to it.
+**Note:** The build scripts will compile shader files and process assets automatically (see [Asset Pipeline](./asset_pipeline.md)). For example, if an example's assets include GLSL shader source, the build will run glslangValidator to compile them. Ensure that the **Vulkan SDK's bin directory (for glslangValidator)** is in your PATH or specify FASTCG\_GLSLANGVALIDATOR CMake variable to point to it.
 
 ### Platform-Specific Build Notes
 
@@ -69,14 +69,15 @@ After configuration, build the project, again, using one of the existing presets
     
 *   **Linux:** X11 is used for windowing (via Xlib). It requires X11 development packages (libX11-devel, etc.) installed. Also ensure you have OpenGL drivers and libraries. On Linux, OpenGL context creation is done via GLX by default. For Vulkan, the Vulkan loader (libvulkan.so) should be present (install via your package manager, e.g., vulkan-loader and GPU-specific drivers).
     
+*   **Android:** FastCG relies on the native application glue to interface with Android. It also relies on the surface set up by the activity manager, and hooks it with the currently selected graphics system.
 
 
-Running
-----------------------
+Launching
+---------
 
-On desktop (Windows/Linux), running an executable is straightforward. A window should appear showing a 3D scene. You can then resize the window, interact with it or close it to exit. 
+On desktop (Windows/Linux), launching an application is straightforward: you can typically double-click the built executable in your file manager or run it from a terminal (e.g., `./YourAppName`). A window should appear displaying the application's output (for example, a 3D scene if running a graphics example). You can then resize the window, interact with it, or close it to exit. 
 
-On Android, the build process will produce an APK. You will need to sign and install this APK on a device or use Android Studio to deploy. The example will run as an app - note that on Android, application lifecycle (pause/resume) is handled by AndroidApplication internally, and input is routed via Android's input system.
+On Android, launching an application is a bit more elaborate. The build system produces an APK for each executable target. Additionally, it sets up two extra targets for each executable: one for deploying the APK and another for deploying and launching it. As mentioned above, the application will run as a native activity - note that on Android, most application lifecycle events are handled by the `AndroidApplication` class internally, and input is routed via Android's input system.
 
 Platform Differences at Runtime
 -------------------------------
