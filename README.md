@@ -8,7 +8,7 @@ Originally developed as part of an M.Sc. real-time rendering course.
 
 You can read its documentation [here](docs/).
 
-[![CI](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml/badge.svg?branch=main)](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml)
+[![CI](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml/badge.svg?branch=master)](https://github.com/pboechat/FastCG/actions/workflows/ci-pipeline.yml)
 
 Features:
 

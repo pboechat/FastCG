@@ -13,7 +13,7 @@ Supported APIs
 *   **Vulkan 1.1 (with support for 1.2/1.3):** For cutting-edge graphics and explicit GPU control, FastCG provides a Vulkan backend. Vulkan is supported on both desktop and Android (assuming the device and drivers support it). The framework's Vulkan integration was built to take advantage of advanced Vulkan features and versions (1.2, 1.3) when available, while remaining backward-compatible with 1.1.
     
 
-When building FastCG, you choose one graphics backend to compile in (OpenGL or Vulkan) via CMake presets (see [Build](./build.md)).
+When building FastCG, you choose one graphics backend to compile in (OpenGL or Vulkan) via CMake presets (see [Building & Running](./building_and_running.md)).
 
 Abstraction Design
 ------------------
