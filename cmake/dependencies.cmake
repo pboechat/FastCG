@@ -30,10 +30,17 @@ function(_fastcg_fetch_content_declare name)
         SOURCE_DIR "${SOURCE}"
         BINARY_DIR "${BIN}"
         SUBBUILD_DIR "${SUB}"
-        GIT_SHALLOW TRUE
     )
     if(F_GIT_REPOSITORY)
         list(APPEND F_ARGS GIT_REPOSITORY "${F_GIT_REPOSITORY}")
+        set(_fastcg_git_tag_is_hash FALSE)
+        string(LENGTH "${F_GIT_TAG}" _fastcg_git_tag_length)
+        if(_fastcg_git_tag_length EQUAL 40 AND "${F_GIT_TAG}" MATCHES "^[0-9a-fA-F]+$")
+            set(_fastcg_git_tag_is_hash TRUE)
+        endif()
+        if(NOT _fastcg_git_tag_is_hash)
+            list(APPEND F_ARGS GIT_SHALLOW TRUE)
+        endif()
     endif()
     if(F_GIT_TAG)
         list(APPEND F_ARGS GIT_TAG "${F_GIT_TAG}")
@@ -41,8 +48,12 @@ function(_fastcg_fetch_content_declare name)
     if(F_URL)
         list(APPEND F_ARGS URL "${F_URL}")
     endif()
-    if(F_GIT_SUBMODULES)
-        list(APPEND F_ARGS GIT_SUBMODULES ${F_GIT_SUBMODULES})
+    set(_fastcg_git_submodules_was_provided FALSE)
+    if("GIT_SUBMODULES" IN_LIST ARGN)
+        set(_fastcg_git_submodules_was_provided TRUE)
+        if(F_GIT_SUBMODULES)
+            list(APPEND F_ARGS GIT_SUBMODULES ${F_GIT_SUBMODULES})
+        endif()
     endif()
     if(F_PATCH_COMMAND)
         list(APPEND F_ARGS PATCH_COMMAND ${F_PATCH_COMMAND})
@@ -56,7 +67,11 @@ function(_fastcg_fetch_content_declare name)
     set(${name}_OVERRIDE_SOURCE_DIR "${SOURCE}" PARENT_SCOPE)
     set(${name}_OVERRIDE_BINARY_DIR "${BIN}"    PARENT_SCOPE)
 
-    FetchContent_Declare(${name} ${F_ARGS})
+    if(_fastcg_git_submodules_was_provided AND NOT F_GIT_SUBMODULES)
+        FetchContent_Declare(${name} ${F_ARGS} GIT_SUBMODULES "")
+    else()
+        FetchContent_Declare(${name} ${F_ARGS})
+    endif()
 endfunction()
 
 set(FETCHCONTENT_QUIET OFF)
@@ -104,7 +119,6 @@ if(FASTCG_GRAPHICS_SYSTEM STREQUAL "OpenGL" AND NOT FASTCG_PLATFORM STREQUAL "An
     _fastcg_fetch_content_declare(glew_cmake
         GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
         GIT_TAG 918ece3da858c2e28e10f6507378af01647cb139
-        GIT_SHALLOW TRUE
     )
     set(USE_GLU ON CACHE BOOL "" FORCE)
     set(ONLY_LIBS ON CACHE BOOL "" FORCE)
@@ -116,7 +130,6 @@ endif()
 _fastcg_fetch_content_declare(glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
     GIT_TAG 2d4c4b4dd31fde06cfffad7915c2b3006402322f
-    GIT_SHALLOW TRUE
 )
 set(GLM_ENABLE_CXX_20 ON CACHE BOOL "" FORCE)
 FetchContent_GetProperties(glm)
@@ -143,7 +156,6 @@ endif()
 _fastcg_fetch_content_declare(imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG 2b24f5fa71d124de108da54d9da49ea3049dc91e
-    GIT_SHALLOW TRUE
 )
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
@@ -169,7 +181,6 @@ target_compile_definitions(imgui PUBLIC
 _fastcg_fetch_content_declare(ImGuizmo
     GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
     GIT_TAG 3e725628fa64986c71ebc7c764621a8e7423fef4
-    GIT_SHALLOW TRUE
 )
 FetchContent_GetProperties(ImGuizmo)
 if(NOT ImGuizmo_POPULATED)
@@ -197,7 +208,6 @@ endif()
 _fastcg_fetch_content_declare(ImGuiFileDialog
     GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
     GIT_TAG 58292701b8224e58703d15811b69a39444185e30
-    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(ImGuiFileDialog)
 if(TARGET ImGuiFileDialog)
@@ -213,7 +223,7 @@ endif()
 _fastcg_fetch_content_declare(ktx
     GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software.git
     GIT_TAG beef80159525d9fb7abb8645ea85f4c4f6842e8f
-    GIT_SHALLOW TRUE
+    GIT_SUBMODULES ""
 )
 set(KTX_FEATURE_TOOLS OFF CACHE BOOL "" FORCE)
 set(KTX_FEATURE_STATIC_LIBRARY ON CACHE BOOL "" FORCE)
@@ -226,7 +236,6 @@ if(FASTCG_PLATFORM STREQUAL "Linux")
     _fastcg_fetch_content_declare(messagebox_x11
         GIT_REPOSITORY https://github.com/Eleobert/MessageBox-X11.git
         GIT_TAG 0fc63f4159282bb6c9d94a3bdcdbac209b576efd
-        GIT_SHALLOW TRUE
     )
     FetchContent_GetProperties(messagebox_x11)
     if(NOT messagebox_x11_POPULATED)
@@ -250,7 +259,7 @@ endif()
 _fastcg_fetch_content_declare(rapidjson
     GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
     GIT_TAG 24b5e7a8b27f42fa16b96fc70aade9106cf7102f
-    GIT_SHALLOW TRUE
+    GIT_SUBMODULES ""
 )
 set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "" FORCE)
 set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -271,7 +280,6 @@ endif()
 _fastcg_fetch_content_declare(stb
     GIT_REPOSITORY https://github.com/nothings/stb.git
     GIT_TAG f58f558c120e9b32c217290b80bad1a0729fbb2c
-    GIT_SHALLOW TRUE
 )
 FetchContent_GetProperties(stb)
 if(NOT stb_POPULATED)
@@ -289,7 +297,6 @@ endif()
 _fastcg_fetch_content_declare(tinyobj_loader_c
     GIT_REPOSITORY https://github.com/syoyo/tinyobjloader-c.git
     GIT_TAG 0f8ea84a0da616790b476912e1ccc641f36b463e
-    GIT_SHALLOW TRUE
 )
 FetchContent_GetProperties(tinyobj_loader_c)
 if(NOT tinyobj_loader_c_POPULATED)
@@ -314,7 +321,6 @@ if(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
         _fastcg_fetch_content_declare(SPIRV_Cross
             GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
             GIT_TAG d8e3e2b141b8c8a167b2e3984736a6baacff316c
-            GIT_SHALLOW TRUE
         )
         set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
         set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
@@ -330,7 +336,6 @@ if(FASTCG_GRAPHICS_SYSTEM STREQUAL "Vulkan")
     _fastcg_fetch_content_declare(VulkanMemoryAllocator
         GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
         GIT_TAG 1076b348abd17859a116f4b111c43d58a588a086
-        GIT_SHALLOW TRUE
     )
     set(VMA_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(VulkanMemoryAllocator)
@@ -359,7 +364,6 @@ endif()
 _fastcg_fetch_content_declare(zlib
     GIT_REPOSITORY https://github.com/madler/zlib.git
     GIT_TAG 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71
-    GIT_SHALLOW TRUE
 )
 set(ZLIB_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(zlib)
